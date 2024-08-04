@@ -20,7 +20,7 @@ If you need to generate *sha256*, *sha384* or *sha512* hashes for your *Admin ke
 I added the ability to scan QR codes in **Android PIN Unblocker** using the below Basic4Android library:
 - [NewQRCodeReaderView](https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/post-523013)
 
-![You can click the QR code button to scan the Request Code.](https://i.postimg.cc/NGCr3HNr/7-ability-to-scan-request-qr-code.png)
+![You can click the QR code button to scan the Request Code.](https://i.postimg.cc/kD848BPn/7-ability-to-scan-request-qr-code.png)
 
 It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.codetwo.com/freeware/qr-code-desktop-reader/)** to do the card unblocking more efficiently.
 
