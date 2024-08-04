@@ -15,6 +15,17 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 If you need to generate *sha256*, *sha384* or *sha512* hashes for your *Admin key* then you can use a different existing Android application to generate it.
 
+## Scan QR codes (for Request Code)
+
+I added the ability to scan QR codes in **Android PIN Unblocker** using the below Basic4Android library:
+- [NewQRCodeReaderView](https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/post-523013)
+
+![You can click the QR code button to scan the Request Code.](https://i.postimg.cc/NGCr3HNr/7-ability-to-scan-request-qr-code.png)
+
+It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.codetwo.com/freeware/qr-code-desktop-reader/)** to do the card unblocking more efficiently.
+
+You can later install an agent program into e.g. employees' computers to type the unblock code with the Android *Share To* functionality.
+
 ## Generate the Unblock Code
 
 ![Generating the smartcard unblock code.](https://i.postimg.cc/sBBz5z2T/1-generate-unblock-key.png)
@@ -68,6 +79,6 @@ This feature prevents accidental disclosure of your *Admin key* while unblocking
 
 # License
 
-Well I don't care about legalese anyway but let's pick **GNU GPLv3** since my friends at the [Free Software Foundation](https://www.gnu.org/proprietary/proprietary.html) recommend it.
+Well I don't care about legalese anyway but let's pick **GNU GPLv3 (or later version)** since my friends at the [Free Software Foundation](https://www.gnu.org/proprietary/proprietary.html) recommend it.
 
 **Basic4Android** also allows completely free usage of their IDE for both commercial and non-commercial purposes so it should be OK.

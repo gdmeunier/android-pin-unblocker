@@ -1,23 +1,25 @@
 ﻿Build1=Default,net.generic.smartcardpuk
-File1=Layout.bal
+File1=MainLayout.bal
+File2=ScanChallenge.bal
 FileGroup1=Default Group
+FileGroup2=Default Group
 Group=Default Group
 Library1=core
 Library2=javaobject
 Library3=xui
-ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~~\n~' Add Share To functionality for receiving data~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~
-Module1=Starter
-NumberOfFiles=1
-NumberOfLibraries=3
-NumberOfModules=1
+Library4=newqrcodereaderview
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~~\n~' Add Share To functionality for receiving data~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Add support for scanning the Request Code~\n~'Remove unnecessary permission line (already added by NewQRCodeView)~\n~'AddPermission(android.permission.CAMERA)~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Fix the foreground service issue (app still running)~\n~'RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+NumberOfFiles=2
+NumberOfLibraries=4
+NumberOfModules=0
 Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 5
-	#VersionName: 1.3.1
+	#VersionCode: 7
+	#VersionName: 1.4.1
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
-	#SupportedOrientations: unspecified
+	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
 	
 	#BridgeLogger: False
@@ -27,6 +29,33 @@ Version=12.5
 	#FullScreen: False
 	#IncludeTitle: True
 #End Region
+
+' Changelog (starting at 1.3.0)
+'
+' 1.4.1 :: (x) Fixed the Share To behavior when sharing Admin key to Android PIN Unblocker to the
+'              intended one (being able to also share 42-digits Admin keys instead of only 48-digits)
+'
+'          (+) Added portrait-only display attribute to force portrait orientation while the App is running
+'
+'          (x) Optimized the behavior of the UI layout loading & hiding functions to minimize unnecessary
+'              layout reveals & hidings
+'
+'          (x) Fixed the btnScanRequest_Click function for QR codes by adding setBackCamera() prior to
+'              loading the QR scanner preview (trying to make it work on Android emulators)
+'
+'              * It still works well with real Android devices though
+'
+'          (x) Increased QR code's scan autofocus interval to 1000ms instead of 500ms
+'          (x) Optimized the order of functions in the QR code back button, result_found & for showing it
+'
+'          (x) Removed unnecessary challengeCode sanitization in the Java native function for generating
+'              the unblockPin since I already do it in btnGenerateRequest_Click()
+'
+' 1.4.0 :: (+) Added the ability to scan QR codes (requires more permissions, camera + flashlight)
+'          (x) Fixed the XUI layout of the Main UI & Scan Challenge one to better fit many display DPIs
+'
+' 1.3.1 :: (x) Fixed remnant background service by deleting Starter.bas
+'          (x) Removed leftover code variable display in error output for invalid challenge format
 
 #If JAVA
 
@@ -63,10 +92,39 @@ Sub Globals
 	Private chkPasswordMode As CheckBox
 	Private inpResponse As EditText
 	
+	'Add support for scanning the Request Code
+	Private btnScanRequest As Button
+	
+	'Add support for scanning the Request Code
+	Private qrReaderView As NewQRCodeReaderView
+	Private btnToggleFlashlight As Button
+	
+	Private isTorchEnabled As Boolean
+	Private isScanInProgress As Boolean
+	
+	Private btnGoBack As Button
+	
+	'Misc elements of the UI for hiding views
+	Private lblChallenge As Label
+	Private lblAdminKey As Label
+	Private btnGenerate As Button
+	Private lblResponse As Label
+	Private btnShareResponse As Button
+	
+	'Misc elements of the UI for hiding views
+	Private lblScanChallenge As Label
+	
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
-	Activity.LoadLayout("Layout")
+	
+	'Faster method for loading then hiding Scan Challenge UI
+	'This way no need go explicitly show the Main UI
+	Activity.LoadLayout("ScanChallenge")
+	SetScanLayout(False)
+	Activity.LoadLayout("MainLayout")
+	
+	Activity.Title = "Android PIN Unblocker"
 	
 	If FirstTime Then
 		NativeMe.InitializeContext
@@ -75,6 +133,123 @@ Sub Activity_Create(FirstTime As Boolean)
 	'Hide the Admin Key by default, better for adding the 'Share To' function later on
 	chkPasswordMode.Checked = True
 	inpAdminKey.PasswordMode = True
+	
+End Sub
+
+Sub SetMainLayout(Show As Boolean)
+	
+	lblChallenge.Visible = Show
+	inpChallenge.Visible = Show
+	btnScanRequest.Visible = Show
+	
+	lblAdminKey.Visible = Show
+	inpAdminKey.Visible = Show
+	chkPasswordMode.Visible = Show
+	
+	btnGenerate.Visible = Show
+	
+	lblResponse.Visible = Show
+	inpResponse.Visible = Show
+	btnShareResponse.Visible = Show
+	
+	If Show Then
+		Activity.Title = "Android PIN Unblocker"
+	End If
+	
+End Sub
+
+Sub SetScanLayout(Show As Boolean)
+	
+	lblScanChallenge.Visible = Show
+	qrReaderView.Visible = Show
+	
+	btnToggleFlashlight.Visible = Show
+	btnGoBack.Visible = Show
+	
+	If Show Then
+		Activity.Title = "Scan Challenge"
+	End If
+	
+End Sub
+
+Sub Activity_KeyPress(KeyCode As Int) As Boolean
+	
+	If KeyCode = KeyCodes.KEYCODE_BACK Then
+		
+		If isScanInProgress Then
+			SetScanLayout(False)
+			SetMainLayout(True)
+			
+			isScanInProgress = False
+		Else
+			ExitApplication()
+		End If
+		
+		Return True
+	Else
+		Return False
+	End If
+	
+End Sub
+
+Private Sub btnToggleFlashlight_Click
+	
+	isTorchEnabled = Not(isTorchEnabled)
+	qrReaderView.TorchEnabled = isTorchEnabled
+	
+End Sub
+
+Private Sub btnGoBack_Click
+	
+	qrReaderView.stopCamera()
+	
+	SetScanLayout(False)
+	SetMainLayout(True)
+	
+	isTorchEnabled = False
+	qrReaderView.TorchEnabled = isTorchEnabled
+	
+	isScanInProgress = False
+	
+End Sub
+
+Private Sub btnScanRequest_Click
+
+	isScanInProgress = True
+	
+	isTorchEnabled = False
+	qrReaderView.TorchEnabled = isTorchEnabled
+	
+	qrReaderView.QRDecodingEnabled = True
+	qrReaderView.AutofocusInterval = 1000
+	qrReaderView.ResultPointColor = Colors.Red
+	
+	'Hotfix for QR scan not working in emulator
+	'It still worked in real Android devices
+	qrReaderView.setBackCamera()
+	
+	SetMainLayout(False)
+	
+	qrReaderView.ScanNow = True
+	qrReaderView.startCamera()
+	
+	SetScanLayout(True)
+	
+End Sub
+
+Private Sub qrReaderView_result_found(ReturnValue As String)
+	
+	qrReaderView.stopCamera()
+	
+	SetScanLayout(False)
+	SetMainLayout(True)
+	
+	inpChallenge.Text = ReturnValue
+	
+	isTorchEnabled = False
+	qrReaderView.TorchEnabled = isTorchEnabled
+	
+	isScanInProgress = False
 	
 End Sub
 
@@ -97,8 +272,15 @@ Sub Activity_Resume
 		Dim receivedData As String = intReceivedIntent.GetExtra("android.intent.extra.TEXT")
 		receivedData = Regex.Replace2("^[^0-9a-f]$", Regex.CASE_INSENSITIVE, receivedData, "")
 		
-		If receivedData <> "" And receivedData.Length >= 48 Then
-			receivedData = receivedData.SubString2(0, 48)
+		'Admin Keys can be 42-digits too (hex)
+		If receivedData <> "" And (receivedData.Length >= 42) Then
+			
+			'Admin Keys can be 42-digits too (hex)
+			If receivedData.Length >= 48 Then
+				receivedData = receivedData.SubString2(0, 48)
+			Else
+				receivedData = receivedData.SubString2(0, 42)
+			End If
 			
 			'Set the Admin Key text with the received & sanitized data
 			inpAdminKey.Text = receivedData
@@ -120,6 +302,7 @@ Private Sub btnShareResponse_Click
 	ResponseShareIntent.PutExtra("android.intent.extra.TEXT", inpResponse.Text)
 	
 	ResponseShareIntent.WrapAsIntentChooser("Share The Response Code")
+	
 	StartActivity(ResponseShareIntent)
 	
 End Sub
@@ -134,10 +317,10 @@ Private Sub chkPasswordMode_CheckedChange(Checked As Boolean)
 	
 End Sub
 
-Sub btnGenerate_Click
+Private Sub btnGenerate_Click
 	'
 	'NativeMe.RunMethod("GenerateUnblockPin", Null)
-	'NativeMe.Runmethod("GenerateUnblockPin",Array("String1","String2"))
+	'NativeMe.RunMethod("GenerateUnblockPin", Array("String1", "String2"))
 	'
 	'xui.MsgboxAsync("Unblock PIN:" & strUnblockPin, "Generated Code")
 	'
@@ -187,9 +370,10 @@ End Sub
 
 public String GenerateUnblockPin(final String challengeCode, final String adminKey) throws Exception {
 	
-	String sanitizedChallengeCode = challengeCode.replace("-", "").replace(" ", "");
+	// String sanitizedChallengeCode = challengeCode.replace("-", "").replace(" ", "");
 	
-    byte[] challengeCodeBytes     = HexToolFromString(sanitizedChallengeCode);
+	// No need to redo the challengeCode sanitization since I already did with btnGenerateResponse_Click()
+    byte[] challengeCodeBytes     = HexToolFromString(challengeCode);
 	
 	final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
 	
