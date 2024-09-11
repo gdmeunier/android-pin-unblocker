@@ -8,7 +8,7 @@ Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
 Library4=xui
-ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera.any" android:required="true"/>)~\n~~\n~'AddApplicationText(<application android:requestLegacyExternalStorage="true"/>)~\n~~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~~\n~' Add Share To functionality for receiving data~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Add support for scanning the Request Code~\n~'Remove unnecessary permission line (already added by NewQRCodeView)~\n~AddPermission(android.permission.CAMERA)~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Fix the foreground service issue (app still running)~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>)~\n~' Avoid asking for the camera if user doesn't have any (app works anyway without QR)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'AddApplicationText(<application android:requestLegacyExternalStorage="true"/>)~\n~~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~~\n~' Add Share To functionality for receiving data~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Add support for scanning the Request Code~\n~'Remove unnecessary permission line (already added by NewQRCodeView)~\n~AddPermission(android.permission.CAMERA)~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Fix the foreground service issue (app still running)~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 NumberOfFiles=2
 NumberOfLibraries=4
 NumberOfModules=0
@@ -16,8 +16,8 @@ Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 8
-	#VersionName: 1.5.0
+	#VersionCode: 9
+	#VersionName: 1.6.0
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -32,8 +32,11 @@ Version=12.5
 
 ' Changelog (starting at 1.3.0)
 '
+' 1.6.0 :: (+) Added the ability to use 32-digits Admin keys (for some HID Crescendo cards)
+'              It's now allowed to use 32-digits, 42-digits & 48-digits Admin keys
+'
 ' 1.5.0 :: (+) Added the ability to switch between the front and back cameras of real Android phones
-'          (x) Fixed main layout's 'Android PIN Unblocker' and 'Scan Challenge' text paddings.
+'          (x) Fixed main layout's 'Android PIN Unblocker' and 'Scan Challenge' text paddings
 '
 ' 1.4.1 :: (x) Fixed the Share To behavior when sharing Admin key to Android PIN Unblocker to the
 '              intended one (being able to also share 42-digits Admin keys instead of only 48-digits)
@@ -326,14 +329,16 @@ Sub Activity_Resume
 		Dim receivedData As String = intReceivedIntent.GetExtra("android.intent.extra.TEXT")
 		receivedData = Regex.Replace2("^[^0-9a-f]$", Regex.CASE_INSENSITIVE, receivedData, "")
 		
-		'Admin Keys can be 42-digits too (hex)
-		If receivedData <> "" And (receivedData.Length >= 42) Then
+		'Admin Keys can be 32-digits or 42-digits too (hex)
+		If receivedData <> "" And (receivedData.Length >= 32) Then
 			
-			'Admin Keys can be 42-digits too (hex)
+			'Admin Keys can be 32-digits or 42-digits too (hex)
 			If receivedData.Length >= 48 Then
 				receivedData = receivedData.SubString2(0, 48)
-			Else
+			Else If receivedData.Length >= 42 And receivedData.Length < 48 Then
 				receivedData = receivedData.SubString2(0, 42)
+			Else
+				receivedData = receivedData.SubString2(0, 32)
 			End If
 			
 			'Set the Admin Key text with the received & sanitized data
@@ -398,9 +403,15 @@ Private Sub btnGenerate_Click
 	Dim sanitizedChallenge As String = inpChallenge.Text.Replace(" ", "").Replace("-", "")
 	Dim sanitizedAdminKey  As String = inpAdminKey.Text.Replace(" ", "").Replace("-", "")
 	
-	' Allow 42 chars upto 48 chars (some cards have nonstandard Admin keys)
+	' Allow 32 chars upto 48 chars (some cards have nonstandard Admin keys)
 	If Regex.IsMatch2("^[0-9a-f]{16}$",    Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
-	Or Regex.IsMatch2("^[0-9a-f]{42,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
+	Or Regex.IsMatch2("^[0-9a-f]{32,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
+		inpResponse.Text = "Invalid input(s) format."
+		Return
+	End If
+	
+	' Verify the exact allowed Admin key lengths (32, 42, 48)
+	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 42 And sanitizedAdminKey.Length <> 48 Then
 		inpResponse.Text = "Invalid input(s) format."
 		Return
 	End If
