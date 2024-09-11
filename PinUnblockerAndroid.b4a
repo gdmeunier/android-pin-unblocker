@@ -16,8 +16,8 @@ Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 9
-	#VersionName: 1.6.0
+	#VersionCode: 10
+	#VersionName: 1.6.1
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -31,6 +31,10 @@ Version=12.5
 #End Region
 
 ' Changelog (starting at 1.3.0)
+
+' 1.6.1 :: (x) Fixed the ability to use 32-digits Admin keys (algorithm changed to AES-128, no DESede)
+'          (x) Reworked the Scan Challenge window layout to accomodate larger challenge codes and
+'              Admin keys (up to 32-chars challenge codes)
 '
 ' 1.6.0 :: (+) Added the ability to use 32-digits Admin keys (for some HID Crescendo cards)
 '              It's now allowed to use 32-digits, 42-digits & 48-digits Admin keys
@@ -69,6 +73,9 @@ import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
+
+// Add AES-128 Admin keys support (32-digits)
+import javax.crypto.spec.SecretKeySpec;
 
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.DESedeKeySpec;
@@ -383,12 +390,6 @@ Private Sub btnGenerate_Click
 	'
 	'xui.MsgboxAsync("Unblock PIN:" & strUnblockPin, "Generated Code")
 	'
-	'FFFF-FFFF-FFFF-FFFF
-	'000000000000000000000000000000000000000000000000
-	'3555-50B2-150E-2451
-	'
-	'0123-4567-89AB-CDEF
-	'
 	
 	If inpChallenge.Text == Null Or inpAdminKey.Text == Null Then
 		inpResponse.Text = "No input(s) provided."
@@ -404,7 +405,9 @@ Private Sub btnGenerate_Click
 	Dim sanitizedAdminKey  As String = inpAdminKey.Text.Replace(" ", "").Replace("-", "")
 	
 	' Allow 32 chars upto 48 chars (some cards have nonstandard Admin keys)
-	If Regex.IsMatch2("^[0-9a-f]{16}$",    Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
+	' If using AES-128 then the challenge will be 16 bytes (32 chars)
+	'
+	If Regex.IsMatch2("^[0-9a-f]{16,32}$",    Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
 	Or Regex.IsMatch2("^[0-9a-f]{32,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
 		inpResponse.Text = "Invalid input(s) format."
 		Return
@@ -412,18 +415,34 @@ Private Sub btnGenerate_Click
 	
 	' Verify the exact allowed Admin key lengths (32, 42, 48)
 	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 42 And sanitizedAdminKey.Length <> 48 Then
-		inpResponse.Text = "Invalid input(s) format."
+		inpResponse.Text = "Invalid Admin Key length."
+		Return
+	End If
+	
+	' Verify the exact allowed challenge code lengths (16 & 32)
+	If sanitizedChallenge.Length <> 16 And sanitizedChallenge.Length <> 32 Then
+		inpResponse.Text = "Invalid Challenge Code length."
+		Return
+	End If
+	
+	' Disallow challenge code length mismatches with their Admin keys
+	If sanitizedChallenge.Length == 32 And sanitizedAdminKey.Length <> 32 Then
+		inpResponse.Text = "Mismatched AES-128 Admin Key format."
+		Return
+	Else If sanitizedChallenge.Length == 16 And (sanitizedAdminKey.Length <> 42 And sanitizedAdminKey.Length <> 48) Then
+		inpResponse.Text = "Mismatched DES-EDE Admin Key format."
 		Return
 	End If
 	
 	Dim unblockPin As String = NativeMe.Runmethod("GenerateUnblockPin", Array(sanitizedChallenge, sanitizedAdminKey))
 	
 	'Cans be tweaked to have separators if needed (4x4)
-	inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
-	
-	'Debug facilities
-	'Log("Logger: " & sanitizedChallenge)
-	'Log("Logger: " & sanitizedAdminKey)
+	'
+	If unblockPin.Length == 16 Then
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
+	Else If unblockPin.Length == 32 Then
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4 $5 $6 $7 $8")
+	End If
 	
 End Sub
 
@@ -438,16 +457,36 @@ public String GenerateUnblockPin(final String challengeCode, final String adminK
 	// String sanitizedChallengeCode = challengeCode.replace("-", "").replace(" ", "");
 	
 	// No need to redo the challengeCode sanitization since I already did with btnGenerateResponse_Click()
-    byte[] challengeCodeBytes     = HexToolFromString(challengeCode);
+    byte[] challengeCodeBytes = HexToolFromString(challengeCode);
+	byte[] adminKeyBytes      = HexToolFromString(adminKey);
 	
-	final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
+	//
+	// Add support for 32-digits Admin keys (AES-128 algorithm)
+	//
 	
-    final SecretKey generatedSecret = skf.generateSecret(new DESedeKeySpec(HexToolFromString(adminKey)));
-    final Cipher desEdeInstance     = Cipher.getInstance("DESede/ECB/NoPadding");
+	byte[] temporary;
 	
-    desEdeInstance.init(1, generatedSecret);
-	
-	byte[] temporary = desEdeInstance.doFinal(challengeCodeBytes);
+	// 32-chars Admin key is AES-128 so the challenge code must be 16 bytes (32-chars too)
+	if ( adminKey.length() == 32 && challengeCode.length() == 32 )
+	{
+		final SecretKey generatedAesKey = new SecretKeySpec(adminKeyBytes, "AES");
+		
+		final Cipher aesInstance = Cipher.getInstance("AES/ECB/NoPadding");
+		aesInstance.init(1, generatedAesKey);
+		
+		temporary = aesInstance.doFinal(challengeCodeBytes);
+	}
+	// For DES-EDE the challenge code is 8 bytes (16-chars)
+	else
+	{
+		final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
+	    final SecretKey generatedDesEdeSecret = skf.generateSecret(new DESedeKeySpec(adminKeyBytes));
+		
+	    final Cipher desEdeInstance = Cipher.getInstance("DESede/ECB/NoPadding");
+	    desEdeInstance.init(1, generatedDesEdeSecret);
+		
+		temporary = desEdeInstance.doFinal(challengeCodeBytes);
+	}
 	
 	return HexToolToString(temporary);
 }
