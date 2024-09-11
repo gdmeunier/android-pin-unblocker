@@ -1,0 +1,16 @@
+#
+# Gitignore
+#
+
+# Backups
+AutoBackups/*
+
+# APK Generator
+Objects/*
+
+# Releases
+Releases/*
+
+# APK files
+*.apk
+
