@@ -16,8 +16,8 @@ Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 10
-	#VersionName: 1.6.1
+	#VersionCode: 11
+	#VersionName: 2.0.0
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -32,6 +32,12 @@ Version=12.5
 
 ' Changelog (starting at 1.3.0)
 
+' 2.0.0 :: (-) New backwards-incompatible change, removing support for 42-digits Admin keys
+'              Turns out it was a mistake in the NFC Connector Enterprise software from MySmartLogon which
+'              should be using 48-digits Admin keys, not 42 (these keys don't exist anywhere else)
+'
+'          (x) Increased the camera autofocus delay from 1000ms to 1500ms to avoid too-fast refocus before QR scan
+'
 ' 1.6.1 :: (x) Fixed the ability to use 32-digits Admin keys (algorithm changed to AES-128, no DESede)
 '          (x) Reworked the Scan Challenge window layout to accomodate larger challenge codes and
 '              Admin keys (up to 32-chars challenge codes)
@@ -149,6 +155,14 @@ Sub Activity_Create(FirstTime As Boolean)
 	chkPasswordMode.Checked = True
 	inpAdminKey.PasswordMode = True
 	
+	' Show the length of the Admin key
+	'
+	If inpAdminKey.Text.Length < 1 Then
+		lblAdminKey.Text = "Admin Key:"
+	Else
+		lblAdminKey.Text = "Admin Key: ("&inpAdminKey.Text.Length&" chars)"
+	End If
+		
 End Sub
 
 Sub SetMainLayout(Show As Boolean)
@@ -220,7 +234,7 @@ Private Sub btnToggleCameraSide_Click
 	
 	qrReaderView.TorchEnabled = isTorchEnabled
 	qrReaderView.QRDecodingEnabled = True
-	qrReaderView.AutofocusInterval = 1000
+	qrReaderView.AutofocusInterval = 1500
 	qrReaderView.ResultPointColor = Colors.Red
 	
 	isBackCamera = Not(isBackCamera)
@@ -276,7 +290,7 @@ Private Sub btnScanRequest_Click
 	qrReaderView.TorchEnabled = isTorchEnabled
 	
 	qrReaderView.QRDecodingEnabled = True
-	qrReaderView.AutofocusInterval = 1000
+	qrReaderView.AutofocusInterval = 1500
 	qrReaderView.ResultPointColor = Colors.Red
 	
 	qrReaderView.PreviewCameraId = 0
@@ -294,6 +308,17 @@ Private Sub btnScanRequest_Click
 	qrReaderView.startCamera()
 	
 	SetScanLayout(True)
+	
+End Sub
+
+Private Sub inpAdminKey_TextChanged(Old As String, New As String)
+	' Show the length of the Admin key
+	'
+	If New.Length < 1 Then
+		lblAdminKey.Text = "Admin Key:"
+	Else
+		lblAdminKey.Text = "Admin Key: ("&New.Length&" chars)"
+	End If
 	
 End Sub
 
@@ -336,20 +361,25 @@ Sub Activity_Resume
 		Dim receivedData As String = intReceivedIntent.GetExtra("android.intent.extra.TEXT")
 		receivedData = Regex.Replace2("^[^0-9a-f]$", Regex.CASE_INSENSITIVE, receivedData, "")
 		
-		'Admin Keys can be 32-digits or 42-digits too (hex)
+		'Admin Keys can be 48-digits or 32-digits too (hex)
 		If receivedData <> "" And (receivedData.Length >= 32) Then
 			
-			'Admin Keys can be 32-digits or 42-digits too (hex)
 			If receivedData.Length >= 48 Then
 				receivedData = receivedData.SubString2(0, 48)
-			Else If receivedData.Length >= 42 And receivedData.Length < 48 Then
-				receivedData = receivedData.SubString2(0, 42)
 			Else
 				receivedData = receivedData.SubString2(0, 32)
 			End If
 			
 			'Set the Admin Key text with the received & sanitized data
 			inpAdminKey.Text = receivedData
+		End If
+		
+		' Show the length of the Admin key
+		'
+		If inpAdminKey.Text.Length < 1 Then
+			lblAdminKey.Text = "Admin Key:"
+		Else
+			lblAdminKey.Text = "Admin Key: ("&inpAdminKey.Text.Length&" chars)"
 		End If
 		
 	End If
@@ -404,7 +434,7 @@ Private Sub btnGenerate_Click
 	Dim sanitizedChallenge As String = inpChallenge.Text.Replace(" ", "").Replace("-", "")
 	Dim sanitizedAdminKey  As String = inpAdminKey.Text.Replace(" ", "").Replace("-", "")
 	
-	' Allow 32 chars upto 48 chars (some cards have nonstandard Admin keys)
+	' Allow 32 chars upto 48 chars (some cards have nonstandard Admin keys, e.g. Crescendo Keys with AES-128)
 	' If using AES-128 then the challenge will be 16 bytes (32 chars)
 	'
 	If Regex.IsMatch2("^[0-9a-f]{16,32}$",    Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
@@ -413,8 +443,8 @@ Private Sub btnGenerate_Click
 		Return
 	End If
 	
-	' Verify the exact allowed Admin key lengths (32, 42, 48)
-	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 42 And sanitizedAdminKey.Length <> 48 Then
+	' Verify the exact allowed Admin key lengths (32 and 48 Hex digits)
+	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 48 Then
 		inpResponse.Text = "Invalid Admin Key length."
 		Return
 	End If
@@ -429,7 +459,7 @@ Private Sub btnGenerate_Click
 	If sanitizedChallenge.Length == 32 And sanitizedAdminKey.Length <> 32 Then
 		inpResponse.Text = "Mismatched AES-128 Admin Key format."
 		Return
-	Else If sanitizedChallenge.Length == 16 And (sanitizedAdminKey.Length <> 42 And sanitizedAdminKey.Length <> 48) Then
+	Else If sanitizedChallenge.Length == 16 And sanitizedAdminKey.Length <> 48 Then
 		inpResponse.Text = "Mismatched DES-EDE Admin Key format."
 		Return
 	End If
@@ -441,7 +471,8 @@ Private Sub btnGenerate_Click
 	If unblockPin.Length == 16 Then
 		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
 	Else If unblockPin.Length == 32 Then
-		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4 $5 $6 $7 $8")
+		' Easier to display AES-128 Response Codes without spacing
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1$2$3$4$5$6$7$8")
 	End If
 	
 End Sub
@@ -464,11 +495,16 @@ public String GenerateUnblockPin(final String challengeCode, final String adminK
 	// Add support for 32-digits Admin keys (AES-128 algorithm)
 	//
 	
+	// If the challenge and Admin key are both 32 chars then I use AES-128
+	
 	byte[] temporary;
 	
 	// 32-chars Admin key is AES-128 so the challenge code must be 16 bytes (32-chars too)
+	//
 	if ( adminKey.length() == 32 && challengeCode.length() == 32 )
 	{
+		// Reversed from HID Crescendo Management Tool V2.0
+		//
 		final SecretKey generatedAesKey = new SecretKeySpec(adminKeyBytes, "AES");
 		
 		final Cipher aesInstance = Cipher.getInstance("AES/ECB/NoPadding");
@@ -477,8 +513,11 @@ public String GenerateUnblockPin(final String challengeCode, final String adminK
 		temporary = aesInstance.doFinal(challengeCodeBytes);
 	}
 	// For DES-EDE the challenge code is 8 bytes (16-chars)
+	//
 	else
 	{
+		// Reversed from Crescendo C1150 Card Unblock Utility
+		//
 		final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
 	    final SecretKey generatedDesEdeSecret = skf.generateSecret(new DESedeKeySpec(adminKeyBytes));
 		
@@ -490,6 +529,10 @@ public String GenerateUnblockPin(final String challengeCode, final String adminK
 	
 	return HexToolToString(temporary);
 }
+
+//
+// Reversed from Crescendo C1150 Card Unblock Utility
+//
 
 public byte[] HexToolFromString(final String s) {
 	

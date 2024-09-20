@@ -1,6 +1,6 @@
 ﻿ModuleBookmarks0=
 ModuleBreakpoints0=
 ModuleClosedNodes0=
-NavigationStack=Main,btnGoBack_Click,222,3,Main,Globals,84,3,Main,btnToggleCameraSide_Click,207,6,Main,btnScanRequest_Click,262,6,Main,qrReaderView_result_found,289,4,Main,Activity_Resume,328,2,Main,SetScanLayout,169,0,Visual Designer,ScanChallenge.bal,-100,6,Visual Designer,MainLayout.bal,-100,6,Main,btnGenerate_Click,429,6
+NavigationStack=Main,Globals,114,0,Main,qrReaderView_result_found,296,0,Main,SetScanLayout,177,0,Main,btnGenerate_Click,435,6,Main,btnScanRequest_Click,282,6,Visual Designer,ScanChallenge.bal,-100,6,Visual Designer,MainLayout.bal,-100,6,Main,inpAdminKey_TextChanged,290,6,Main,Activity_Resume,351,6,Main,Activity_Create,148,2
 SelectedBuild=0
 VisibleModules=
