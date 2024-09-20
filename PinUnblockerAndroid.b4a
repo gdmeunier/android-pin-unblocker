@@ -471,8 +471,10 @@ Private Sub btnGenerate_Click
 	If unblockPin.Length == 16 Then
 		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
 	Else If unblockPin.Length == 32 Then
-		' Easier to display AES-128 Response Codes without spacing
-		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1$2$3$4$5$6$7$8")
+		' For a new sneaky feature:
+		' - Feed 32-digits Admin key + 16 whitespaces (displays "48 chars")
+		' - On average Android display DPI this spacing leads to displaying only the last 4x4 char groups visually
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2$3 $4 $5 $6 $7 $8")
 	End If
 	
 End Sub
