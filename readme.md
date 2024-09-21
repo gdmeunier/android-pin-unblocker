@@ -60,10 +60,10 @@ Here you can see that it's possible to write your *Admin key* on a native Androi
 
 That's also where you can generate *Admin key* hashes yourself with a different Android app then share the generated hash to **Android PIN Unblocker**.
 
-The App automatically verifies whether the shared text is a valid *32*, *42* or *48* digits string and is made of *0-9 A-F* characters only (*hex chars*).
+The App automatically verifies whether the shared text is a valid *32* or *48* digits string and is made of *0-9 A-F* characters only (*hex chars*).
 The App discards shared texts that are invalid *Admin keys* and will simply behave as if you launched it yourself.
 
-*I decided to allow 32 & 42-digits Admin keys since that's what some smartcard manufacturers actually use.*
+*I decided to allow 32-digits Admin keys since that's what some smartcard manufacturers actually use.*
 
 ## Prevent disclosing Admin keys
 
