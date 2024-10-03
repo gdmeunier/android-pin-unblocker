@@ -1,6 +1,6 @@
 ﻿ModuleBookmarks0=
 ModuleBreakpoints0=
 ModuleClosedNodes0=
-NavigationStack=Main,Activity_KeyPress,204,0,Main,inpAdminKey_TextChanged,342,0,Main,Activity_Resume,388,6,Main,btnGoBack_Click,274,0,Main,btnToggleFlashlight_Click,265,0,Main,btnToggleCameraSide_Click,233,6,Main,qrReaderView_result_found,364,0,Main,Activity_Create,139,6,Main,btnScanRequest_Click,323,6,Main,btnGenerate_Click,651,6
+NavigationStack=Main,Activity_KeyPress,204,0,Main,inpAdminKey_TextChanged,342,0,Main,btnGoBack_Click,274,0,Main,btnToggleFlashlight_Click,265,0,Main,btnToggleCameraSide_Click,233,6,Main,qrReaderView_result_found,364,0,Main,Activity_Create,139,6,Main,btnScanRequest_Click,323,6,Main,btnGenerate_Click,499,6,Main,Activity_Resume,435,6
 SelectedBuild=0
 VisibleModules=

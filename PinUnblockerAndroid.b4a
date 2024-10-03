@@ -17,8 +17,8 @@ Version=13
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 14
-	#VersionName: 2.0.3
+	#VersionCode: 15
+	#VersionName: 2.0.4
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -33,6 +33,15 @@ Version=13
 
 ' Changelog (starting at 1.3.0)
 
+' 2.0.4 :: (x) Re-added accidentally removed Amin key length-trimming feature for Share To The App
+'          (x) Miscellaneous fixes for the UI sync and fixed RegEx invalid chars replacer in Share To The App
+'
+'              Share To The App = the Share Admin Key To The App feature
+'              You can now share arbitrary texts and it will extract the first 48 valid hex chars from it
+'
+'              If less than 48 chars then it tries grabbing atleast 32 valid hex chars starting at beginning
+'              of the arbitrary text
+'
 ' 2.0.3 :: (x) Fixed Scan Challenge UI sync issue for the Toggle Flashlight button
 '              It happened when switching to front Camera with Flashlight enabled
 '
@@ -408,17 +417,25 @@ Sub Activity_Resume
 		
 		'All text share intents have the text in ExtraData, not Data
 		Dim receivedData As String = intReceivedIntent.GetExtra("android.intent.extra.TEXT")
-		receivedData = Regex.Replace2("^[^0-9a-f]$", Regex.CASE_INSENSITIVE, receivedData, "")
+		receivedData = Regex.Replace2("([^0-9a-f]|\r|\n)", Regex.CASE_INSENSITIVE, receivedData, "")
 		
 		'Admin Keys can be 48-digits or 32-digits too (hex)
-		If receivedData <> "" And (receivedData.Length == 32 Or receivedData.Length == 48) Then
+		If receivedData <> "" And receivedData.Length >= 32 Then
 			
-			If receivedData.Length == 48 Then
+			'Re-enabled arbitrary longer key sizes since I want to accept
+			'long hashes such as SHA512 & SHA256 directly, for user convenience
+			'
+			'Those get trimmed to the appropriate length automatically.
+			'
+			'Here you can now even share entire ASCII text content from arbitrary topics
+			'to the app and it will just automatically get the first 48 valid hex chars
+			'
+			If receivedData.Length >= 48 Then
 				'Better handling of Shared To Admin keys - no longer needed
 				'
-				'receivedData = receivedData.SubString2(0, 48)
+				receivedData = receivedData.SubString2(0, 48)
 			Else
-				'receivedData = receivedData.SubString2(0, 32)
+				receivedData = receivedData.SubString2(0, 32)
 			End If
 			
 			'Set the Admin Key text with the received & sanitized data
@@ -431,8 +448,8 @@ Sub Activity_Resume
 			'
 			inpAdminKey.Text = ""
 			
-			'Explain to the user the error
-			inpAdminKey.Hint = "The Admin Key you shared is invalid"
+			'Explain to the user the error in Response Code field
+			inpResponse.Hint = "The Admin Key you shared is invalid"
 			
 			'No need to harden the Admin Key field if no Admin Key was shared
 			chkPasswordMode.Enabled = True
@@ -500,11 +517,15 @@ Private Sub btnGenerate_Click
 	If inpChallenge.Text == Null Or inpAdminKey.Text == Null Then
 		'Now using hints instead of literally replacing the Response Code text
 		inpResponse.Hint = "Some input(s) are unset"
+		
+		btnShareResponse.Enabled = False
 		Return
 	End If
 	
 	If inpChallenge.Text == "" Or inpAdminKey.Text == "" Then
 		inpResponse.Hint = "Some input(s) are empty"
+		
+		btnShareResponse.Enabled = False
 		Return
 	End If
 	
@@ -517,27 +538,37 @@ Private Sub btnGenerate_Click
 	If Regex.IsMatch2("^[0-9a-f]{16,32}$", Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
 	Or Regex.IsMatch2("^[0-9a-f]{32,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
 		inpResponse.Hint = "Invalid input(s) format"
+		
+		btnShareResponse.Enabled = False
 		Return
 	End If
 	
 	' Verify the exact allowed Admin key lengths (32 and 48 Hex digits)
 	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 48 Then
 		inpResponse.Hint = "Invalid Admin Key length"
+		
+		btnShareResponse.Enabled = False
 		Return
 	End If
 	
 	' Verify the exact allowed challenge code lengths (16 & 32)
 	If sanitizedChallenge.Length <> 16 And sanitizedChallenge.Length <> 32 Then
 		inpResponse.Hint = "Invalid Challenge Code length"
+		
+		btnShareResponse.Enabled = False
 		Return
 	End If
 	
 	' Disallow challenge code length mismatches with their Admin keys
 	If sanitizedChallenge.Length == 32 And sanitizedAdminKey.Length <> 32 Then
 		inpResponse.Hint = "Challenge requires AES-128 Admin Key"
+		
+		btnShareResponse.Enabled = False
 		Return
 	Else If sanitizedChallenge.Length == 16 And sanitizedAdminKey.Length <> 48 Then
 		inpResponse.Hint = "Challenge requires DES-EDE Admin Key"
+		
+		btnShareResponse.Enabled = False
 		Return
 	End If
 	
@@ -547,15 +578,15 @@ Private Sub btnGenerate_Click
 	'
 	If unblockPin.Length == 16 Then
 		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
-		
-		'Now conditionally enabling the Share Response Code button (only if there's a valid Response Code inside)
-		btnShareResponse.Enabled = True
 	Else If unblockPin.Length == 32 Then
 		' For a new sneaky feature:
 		' - Feed 32-digits Admin key + 16 whitespaces (displays "48 chars")
 		' - On average Android display DPI this spacing leads to displaying only the last 4x4 char groups visually
 		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4 $5 $6 $7 $8")
-		
+	End If
+	
+	If unblockPin.Length == 16 Or unblockPin.Length == 32 Then
+		'Now conditionally enabling the Share Response Code button (only if there's a valid Response Code inside)
 		btnShareResponse.Enabled = True
 	Else
 		btnShareResponse.Enabled = False
