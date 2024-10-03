@@ -1,8 +1,10 @@
 ﻿Build1=Default,net.generic.smartcardpuk
-File1=MainLayout.bal
-File2=ScanLayout.bal
+File1=icon.png
+File2=MainLayout.bal
+File3=ScanLayout.bal
 FileGroup1=Default Group
 FileGroup2=Default Group
+FileGroup3=Default Group
 Group=Default Group
 Library1=core
 Library2=javaobject
@@ -10,24 +12,24 @@ Library3=newqrcodereaderview
 Library4=runtimepermissions
 Library5=xui
 ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
-Module1=|relative|..\Scan
-NumberOfFiles=2
+Module1=|relative|.\Scan
+NumberOfFiles=3
 NumberOfLibraries=5
 NumberOfModules=1
-Version=13
+Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 17
-	#VersionName: 3.0.1
+	#VersionCode: 18
+	#VersionName: 3.0.2
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
 	
 	'Compile-time settings
 	#BridgeLogger: False
-	#MultiDex:     True
+	'#MultiDex:     True
 	
 	'Ignore recommended target SDK warning
 	#IgnoreWarnings: 31

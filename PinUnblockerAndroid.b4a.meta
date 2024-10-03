@@ -4,6 +4,6 @@ ModuleBreakpoints0=
 ModuleBreakpoints1=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=Main,Globals,35,2,Scan,Activity_Create,30,0,Visual Designer,ScanLayout.bal,-100,1,Visual Designer,MainLayout.bal,-100,1,Scan,Activity_Resume,58,0,Scan,ExitScanLayoutInternal,123,5,Scan,qrReaderView_result_found,148,6,Main,Activity_KeyPress,190,2,Main,Activity_Resume,99,6,Main,Activity_Pause,84,6
+NavigationStack=Scan,ExitScanLayoutInternal,123,5,Scan,qrReaderView_result_found,148,6,Main,Activity_KeyPress,190,2,Main,Activity_Resume,99,6,Main,Activity_Pause,84,6,Scan,Process_Globals,191,0,Main,Globals,40,2,Scan,btnBack_Click,189,0,Scan,Activity_Create,33,0,Scan,Globals,9,0
 SelectedBuild=0
 VisibleModules=1
