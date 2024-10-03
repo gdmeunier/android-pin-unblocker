@@ -13,12 +13,12 @@ ManifestCode='This code will be applied to the manifest file during compilation.
 NumberOfFiles=2
 NumberOfLibraries=5
 NumberOfModules=0
-Version=12.5
+Version=13
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 13
-	#VersionName: 2.0.2
+	#VersionCode: 14
+	#VersionName: 2.0.3
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -33,6 +33,12 @@ Version=12.5
 
 ' Changelog (starting at 1.3.0)
 
+' 2.0.3 :: (x) Fixed Scan Challenge UI sync issue for the Toggle Flashlight button
+'              It happened when switching to front Camera with Flashlight enabled
+'
+'              Then it would require clicking twice on Toggle Flashlight to enable it again
+'              after switching back to the rear Camera
+'
 ' 2.0.2 :: (x) Improved the handling of UI elements and disabling them if no valid content
 '          (x) Fixed the handling of Admin Key sharing to the app (also fixes invalid key handling)
 '          (x) Improved error message output by using hints instead of replacing text field contents
@@ -247,7 +253,8 @@ Private Sub btnToggleCameraSide_Click
 	qrReaderView.Visible = False
 	
 	'Now disabling the Flashlight upon changing camera if it was enabled
-	qrReaderView.TorchEnabled = False
+	isTorchEnabled = False
+	qrReaderView.TorchEnabled = isTorchEnabled
 	
 	qrReaderView.QRDecodingEnabled = True
 	qrReaderView.AutofocusInterval = 1500
