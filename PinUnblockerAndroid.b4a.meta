@@ -1,6 +1,6 @@
 ﻿ModuleBookmarks0=
 ModuleBreakpoints0=
 ModuleClosedNodes0=
-NavigationStack=Visual Designer,MainLayout.bal,-100,6,Main,inpAdminKey_TextChanged,290,6,Main,Activity_Resume,351,6,Main,btnGenerate_Click,459,6,Main,Activity_KeyPress,188,0,Main,btnGoBack_Click,269,0,Main,Globals,120,6,Main,Activity_Create,134,4,Main,btnScanRequest_Click,271,6
+NavigationStack=Main,chkPasswordMode_CheckedChange,436,0,Main,btnGenerate_Click,480,6,Main,Activity_Create,156,6,Main,Activity_KeyPress,204,0,Main,btnToggleCameraSide_Click,239,6,Main,btnToggleFlashlight_Click,257,0,Main,btnScanRequest_Click,327,6,Main,inpAdminKey_TextChanged,342,0,Main,Activity_Resume,388,6,Main,btnGoBack_Click,274,0
 SelectedBuild=0
 VisibleModules=

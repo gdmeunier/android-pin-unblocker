@@ -17,8 +17,8 @@ Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 12
-	#VersionName: 2.0.1
+	#VersionCode: 13
+	#VersionName: 2.0.2
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -33,6 +33,11 @@ Version=12.5
 
 ' Changelog (starting at 1.3.0)
 
+' 2.0.2 :: (x) Improved the handling of UI elements and disabling them if no valid content
+'          (x) Fixed the handling of Admin Key sharing to the app (also fixes invalid key handling)
+'          (x) Improved error message output by using hints instead of replacing text field contents
+'          (x) Switching the Camera side now always disables the flashlight (to avoid potential edge-cases)
+'          (x) Improved error messages with better explanations
 '
 ' 2.0.1 :: (x) Fixed the Camera runtime permissions code (added runtimePermissions for Android 6.0+)
 '          (x) Re-targeted the app with targetSdkLevel = 32 and minSdkLevel = 19 (Android 4.4 KitKat)
@@ -168,7 +173,10 @@ Sub Activity_Create(FirstTime As Boolean)
 	Else
 		lblAdminKey.Text = "Admin Key: ("&inpAdminKey.Text.Length&" chars)"
 	End If
-		
+	
+	'The Share Response Code button is now disabled by default until a valid one is generated
+	btnShareResponse.Enabled = False
+	
 End Sub
 
 Sub SetMainLayout(Show As Boolean)
@@ -238,7 +246,9 @@ Private Sub btnToggleCameraSide_Click
 	
 	qrReaderView.Visible = False
 	
-	qrReaderView.TorchEnabled = isTorchEnabled
+	'Now disabling the Flashlight upon changing camera if it was enabled
+	qrReaderView.TorchEnabled = False
+	
 	qrReaderView.QRDecodingEnabled = True
 	qrReaderView.AutofocusInterval = 1500
 	qrReaderView.ResultPointColor = Colors.Red
@@ -248,9 +258,15 @@ Private Sub btnToggleCameraSide_Click
 	If isBackCamera Then
 		qrReaderView.PreviewCameraId = 0
 		qrReaderView.setBackCamera()
+		
+		btnToggleFlashlight.Enabled = True
 	Else
 		qrReaderView.PreviewCameraId = 1
 		qrReaderView.setFrontCamera()
+		
+		'Most phones don't have a front camera flashlight(?)
+		'Perhaps there are that actually have one though...
+		btnToggleFlashlight.Enabled = False
 	End If
 	
 	qrReaderView.Visible = True
@@ -329,6 +345,10 @@ Private Sub btnScanRequest_Click
 	qrReaderView.ScanNow = True
 	qrReaderView.startCamera()
 	
+	'Re-enable the Toggle FLashlight button
+	'incase the user exited the scan with it disabled (for front camera)
+	btnToggleFlashlight.Enabled = True
+	
 	SetScanLayout(True)
 	
 End Sub
@@ -384,16 +404,31 @@ Sub Activity_Resume
 		receivedData = Regex.Replace2("^[^0-9a-f]$", Regex.CASE_INSENSITIVE, receivedData, "")
 		
 		'Admin Keys can be 48-digits or 32-digits too (hex)
-		If receivedData <> "" And (receivedData.Length >= 32) Then
+		If receivedData <> "" And (receivedData.Length == 32 Or receivedData.Length == 48) Then
 			
-			If receivedData.Length >= 48 Then
-				receivedData = receivedData.SubString2(0, 48)
+			If receivedData.Length == 48 Then
+				'Better handling of Shared To Admin keys - no longer needed
+				'
+				'receivedData = receivedData.SubString2(0, 48)
 			Else
-				receivedData = receivedData.SubString2(0, 32)
+				'receivedData = receivedData.SubString2(0, 32)
 			End If
 			
 			'Set the Admin Key text with the received & sanitized data
 			inpAdminKey.Text = receivedData
+		Else
+			'Set the Admin Key text to empty (it was invalid anyway)
+			'
+			'It must be emptied or the user might believe that it's his correct one (so no default key)
+			'If the user believes with password asterisks that it's his, he might accidentally block his card
+			'
+			inpAdminKey.Text = ""
+			
+			'Explain to the user the error
+			inpAdminKey.Hint = "The Admin Key you shared is invalid"
+			
+			'No need to harden the Admin Key field if no Admin Key was shared
+			chkPasswordMode.Enabled = True
 		End If
 		
 		' Show the length of the Admin key
@@ -404,6 +439,15 @@ Sub Activity_Resume
 			lblAdminKey.Text = "Admin Key: ("&inpAdminKey.Text.Length&" chars)"
 		End If
 		
+	End If
+	
+	'Even for activity resume I now check if there was already a valid Response Code inside
+	Dim currentResponseCode As String = inpResponse.Text.Replace(" ", "").Replace("-", "")
+	
+	If Regex.IsMatch2("^[0-9a-f]{16}$", Regex.CASE_INSENSITIVE, currentResponseCode) == True Or Regex.IsMatch2("^[0-9a-f]{32}$", Regex.CASE_INSENSITIVE, currentResponseCode) == True Then
+		btnShareResponse.Enabled = True
+	Else
+		btnShareResponse.Enabled = False
 	End If
 	
 	'Always return a correct ActivityResult
@@ -443,13 +487,17 @@ Private Sub btnGenerate_Click
 	'xui.MsgboxAsync("Unblock PIN:" & strUnblockPin, "Generated Code")
 	'
 	
+	'Reset the Response Code field before generating a new Response Code
+	inpResponse.Text = ""
+	
 	If inpChallenge.Text == Null Or inpAdminKey.Text == Null Then
-		inpResponse.Text = "No input(s) provided."
+		'Now using hints instead of literally replacing the Response Code text
+		inpResponse.Hint = "Some input(s) are unset"
 		Return
 	End If
 	
 	If inpChallenge.Text == "" Or inpAdminKey.Text == "" Then
-		inpResponse.Text = "Empty input(s) provided."
+		inpResponse.Hint = "Some input(s) are empty"
 		Return
 	End If
 	
@@ -459,30 +507,30 @@ Private Sub btnGenerate_Click
 	' Allow 32 chars upto 48 chars (some cards have nonstandard Admin keys, e.g. Crescendo Keys with AES-128)
 	' If using AES-128 then the challenge will be 16 bytes (32 chars)
 	'
-	If Regex.IsMatch2("^[0-9a-f]{16,32}$",    Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
+	If Regex.IsMatch2("^[0-9a-f]{16,32}$", Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
 	Or Regex.IsMatch2("^[0-9a-f]{32,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
-		inpResponse.Text = "Invalid input(s) format."
+		inpResponse.Hint = "Invalid input(s) format"
 		Return
 	End If
 	
 	' Verify the exact allowed Admin key lengths (32 and 48 Hex digits)
 	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 48 Then
-		inpResponse.Text = "Invalid Admin Key length."
+		inpResponse.Hint = "Invalid Admin Key length"
 		Return
 	End If
 	
 	' Verify the exact allowed challenge code lengths (16 & 32)
 	If sanitizedChallenge.Length <> 16 And sanitizedChallenge.Length <> 32 Then
-		inpResponse.Text = "Invalid Challenge Code length."
+		inpResponse.Hint = "Invalid Challenge Code length"
 		Return
 	End If
 	
 	' Disallow challenge code length mismatches with their Admin keys
 	If sanitizedChallenge.Length == 32 And sanitizedAdminKey.Length <> 32 Then
-		inpResponse.Text = "Mismatched AES-128 Admin Key format."
+		inpResponse.Hint = "Challenge requires AES-128 Admin Key"
 		Return
 	Else If sanitizedChallenge.Length == 16 And sanitizedAdminKey.Length <> 48 Then
-		inpResponse.Text = "Mismatched DES-EDE Admin Key format."
+		inpResponse.Hint = "Challenge requires DES-EDE Admin Key"
 		Return
 	End If
 	
@@ -492,11 +540,18 @@ Private Sub btnGenerate_Click
 	'
 	If unblockPin.Length == 16 Then
 		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
+		
+		'Now conditionally enabling the Share Response Code button (only if there's a valid Response Code inside)
+		btnShareResponse.Enabled = True
 	Else If unblockPin.Length == 32 Then
 		' For a new sneaky feature:
 		' - Feed 32-digits Admin key + 16 whitespaces (displays "48 chars")
 		' - On average Android display DPI this spacing leads to displaying only the last 4x4 char groups visually
-		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2$3 $4 $5 $6 $7 $8")
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4 $5 $6 $7 $8")
+		
+		btnShareResponse.Enabled = True
+	Else
+		btnShareResponse.Enabled = False
 	End If
 	
 End Sub
