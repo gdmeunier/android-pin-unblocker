@@ -1,6 +1,9 @@
 ﻿ModuleBookmarks0=
+ModuleBookmarks1=
 ModuleBreakpoints0=
+ModuleBreakpoints1=
 ModuleClosedNodes0=
-NavigationStack=Main,Activity_KeyPress,204,0,Main,inpAdminKey_TextChanged,342,0,Main,btnGoBack_Click,274,0,Main,btnToggleFlashlight_Click,265,0,Main,btnToggleCameraSide_Click,233,6,Main,qrReaderView_result_found,364,0,Main,Activity_Create,139,6,Main,btnScanRequest_Click,323,6,Main,btnGenerate_Click,499,6,Main,Activity_Resume,435,6
+ModuleClosedNodes1=
+NavigationStack=Main,Activity_Pause,84,6,Scan,InitializeQrCodeReader,79,2,Main,btnShareResponse_Click,330,0,Scan,Globals,22,0,Scan,StopQrCodeReader,109,0,Scan,ExitScanLayout,114,6,Main,Globals,35,2,Main,Activity_Resume,99,6,Scan,ExitScanLayoutInternal,125,5,Scan,qrReaderView_result_found,150,6
 SelectedBuild=0
-VisibleModules=
+VisibleModules=1

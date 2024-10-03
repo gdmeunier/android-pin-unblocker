@@ -1,127 +1,48 @@
 ﻿Build1=Default,net.generic.smartcardpuk
 File1=MainLayout.bal
-File2=ScanChallenge.bal
+File2=ScanLayout.bal
 FileGroup1=Default Group
 FileGroup2=Default Group
 Group=Default Group
 Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
-Library4=xui
-Library5=runtimepermissions
-ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>)~\n~' Avoid asking for the camera if user doesn't have any (app works anyway without QR)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'AddApplicationText(<application android:requestLegacyExternalStorage="true"/>)~\n~~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~'End of default text.~\n~~\n~' Add Share To functionality for receiving data~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Add support for scanning the Request Code~\n~'Remove unnecessary permission line (already added by NewQRCodeView)~\n~'AddPermission(android.permission.CAMERA)~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Fix the foreground service issue (app still running)~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+Library4=runtimepermissions
+Library5=xui
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+Module1=|relative|..\Scan
 NumberOfFiles=2
 NumberOfLibraries=5
-NumberOfModules=0
+NumberOfModules=1
 Version=13
 @EndOfDesignText@
 #Region  Project Attributes 
+	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 15
-	#VersionName: 2.0.4
-	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#VersionCode: 16
+	#VersionName: 3.0.0
+
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
 	
+	'Compile-time settings
 	#BridgeLogger: False
+	#MultiDex:     True
+	
+	'Ignore recommended target SDK warning
+	#IgnoreWarnings: 31
+	'Ignore function value returns warning
+	#IgnoreWarnings: 2
 #End Region
 
 #Region  Activity Attributes 
-	#FullScreen: False
+	#FullScreen:   False
 	#IncludeTitle: True
 #End Region
 
-' Changelog (starting at 1.3.0)
-
-' 2.0.4 :: (x) Re-added accidentally removed Amin key length-trimming feature for Share To The App
-'          (x) Miscellaneous fixes for the UI sync and fixed RegEx invalid chars replacer in Share To The App
-'
-'              Share To The App = the Share Admin Key To The App feature
-'              You can now share arbitrary texts and it will extract the first 48 valid hex chars from it
-'
-'              If less than 48 chars then it tries grabbing atleast 32 valid hex chars starting at beginning
-'              of the arbitrary text
-'
-' 2.0.3 :: (x) Fixed Scan Challenge UI sync issue for the Toggle Flashlight button
-'              It happened when switching to front Camera with Flashlight enabled
-'
-'              Then it would require clicking twice on Toggle Flashlight to enable it again
-'              after switching back to the rear Camera
-'
-' 2.0.2 :: (x) Improved the handling of UI elements and disabling them if no valid content
-'          (x) Fixed the handling of Admin Key sharing to the app (also fixes invalid key handling)
-'          (x) Improved error message output by using hints instead of replacing text field contents
-'          (x) Switching the Camera side now always disables the flashlight (to avoid potential edge-cases)
-'          (x) Improved error messages with better explanations
-'
-' 2.0.1 :: (x) Fixed the Camera runtime permissions code (added runtimePermissions for Android 6.0+)
-'          (x) Re-targeted the app with targetSdkLevel = 32 and minSdkLevel = 19 (Android 4.4 KitKat)
-'          (x) Disabled a potentially duplicate permission for Camera access in the app Manifest
-'
-' 2.0.0 :: (-) New backwards-incompatible change, removing support for 42-digits Admin keys
-'              Turns out it was a mistake in the NFC Connector Enterprise software from MySmartLogon which
-'              should be using 48-digits Admin keys, not 42 (these keys don't exist anywhere else)
-'
-'          (x) Increased the camera autofocus delay from 1000ms to 1500ms to avoid too-fast refocus before QR scan
-'
-' 1.6.1 :: (x) Fixed the ability to use 32-digits Admin keys (algorithm changed to AES-128, no DESede)
-'          (x) Reworked the Scan Challenge window layout to accomodate larger challenge codes and
-'              Admin keys (up to 32-chars challenge codes)
-'
-' 1.6.0 :: (+) Added the ability to use 32-digits Admin keys (for some HID Crescendo cards)
-'              It's now allowed to use 32-digits, 42-digits & 48-digits Admin keys
-'
-' 1.5.0 :: (+) Added the ability to switch between the front and back cameras of real Android phones
-'          (x) Fixed main layout's 'Android PIN Unblocker' and 'Scan Challenge' text paddings
-'
-' 1.4.1 :: (x) Fixed the Share To behavior when sharing Admin key to Android PIN Unblocker to the
-'              intended one (being able to also share 42-digits Admin keys instead of only 48-digits)
-'
-'          (+) Added portrait-only display attribute to force portrait orientation while the App is running
-'
-'          (x) Optimized the behavior of the UI layout loading & hiding functions to minimize unnecessary
-'              layout reveals & hidings
-'
-'          (x) Fixed the btnScanRequest_Click function for QR codes by adding setBackCamera() prior to
-'              loading the QR scanner preview (trying to make it work on Android emulators)
-'
-'              * It still works well with real Android devices though
-'
-'          (x) Increased QR code's scan autofocus interval to 1000ms instead of 500ms
-'          (x) Optimized the order of functions in the QR code back button, result_found & for showing it
-'
-'          (x) Removed unnecessary challengeCode sanitization in the Java native function for generating
-'              the unblockPin since I already do it in btnGenerateRequest_Click()
-'
-' 1.4.0 :: (+) Added the ability to scan QR codes (requires more permissions, camera + flashlight)
-'          (x) Fixed the XUI layout of the Main UI & Scan Challenge one to better fit many display DPIs
-'          (x) Fixed remnant background service by deleting Starter.bas
-'          (x) Removed leftover code variable display in error output for invalid challenge format
-
-#If JAVA
-
-import javax.crypto.Cipher;
-import java.security.spec.InvalidParameterSpecException;
-
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-
-// Add AES-128 Admin keys support (32-digits)
-import javax.crypto.spec.SecretKeySpec;
-
-import javax.crypto.spec.DESKeySpec;
-import javax.crypto.spec.DESedeKeySpec;
-import java.security.InvalidAlgorithmParameterException;
-
-import java.security.AlgorithmParameterGenerator;
-import java.security.AlgorithmParameters;
-import java.security.NoSuchAlgorithmException;
-
-#End If
-
 Sub Process_Globals
-	'These global variables will be declared once when the application starts.
 	'These variables can be accessed from all modules.
+	'
 	Private xui As XUI
 	Private NativeMe As JavaObject
 	
@@ -129,105 +50,159 @@ End Sub
 
 Sub Globals
 	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
 	
-	Private inpChallenge As EditText
-	Private inpAdminKey As EditText
-	
-	Private chkPasswordMode As CheckBox
-	Private inpResponse As EditText
-	
-	'Add support for scanning the Request Code
+	Private inpChallenge   As EditText
 	Private btnScanRequest As Button
 	
-	'Add support for scanning the Request Code
-	Private qrReaderView As NewQRCodeReaderView
-	
-	Private btnToggleCameraSide As Button
-	Private btnToggleFlashlight As Button
-	
-	Private isBackCamera As Boolean
-	Private isTorchEnabled As Boolean
-	Private isScanInProgress As Boolean
-	
-	Private btnGoBack As Button
-	
-	'Misc elements of the UI for hiding views
-	Private lblChallenge As Label
+	'Needed to show Admin Key length when counting chars
 	Private lblAdminKey As Label
-	Private btnGenerate As Button
-	Private lblResponse As Label
-	Private btnShareResponse As Button
 	
-	'Misc elements of the UI for hiding views
-	Private lblScanChallenge As Label
+	Private inpAdminKey     As EditText
+	Private chkHideAdminKey As CheckBox
+	
+	Private btnGenerate As Button
+	Private inpResponse As EditText
+	
+	Private btnShareResponse As Button
 	
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
 	
-	'Faster method for loading then hiding Scan Challenge UI
-	'This way no need go explicitly show the Main UI
-	Activity.LoadLayout("ScanChallenge")
-	SetScanLayout(False)
 	Activity.LoadLayout("MainLayout")
 	
-	Activity.Title = "Android PIN Unblocker"
-	
 	If FirstTime Then
+		'
+		'I need to initialize the native Java object context
+		'It's for generating the unblock code (native Java code)
+		'
 		NativeMe.InitializeContext
 	End If
 	
-	'Hide the Admin Key by default, better for adding the 'Share To' function later on
-	chkPasswordMode.Checked = True
+	'Hide the Admin Key by default
+	chkHideAdminKey.Checked  = True
 	inpAdminKey.PasswordMode = True
 	
-	' Show the length of the Admin key
+	'Show the length of the Admin key
+	DisplayAdminKeyLength
+	
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
 	'
-	If inpAdminKey.Text.Length < 1 Then
-		lblAdminKey.Text = "Admin Key:"
+	'New nifty feature to hide the Admin Key automatically when switching to another app
+	'
+	'Useful incase user accidentally exposes it when launching the App and it resumes
+	'instead of relaunching from scratch (background task)
+	'
+	
+	'Hide the Admin Key when switching to another app
+	chkHideAdminKey.Checked  = True
+	inpAdminKey.PasswordMode = True
+	
+	'Wait a little for Android to update the Recent Apps panel picture
+	'Otherwise the Admin Key leaks in the Recent Apps panel picture (thumbnail)
+	Sleep(100)
+	
+End Sub
+
+Sub Activity_Resume
+	'
+	'Add ability to receive Admin Key with Android's Share To
+	'
+	
+	Dim receivedIntent As Intent = Activity.GetStartingIntent
+	
+	'Add support for receiving the scanned Challenge Code to Main layout
+	If  receivedIntent.Action == receivedIntent.ACTION_EDIT            _
+	And receivedIntent.HasExtra("android.intent.extra.CHALLENGE_CODE") Then
+		
+		inpChallenge.Text = receivedIntent.GetExtra("android.intent.extra.CHALLENGE_CODE")
+		Return
+	End If
+	
+	If  receivedIntent.Action == receivedIntent.ACTION_SEND  _
+	And receivedIntent.HasExtra("android.intent.extra.TEXT") Then
+		
+		'Hide the Admin Key by default
+		chkHideAdminKey.Checked  = True
+		inpAdminKey.PasswordMode = True
+		
+		'Get the received Admin Key text and remove all invalid hex chars and newlines
+		Dim receivedText As String = receivedIntent.GetExtra("android.intent.extra.TEXT")
+		receivedText = Regex.Replace2("([^0-9a-f]|\r|\n)", Regex.CASE_INSENSITIVE, receivedText, "")
+		
+		'
+		'Admin Keys can be 48-digits or 32-digits (hex string)
+		'
+		
+		If receivedText <> "" And receivedText.Length >= 32 Then
+			'
+			'Here we're sure that we atleast have a valid AES-128 Admin Key
+			'
+			
+			'Check if it's actually a DES-EDE (3DES) Admin Key
+			If receivedText.Length >= 48 Then
+				'
+				'Trimming the received Admin Key to proper length if too long
+				'
+				'This is intentional because I want people to be able to share
+				'a full SHA256 or SHA512 hash and trim its length (for convenience)
+				'
+				receivedText = receivedText.SubString2(0, 48)
+			Else
+				receivedText = receivedText.SubString2(0, 32)
+			End If
+			
+			'Set the Admin Key text with the received & sanitized data
+			inpAdminKey.Text = receivedText
+		Else
+			'
+			'If no valid Admin Key was received
+			'
+			
+			'
+			'Set the Admin Key text to empty string (not the default 48-zeroes ADmin Key)
+			'
+			'It must be emptied or the user might believe that it's the correct one behind the asterisks
+			'If the user believes that it's his Admin Key, he might accidentally block his card
+			'
+			inpAdminKey.Text = ""
+			
+			'Explain error to the user in Response Code field (not the Admin Key field)
+			inpResponse.Hint = "The Admin Key you shared is invalid"
+			
+		End If
+		
+		' Show the length of the Admin key
+		DisplayAdminKeyLength
+		
+		'Now the Admin Key will no longer be unhideable if valid (not empty)
+		'Useful to prevent accidentally leaking Admin Keys
+		
+		If inpAdminKey.Text <> "" Then
+			chkHideAdminKey.Enabled = False
+		End If
+		
 	Else
-		lblAdminKey.Text = "Admin Key: ("&inpAdminKey.Text.Length&" chars)"
+		'
+		'Don't intercept non-Share To activity resumes, otherwise it wreaks havoc
+		'on every Home button press followed by relaunching the App from the Recent Apps panel
+		'
+		
+		'
+		'One small exception is for hiding the Admin Key
+		'
+		
+		'Hide the Admin Key when switching back to this App from another one
+		chkHideAdminKey.Checked  = True
+		inpAdminKey.PasswordMode = True
+		
 	End If
 	
-	'The Share Response Code button is now disabled by default until a valid one is generated
-	btnShareResponse.Enabled = False
-	
-End Sub
-
-Sub SetMainLayout(Show As Boolean)
-	
-	lblChallenge.Visible = Show
-	inpChallenge.Visible = Show
-	btnScanRequest.Visible = Show
-	
-	lblAdminKey.Visible = Show
-	inpAdminKey.Visible = Show
-	chkPasswordMode.Visible = Show
-	
-	btnGenerate.Visible = Show
-	
-	lblResponse.Visible = Show
-	inpResponse.Visible = Show
-	btnShareResponse.Visible = Show
-	
-	If Show Then
-		Activity.Title = "Android PIN Unblocker"
-	End If
-	
-End Sub
-
-Sub SetScanLayout(Show As Boolean)
-	
-	lblScanChallenge.Visible = Show
-	qrReaderView.Visible = Show
-	
-	btnToggleCameraSide.Visible = Show
-	btnToggleFlashlight.Visible = Show
-	btnGoBack.Visible = Show
-	
-	If Show Then
-		Activity.Title = "Scan Challenge"
-	End If
+	'Always return a correct ActivityResult
+	Activity.SetActivityResult(0, receivedIntent)
 	
 End Sub
 
@@ -235,15 +210,9 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 	
 	If KeyCode = KeyCodes.KEYCODE_BACK Then
 		
-		If isScanInProgress Then
-			SetScanLayout(False)
-			SetMainLayout(True)
-			
-			isBackCamera = True
-			isScanInProgress = False
-		Else
-			ExitApplication()
-		End If
+		'Exit the application directly when back key is pressed
+		'This prevents the app from running in the background
+		ExitApplication()
 		
 		Return True
 	Else
@@ -252,248 +221,57 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 	
 End Sub
 
-Private Sub btnToggleCameraSide_Click
+'
+'Helper code
+'
+
+Private Sub DisplayAdminKeyLength() As Void
 	
-	isScanInProgress = False
+	lblAdminKey.Text = "Admin Key:"
 	
-	qrReaderView.stopCamera()
-	qrReaderView.ScanNow = False
-	
-	qrReaderView.Visible = False
-	
-	'Now disabling the Flashlight upon changing camera if it was enabled
-	isTorchEnabled = False
-	qrReaderView.TorchEnabled = isTorchEnabled
-	
-	qrReaderView.QRDecodingEnabled = True
-	qrReaderView.AutofocusInterval = 1500
-	qrReaderView.ResultPointColor = Colors.Red
-	
-	isBackCamera = Not(isBackCamera)
-	
-	If isBackCamera Then
-		qrReaderView.PreviewCameraId = 0
-		qrReaderView.setBackCamera()
-		
-		btnToggleFlashlight.Enabled = True
-	Else
-		qrReaderView.PreviewCameraId = 1
-		qrReaderView.setFrontCamera()
-		
-		'Most phones don't have a front camera flashlight(?)
-		'Perhaps there are that actually have one though...
-		btnToggleFlashlight.Enabled = False
+	If inpAdminKey.Text.Length >= 1 Then
+		lblAdminKey.Text = lblAdminKey.Text & " ("&inpAdminKey.Text.Length&" chars)"
 	End If
 	
-	qrReaderView.Visible = True
-	isScanInProgress = True
-	
-	qrReaderView.ScanNow = True
-	qrReaderView.startCamera()
-	
 End Sub
 
-Private Sub btnToggleFlashlight_Click
-	
-	isTorchEnabled = Not(isTorchEnabled)
-	qrReaderView.TorchEnabled = isTorchEnabled
-	
-End Sub
-
-Private Sub btnGoBack_Click
-	
-	qrReaderView.stopCamera()
-	qrReaderView.ScanNow = False
-	
-	SetScanLayout(False)
-	SetMainLayout(True)
-	
-	isBackCamera = True
-	
-	isTorchEnabled = False
-	qrReaderView.TorchEnabled = isTorchEnabled
-	
-	isScanInProgress = False
-	
-End Sub
+'
+'UI event handlers
+'
 
 Private Sub btnScanRequest_Click
-	
+	'
 	' Fix Camera crashing on Android 6.0+ (crashing when running in emulators)
 	' Ask for authorization to use the Camera at runtime
 	'
+	
 	Dim runtimePerms As RuntimePermissions
 	
 	If runtimePerms.Check(runtimePerms.PERMISSION_CAMERA) <> True Then
-		runtimePerms.CheckAndRequest(runtimePerms.PERMISSION_CAMERA)
 		
+		runtimePerms.CheckAndRequest(runtimePerms.PERMISSION_CAMERA)
 		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
 		
 		If HavePermission <> True Then
-			ToastMessageShow("You need to allow Camera access in order to scan QR codes.", False)
+			ToastMessageShow("Camera access required to scan QR codes", False)
 			Return
 		End If
+		
 	End If
 	
-	isScanInProgress = True
-	
-	'Always back camera first
-	isBackCamera = True
-	
-	isTorchEnabled = False
-	qrReaderView.TorchEnabled = isTorchEnabled
-	
-	qrReaderView.QRDecodingEnabled = True
-	qrReaderView.AutofocusInterval = 1500
-	qrReaderView.ResultPointColor = Colors.Red
-	
-	qrReaderView.PreviewCameraId = 0
-	qrReaderView.setBackCamera()
-	qrReaderView.PreviewCameraId = 1
-	qrReaderView.setFrontCamera()
-	
-	'Always back camera first
-	qrReaderView.PreviewCameraId = 0
-	qrReaderView.setBackCamera()
-	
-	SetMainLayout(False)
-	
-	qrReaderView.ScanNow = True
-	qrReaderView.startCamera()
-	
-	'Re-enable the Toggle FLashlight button
-	'incase the user exited the scan with it disabled (for front camera)
-	btnToggleFlashlight.Enabled = True
-	
-	SetScanLayout(True)
+	'Run the QR scanning activity
+	StartActivity(Scan)
 	
 End Sub
 
 Private Sub inpAdminKey_TextChanged(Old As String, New As String)
-	' Show the length of the Admin key
-	'
-	If New.Length < 1 Then
-		lblAdminKey.Text = "Admin Key:"
-	Else
-		lblAdminKey.Text = "Admin Key: ("&New.Length&" chars)"
-	End If
+	
+	'Keep the Admin Key length display updated on text change
+	DisplayAdminKeyLength
 	
 End Sub
 
-Private Sub qrReaderView_result_found(ReturnValue As String)
-	
-	qrReaderView.stopCamera()
-	qrReaderView.ScanNow = False
-	
-	SetScanLayout(False)
-	SetMainLayout(True)
-	
-	inpChallenge.Text = ReturnValue
-	
-	'Always back camera (even when exiting)
-	isBackCamera = True
-	
-	isTorchEnabled = False
-	qrReaderView.TorchEnabled = isTorchEnabled
-	
-	isScanInProgress = False
-	
-End Sub
-
-Sub Activity_Pause (UserClosed As Boolean)
-End Sub
-
-Sub Activity_Resume
-	Dim intReceivedIntent As Intent = Activity.GetStartingIntent
-	
-	If  intReceivedIntent.Action == intReceivedIntent.ACTION_SEND _
-	And intReceivedIntent.HasExtra("android.intent.extra.TEXT") Then
-		
-		'Hide the Admin Key by default is required as a precaution when 'Sharing To' the App
-		chkPasswordMode.Checked = True
-		chkPasswordMode.Enabled = False
-		
-		inpAdminKey.PasswordMode = True
-		
-		'All text share intents have the text in ExtraData, not Data
-		Dim receivedData As String = intReceivedIntent.GetExtra("android.intent.extra.TEXT")
-		receivedData = Regex.Replace2("([^0-9a-f]|\r|\n)", Regex.CASE_INSENSITIVE, receivedData, "")
-		
-		'Admin Keys can be 48-digits or 32-digits too (hex)
-		If receivedData <> "" And receivedData.Length >= 32 Then
-			
-			'Re-enabled arbitrary longer key sizes since I want to accept
-			'long hashes such as SHA512 & SHA256 directly, for user convenience
-			'
-			'Those get trimmed to the appropriate length automatically.
-			'
-			'Here you can now even share entire ASCII text content from arbitrary topics
-			'to the app and it will just automatically get the first 48 valid hex chars
-			'
-			If receivedData.Length >= 48 Then
-				'Better handling of Shared To Admin keys - no longer needed
-				'
-				receivedData = receivedData.SubString2(0, 48)
-			Else
-				receivedData = receivedData.SubString2(0, 32)
-			End If
-			
-			'Set the Admin Key text with the received & sanitized data
-			inpAdminKey.Text = receivedData
-		Else
-			'Set the Admin Key text to empty (it was invalid anyway)
-			'
-			'It must be emptied or the user might believe that it's his correct one (so no default key)
-			'If the user believes with password asterisks that it's his, he might accidentally block his card
-			'
-			inpAdminKey.Text = ""
-			
-			'Explain to the user the error in Response Code field
-			inpResponse.Hint = "The Admin Key you shared is invalid"
-			
-			'No need to harden the Admin Key field if no Admin Key was shared
-			chkPasswordMode.Enabled = True
-		End If
-		
-		' Show the length of the Admin key
-		'
-		If inpAdminKey.Text.Length < 1 Then
-			lblAdminKey.Text = "Admin Key:"
-		Else
-			lblAdminKey.Text = "Admin Key: ("&inpAdminKey.Text.Length&" chars)"
-		End If
-		
-	End If
-	
-	'Even for activity resume I now check if there was already a valid Response Code inside
-	Dim currentResponseCode As String = inpResponse.Text.Replace(" ", "").Replace("-", "")
-	
-	If Regex.IsMatch2("^[0-9a-f]{16}$", Regex.CASE_INSENSITIVE, currentResponseCode) == True Or Regex.IsMatch2("^[0-9a-f]{32}$", Regex.CASE_INSENSITIVE, currentResponseCode) == True Then
-		btnShareResponse.Enabled = True
-	Else
-		btnShareResponse.Enabled = False
-	End If
-	
-	'Always return a correct ActivityResult
-	Activity.SetActivityResult(0, intReceivedIntent)
-	
-End Sub
-
-Private Sub btnShareResponse_Click
-	Dim ResponseShareIntent As Intent
-	
-	ResponseShareIntent.Initialize(ResponseShareIntent.ACTION_SEND, "")
-	
-	ResponseShareIntent.SetType("text/plain")
-	ResponseShareIntent.PutExtra("android.intent.extra.TEXT", inpResponse.Text)
-	
-	ResponseShareIntent.WrapAsIntentChooser("Share The Response Code")
-	
-	StartActivity(ResponseShareIntent)
-	
-End Sub
-
-Private Sub chkPasswordMode_CheckedChange(Checked As Boolean)
+Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 	
 	If Checked == True Then
 		inpAdminKey.PasswordMode = True
@@ -504,120 +282,131 @@ Private Sub chkPasswordMode_CheckedChange(Checked As Boolean)
 End Sub
 
 Private Sub btnGenerate_Click
-	'
-	'NativeMe.RunMethod("GenerateUnblockPin", Null)
-	'NativeMe.RunMethod("GenerateUnblockPin", Array("String1", "String2"))
-	'
-	'xui.MsgboxAsync("Unblock PIN:" & strUnblockPin, "Generated Code")
-	'
 	
 	'Reset the Response Code field before generating a new Response Code
 	inpResponse.Text = ""
 	
-	If inpChallenge.Text == Null Or inpAdminKey.Text == Null Then
-		'Now using hints instead of literally replacing the Response Code text
-		inpResponse.Hint = "Some input(s) are unset"
-		
-		btnShareResponse.Enabled = False
-		Return
-	End If
+	'
+	'Sanitizing inputs
+	'
 	
 	If inpChallenge.Text == "" Or inpAdminKey.Text == "" Then
-		inpResponse.Hint = "Some input(s) are empty"
 		
-		btnShareResponse.Enabled = False
+		inpResponse.Hint = "Some input(s) are empty"
 		Return
 	End If
 	
-	Dim sanitizedChallenge As String = inpChallenge.Text.Replace(" ", "").Replace("-", "")
-	Dim sanitizedAdminKey  As String = inpAdminKey.Text.Replace(" ", "").Replace("-", "")
+	'Not using RegEx here since I don't want users to send invalid chars in the first place
+	'So I don't accept the input at all if there are invalid chars, instead of cleaning them
+	'
+	Dim sanitizedChallenge As String = inpChallenge.Text .Replace(" ", "").Replace("-", "")
+	Dim sanitizedAdminKey  As String = inpAdminKey.Text  .Replace(" ", "").Replace("-", "")
 	
-	' Allow 32 chars upto 48 chars (some cards have nonstandard Admin keys, e.g. Crescendo Keys with AES-128)
-	' If using AES-128 then the challenge will be 16 bytes (32 chars)
+	' Allow 32 chars up to 48 chars (some cards have AES-128 Admin Keys, e.g. Crescendo Key or Crescendo C2300)
+	' If using AES-128 then the challenge will be 32 chars
 	'
 	If Regex.IsMatch2("^[0-9a-f]{16,32}$", Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
 	Or Regex.IsMatch2("^[0-9a-f]{32,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
-		inpResponse.Hint = "Invalid input(s) format"
 		
-		btnShareResponse.Enabled = False
+		inpResponse.Hint = "Invalid input(s) hex format"
 		Return
 	End If
 	
-	' Verify the exact allowed Admin key lengths (32 and 48 Hex digits)
+	' Verify the exact allowed Admin Key lengths (32 and 48 Hex digits)
 	If sanitizedAdminKey.Length <> 32 And sanitizedAdminKey.Length <> 48 Then
+		
 		inpResponse.Hint = "Invalid Admin Key length"
-		
-		btnShareResponse.Enabled = False
 		Return
 	End If
 	
-	' Verify the exact allowed challenge code lengths (16 & 32)
+	' Verify the exact allowed Challenge Code lengths (16 and 32 Hex digits)
 	If sanitizedChallenge.Length <> 16 And sanitizedChallenge.Length <> 32 Then
+		
 		inpResponse.Hint = "Invalid Challenge Code length"
-		
-		btnShareResponse.Enabled = False
 		Return
 	End If
 	
-	' Disallow challenge code length mismatches with their Admin keys
+	' Disallow challenge Code length mismatches with their Admin Keys
 	If sanitizedChallenge.Length == 32 And sanitizedAdminKey.Length <> 32 Then
-		inpResponse.Hint = "Challenge requires AES-128 Admin Key"
 		
-		btnShareResponse.Enabled = False
+		inpResponse.Hint = "Challenge Code requires AES-128 Admin Key"
 		Return
-	Else If sanitizedChallenge.Length == 16 And sanitizedAdminKey.Length <> 48 Then
-		inpResponse.Hint = "Challenge requires DES-EDE Admin Key"
 		
-		btnShareResponse.Enabled = False
+	Else If sanitizedChallenge.Length == 16 And sanitizedAdminKey.Length <> 48 Then
+		
+		inpResponse.Hint = "Challenge Code requires DES-EDE Admin Key"
 		Return
 	End If
 	
-	Dim unblockPin As String = NativeMe.Runmethod("GenerateUnblockPin", Array(sanitizedChallenge, sanitizedAdminKey))
+	'Generate the Response Code using native Java code
+	Dim responseCode As String = NativeMe.RunMethod("GenerateResponseCode", Array(sanitizedChallenge, sanitizedAdminKey))
 	
 	'Cans be tweaked to have separators if needed (4x4)
 	'
-	If unblockPin.Length == 16 Then
-		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4")
-	Else If unblockPin.Length == 32 Then
-		' For a new sneaky feature:
-		' - Feed 32-digits Admin key + 16 whitespaces (displays "48 chars")
-		' - On average Android display DPI this spacing leads to displaying only the last 4x4 char groups visually
-		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, unblockPin, "$1 $2 $3 $4 $5 $6 $7 $8")
-	End If
-	
-	If unblockPin.Length == 16 Or unblockPin.Length == 32 Then
-		'Now conditionally enabling the Share Response Code button (only if there's a valid Response Code inside)
-		btnShareResponse.Enabled = True
-	Else
-		btnShareResponse.Enabled = False
+	If responseCode.Length == 16 Then
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, responseCode, "$1 $2 $3 $4")
+	Else If responseCode.Length == 32 Then
+		inpResponse.Text = Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", Regex.CASE_INSENSITIVE, responseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
 	End If
 	
 End Sub
 
+Private Sub btnShareResponse_Click
+	
+	Dim shareIntent As Intent
+	shareIntent.Initialize(shareIntent.ACTION_SEND, "")
+	
+	shareIntent.SetType("text/plain")
+	shareIntent.PutExtra("android.intent.extra.TEXT", inpResponse.Text)
+	
+	shareIntent.WrapAsIntentChooser("Share The Response Code")
+	StartActivity(shareIntent)
+	
+End Sub
+
+'
+' Unused code
+'
+
+'
+'
+'Unused code goes here
+'
+'
+
+'
+'Native code
+'
+
 #If JAVA
+
+import javax.crypto.Cipher;
+import java.security.spec.InvalidParameterSpecException;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+
+import javax.crypto.spec.SecretKeySpec;
+
+import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.DESedeKeySpec;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.AlgorithmParameterGenerator;
+import java.security.AlgorithmParameters;
+import java.security.NoSuchAlgorithmException;
 
 //
 // NoSuchAlgorithmException, InvalidKeyException
 //
 
-public String GenerateUnblockPin(final String challengeCode, final String adminKey) throws Exception {
+public String GenerateResponseCode(final String challengeCode, final String adminKey) throws Exception {
 	
-	// String sanitizedChallengeCode = challengeCode.replace("-", "").replace(" ", "");
-	
-	// No need to redo the challengeCode sanitization since I already did with btnGenerateResponse_Click()
     byte[] challengeCodeBytes = HexToolFromString(challengeCode);
 	byte[] adminKeyBytes      = HexToolFromString(adminKey);
 	
-	//
-	// Add support for 32-digits Admin keys (AES-128 algorithm)
-	//
+	byte[] responseCodeBytes;
 	
-	// If the challenge and Admin key are both 32 chars then I use AES-128
-	
-	byte[] temporary;
-	
-	// 32-chars Admin key is AES-128 so the challenge code must be 16 bytes (32-chars too)
-	//
 	if ( adminKey.length() == 32 && challengeCode.length() == 32 )
 	{
 		// Reversed from HID Crescendo Management Tool V2.0
@@ -627,10 +416,8 @@ public String GenerateUnblockPin(final String challengeCode, final String adminK
 		final Cipher aesInstance = Cipher.getInstance("AES/ECB/NoPadding");
 		aesInstance.init(1, generatedAesKey);
 		
-		temporary = aesInstance.doFinal(challengeCodeBytes);
+		responseCodeBytes = aesInstance.doFinal(challengeCodeBytes);
 	}
-	// For DES-EDE the challenge code is 8 bytes (16-chars)
-	//
 	else
 	{
 		// Reversed from Crescendo C1150 Card Unblock Utility
@@ -641,10 +428,10 @@ public String GenerateUnblockPin(final String challengeCode, final String adminK
 	    final Cipher desEdeInstance = Cipher.getInstance("DESede/ECB/NoPadding");
 	    desEdeInstance.init(1, generatedDesEdeSecret);
 		
-		temporary = desEdeInstance.doFinal(challengeCodeBytes);
+		responseCodeBytes = desEdeInstance.doFinal(challengeCodeBytes);
 	}
 	
-	return HexToolToString(temporary);
+	return HexToolToString(responseCodeBytes);
 }
 
 //
