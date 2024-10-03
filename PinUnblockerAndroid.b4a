@@ -19,8 +19,8 @@ Version=13
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 16
-	#VersionName: 3.0.0
+	#VersionCode: 17
+	#VersionName: 3.0.1
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -98,12 +98,8 @@ Sub Activity_Pause (UserClosed As Boolean)
 	'
 	
 	'Hide the Admin Key when switching to another app
-	chkHideAdminKey.Checked  = True
 	inpAdminKey.PasswordMode = True
-	
-	'Wait a little for Android to update the Recent Apps panel picture
-	'Otherwise the Admin Key leaks in the Recent Apps panel picture (thumbnail)
-	Sleep(100)
+	chkHideAdminKey.Checked  = True
 	
 End Sub
 
@@ -115,7 +111,7 @@ Sub Activity_Resume
 	Dim receivedIntent As Intent = Activity.GetStartingIntent
 	
 	'Add support for receiving the scanned Challenge Code to Main layout
-	If  receivedIntent.Action == receivedIntent.ACTION_EDIT            _
+	If  receivedIntent.Action == receivedIntent.ACTION_SEND            _
 	And receivedIntent.HasExtra("android.intent.extra.CHALLENGE_CODE") Then
 		
 		inpChallenge.Text = receivedIntent.GetExtra("android.intent.extra.CHALLENGE_CODE")
@@ -209,6 +205,8 @@ End Sub
 Sub Activity_KeyPress(KeyCode As Int) As Boolean
 	
 	If KeyCode = KeyCodes.KEYCODE_BACK Then
+		
+		Activity.Finish()
 		
 		'Exit the application directly when back key is pressed
 		'This prevents the app from running in the background
