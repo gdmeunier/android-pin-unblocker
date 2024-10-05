@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 18
-	#VersionName: 3.0.2
+	#VersionCode: 19
+	#VersionName: 3.1.0
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -68,6 +68,16 @@ Sub Globals
 	
 	Private btnShareResponse As Button
 	
+	'New builtin text hashing functions
+	'
+	'Note: Basic4Android only allows buttons to overlap a button
+	'So you have to use a transparent button to create an overlay
+	'
+	Private btnHashMenuBg As Button
+	Private btnHashMenu As ToggleButton
+	Private btnSha256 As Button
+	Private btnSha512 As Button
+	
 End Sub
 
 Sub Activity_Create(FirstTime As Boolean)
@@ -82,9 +92,11 @@ Sub Activity_Create(FirstTime As Boolean)
 		NativeMe.InitializeContext
 	End If
 	
-	'Hide the Admin Key by default
-	chkHideAdminKey.Checked  = True
-	inpAdminKey.PasswordMode = True
+	'Updated: I prefer showing the default 48-zeroes Admin Key
+	'on App's first Activity start (it gets hidden on Activity resume anyway)
+	'
+	'chkHideAdminKey.Checked  = True
+	'inpAdminKey.PasswordMode = True
 	
 	'Show the length of the Admin key
 	DisplayAdminKeyLength
@@ -129,13 +141,13 @@ Sub Activity_Resume
 		
 		'Get the received Admin Key text and remove all invalid hex chars and newlines
 		Dim receivedText As String = receivedIntent.GetExtra("android.intent.extra.TEXT")
-		receivedText = Regex.Replace2("([^0-9a-f]|\r|\n)", Regex.CASE_INSENSITIVE, receivedText, "")
 		
 		'
 		'Admin Keys can be 48-digits or 32-digits (hex string)
 		'
 		
-		If receivedText <> "" And receivedText.Length >= 32 Then
+		If  receivedText <> "" And receivedText.Length >= 32 _
+		And Regex.IsMatch2("^[0-9a-f]+$", Regex.CASE_INSENSITIVE, receivedText) == True Then
 			'
 			'Here we're sure that we atleast have a valid AES-128 Admin Key
 			'
@@ -168,8 +180,11 @@ Sub Activity_Resume
 			'
 			inpAdminKey.Text = ""
 			
-			'Explain error to the user in Response Code field (not the Admin Key field)
-			inpResponse.Hint = "The Admin Key you shared is invalid"
+			'No need to set password-mode by default if the Admin Key is empty
+			inpAdminKey.PasswordMode = False
+			
+			'Explain error to the user in a toast (better than modifying textfield hints)
+			ToastMessageShow("Shared Admin Key is invalid", False)
 			
 		End If
 		
@@ -194,9 +209,10 @@ Sub Activity_Resume
 		'
 		
 		'Hide the Admin Key when switching back to this App from another one
-		chkHideAdminKey.Checked  = True
-		inpAdminKey.PasswordMode = True
-		
+		If inpAdminKey.Text <> "" Then
+			chkHideAdminKey.Checked  = True
+			inpAdminKey.PasswordMode = True
+		End If
 	End If
 	
 	'Always return a correct ActivityResult
@@ -239,6 +255,64 @@ End Sub
 'UI event handlers
 '
 
+Private Sub btnHashMenu_Click
+	btnHashMenuBg.Visible = True
+	
+	btnSha256.Visible = True
+	btnSha512.Visible = True
+End Sub
+
+Private Sub btnHashMenuBg_Click
+	btnHashMenu.Checked = False
+	
+	btnSha256.Visible = False
+	btnSha512.Visible = False
+	
+	btnHashMenuBg.Visible = False
+End Sub
+
+'
+'I wanted to add additional tricks to counter shoulder-surfing/snooping:
+'
+'If you long-click the desired hash type it will lock the Admin Key field
+'to password-mode after generating the hash
+'
+
+Private Sub btnSha256_LongClick
+	
+	btnSha256_Click
+	
+	inpAdminKey.PasswordMode = True
+	chkHideAdminKey.Enabled  = False
+	chkHideAdminKey.Checked  = True
+	
+End Sub
+
+Private Sub btnSha512_LongClick
+	
+	btnSha512_Click
+	
+	inpAdminKey.PasswordMode = True
+	chkHideAdminKey.Enabled  = False
+	chkHideAdminKey.Checked  = True
+	
+End Sub
+
+Private Sub btnSha256_Click
+	
+	Dim sha256 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-256"))
+	
+	inpAdminKey.Text = sha256.ToUpperCase()
+	btnHashMenuBg_Click
+End Sub
+Private Sub btnSha512_Click
+	
+	Dim sha512 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-512"))
+	
+	inpAdminKey.Text = sha512.ToUpperCase()
+	btnHashMenuBg_Click
+End Sub
+
 Private Sub btnScanRequest_Click
 	'
 	' Fix Camera crashing on Android 6.0+ (crashing when running in emulators)
@@ -253,7 +327,7 @@ Private Sub btnScanRequest_Click
 		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
 		
 		If HavePermission <> True Then
-			ToastMessageShow("Camera access required to scan QR codes", False)
+			ToastMessageShow("Camera required to scan QR codes", False)
 			Return
 		End If
 		
@@ -308,7 +382,7 @@ Private Sub btnGenerate_Click
 	If Regex.IsMatch2("^[0-9a-f]{16,32}$", Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
 	Or Regex.IsMatch2("^[0-9a-f]{32,48}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
 		
-		inpResponse.Hint = "Invalid input(s) hex format"
+		inpResponse.Hint = "Invalid input(s) format"
 		Return
 	End If
 	
@@ -322,19 +396,19 @@ Private Sub btnGenerate_Click
 	' Verify the exact allowed Challenge Code lengths (16 and 32 Hex digits)
 	If sanitizedChallenge.Length <> 16 And sanitizedChallenge.Length <> 32 Then
 		
-		inpResponse.Hint = "Invalid Challenge Code length"
+		inpResponse.Hint = "Invalid Challenge length"
 		Return
 	End If
 	
 	' Disallow challenge Code length mismatches with their Admin Keys
 	If sanitizedChallenge.Length == 32 And sanitizedAdminKey.Length <> 32 Then
 		
-		inpResponse.Hint = "Challenge Code requires AES-128 Admin Key"
+		inpResponse.Hint = "Challenge needs AES Admin Key"
 		Return
 		
 	Else If sanitizedChallenge.Length == 16 And sanitizedAdminKey.Length <> 48 Then
 		
-		inpResponse.Hint = "Challenge Code requires DES-EDE Admin Key"
+		inpResponse.Hint = "Challenge needs 3DES Admin Key"
 		Return
 	End If
 	
@@ -395,6 +469,22 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.AlgorithmParameterGenerator;
 import java.security.AlgorithmParameters;
 import java.security.NoSuchAlgorithmException;
+
+//
+// Adding builtin hashing functions to the App
+//
+
+import java.security.MessageDigest;
+import java.math.BigInteger;
+
+public String TextToHash(final String text, final String hashType) throws Exception {
+	
+    byte[] textBytes = text.getBytes();
+    MessageDigest md = MessageDigest.getInstance(hashType);
+	
+    byte[] textHashBytes = md.digest(textBytes);
+    return String.format("%032x", new BigInteger(1, textHashBytes));
+}
 
 //
 // NoSuchAlgorithmException, InvalidKeyException
