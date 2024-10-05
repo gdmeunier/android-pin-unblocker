@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 19
-	#VersionName: 3.1.0
+	#VersionCode: 20
+	#VersionName: 3.1.1
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -90,13 +90,13 @@ Sub Activity_Create(FirstTime As Boolean)
 		'It's for generating the unblock code (native Java code)
 		'
 		NativeMe.InitializeContext
+		
+		'Updated: I prefer showing the default 48-zeroes Admin Key
+		'on App's first Activity start (it gets hidden on Activity resume anyway)
+		'
+		chkHideAdminKey.Checked  = False
+		inpAdminKey.PasswordMode = False
 	End If
-	
-	'Updated: I prefer showing the default 48-zeroes Admin Key
-	'on App's first Activity start (it gets hidden on Activity resume anyway)
-	'
-	'chkHideAdminKey.Checked  = True
-	'inpAdminKey.PasswordMode = True
 	
 	'Show the length of the Admin key
 	DisplayAdminKeyLength
@@ -223,6 +223,14 @@ End Sub
 Sub Activity_KeyPress(KeyCode As Int) As Boolean
 	
 	If KeyCode = KeyCodes.KEYCODE_BACK Then
+		
+		'Add special case for handling Back keypress while the Hash menu
+		'is shown to avoid unexpected App exits
+		If btnHashMenuBg.Visible == True Then
+			
+			btnHashMenuBg_Click
+			Return True
+		End If
 		
 		Activity.Finish()
 		
