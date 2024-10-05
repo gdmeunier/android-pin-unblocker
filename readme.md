@@ -13,17 +13,15 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 **Android PIN Unblocker** has a very simple set of features, it cans generate the *Response Code*, get the *Request Code* from QR code and hash text using *sha256* or *sha512*.
 
-![Main application screen.](https://todo/)
-
 ## Generate the Unblock Code
 
-![Generating the smartcard response code.](https://todo/)
+![Main application screen.](./blob/main/Screenshots/1-main-app-screen.png?raw=true) ![Generating the smartcard response code.](./blob/main/Screenshots/3-generated-response-code.png?raw=true)
 
 Here you can type the *Request Code* and also choose to hide the *Admin Key* with the checkbox below it.
 
 ## Hide & reveal the Admin Key
 
-![Main App screen with visible Admin Key.](https://todo/) ![Hiding the previously entered Admin Key.](https://todo/)
+![Main App screen with visible Admin Key.](./blob/main/Screenshots/1-main-app-screen.png?raw=true) ![Hiding the previously entered Admin Key.](./blob/main/Screenshots/2-admin-key-hide.png?raw=true)
 
 This application has been intended for situations where you're entering unblock codes for employees or people who stand-by next to you.
 
@@ -36,7 +34,7 @@ This way nobody accidentally grabs a picture of your *Admin Key* while unblockin
 I added the ability to scan QR codes in **Android PIN Unblocker** using the below Basic4Android library:
 - [NewQRCodeReaderView](https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/post-523013)
 
-![You can click the QR code button to scan the Request Code.](https://todo/)
+![You can click the QR code button to scan the Request Code.](./blob/main/Screenshots/4-scan-qr-request-code.png?raw=true)
 
 It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.codetwo.com/freeware/qr-code-desktop-reader/)** to do the card unblocking more efficiently.
 
@@ -44,7 +42,7 @@ The *Request Code* then automatically gets input in the appropriate field once d
 
 ## Generate Admin Key text hashes
 
-![Generating the Admin Key hash from text is possible inside the App.](https://todo/) ![Generated Admin Key hash inside the App.](https://todo/)
+![Generating the Admin Key hash from text is possible inside the App.](./blob/main/Screenshots/5-builtin-hashing-facility.png?raw=true) ![Generated Admin Key hash inside the App.](./blob/main/Screenshots/6-generated-admin-key-hash.png?raw=true)
 
 It's possible with **Android PIN Unblocker** (starting with version 3) to directly generate hashes within the App instead of having to write it in other ones.
 
@@ -54,7 +52,7 @@ The generated hash will automatically replace the previous *Admin Key* text.
 
 ## Share the Response Code
 
-![Sharing the Response Code with the native Android Intent chooser.](https://todo/)
+![Sharing the Response Code with the native Android Intent chooser.](./blob/main/Screenshots/7-share-response-code.png?raw=true)
 
 You can see on the previous screenshots a Share To button next to the generated *Response Code*, which will pop the native Android Intent chooser.
 
@@ -66,7 +64,7 @@ Otherwise you could type the *Response Code* automatically on e.g. employees' co
 
 ## Share Admin Key to the App
 
-![Sharing an Admin Key text to the App (Android PIN Unblocker).](https://todo/) ![Shared Admin Key is now unrevealable in the App.](https://todo/)
+![Sharing an Admin Key text to the App (Android PIN Unblocker).](./blob/main/Screenshots/8-share-admin-key-to-app.png?raw=true) ![Shared Admin Key is now unrevealable in the App.](./blob/main/Screenshots/9-shared-admin-key-unrevealable.png?raw=true)
 
 Here you can see that it's possible to write your *Admin Key* on a native Android note-taking application then select the text, which you can directly share to **Android PIN Unblocker**.
 
@@ -79,7 +77,7 @@ The App discards shared texts that are invalid *Admin Keys* and will simply beha
 
 ## Prevent disclosing Admin Keys
 
-![Admin Keys shared to the App cannot be unhidden.](https://todo/) ![Admin Keys hashed by long-pressing the hashing buttons are unrevealable as well.](https://todo/)
+![Admin Keys shared to the App cannot be unhidden.](./blob/main/Screenshots/9-shared-admin-key-unrevealable.png?raw=true) ![Admin Keys hashed by long-pressing the hashing buttons are unrevealable as well.](./blob/main/Screenshots/10-unrevealable-hash-on-long-press.png?raw=true)
 
 Whenever you share an Admin Key to the app instead of copy-pasting it yourself, the *Hide Admin Key* checkbox becomes disabled and you cannot unhide it.
 
