@@ -89,7 +89,7 @@ This feature prevents accidental disclosure of your *Admin Key* while unblocking
 
 You can also type your original text in the Admin Key field and directly generate a *sha256* or *sha512* hash from within the app, by long-pressing the hashing buttons.
 
-Long-pressing the SHA-256 or SHA-512 buttons actually generated the hash but also makes them unrevealable afterwards (single-click generates the hash normally without hiding it).
+Long-pressing the SHA-256 or SHA-512 buttons actually generates the hash but also makes them unrevealable afterwards (single-click generates the hash normally without hiding it).
 
 # License
 
