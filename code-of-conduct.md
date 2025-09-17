@@ -25,6 +25,6 @@ We are adults and we know what we should not do to eachother.
 ## Enforcement
 
 All problems are resolved on a case-by-case basis at my own discretion.\
-There are no rules, just wontribute without thinking about people's gender/nationality/political opinions.
+There are no rules, just contribute without thinking about people's gender/nationality/political opinions.
 
 
