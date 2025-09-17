@@ -4,7 +4,7 @@
 > 
 > **1.** Keep using an older mobile phone with Android 15 or older,\
 > **2.** Use a custom Android 16 ROM that removes the APK sideloading restriction,\
-> **3.** Root your mobile phone and use an Xposed module that removes the APK sideloading restriction.
+> **3.** Root your phone and use an Xposed module that removes the APK sideloading restriction.
 
 # Android PIN Unblocker
 
