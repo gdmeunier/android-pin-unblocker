@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 20
-	#VersionName: 3.1.1
+	#VersionCode: 21
+	#VersionName: 3.1.2
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -491,7 +491,27 @@ public String TextToHash(final String text, final String hashType) throws Except
     MessageDigest md = MessageDigest.getInstance(hashType);
 	
     byte[] textHashBytes = md.digest(textBytes);
-    return String.format("%032x", new BigInteger(1, textHashBytes));
+    
+    /* "%032x" was incorrect because it didn't work with
+    ** SHA-512 nor SHA-256 hashes due to being hardcoded
+    ** with [32] characters (length of md5 hash),
+    ** whereas SHA-256 is [40] chars & SHA-512 is [64] chars.
+    **
+    ** This is properly fixed now (no hardcoded number anymore).
+    ** (No more missing leading zeroes in rare cases.)
+    */
+    
+    return bytesToHexString(textHashBytes);
+}
+
+//
+// bytesToHexString fixed for missing leading-zeroes in rare cases
+// Thanks to: https://stackoverflow.com/a/943963
+//
+
+public String bytesToHexString(final byte[] hexBytes) {
+    BigInteger bigInt = new BigInteger(1, hexBytes);
+    return String.format("%0" + (hexBytes.length << 1) + "x", bigInt);
 }
 
 //
