@@ -8,7 +8,8 @@
 
 # Android PIN Unblocker
 
-A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (preferably atmost [version 12.80](https://web.archive.org/web/20240529212314/https://www.b4x.com/b4a.html) with the [B4X Help Viewer](https://www.b4x.com/android/forum/threads/b4x-help-viewer.46969/)).
+A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (preferably at [version 12.50](https://web.archive.org/web/20230719022719/https://www.b4x.com/android/files/B4A.exe), and its [version 12 resource files](https://web.archive.org/web/20240529212314/https://www.b4x.com/b4a.html)).\
+*You can also use the [B4X Help Viewer](https://www.b4x.com/android/forum/threads/b4x-help-viewer.46969/) to help with your development.*
 
 Its purpose is to generate **smartcard** unblock codes using your *Admin Key* and your phone instead of requiring a computer.
 
