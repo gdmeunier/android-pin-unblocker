@@ -1,9 +1,9 @@
-﻿ModuleBookmarks0=
+ModuleBookmarks0=
 ModuleBookmarks1=
 ModuleBreakpoints0=
 ModuleBreakpoints1=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=Main,btnSha512_Click,294,1,Main,btnScanRequest_Click,318,0,Main,Globals,33,0,Main,btnHashMenuBg_Click,244,6,Main,Activity_KeyPress,212,6,Main,Process_Globals,28,0,Main,Activity_Pause,94,0,Visual Designer,MainLayout.bal,-100,2,Main,Activity_Resume,191,0,Main,Activity_Create,75,2
+NavigationStack=Scan,ExitScanLayoutInternal,130,0,Scan,qrReaderView_result_found,149,0,Main,Globals,52,0,Main,Process_Globals,31,2,Scan,Globals,23,0,Main,QuicklyHideAdminKey,283,6,Scan,Activity_Create,26,6,Main,btnGenerate_Click,445,0,Main,Activity_Create,85,6,Main,btnShareResponse_Click,523,0
 SelectedBuild=0
-VisibleModules=1
+VisibleModules=
