@@ -1,4 +1,4 @@
-# No Code of Conduct
+# Code of Conduct
 
 ## My Pledge
 
