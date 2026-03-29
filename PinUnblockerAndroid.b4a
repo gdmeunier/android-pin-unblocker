@@ -1,4 +1,4 @@
-﻿Build1=Default,net.generic.smartcardpuk
+Build1=Default,net.generic.smartcardpuk
 File1=icon.png
 File2=MainLayout.bal
 File3=ScanLayout.bal
@@ -11,7 +11,7 @@ Library2=javaobject
 Library3=newqrcodereaderview
 Library4=runtimepermissions
 Library5=xui
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
 NumberOfFiles=3
 NumberOfLibraries=5
@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 21
-	#VersionName: 3.1.2
+	#VersionCode: 22
+	#VersionName: 3.2.0
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -47,6 +47,14 @@ Sub Process_Globals
 	'
 	Private xui As XUI
 	Private NativeMe As JavaObject
+	
+	'Anti-leak protection for Admin keys in Recent thumbnails:
+	'
+	'Add missing KeyCodes constants from Basic4Android to
+	'the project source code directly.
+	'
+	Public Const KEYCODE_LOCK As Int = 324
+	Public Const KEYCODE_RECENT_APPS As Int = 312
 	
 End Sub
 
@@ -91,11 +99,18 @@ Sub Activity_Create(FirstTime As Boolean)
 		'
 		NativeMe.InitializeContext
 		
+		'Adding the ability to block Android from capturing
+		'screenshots of this App because otherwise they leak
+		'the Admin keys in Recent Apps thumbnails.
+		'
+		NativeMe.RunMethod("SetWindowFlagSecure", Array())
+		
 		'Updated: I prefer showing the default 48-zeroes Admin Key
 		'on App's first Activity start (it gets hidden on Activity resume anyway)
 		'
 		chkHideAdminKey.Checked  = False
 		inpAdminKey.PasswordMode = False
+		
 	End If
 	
 	'Show the length of the Admin key
@@ -222,32 +237,68 @@ End Sub
 
 Sub Activity_KeyPress(KeyCode As Int) As Boolean
 	
-	If KeyCode = KeyCodes.KEYCODE_BACK Then
-		
-		'Add special case for handling Back keypress while the Hash menu
-		'is shown to avoid unexpected App exits
-		If btnHashMenuBg.Visible == True Then
+	Select Case KeyCode
+		Case KeyCodes.KEYCODE_BACK
 			
-			btnHashMenuBg_Click
+			'Add special case for handling Back keypress while the Hash menu
+			'is shown to avoid unexpected App exits
+			If btnHashMenuBg.Visible == True Then
+				btnHashMenuBg_Click
+				
+				'Returning True consumes the event (preventDefault)
+				Return True
+			End If
+			
+			'Immediately hide the Admin key if any was shown before
+			'exiting the App, to avoid leaking the Admin key inside
+			'the Recent Apps thumbnail.
+			QuicklyHideAdminKey
+			
+			'Exit the application directly when back key is pressed
+			'This prevents the app from running in the background
+			ExitApplication()
 			Return True
-		End If
+			
+		'Add special cases for quickly hiding the Admin key when
+		'the user locks the phone or switches to another app,
+		'as well as opening the Recent Apps panel / menu
 		
-		Activity.Finish()
-		
-		'Exit the application directly when back key is pressed
-		'This prevents the app from running in the background
-		ExitApplication()
-		
-		Return True
-	Else
-		Return False
-	End If
+		'Some constant values were missing so I added them
+		'directly inside the App myself (missing from Basic4Android).
+		'
+		Case KeyCodes.KEYCODE_HOME, KEYCODE_LOCK, KEYCODE_RECENT_APPS
+			
+			'Immediately hide the Admin key if any was shown before
+			'switching to other Apps, to avoid leaking the Admin key
+			'inside the Recent Apps thumbnail.
+			QuicklyHideAdminKey
+			
+			'Now we let Android do its job by not consuming
+			'the event (return False)
+			Return False
+			
+		' All other non-intercepted keys below
+		Case Else
+			Return False
+	End Select
 	
 End Sub
 
 '
 'Helper code
 '
+
+Private Sub QuicklyHideAdminKey()
+	
+	'Immediately hide the Admin key if any was shown before,
+	'to avoid leaking the Admin key inside the Recent Apps thumbnails.
+	'
+	If inpAdminKey.Text <> "" Then
+		inpAdminKey.PasswordMode = True
+		chkHideAdminKey.Checked  = True
+	End If
+	
+End Sub
 
 Private Sub DisplayAdminKeyLength() As Void
 	
@@ -310,14 +361,14 @@ Private Sub btnSha256_Click
 	
 	Dim sha256 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-256"))
 	
-	inpAdminKey.Text = sha256.ToUpperCase()
+	inpAdminKey.Text = sha256 '.ToUpperCase() part not needed anymore
 	btnHashMenuBg_Click
 End Sub
 Private Sub btnSha512_Click
 	
 	Dim sha512 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-512"))
 	
-	inpAdminKey.Text = sha512.ToUpperCase()
+	inpAdminKey.Text = sha512 '.ToUpperCase() part not needed anymore
 	btnHashMenuBg_Click
 End Sub
 
@@ -485,6 +536,30 @@ import java.security.NoSuchAlgorithmException;
 import java.security.MessageDigest;
 import java.math.BigInteger;
 
+//
+// Adding FLAG_SECURE support to this App to avoid
+// leaking Admin keys in Recent Apps thumbnails.
+//
+/*
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
+*/
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+
+public void SetWindowFlagSecure() throws Exception {
+	
+	// Add FLAG_SECURE which prevents Android from taking
+	// Recent App thumbnail screenshots of this activity,
+	// otherwise the Admin keys can leak in thumbnail files.
+	
+	// Side-effect: can't screenshot the App, but fortunately
+	// I already did the screenshots a while ago anyway.
+	
+	getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+}
+
 public String TextToHash(final String text, final String hashType) throws Exception {
 	
     byte[] textBytes = text.getBytes();
@@ -511,7 +586,12 @@ public String TextToHash(final String text, final String hashType) throws Except
 
 public String bytesToHexString(final byte[] hexBytes) {
     BigInteger bigInt = new BigInteger(1, hexBytes);
-    return String.format("%0" + (hexBytes.length << 1) + "x", bigInt);
+	
+	// We can also just use "X" instead of "x" to directly
+	// get uppercase hashes, which avoids having to
+	// call .ToUpperCase() in the Basic functions code.
+	//
+    return String.format("%0" + (hexBytes.length << 1) + "X", bigInt);
 }
 
 //
