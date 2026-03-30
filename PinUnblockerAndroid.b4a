@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 22
-	#VersionName: 3.2.0
+	#VersionCode: 23
+	#VersionName: 3.2.1
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -88,6 +88,19 @@ Sub Globals
 	
 End Sub
 
+#If JAVA
+//
+// Must be before Activity_Create in order to work
+//
+
+//
+// Adding FLAG_SECURE support to this App to avoid
+// leaking Admin keys in Recent Apps thumbnails.
+//
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+#End If
+
 Sub Activity_Create(FirstTime As Boolean)
 	
 	Activity.LoadLayout("MainLayout")
@@ -103,8 +116,19 @@ Sub Activity_Create(FirstTime As Boolean)
 		'screenshots of this App because otherwise they leak
 		'the Admin keys in Recent Apps thumbnails.
 		'
-		NativeMe.RunMethod("SetWindowFlagSecure", Array())
-		
+		'
+#If JAVA
+		// Add FLAG_SECURE which prevents Android from taking
+		// Recent App thumbnail screenshots of this activity,
+		// otherwise the Admin keys can leak in thumbnail files.
+		//
+		// Side-effect: can't screenshot the App, but fortunately
+		// I already did the screenshots a while ago anyway.
+		//
+		public void _onCreate() {
+		    this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+		}
+#End If
 		'Updated: I prefer showing the default 48-zeroes Admin Key
 		'on App's first Activity start (it gets hidden on Activity resume anyway)
 		'
@@ -535,30 +559,6 @@ import java.security.NoSuchAlgorithmException;
 
 import java.security.MessageDigest;
 import java.math.BigInteger;
-
-//
-// Adding FLAG_SECURE support to this App to avoid
-// leaking Admin keys in Recent Apps thumbnails.
-//
-/*
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
-*/
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
-
-public void SetWindowFlagSecure() throws Exception {
-	
-	// Add FLAG_SECURE which prevents Android from taking
-	// Recent App thumbnail screenshots of this activity,
-	// otherwise the Admin keys can leak in thumbnail files.
-	
-	// Side-effect: can't screenshot the App, but fortunately
-	// I already did the screenshots a while ago anyway.
-	
-	getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
-}
 
 public String TextToHash(final String text, final String hashType) throws Exception {
 	
