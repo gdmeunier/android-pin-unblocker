@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 23
-	#VersionName: 3.2.1
+	#VersionCode: 24
+	#VersionName: 3.2.2
 
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -221,6 +221,7 @@ Sub Activity_Resume
 			
 			'No need to set password-mode by default if the Admin Key is empty
 			inpAdminKey.PasswordMode = False
+			chkHideAdminKey.Checked  = False
 			
 			'Explain error to the user in a toast (better than modifying textfield hints)
 			ToastMessageShow("Shared Admin Key is invalid", False)
