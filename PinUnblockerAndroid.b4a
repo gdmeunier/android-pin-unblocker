@@ -21,9 +21,9 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 24
-	#VersionName: 3.2.2
-
+	#VersionCode: 25
+	#VersionName: 3.2.3
+	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
 	
@@ -35,6 +35,9 @@ Version=12.5
 	#IgnoreWarnings: 31
 	'Ignore function value returns warning
 	#IgnoreWarnings: 2
+	
+	'Ignore file is not used warning
+	#IgnoreWarnings: 15
 #End Region
 
 #Region  Activity Attributes 
@@ -236,6 +239,14 @@ Sub Activity_Resume
 		
 		If inpAdminKey.Text <> "" Then
 			chkHideAdminKey.Enabled = False
+		Else
+			'If you Long-Click one of the Hash buttons then go back
+			'to this app in the Recents panel, after having shared
+			'an invalid Admin key first, then the 'Hide Admin Key'
+			'checkbox will not be automatically re-enabled.
+			'
+			' So we have to do it here explicitly (fixes minor UI glitch).
+			chkHideAdminKey.Enabled = True
 		End If
 		
 	Else
@@ -364,21 +375,21 @@ End Sub
 
 Private Sub btnSha256_LongClick
 	
-	btnSha256_Click
-	
-	inpAdminKey.PasswordMode = True
 	chkHideAdminKey.Enabled  = False
 	chkHideAdminKey.Checked  = True
+	inpAdminKey.PasswordMode = True
+	
+	btnSha256_Click
 	
 End Sub
 
 Private Sub btnSha512_LongClick
 	
-	btnSha512_Click
-	
-	inpAdminKey.PasswordMode = True
 	chkHideAdminKey.Enabled  = False
 	chkHideAdminKey.Checked  = True
+	inpAdminKey.PasswordMode = True
+	
+	btnSha512_Click
 	
 End Sub
 
