@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 25
-	#VersionName: 3.2.3
+	#VersionCode: 26
+	#VersionName: 3.3.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -58,6 +58,18 @@ Sub Process_Globals
 	'
 	Public Const KEYCODE_LOCK As Int = 324
 	Public Const KEYCODE_RECENT_APPS As Int = 312
+	
+	'Once an Admin key has already been shared to the App via Share To,
+	'we should disclose if it has already been shared once.
+	'
+	'Use-case: Sharing invalid Admin key, generating a new proper one,
+	'then you press the Home button.
+	'
+	'Now when you go back to the App, your Admin key is cleared because
+	'Android re-shared the Admin key on Activity resume to the App.
+	'
+	'This fixes the mentioned behavior and is easy to implement.
+	Public AdminKeyAlreadySharedOnce As Boolean = False
 	
 End Sub
 
@@ -175,7 +187,8 @@ Sub Activity_Resume
 	End If
 	
 	If  receivedIntent.Action == receivedIntent.ACTION_SEND  _
-	And receivedIntent.HasExtra("android.intent.extra.TEXT") Then
+	And receivedIntent.HasExtra("android.intent.extra.TEXT") _
+	And Not(AdminKeyAlreadySharedOnce) Then
 		
 		'Hide the Admin Key by default
 		chkHideAdminKey.Checked  = True
@@ -231,7 +244,7 @@ Sub Activity_Resume
 			
 		End If
 		
-		' Show the length of the Admin key
+		'Show the length of the Admin key
 		DisplayAdminKeyLength
 		
 		'Now the Admin Key will no longer be unhideable if valid (not empty)
@@ -248,6 +261,18 @@ Sub Activity_Resume
 			' So we have to do it here explicitly (fixes minor UI glitch).
 			chkHideAdminKey.Enabled = True
 		End If
+		
+		'Once an Admin key has already been shared to the App via Share To,
+		'we should disclose that it has already been shared once.
+		'
+		'Use-case: Sharing invalid Admin key, generating a new proper one,
+		'then you press the Home button.
+		'
+		'Now when you go back to the App, your Admin key is cleared because
+		'Android re-shared the Admin key on Activity resume to the App.
+		'
+		'This fixes the mentioned behavior and is easy to implement.
+		AdminKeyAlreadySharedOnce = True
 		
 	Else
 		'
