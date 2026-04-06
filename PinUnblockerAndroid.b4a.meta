@@ -4,6 +4,6 @@ ModuleBreakpoints0=
 ModuleBreakpoints1=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=Main,QuicklyHideAdminKey,304,6,Main,btnSha512_Click,375,0,Main,Globals,41,0,Main,Process_Globals,35,2,Visual Designer,MainLayout.bal,-100,1,Main,Activity_Create,118,6,Main,Activity_Pause,137,0,Main,btnSha512_LongClick,371,0,Main,btnSha256_LongClick,361,0,Main,Activity_Resume,230,6
+NavigationStack=Main,QuicklyHideAdminKey,304,6,Main,btnSha512_Click,375,0,Visual Designer,MainLayout.bal,-100,1,Main,Activity_Pause,137,0,Main,btnSha512_LongClick,371,0,Main,btnSha256_LongClick,361,0,Main,Globals,46,0,Main,Activity_Resume,254,6,Main,Process_Globals,49,6,Main,Activity_Create,113,6,Main,Activity_KeyPress,300,0
 SelectedBuild=0
 VisibleModules=
