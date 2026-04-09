@@ -21,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 26
-	#VersionName: 3.3.0
+	#VersionCode: 27
+	#VersionName: 3.4.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -70,6 +70,13 @@ Sub Process_Globals
 	'
 	'This fixes the mentioned behavior and is easy to implement.
 	Public AdminKeyAlreadySharedOnce As Boolean = False
+	
+	'Added a flag to avoid hiding the default Admin key on the first
+	'App launch (Activity create with FirstTime set to True).
+	'
+	'It will be set to True or False when launching the App inside
+	'the Activity_Create function.
+	Public DontHideAdminKeyBecauseFirstActivityLaunch As Boolean = False
 	
 End Sub
 
@@ -144,12 +151,20 @@ Sub Activity_Create(FirstTime As Boolean)
 		    this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
 		}
 #End If
+		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
+		DontHideAdminKeyBecauseFirstActivityLaunch = True
+		
 		'Updated: I prefer showing the default 48-zeroes Admin Key
 		'on App's first Activity start (it gets hidden on Activity resume anyway)
 		'
-		chkHideAdminKey.Checked  = False
 		inpAdminKey.PasswordMode = False
+		chkHideAdminKey.Checked  = False
 		
+	Else
+		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
+		'set the global variable to False if it's not the first time that
+		'the activity is launched
+		DontHideAdminKeyBecauseFirstActivityLaunch = False
 	End If
 	
 	'Show the length of the Admin key
@@ -186,13 +201,19 @@ Sub Activity_Resume
 		Return
 	End If
 	
+	'
+	'When sharing an Admin key to the app, Admin keys are always
+	'hidden by default anyway so no need for honoring the global
+	'variable named DontHideAdminKeyBecauseFirstActivityLaunch,
+	'even on the first Share To activity lanch.
+	'
 	If  receivedIntent.Action == receivedIntent.ACTION_SEND  _
 	And receivedIntent.HasExtra("android.intent.extra.TEXT") _
 	And Not(AdminKeyAlreadySharedOnce) Then
 		
 		'Hide the Admin Key by default
-		chkHideAdminKey.Checked  = True
 		inpAdminKey.PasswordMode = True
+		chkHideAdminKey.Checked  = True
 		
 		'Get the received Admin Key text and remove all invalid hex chars and newlines
 		Dim receivedText As String = receivedIntent.GetExtra("android.intent.extra.TEXT")
@@ -285,9 +306,17 @@ Sub Activity_Resume
 		'
 		
 		'Hide the Admin Key when switching back to this App from another one
-		If inpAdminKey.Text <> "" Then
-			chkHideAdminKey.Checked  = True
+		'
+		'With added Hotfix for letting the Admin key be shown at the first
+		'App's Activity launch (Activity create with FirstTime flag set to True)
+		If inpAdminKey.Text <> "" And Not(DontHideAdminKeyBecauseFirstActivityLaunch) Then
 			inpAdminKey.PasswordMode = True
+			chkHideAdminKey.Checked  = True
+		Else
+			'Clear the global variable 'DontHideAdminKeyBecauseFirstActivityLaunch'
+			'once it has already been used once by setting it to False,
+			'so that it will no longer be used again (cannot be used more than once)
+			DontHideAdminKeyBecauseFirstActivityLaunch = False
 		End If
 	End If
 	
@@ -383,10 +412,10 @@ Private Sub btnHashMenu_Click
 End Sub
 
 Private Sub btnHashMenuBg_Click
-	btnHashMenu.Checked = False
-	
-	btnSha256.Visible = False
 	btnSha512.Visible = False
+	btnSha256.Visible = False
+	
+	btnHashMenu.Checked = False
 	
 	btnHashMenuBg.Visible = False
 End Sub
@@ -401,8 +430,9 @@ End Sub
 Private Sub btnSha256_LongClick
 	
 	chkHideAdminKey.Enabled  = False
-	chkHideAdminKey.Checked  = True
+	
 	inpAdminKey.PasswordMode = True
+	chkHideAdminKey.Checked  = True
 	
 	btnSha256_Click
 	
@@ -411,8 +441,9 @@ End Sub
 Private Sub btnSha512_LongClick
 	
 	chkHideAdminKey.Enabled  = False
-	chkHideAdminKey.Checked  = True
+	
 	inpAdminKey.PasswordMode = True
+	chkHideAdminKey.Checked  = True
 	
 	btnSha512_Click
 	
@@ -637,36 +668,81 @@ public String bytesToHexString(final byte[] hexBytes) {
 
 public String GenerateResponseCode(final String challengeCode, final String adminKey) throws Exception {
 	
-    byte[] challengeCodeBytes = HexToolFromString(challengeCode);
-	byte[] adminKeyBytes      = HexToolFromString(adminKey);
+	// Verify the challenge code and Admin key to make sure that
+	// they are Hex string representing Hex bytes in text
 	
-	byte[] responseCodeBytes;
-	
-	if ( adminKey.length() == 32 && challengeCode.length() == 32 )
+	if ( !VerifyIfStringAreHexBytes(challengeCode) )
 	{
-		// Reversed from HID Crescendo Management Tool V2.0
-		//
-		final SecretKey generatedAesKey = new SecretKeySpec(adminKeyBytes, "AES");
-		
-		final Cipher aesInstance = Cipher.getInstance("AES/ECB/NoPadding");
-		aesInstance.init(1, generatedAesKey);
-		
-		responseCodeBytes = aesInstance.doFinal(challengeCodeBytes);
+		return "Invalid Challenge";
 	}
-	else
+	else if ( !VerifyIfStringAreHexBytes(adminKey) )
 	{
-		// Reversed from Crescendo C1150 Card Unblock Utility
-		//
-		final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
-	    final SecretKey generatedDesEdeSecret = skf.generateSecret(new DESedeKeySpec(adminKeyBytes));
-		
-	    final Cipher desEdeInstance = Cipher.getInstance("DESede/ECB/NoPadding");
-	    desEdeInstance.init(1, generatedDesEdeSecret);
-		
-		responseCodeBytes = desEdeInstance.doFinal(challengeCodeBytes);
+		return "Invalid Admin key";
 	}
 	
-	return HexToolToString(responseCodeBytes);
+	try {
+	    byte[] challengeCodeBytes = HexToolFromString(challengeCode);
+		byte[] adminKeyBytes      = HexToolFromString(adminKey);
+		
+		byte[] responseCodeBytes;
+		
+		//
+		// Note: to make things easier when comparing lengths it's actually
+		// the strings of the challenge code and Admin key that I check
+		// for length instead of the byte arrays (byte[] variables)
+		//
+		
+		//
+		// Note: I add explicit lengths check now because I might add more
+		// challenge-response algorithms in the future (XAuth challenges)
+		//
+		
+		if ( adminKey.length() == 32 && challengeCode.length() == 32 )
+		{
+			// Reversed from HID Crescendo Management Tool V2.0
+			//
+			final SecretKey generatedAesKey = new SecretKeySpec(adminKeyBytes, "AES");
+			
+			final Cipher aesInstance = Cipher.getInstance("AES/ECB/NoPadding");
+			aesInstance.init(1, generatedAesKey);
+			
+			responseCodeBytes = aesInstance.doFinal(challengeCodeBytes);
+		}
+		else if ( adminKey.length() == 48 && challengeCode.length() == 16 )
+		{
+			// Reversed from Crescendo C1150 Card Unblock Utility
+			//
+			final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
+		    final SecretKey generatedDesEdeSecret = skf.generateSecret(new DESedeKeySpec(adminKeyBytes));
+			
+		    final Cipher desEdeInstance = Cipher.getInstance("DESede/ECB/NoPadding");
+		    desEdeInstance.init(1, generatedDesEdeSecret);
+			
+			responseCodeBytes = desEdeInstance.doFinal(challengeCodeBytes);
+		}
+		else
+		{
+			// If no correct algorithm was found
+			// We should never reach here anyway
+			return "Unknown Algorithm";
+		}
+		
+		return HexToolToString(responseCodeBytes);
+		
+	} catch (Exception e) {
+		//
+		// Adding better exception handling in Java code
+		//
+		return "Failed to Compute";
+	}
+}
+
+// Thanks to these websites for the code snippets:
+// https://www.geeksforgeeks.org/java/java-program-to-print-even-length-words-in-a-string/
+// https://stackoverflow.com/a/25820641
+//
+public boolean VerifyIfStringAreHexBytes(final String s) {
+	return (s.length() >= 2) && (s.length() % 2 == 0) && s.matches("^[0-9a-fA-F]+$");
 }
 
 //
