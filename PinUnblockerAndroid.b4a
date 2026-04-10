@@ -1,28 +1,25 @@
 Build1=Default,net.generic.smartcardpuk
-File1=icon.png
-File2=MainLayout.bal
-File3=ScanLayout.bal
+File1=MainLayout.bal
+File2=ScanLayout.bal
 FileGroup1=Default Group
 FileGroup2=Default Group
-FileGroup3=Default Group
 Group=Default Group
 Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
 Library4=runtimepermissions
-Library5=xui
 ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
-NumberOfFiles=3
-NumberOfLibraries=5
+NumberOfFiles=2
+NumberOfLibraries=4
 NumberOfModules=1
 Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 27
-	#VersionName: 3.4.0
+	#VersionCode: 28
+	#VersionName: 3.5.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -48,7 +45,9 @@ Version=12.5
 Sub Process_Globals
 	'These variables can be accessed from all modules.
 	'
-	Private xui As XUI
+	
+	'XUI was actually not needed for this App to run properly
+	'Private xui As XUI
 	Private NativeMe As JavaObject
 	
 	'Anti-leak protection for Admin keys in Recent thumbnails:
@@ -71,6 +70,20 @@ Sub Process_Globals
 	'This fixes the mentioned behavior and is easy to implement.
 	Public AdminKeyAlreadySharedOnce As Boolean = False
 	
+	'Allow only this App to send Share To containing challenge codes
+	'so that when the user scans a QR code containing a challenge code,
+	'they don't get it put back again by Android in the Challenge code field
+	'whenever they switch to another app then go back to this one using
+	'the Recent Apps panel.
+	'
+	'False by default, but it will be set to True by
+	'the Scan module's qrReaderView_result_found function.
+	'
+	'After the Challenge QR code result is shared, then
+	'this module's Activity_Resume function will disallow it again
+	'by setting it back to False.
+	Public SharingQRCodeChallengeIntentAllowed As Boolean = False
+	
 	'Added a flag to avoid hiding the default Admin key on the first
 	'App launch (Activity create with FirstTime set to True).
 	'
@@ -89,13 +102,12 @@ Sub Globals
 	
 	'Needed to show Admin Key length when counting chars
 	Private lblAdminKey As Label
-	
 	Private inpAdminKey     As EditText
 	Private chkHideAdminKey As CheckBox
 	
 	Private btnGenerate As Button
-	Private inpResponse As EditText
 	
+	Private inpResponse As EditText
 	Private btnShareResponse As Button
 	
 	'New builtin text hashing functions
@@ -137,7 +149,6 @@ Sub Activity_Create(FirstTime As Boolean)
 		'Adding the ability to block Android from capturing
 		'screenshots of this App because otherwise they leak
 		'the Admin keys in Recent Apps thumbnails.
-		'
 		'
 #If JAVA
 		// Add FLAG_SECURE which prevents Android from taking
@@ -190,12 +201,28 @@ Sub Activity_Resume
 	'
 	'Add ability to receive Admin Key with Android's Share To
 	'
-	
 	Dim receivedIntent As Intent = Activity.GetStartingIntent
 	
+	'
 	'Add support for receiving the scanned Challenge Code to Main layout
+	'
 	If  receivedIntent.Action == receivedIntent.ACTION_SEND            _
-	And receivedIntent.HasExtra("android.intent.extra.CHALLENGE_CODE") Then
+	And receivedIntent.HasExtra("android.intent.extra.CHALLENGE_CODE") _
+	And SharingQRCodeChallengeIntentAllowed Then
+		'
+		'Allow only this App to send Share To containing challenge codes
+		'so that when the user scans a QR code containing a challenge code,
+		'they don't get it put back again by Android in the Challenge code field
+		'whenever they switch to another app then go back to this one using
+		'the Recent Apps panel.
+		'
+		'False by default, but it will be set to True by
+		'the Scan module's qrReaderView_result_found function.
+		'
+		'After the Challenge QR code result is shared, then
+		'this code will disables it again by setting it back to False.
+		'
+		SharingQRCodeChallengeIntentAllowed = False
 		
 		inpChallenge.Text = receivedIntent.GetExtra("android.intent.extra.CHALLENGE_CODE")
 		Return
