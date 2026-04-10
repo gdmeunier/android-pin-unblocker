@@ -8,18 +8,19 @@ Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
 Library4=runtimepermissions
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+Library5=phone
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
 NumberOfFiles=2
-NumberOfLibraries=4
+NumberOfLibraries=5
 NumberOfModules=1
 Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 28
-	#VersionName: 3.5.0
+	#VersionCode: 29
+	#VersionName: 3.6.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: True
@@ -57,6 +58,10 @@ Sub Process_Globals
 	'
 	Public Const KEYCODE_LOCK As Int = 324
 	Public Const KEYCODE_RECENT_APPS As Int = 312
+	
+	'Add homepage URL constant for the new About menu item.
+	'If you fork this App, you can change the URL to your own.
+	Public Const APP_HOMEPAGE_URL As String = "https://github.com/gdmeunier/android-pin-unblocker"
 	
 	'Once an Admin key has already been shared to the App via Share To,
 	'we should disclose if it has already been shared once.
@@ -138,6 +143,9 @@ import android.view.WindowManager.LayoutParams;
 Sub Activity_Create(FirstTime As Boolean)
 	
 	Activity.LoadLayout("MainLayout")
+	
+	'Add a menu item for getting more info about this App
+	Activity.AddMenuItem("About", "mnuAbout")
 	
 	If FirstTime Then
 		'
@@ -430,6 +438,25 @@ End Sub
 '
 'UI event handlers
 '
+
+'New About menu item for this App's Activity.
+Private Sub mnuAbout_Click
+	
+	'Positive button is named 'Homepage'
+	'Cancel button is named 'Dismiss'
+	Msgbox2Async($"${Application.LabelName}
+Version ${Application.VersionName}
+
+This App generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken"$, "About", "Homepage", "Dismiss", "", Application.Icon, True)
+	
+	Wait For Msgbox_Result (Result As Int)
+	
+	If Result = DialogResponse.POSITIVE Then
+		Dim p As PhoneIntents
+		StartActivity(p.OpenBrowser(APP_HOMEPAGE_URL))
+	End If
+	
+End Sub
 
 Private Sub btnHashMenu_Click
 	btnHashMenuBg.Visible = True
