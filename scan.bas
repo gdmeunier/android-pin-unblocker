@@ -1,4 +1,4 @@
-﻿B4A=true
+B4A=true
 Group=Default Group
 ModulesStructureVersion=1
 Type=Activity
@@ -12,6 +12,11 @@ Version=12
 	'Ignore function value returns warning
 	#IgnoreWarnings: 2
 #End Region
+
+Sub Process_Globals
+	'These variables can be accessed from all modules.
+	'
+End Sub
 
 Sub Globals
 	'These global variables will be redeclared each time the activity is created.
@@ -27,13 +32,82 @@ Sub Globals
 	Private isBackCamera  As Boolean
 	Private isTorchOn     As Boolean
 	
+	'Avoid trying to start the Camera twice when creating
+	'the Activity for
+	Private isCameraAlreadyStarted As Boolean
+	
 End Sub
+
+#If JAVA
+//
+// Must be before Activity_Create in order to work
+//
+
+//
+// Adding FLAG_SECURE support to this App to avoid
+// leaking Admin keys in Recent Apps thumbnails.
+//
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+#End If
 
 Sub Activity_Create(FirstTime As Boolean)
 	
 	Activity.LoadLayout("ScanLayout")
 	
+	If FirstTime Then
+		'
+		'Adding the ability to block Android from capturing
+		'screenshots of this App because otherwise they leak
+		'the Admin keys in Recent Apps thumbnails.
+		'
+#If JAVA
+		// Add FLAG_SECURE which prevents Android from taking
+		// Recent App thumbnail screenshots of this activity,
+		// otherwise the Admin keys can leak in thumbnail files.
+		//
+		// Side-effect: can't screenshot the App, but fortunately
+		// I already did the screenshots a while ago anyway.
+		//
+		public void _onCreate() {
+		    this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+		}
+#End If
+	End If
+	
+	'Set default Camera flags when initializing
+	'this Activity for the first time.
+	'
+	'You need to set these flags before calling InitializeQrCodeReader
+	'because it will actually use them.
+	'
+	isTorchOn    = False
+	
+	'Initialize the QR code reader static properties.
+	'Static properties are properties that are mostly always
+	'the same values anyway and default first-time settings.
 	InitializeQrCodeReader
+	
+	'Allow starting the Camera on Activity_Create.
+	'It means initializing the global variable to False.
+	'
+	'This one cans be done after the InitializeQrCodeReader function.
+	isBackCamera = True
+	isCameraAlreadyStarted = False
+	
+	'
+	'Always rear/back Camera first
+	'
+	'Note: don't put this code inside StartQrCodeReader otherwise
+	'you will not be able to switch back/front cameras with the
+	'Switch Camera button, so always do it explicitly before
+	'calling StartQrCodeReader and only in Activity_Create and
+	'the Activity_Resume functions.
+	'
+	qrReaderView.PreviewCameraId = 0
+	qrReaderView.setBackCamera()
+	
+	'Start scanning QR codes immediately
 	StartQrCodeReader
 	
 End Sub
@@ -57,12 +131,28 @@ Sub Activity_Pause (UserClosed As Boolean)
 	
 	StopQrCodeReader
 	
-	isTorchOn = False
-	qrReaderView.TorchEnabled = isTorchOn
-	
 End Sub
 
 Sub Activity_Resume
+	'
+	'Always rear/back Camera first
+	'
+	'Note: don't put this code inside StartQrCodeReader otherwise
+	'you will not be able to switch back/front cameras with the
+	'Switch Camera button, so always do it explicitly before
+	'calling StartQrCodeReader and only in Activity_Create and
+	'the Activity_Resume functions.
+	'
+	isBackCamera = True
+	
+	qrReaderView.PreviewCameraId = 0
+	qrReaderView.setBackCamera()
+	
+	'Set default Camera flags before starting
+	'the Camera access for this Activity.
+	'
+	'No torch automatic re-enabling here (always off first).
+	isTorchOn    = False
 	
 	StartQrCodeReader
 	
@@ -73,9 +163,6 @@ End Sub
 '
 
 Private Sub InitializeQrCodeReader As Void
-	
-	isBackCamera = True
-	isTorchOn    = False
 	
 	'QR decoder settings
 	qrReaderView.TorchEnabled = isTorchOn
@@ -89,27 +176,43 @@ Private Sub InitializeQrCodeReader As Void
 	qrReaderView.PreviewCameraId = 1
 	qrReaderView.setFrontCamera()
 	
-	'Now always rear Camera first
-	qrReaderView.PreviewCameraId = 0
-	qrReaderView.setBackCamera()
-	
 End Sub
 
 Private Sub StartQrCodeReader As Void
 	
-	qrReaderView.Visible = True
-	
-	qrReaderView.startCamera()
-	qrReaderView.ScanNow = True
+	If Not(isCameraAlreadyStarted) Then
+		'Set isCameraAlreadyStarted to True to avoid
+		'trying to start the Camera twice because of
+		'how the Android intent system works.
+		isCameraAlreadyStarted = True
+		
+		qrReaderView.Visible = True
+		
+		'QR decoder settings
+		qrReaderView.TorchEnabled = isTorchOn
+		
+		'Start the Camera because it wasn't already started
+		'before (start it only when needed to avoid duplicate calls)
+		qrReaderView.startCamera()
+		qrReaderView.ScanNow = True
+	End If
 	
 End Sub
 
 Private Sub StopQrCodeReader As Void
-
-	qrReaderView.stopCamera()
+	
 	qrReaderView.ScanNow = False
 	
+	'QR decoder settings
+	isTorchOn = False
+	qrReaderView.TorchEnabled = isTorchOn
+	
+	qrReaderView.stopCamera()
 	qrReaderView.Visible = False
+	
+	'Set isCameraAlreadyStarted to False to allow
+	'the Camera to be started again.
+	isCameraAlreadyStarted = False
 	
 End Sub
 
@@ -121,18 +224,19 @@ End Sub
 
 Private Sub ExitScanLayoutInternal(NoActivityStart As Boolean) As Void
 	
+	'Stop the Camera access first before exiting this module
+	'
 	StopQrCodeReader
-	
-	isBackCamera = True
-	isTorchOn    = False
-	
-	qrReaderView.TorchEnabled = isTorchOn
 	
 	'Close this Activity once no longer needed
 	'
 	Activity.Finish()
-		
+	
 	'Return to the Main Android PIN Unblocker activity
+	'
+	'Only prevent a new Activity start when it's the
+	'qrReaderView_result_found function that calls this one,
+	'because it already starts the Main activity in its own way.
 	'
 	If NoActivityStart == False Then
 		StartActivity(Main)
@@ -146,14 +250,28 @@ End Sub
 
 Private Sub qrReaderView_result_found(ReturnValue As String)
 	
+	'Prepare the Share To intent for the QR code
 	Dim shareIntent As Intent
 	shareIntent.Initialize(shareIntent.ACTION_SEND, "")
 	
-	shareIntent.SetPackage("net.generic.smartcardpuk")
+	'Set the Share To intent properties
+	'Package name cans now easily be changed without changing it here
+	shareIntent.SetPackage(Application.PackageName)
 	shareIntent.SetType("text/plain")
 	shareIntent.PutExtra("android.intent.extra.CHALLENGE_CODE", ReturnValue)
 	
+	'Set the Main module's SharingQRCodeChallengeIntentAllowed variable
+	'to True in order to let the App accept the Share To intent.
+	Main.SharingQRCodeChallengeIntentAllowed = True
+	
+	'Finally start the Share To activity
 	StartActivity(shareIntent)
+	
+	'Exit without re-starting the Main activity (True flag).
+	'
+	'This is because we already started the Main Activity ourselves
+	'using a Share To intent with the challenge code.
+	'
 	ExitScanLayoutInternal(True)
 	
 End Sub
@@ -171,6 +289,7 @@ Private Sub btnSwitchCam_Click
 	isTorchOn = False
 	qrReaderView.TorchEnabled = isTorchOn
 	
+	'Change Camera to the opposite side
 	isBackCamera = Not(isBackCamera)
 	
 	StopQrCodeReader
@@ -194,8 +313,4 @@ End Sub
 '
 'Unused code
 '
-
-Sub Process_Globals
-	
-End Sub
 
