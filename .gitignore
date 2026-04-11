@@ -8,6 +8,9 @@ AutoBackups/*
 # APK Generator
 Objects/*
 
+# Don't ignore pre-configured App icon
+!Objects/res/drawable/icon.png
+
 # Releases
 Releases/*
 
