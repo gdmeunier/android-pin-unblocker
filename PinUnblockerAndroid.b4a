@@ -1,17 +1,19 @@
 Build1=Default,net.generic.smartcardpuk
-File1=MainLayout.bal
-File2=ScanLayout.bal
+File1=About.png
+File2=MainLayout.bal
+File3=ScanLayout.bal
 FileGroup1=Default Group
 FileGroup2=Default Group
+FileGroup3=Default Group
 Group=Default Group
 Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
 Library4=runtimepermissions
 Library5=phone
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(~\n~'<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~AddManifestText(~\n~<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(~\n~'<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
-NumberOfFiles=2
+NumberOfFiles=3
 NumberOfLibraries=5
 NumberOfModules=1
 Version=12.5
@@ -19,8 +21,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 30
-	#VersionName: 3.7.0
+	#VersionCode: 31
+	#VersionName: 3.8.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: False
@@ -145,7 +147,16 @@ Sub Activity_Create(FirstTime As Boolean)
 	Activity.LoadLayout("MainLayout")
 	
 	'Add a menu item for getting more info about this App
-	Activity.AddMenuItem("About", "mnuAbout")
+	'Activity.AddMenuItem("About", "mnuAbout")
+	
+	'
+	'Trying to make a better Activity menu with just one button
+	'instead of a full menu (which is not necessary yet).
+	'
+	'This way people don't have to click two times to
+	'see the App's About dialog ("True" = Add to Action Bar).
+	'
+	Activity.AddMenuItem3("About", "mnuAbout", LoadBitmap(File.DirAssets, "About.png"), True)
 	
 	If FirstTime Then
 		'
