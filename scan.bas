@@ -9,9 +9,15 @@ Version=12
 	#FullScreen:   False
 	#IncludeTitle: True
 	
-	'Ignore function value returns warning
+	'Ignore function value returns warning (2)
 	#IgnoreWarnings: 2
 #End Region
+
+'
+' Needed libraries:
+' - https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/post-523013
+' - https://www.b4x.com/android/forum/threads/clipboard-library.7382/
+'
 
 Sub Process_Globals
 	'These variables can be accessed from all modules.
@@ -33,11 +39,17 @@ Sub Globals
 	Private isTorchOn     As Boolean
 	
 	'Avoid trying to start the Camera twice when creating
-	'the Activity for
+	'the Activity for a faster Camera start.
 	Private isCameraAlreadyStarted As Boolean
 	
 End Sub
 
+'
+'I now added an easy switch (conditional symbol) to easily allow
+'taking screenshots of the App, such as if you need to make demo
+'screenshots, to report a bug with pictures, or simply don't need
+'the higher-security Admin key anti-leak protection.
+'
 #If JAVA
 //
 // Must be before Activity_Create in order to work
@@ -49,6 +61,7 @@ End Sub
 //
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
+
 #End If
 
 Sub Activity_Create(FirstTime As Boolean)
@@ -62,6 +75,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'the Admin keys in Recent Apps thumbnails.
 		'
 #If JAVA
+		//
 		// Add FLAG_SECURE which prevents Android from taking
 		// Recent App thumbnail screenshots of this activity,
 		// otherwise the Admin keys can leak in thumbnail files.
@@ -70,9 +84,12 @@ Sub Activity_Create(FirstTime As Boolean)
 		// I already did the screenshots a while ago anyway.
 		//
 		public void _onCreate() {
-		    this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+			
+			// Add FLAG_SECURE to this Window (Activity view)
+			this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
 		}
 #End If
+	
 	End If
 	
 	'Set default Camera flags when initializing
@@ -179,40 +196,116 @@ Private Sub InitializeQrCodeReader As Void
 End Sub
 
 Private Sub StartQrCodeReader As Void
-	
-	If Not(isCameraAlreadyStarted) Then
-		'Set isCameraAlreadyStarted to True to avoid
-		'trying to start the Camera twice because of
-		'how the Android intent system works.
-		isCameraAlreadyStarted = True
+	'
+	'Add exception handling incase connecting to
+	'the Camera service fails.
+	'
+	'This cans happen on custom Android ROMs based on
+	'CyanogenMod or LineageOS.
+	'
+	'This cans usually be fixed by running under
+	'a terminal emulator this command:
+	'
+	'su -c killall mediaserver
+	'
+	Try
+		If Not(isCameraAlreadyStarted) Then
+			'Set isCameraAlreadyStarted to True to avoid
+			'trying to start the Camera twice because of
+			'how the Android intent system works.
+			isCameraAlreadyStarted = True
 		
-		qrReaderView.Visible = True
+			qrReaderView.Visible = True
 		
-		'QR decoder settings
-		qrReaderView.TorchEnabled = isTorchOn
+			'QR decoder settings
+			qrReaderView.TorchEnabled = isTorchOn
 		
-		'Start the Camera because it wasn't already started
-		'before (start it only when needed to avoid duplicate calls)
-		qrReaderView.startCamera()
-		qrReaderView.ScanNow = True
-	End If
+			'Start the Camera because it wasn't already started
+			'before (start it only when needed to avoid duplicate calls)
+			qrReaderView.startCamera()
+			qrReaderView.ScanNow = True
+		End If
+	Catch
+		
+		'Display the error dialog
+		DisplayCameraErrorDialog
+		
+		'Return to the Main module as if the user pressed the back key
+		btnBack_Click
+		
+		Log(LastException)
+		
+	End Try
 	
 End Sub
 
 Private Sub StopQrCodeReader As Void
+	'
+	'Add exception handling incase connecting to
+	'the Camera service fails.
+	'
+	'This cans happen on custom Android ROMs based on
+	'CyanogenMod or LineageOS.
+	'
+	'This cans usually be fixed by running under
+	'a terminal emulator this command:
+	'
+	'su -c killall mediaserver
+	'
+	Try
+		qrReaderView.ScanNow = False
 	
-	qrReaderView.ScanNow = False
+		'QR decoder settings
+		isTorchOn = False
+		qrReaderView.TorchEnabled = isTorchOn
 	
-	'QR decoder settings
-	isTorchOn = False
-	qrReaderView.TorchEnabled = isTorchOn
+		qrReaderView.stopCamera()
+		qrReaderView.Visible = False
 	
-	qrReaderView.stopCamera()
-	qrReaderView.Visible = False
+		'Set isCameraAlreadyStarted to False to allow
+		'the Camera to be started again.
+		isCameraAlreadyStarted = False
+	Catch
+		'
+		'Don't show an error message when stopping the Camera
+		'even if Camera connection fails,
+		'otherwise the user gets multiple error dialogs (two).
+		'
+		Log(LastException)
+		
+	End Try
 	
-	'Set isCameraAlreadyStarted to False to allow
-	'the Camera to be started again.
-	isCameraAlreadyStarted = False
+End Sub
+
+Private Sub DisplayCameraErrorDialog
+	'
+	'The CameraFix command incase the user needs it
+	'
+	Dim CameraFixCommand As String = "su -c killall mediaserver"
+	
+	'
+	'Positive button is named 'Copy Command'
+	'Cancel button is named 'Dismiss'
+	'
+	Msgbox2Async($"Connecting to the Camera service failed.
+If your phone runs a custom ROM based on CyanogenMod or LineageOS, this might sometimes happen.
+
+To fix this issue, reboot your phone or use root access with the command:
+""${CameraFixCommand}"""$&".", "Camera Failed", "Copy Command", "Dismiss", "", Application.Icon, True)
+	
+	Wait For Msgbox_Result (Result As Int)
+	
+	If Result = DialogResponse.POSITIVE Then
+		'
+		'Copy the root CameraFix command to clipboard
+		'
+		Dim BClipboard As BClipboard
+		BClipboard.setText(CameraFixCommand)
+		
+		'Tell the user that the command has been copied to clipboard
+		ToastMessageShow("Command copied to clipboard", False)
+		
+	End If
 	
 End Sub
 
@@ -312,5 +405,15 @@ End Sub
 
 '
 'Unused code
+'
+
+'
+'
+'Unused code goes here
+'
+'
+
+'
+'Native code
 '
 
