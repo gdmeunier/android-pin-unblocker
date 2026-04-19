@@ -9,35 +9,34 @@ Group=Default Group
 Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
-Library4=runtimepermissions
-Library5=phone
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(~\n~'<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~AddActivityText(Main,~\n~<intent-filter>~\n~    <action android:name="android.intent.action.SEND"/>~\n~    <category android:name="android.intent.category.DEFAULT"/>~\n~    <data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+Library4=phone
+Library5=runtimepermissions
+Library6=clipboard
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
 NumberOfFiles=3
-NumberOfLibraries=5
+NumberOfLibraries=6
 NumberOfModules=1
 Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 31
-	#VersionName: 3.8.0
+	#VersionCode: 32
+	#VersionName: 3.9.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: False
 	
 	'Compile-time settings
 	#BridgeLogger: False
-	'#MultiDex:     True
+	'#MultiDex: True
 	
-	'Ignore recommended target SDK warning
-	#IgnoreWarnings: 31
-	'Ignore function value returns warning
-	#IgnoreWarnings: 2
+	'Ignore recommended target SDK warning (31)
+	'Ignore function value returns warning (2)
+	'Ignore file is not used warning (15)
+	#IgnoreWarnings: 31,2,15
 	
-	'Ignore file is not used warning
-	#IgnoreWarnings: 15
 #End Region
 
 #Region  Activity Attributes 
@@ -49,8 +48,7 @@ Sub Process_Globals
 	'These variables can be accessed from all modules.
 	'
 	
-	'XUI was actually not needed for this App to run properly
-	'Private xui As XUI
+	'For using and running Java functions
 	Private NativeMe As JavaObject
 	
 	'Anti-leak protection for Admin keys in Recent thumbnails:
@@ -58,7 +56,7 @@ Sub Process_Globals
 	'Add missing KeyCodes constants from Basic4Android to
 	'the project source code directly.
 	'
-	Public Const KEYCODE_LOCK As Int = 324
+	Public Const KEYCODE_LOCK        As Int = 324
 	Public Const KEYCODE_RECENT_APPS As Int = 312
 	
 	'Add homepage URL constant for the new About menu item.
@@ -75,7 +73,7 @@ Sub Process_Globals
 	'Android re-shared the Admin key on Activity resume to the App.
 	'
 	'This fixes the mentioned behavior and is easy to implement.
-	Public AdminKeyAlreadySharedOnce As Boolean = False
+	Private AdminKeyAlreadySharedOnce As Boolean = False
 	
 	'Allow only this App to send Share To containing challenge codes
 	'so that when the user scans a QR code containing a challenge code,
@@ -96,7 +94,7 @@ Sub Process_Globals
 	'
 	'It will be set to True or False when launching the App inside
 	'the Activity_Create function.
-	Public DontHideAdminKeyBecauseFirstActivityLaunch As Boolean = False
+	Private DontHideAdminKeyBecauseFirstActivityLaunch As Boolean = False
 	
 End Sub
 
@@ -108,13 +106,13 @@ Sub Globals
 	Private btnScanRequest As Button
 	
 	'Needed to show Admin Key length when counting chars
-	Private lblAdminKey As Label
+	Private lblAdminKey     As Label
 	Private inpAdminKey     As EditText
 	Private chkHideAdminKey As CheckBox
 	
 	Private btnGenerate As Button
 	
-	Private inpResponse As EditText
+	Private inpResponse      As EditText
 	Private btnShareResponse As Button
 	
 	'New builtin text hashing functions
@@ -123,9 +121,9 @@ Sub Globals
 	'So you have to use a transparent button to create an overlay
 	'
 	Private btnHashMenuBg As Button
-	Private btnHashMenu As ToggleButton
-	Private btnSha256 As Button
-	Private btnSha512 As Button
+	Private btnHashMenu   As ToggleButton
+	Private btnSha256     As Button
+	Private btnSha512     As Button
 	
 End Sub
 
@@ -140,13 +138,14 @@ End Sub
 //
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
+
 #End If
 
 Sub Activity_Create(FirstTime As Boolean)
 	
 	Activity.LoadLayout("MainLayout")
 	
-	'Add a menu item for getting more info about this App
+	'Add a menu item for getting more info about this App.
 	'Activity.AddMenuItem("About", "mnuAbout")
 	
 	'
@@ -170,6 +169,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'the Admin keys in Recent Apps thumbnails.
 		'
 #If JAVA
+		//
 		// Add FLAG_SECURE which prevents Android from taking
 		// Recent App thumbnail screenshots of this activity,
 		// otherwise the Admin keys can leak in thumbnail files.
@@ -203,24 +203,24 @@ Sub Activity_Create(FirstTime As Boolean)
 			}
 			
 			// Add FLAG_SECURE to this Window (Activity view)
-		    this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+			this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
 		}
 		
 		//
-		// Reminder to let this function stay available incase
-		// I decide to use finish() instead of finishAffinity()
+		// Reminder To let this function stay available incase
+		// I decide To use finish() instead of finishAffinity()
 		// in the _onCreate() function's ExitApplication check.
 		//
 		public void _onDestroy() {
 			//
-			// Close the App for real without any background process
+			// Close the App For real without any background process
 			// remaining in the Android host process cache
 			//
-			// Thanks to:
+			// Thanks To:
 			// https://stackoverflow.com/q/53494605
 			// https://stackoverflow.com/a/53494692
 			//
-			System.exit(0); // return success
+			System.exit(0); // Return success
 		}
 #End If
 		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
@@ -513,13 +513,20 @@ End Sub
 
 'New About menu item for this App's Activity.
 Private Sub mnuAbout_Click
+	'
+	'Renamed the Positive button from 'Homepage' to 'Github Homepage'
+	'This way the user clearly knows in advance that it's a
+	'Github link that will open when he clicks on this button.
+	'
 	
-	'Positive button is named 'Homepage'
+	'
+	'Positive button is named 'Github Homepage'
 	'Cancel button is named 'Dismiss'
+	'
 	Msgbox2Async($"${Application.LabelName}
 Version ${Application.VersionName}
 
-This App generates unblock codes For cryptographic PKI smartcards such As Yubikey & IDPrime, eToken"$, "About", "Homepage", "Dismiss", "", Application.Icon, True)
+This App generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken"$&".", "About", "Github Homepage", "Dismiss", "", Application.Icon, True)
 	
 	Wait For Msgbox_Result (Result As Int)
 	
@@ -587,14 +594,17 @@ Private Sub btnSha256_Click
 	If Regex.IsMatch2("^[0-9a-f]{64}$", Regex.CASE_INSENSITIVE, sha256) == True Then
 		
 		inpAdminKey.Text = sha256 '.ToUpperCase() part not needed anymore
+		
 	Else
 		'Don't clear the Admin key text input unlike the Response Code one
 		'because it would be a bit harsh to do that, rather just show the
 		'exception text in a Toast message.
+		'
 		ToastMessageShow(sha256, False)
 	End If
 	
 	btnHashMenuBg_Click
+	
 End Sub
 Private Sub btnSha512_Click
 	
@@ -608,20 +618,24 @@ Private Sub btnSha512_Click
 	If Regex.IsMatch2("^[0-9a-f]{128}$", Regex.CASE_INSENSITIVE, sha512) == True Then
 		
 		inpAdminKey.Text = sha512 '.ToUpperCase() part not needed anymore
+		
 	Else
 		'Don't clear the Admin key text input unlike the Response Code one
 		'because it would be a bit harsh to do that, rather just show the
 		'exception text in a Toast message.
+		'
 		ToastMessageShow(sha512, False)
 	End If
 	
 	btnHashMenuBg_Click
+	
 End Sub
 
 Private Sub btnScanRequest_Click
 	'
 	' Verify if the device has a Camera first before proceeding further
 	' Android API level 9+ (Android 2.3+)
+	'
 	If Not(NativeMe.RunMethod("DeviceHasAtleastTwoCameras", Null)) Then
 		'
 		' In the rare case where it doesn't have a Camera I don't
@@ -675,14 +689,14 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 End Sub
 
 Private Sub btnGenerate_Click
-	
+	'
 	'Reset the Response Code field before generating a new Response Code
+	'
 	inpResponse.Text = ""
 	
 	'
 	'Sanitizing inputs
 	'
-	
 	If inpChallenge.Text == "" Or inpAdminKey.Text == "" Then
 		
 		inpResponse.Hint = "Some input(s) are empty"
@@ -706,6 +720,7 @@ Private Sub btnGenerate_Click
 	End If
 	
 	' Verify the exact allowed Admin Key lengths (32 and 48 Hex digits)
+	'
 	If	sanitizedAdminKey.Length <> 32 And _
 		sanitizedAdminKey.Length <> 48 Then
 		
@@ -714,6 +729,7 @@ Private Sub btnGenerate_Click
 	End If
 	
 	' Verify the exact allowed Challenge Code lengths (16 and 32 Hex digits)
+	'
 	If	sanitizedChallenge.Length <> 16 And _
 		sanitizedChallenge.Length <> 32 Then
 		
@@ -722,6 +738,7 @@ Private Sub btnGenerate_Click
 	End If
 	
 	' Disallow challenge Code length mismatches with their Admin Keys
+	'
 	If	sanitizedChallenge.Length == 32 And _
 		sanitizedAdminKey.Length  <> 32 Then
 		
@@ -745,6 +762,7 @@ Private Sub btnGenerate_Click
 	
 	'Verify if the returned Response Code has a correct format
 	'It cans currently be 16 to 32 characters
+	'
 	If Regex.IsMatch2("^[0-9a-f]{16,32}$", Regex.CASE_INSENSITIVE, responseCode) == True Then
 		'
 		'Cans be tweaked to have separators if needed (4x4)
@@ -759,12 +777,16 @@ Private Sub btnGenerate_Click
 										Regex.CASE_INSENSITIVE, responseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
 			Case Else
 				inpResponse.Text =	responseCode
+				
 		End Select
+		
 	Else
 		'Display error texts as Hint instead of Text
 		'This Response Code field has already been set to "" at
 		'the start of this function so no need to redo it again.
+		'
 		inpResponse.Hint = responseCode
+		
 	End If
 	
 End Sub
@@ -797,6 +819,10 @@ End Sub
 '
 
 #If JAVA
+
+//
+// Required to generate the Response Code (cryptography)
+//
 
 import javax.crypto.Cipher;
 import java.security.spec.InvalidParameterSpecException;
@@ -834,10 +860,13 @@ import android.hardware.Camera;
 
 import android.content.Intent;
 
+/* ************************************************ */
+
 public void finishAndRemoveTaskForNewerAndroid() {
 	
 	finishAndRemoveTask();
 	
+	//
 	// Close the App for real without any background process
 	// remaining in the Android host process cache
 	//
@@ -857,20 +886,23 @@ public void finishAndRemoveTaskForNewerAndroid() {
 // https://stackoverflow.com/q/66962704
 //
 public void finishAndRemoveTaskForOlderAndroid() {
-	
+	//
 	// Basic4Android's 'Main' module will be called 'main.class'
 	// For the 'Scan' module it would've been called 'scan.class'
+	//
 	Intent clearIntent = new Intent(this, main.class);
 	
-	clearIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK             |
-	                     Intent.FLAG_ACTIVITY_CLEAR_TASK           |
-	                     Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+	clearIntent.addFlags(
+		Intent.FLAG_ACTIVITY_NEW_TASK             |
+		Intent.FLAG_ACTIVITY_CLEAR_TASK           |
+		Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
 	);
 	clearIntent.putExtra("ExitApplication", true);
 	
 	startActivity(clearIntent);
 }
 
+//
 // Some devices don't even have a Camera so I want to check
 // if the device actually has one, otherwise I will disable
 // the QR code scanning function to avoid crashing the App.
@@ -882,31 +914,33 @@ public void finishAndRemoveTaskForOlderAndroid() {
 // a front Camera.
 //
 public boolean DeviceHasAtleastTwoCameras() {
+	//
 	// Thanks to https://stackoverflow.com/a/10593071
 	//
 	return Camera.getNumberOfCameras() >= 2; // Android API level 9+ (Android 2.3+)
 }
 
 public String TextToHash(final String text, final String hashType) throws Exception {
-	
+	//
 	// Add exception handling here (generic exception handling)
 	//
 	try {
-	    byte[] textBytes = text.getBytes();
-	    MessageDigest md = MessageDigest.getInstance(hashType);
 		
-	    byte[] textHashBytes = md.digest(textBytes);
-	    
-	    /* "%032x" was incorrect because it didn't work with
-	    ** SHA-512 nor SHA-256 hashes due to being hardcoded
-	    ** with [32] characters (length of md5 hash),
-	    ** whereas SHA-256 is [64] chars & SHA-512 is [128] chars.
-	    **
-	    ** This is properly fixed now (no hardcoded number anymore).
-	    ** (No more missing leading zeroes in rare cases.)
-	    */
-	    
-	    return bytesToHexString(textHashBytes);
+		byte[] textBytes = text.getBytes();
+		MessageDigest md = MessageDigest.getInstance(hashType);
+		
+		byte[] textHashBytes = md.digest(textBytes);
+		
+		/* "%032x" was incorrect because it didn't work with
+		** SHA-512 nor SHA-256 hashes due to being hardcoded
+		** with [32] characters (length of md5 hash),
+		** whereas SHA-256 is [64] chars & SHA-512 is [128] chars.
+		**
+		** This is properly fixed now (no hardcoded number anymore).
+		** (No more missing leading zeroes in rare cases.)
+		*/
+		
+		return bytesToHexString(textHashBytes);
 		
 	} catch (Exception e) {
 		//
@@ -920,26 +954,26 @@ public String TextToHash(final String text, final String hashType) throws Except
 // bytesToHexString fixed for missing leading-zeroes in rare cases
 // Thanks to: https://stackoverflow.com/a/943963
 //
-
 public String bytesToHexString(final byte[] hexBytes) {
-    BigInteger bigInt = new BigInteger(1, hexBytes);
+	
+	BigInteger bigInt = new BigInteger(1, hexBytes);
 	
 	// We can also just use "X" instead of "x" to directly
 	// get uppercase hashes, which avoids having to
 	// call .ToUpperCase() in the Basic functions code.
 	//
-    return String.format("%0" + (hexBytes.length << 1) + "X", bigInt);
+	return String.format("%0" + (hexBytes.length << 1) + "X", bigInt);
 }
 
 //
-// NoSuchAlgorithmException, InvalidKeyException
+// Actually throws NoSuchAlgorithmException, InvalidKeyException
 //
 
 public String GenerateResponseCode(final String challengeCode, final String adminKey) throws Exception {
 	
 	// Verify the challenge code and Admin key to make sure that
 	// they are Hex string representing Hex bytes in text
-	
+	//
 	if ( !VerifyIfStringAreHexBytes(challengeCode) )
 	{
 		return "Invalid Challenge";
@@ -950,7 +984,8 @@ public String GenerateResponseCode(final String challengeCode, final String admi
 	}
 	
 	try {
-	    byte[] challengeCodeBytes = HexToolFromString(challengeCode);
+		
+		byte[] challengeCodeBytes = HexToolFromString(challengeCode);
 		byte[] adminKeyBytes      = HexToolFromString(adminKey);
 		
 		byte[] responseCodeBytes;
@@ -960,14 +995,12 @@ public String GenerateResponseCode(final String challengeCode, final String admi
 		// the strings of the challenge code and Admin key that I check
 		// for length instead of the byte arrays (byte[] variables)
 		//
-		
-		//
 		// Note: I add explicit lengths check now because I might add more
 		// challenge-response algorithms in the future (XAuth challenges)
 		//
-		
 		if ( adminKey.length() == 32 && challengeCode.length() == 32 )
 		{
+			//
 			// Reversed from HID Crescendo Management Tool V2.0
 			//
 			final SecretKey generatedAesKey = new SecretKeySpec(adminKeyBytes, "AES");
@@ -976,23 +1009,27 @@ public String GenerateResponseCode(final String challengeCode, final String admi
 			aesInstance.init(1, generatedAesKey);
 			
 			responseCodeBytes = aesInstance.doFinal(challengeCodeBytes);
+			
 		}
 		else if ( adminKey.length() == 48 && challengeCode.length() == 16 )
 		{
+			//
 			// Reversed from Crescendo C1150 Card Unblock Utility
 			//
 			final SecretKeyFactory skf = SecretKeyFactory.getInstance("DESede");
-		    final SecretKey generatedDesEdeSecret = skf.generateSecret(new DESedeKeySpec(adminKeyBytes));
+			final SecretKey generatedDesEdeSecret = skf.generateSecret(new DESedeKeySpec(adminKeyBytes));
 			
-		    final Cipher desEdeInstance = Cipher.getInstance("DESede/ECB/NoPadding");
-		    desEdeInstance.init(1, generatedDesEdeSecret);
+			final Cipher desEdeInstance = Cipher.getInstance("DESede/ECB/NoPadding");
+			desEdeInstance.init(1, generatedDesEdeSecret);
 			
 			responseCodeBytes = desEdeInstance.doFinal(challengeCodeBytes);
+			
 		}
 		else
 		{
 			// If no correct algorithm was found
 			// We should never reach here anyway
+			//
 			return "Unknown Algorithm";
 		}
 		
@@ -1020,66 +1057,65 @@ public boolean VerifyIfStringAreHexBytes(final String s) {
 
 public byte[] HexToolFromString(final String s) {
 	
-    final int length   = s.length();
-    final byte[] array = new byte[(length + 1) / 2];
+	final int length   = s.length();
+	final byte[] array = new byte[(length + 1) / 2];
 	
-    int i = 0;
-    int n = 0;
+	int i = 0;
+	int n = 0;
 	
-    if ( length % 2 == 1 )
+	if ( length % 2 == 1 )
 	{
-        array[n++] = (byte)HexToolFromDigit(s.charAt(i++));
-    }
+		array[n++] = (byte)HexToolFromDigit(s.charAt(i++));
+	}
 	
-    while ( i < length )
+	while ( i < length )
 	{
-        array[n++] = (byte)(HexToolFromDigit(s.charAt(i++)) << 4 | HexToolFromDigit(s.charAt(i++)));
-    }
+		array[n++] = (byte)(HexToolFromDigit(s.charAt(i++)) << 4 | HexToolFromDigit(s.charAt(i++)));
+	}
 	
-    return array;
+	return array;
 }
 
 public int HexToolFromDigit(final char c)
 {
-	
-    if ( c >= '0' && c <= '9' )
+	if ( c >= '0' && c <= '9' )
 	{
-        return c - '0'; // 0x30
-    }
+		return c - '0';      // 0x30
+	}
 	
-    if ( c >= 'A' && c <= 'F' )
+	if ( c >= 'A' && c <= 'F' )
 	{
-        return c - 'A' + 10; // 0x41
-    }
+		return c - 'A' + 10; // 0x41
+	}
 	
-    if ( c >= 'a' && c <= 'f' )
+	if ( c >= 'a' && c <= 'f' )
 	{
-        return c - 'a' + 10; // 0x61
-    }
+		return c - 'a' + 10; // 0x61
+	}
 	
 	return 0;
 }
 
 public String HexToolToString(final byte[] array)
 {
-    return HexToolToStringTwo(array, 0, array.length);
+	return HexToolToStringTwo(array, 0, array.length);
 }
 
 public String HexToolToStringTwo(final byte[] array, final int n, final int n2)
 {
 	char[] HexToolHexDigits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 	
-    final char[] value = new char[n2 * 2];
-    int n3 = 0;
+	final char[] value = new char[n2 * 2];
+	int n3 = 0;
 	
-    for ( int i = n; i < n + n2; ++i )
+	for ( int i = n; i < n + n2; ++i )
 	{
-        final byte b = array[i];
-        value[n3++] = HexToolHexDigits[b >>> 4 & 0xF];
-        value[n3++] = HexToolHexDigits[b & 0xF];
-    }
+		final byte b = array[i];
+		value[n3++] = HexToolHexDigits[b >>> 4 & 0xF];
+		value[n3++] = HexToolHexDigits[b & 0xF];
+	}
 	
-    return new String(value);
+	return new String(value);
 }
 
 #End If
