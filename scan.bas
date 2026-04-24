@@ -1,4 +1,4 @@
-B4A=true
+﻿B4A=true
 Group=Default Group
 ModulesStructureVersion=1
 Type=Activity
@@ -100,6 +100,11 @@ Sub Activity_Create(FirstTime As Boolean)
 	'
 	isTorchOn    = False
 	
+	'
+	'Dynamic torch on/off icon
+	'
+	btnToggleFlash.Text = "" 'Flash on icon (because flash turned off)
+	
 	'Initialize the QR code reader static properties.
 	'Static properties are properties that are mostly always
 	'the same values anyway and default first-time settings.
@@ -171,6 +176,11 @@ Sub Activity_Resume
 	'No torch automatic re-enabling here (always off first).
 	isTorchOn    = False
 	
+	'
+	'Dynamic torch on/off icon
+	'
+	btnToggleFlash.Text = "" 'Flash on icon (because flash turned off)
+	
 	StartQrCodeReader
 	
 End Sub
@@ -214,12 +224,23 @@ Private Sub StartQrCodeReader As Void
 			'trying to start the Camera twice because of
 			'how the Android intent system works.
 			isCameraAlreadyStarted = True
-		
+			
 			qrReaderView.Visible = True
-		
+			
 			'QR decoder settings
 			qrReaderView.TorchEnabled = isTorchOn
-		
+			
+			'
+			'Dynamic torch on/off icon
+			'
+			If isTorchOn Then
+				'If the flash is turned on
+				btnToggleFlash.Text = "" 'Flash off icon
+			Else
+				'If the flash is turned off
+				btnToggleFlash.Text = "" 'Flash on icon
+			End If
+			
 			'Start the Camera because it wasn't already started
 			'before (start it only when needed to avoid duplicate calls)
 			qrReaderView.startCamera()
@@ -254,14 +275,19 @@ Private Sub StopQrCodeReader As Void
 	'
 	Try
 		qrReaderView.ScanNow = False
-	
+		
 		'QR decoder settings
 		isTorchOn = False
 		qrReaderView.TorchEnabled = isTorchOn
-	
+		
+		'
+		'Dynamic torch on/off icon
+		'
+		btnToggleFlash.Text = "" 'Flash on icon (because flash turned off)
+		
 		qrReaderView.stopCamera()
 		qrReaderView.Visible = False
-	
+		
 		'Set isCameraAlreadyStarted to False to allow
 		'the Camera to be started again.
 		isCameraAlreadyStarted = False
@@ -374,6 +400,17 @@ Private Sub btnToggleFlash_Click
 	isTorchOn = Not(isTorchOn)
 	qrReaderView.TorchEnabled = isTorchOn
 	
+	'
+	'Dynamic torch on/off icon
+	'
+	If isTorchOn Then
+		'If the flash is turned on
+		btnToggleFlash.Text = "" 'Flash off icon
+	Else
+		'If the flash is turned off
+		btnToggleFlash.Text = "" 'Flash on icon
+	End If
+	
 End Sub
 
 Private Sub btnSwitchCam_Click
@@ -381,6 +418,11 @@ Private Sub btnSwitchCam_Click
 	'Disabling the Flashlight when changing camera
 	isTorchOn = False
 	qrReaderView.TorchEnabled = isTorchOn
+	
+	'
+	'Dynamic torch on/off icon
+	'
+	btnToggleFlash.Text = "" 'Flash on icon (because flash turned off)
 	
 	'Change Camera to the opposite side
 	isBackCamera = Not(isBackCamera)
