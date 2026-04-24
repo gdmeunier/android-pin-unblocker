@@ -8,8 +8,7 @@
 
 # Android PIN Unblocker
 
-A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (preferably at [version 12.50](https://web.archive.org/web/20230719022719/https://www.b4x.com/android/files/B4A.exe), and its [version 12 resource files](https://web.archive.org/web/20240529212314/https://www.b4x.com/b4a.html)).\
-*You can also use the [B4X Help Viewer](https://www.b4x.com/android/forum/threads/b4x-help-viewer.46969/) to help with your development.*
+A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (preferably atmost [version 12.80](https://web.archive.org/web/20240529212314/https://www.b4x.com/b4a.html) with the [B4X Help Viewer](https://www.b4x.com/android/forum/threads/b4x-help-viewer.46969/)).
 
 Its purpose is to generate **smartcard** unblock codes using your *Admin Key* and your phone instead of requiring a computer.
 
@@ -45,7 +44,7 @@ I added the ability to scan QR codes in **Android PIN Unblocker** using the belo
 
 ![You can click the QR code button to scan the Request Code.](https://i.postimg.cc/fJfRBGkr/4-scan-qr-request-code.png)
 
-It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.codetwo.com/freeware/qr-code-desktop-reader/)** to do the card unblocking more efficiently.
+It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the card unblocking more efficiently.
 
 The *Request Code* then automatically gets input in the appropriate field once detected.
 
