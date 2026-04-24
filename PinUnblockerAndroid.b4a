@@ -1,4 +1,4 @@
-Build1=Default,net.generic.smartcardpuk
+﻿Build1=Default,net.generic.smartcardpuk
 File1=About.png
 File2=MainLayout.bal
 File3=ScanLayout.bal
@@ -22,8 +22,8 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 32
-	#VersionName: 3.9.0
+	#VersionCode: 33
+	#VersionName: 3.10.0
 	
 	#SupportedOrientations: portrait
 	#CanInstallToExternalStorage: False
