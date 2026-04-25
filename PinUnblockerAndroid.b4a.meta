@@ -4,6 +4,6 @@ ModuleBreakpoints0=
 ModuleBreakpoints1=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=Scan,StartQrCodeReader,202,0,Scan,StopQrCodeReader,265,0,Scan,Activity_Resume,173,0,Scan,Activity_Create,100,0,Scan,Globals,27,0,Scan,btnSwitchCam_Click,430,0,Scan,InitializeQrCodeReader,199,0,Scan,btnToggleFlash_Click,405,6,Main,Activity_Create,136,0,Main,Process_Globals,38,0
+NavigationStack=Main,DisplayAdminKeyLength,490,0,Main,btnHashMenuBg_Click,536,0,Main,mnuAbout_Click,521,0,Main,btnSha256_Click,591,0,Main,btnSha512_Click,592,0,Main,btnScanRequest_Click,649,0,Main,chkHideAdminKey_CheckedChange,669,0,Main,btnShareResponse_Click,943,0,Main,btnGenerate_Click,818,6,Main,Activity_Create,129,0,Main,Process_Globals,37,0
 SelectedBuild=0
 VisibleModules=1
