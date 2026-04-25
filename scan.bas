@@ -67,6 +67,7 @@ import android.view.WindowManager.LayoutParams;
 Sub Activity_Create(FirstTime As Boolean)
 	
 	Activity.LoadLayout("ScanLayout")
+	Activity.Title = Application.LabelName
 	
 	If FirstTime Then
 		'
