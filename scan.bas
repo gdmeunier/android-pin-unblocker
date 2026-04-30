@@ -4,13 +4,15 @@ ModulesStructureVersion=1
 Type=Activity
 Version=12
 @EndOfDesignText@
+#Region  Project Attributes 
+	'Ignore function value returns warning (2)
+	'Ignore return value is missing warning (4)
+	#IgnoreWarnings: 2,4
+#End Region
 
 #Region  Activity Attributes 
 	#FullScreen:   False
 	#IncludeTitle: True
-	
-	'Ignore function value returns warning (2)
-	#IgnoreWarnings: 2
 #End Region
 
 '
@@ -22,13 +24,27 @@ Version=12
 Sub Process_Globals
 	'These variables can be accessed from all modules.
 	'
+	
+	'For using and running Java functions
+	Private NativeMe2 As JavaObject
+	
 End Sub
 
 Sub Globals
 	'These global variables will be redeclared each time the activity is created.
 	'These variables can only be accessed from this module.
 	
-	Private qrReaderView As NewQRCodeReaderView
+	Try
+		Private qrReaderView As NewQRCodeReaderView
+	Catch
+		Log(LastException)
+		
+		'Display the error dialog
+		DisplayCameraErrorDialog
+		
+		'Return to the Main module as if the user pressed the back key
+		btnBack_Click
+	End Try
 	
 	Private btnSwitchCam   As Button
 	Private btnToggleFlash As Button
@@ -56,6 +72,15 @@ End Sub
 //
 
 //
+// Add ability to hide the Title bar / Action bar
+// on devices with a very low display scale
+// such as 0.75 (120dpi/ldpi).
+//
+import android.view.Window;
+import android.app.Activity; // requestWindowFeature() & getActionBar()
+import android.app.ActionBar; // ActionBar object
+
+//
 // Adding FLAG_SECURE support to this App to avoid
 // leaking Admin keys in Recent Apps thumbnails.
 //
@@ -70,6 +95,11 @@ Sub Activity_Create(FirstTime As Boolean)
 	Activity.Title = Application.LabelName
 	
 	If FirstTime Then
+		'
+		'I need to initialize the native Java object context
+		'
+		NativeMe2.InitializeContext
+		
 		'
 		'Adding the ability to block Android from capturing
 		'screenshots of this App because otherwise they leak
@@ -86,8 +116,43 @@ Sub Activity_Create(FirstTime As Boolean)
 		//
 		public void _onCreate() {
 			
-			// Add FLAG_SECURE to this Window (Activity view)
-			this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+			//
+			// Hide the Title bar / Action bar on very-low DPI devices
+			//
+			if ( getDeviceScale() < 1.0 ) // less than 1.0 (160dpi/mdpi)
+			{
+				// The device is 120/ldpi so we need more space.
+				// that means we will want to remove the
+				// Titlebar / Action bar.
+				requestWindowFeature(Window.FEATURE_NO_TITLE);
+				
+				// Action bar for API 11+ (Android 3.0+)
+				if ( android.os.Build.VERSION.SDK_INT >= 11 )
+				{
+					ActionBar actionBar = getActionBar();
+					
+					if ( actionBar != null )
+					{
+						actionBar.hide();
+					}
+				}
+			}
+			
+			// Check if device is SDK 11 or higher (Android 3.0+)
+			//
+			// "FLAG_SECURE is a WindowManager flag introduced in
+			//  Android 3.0 (Honeycomb) to prevent screenshots,
+			//  screen recording, and viewing on non-secure displays.
+			//
+			//  It is implemented in an Activity's onCreate method
+			//  to secure sensitive data. While it works for API 11+,
+			//  it is not available or functional on Android 2.3.6"
+			//
+			if ( android.os.Build.VERSION.SDK_INT >= 11 )
+			{
+				// Add FLAG_SECURE to this Window (Activity view)
+				this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+			}
 		}
 #End If
 	
@@ -127,8 +192,12 @@ Sub Activity_Create(FirstTime As Boolean)
 	'calling StartQrCodeReader and only in Activity_Create and
 	'the Activity_Resume functions.
 	'
-	qrReaderView.PreviewCameraId = 0
-	qrReaderView.setBackCamera()
+	Try
+		qrReaderView.PreviewCameraId = 0
+		qrReaderView.setBackCamera()
+	Catch
+		Log(LastException)
+	End Try
 	
 	'Start scanning QR codes immediately
 	StartQrCodeReader
@@ -168,8 +237,12 @@ Sub Activity_Resume
 	'
 	isBackCamera = True
 	
-	qrReaderView.PreviewCameraId = 0
-	qrReaderView.setBackCamera()
+	Try
+		qrReaderView.PreviewCameraId = 0
+		qrReaderView.setBackCamera()
+	Catch
+		Log(LastException)
+	End Try
 	
 	'Set default Camera flags before starting
 	'the Camera access for this Activity.
@@ -192,17 +265,36 @@ End Sub
 
 Private Sub InitializeQrCodeReader As Void
 	
-	'QR decoder settings
-	qrReaderView.TorchEnabled = isTorchOn
-	qrReaderView.QRDecodingEnabled = True
-	qrReaderView.AutofocusInterval = 1500
-	qrReaderView.ResultPointColor = Colors.Red
+	Try
+		'QR decoder settings
+		qrReaderView.TorchEnabled = isTorchOn
+		qrReaderView.QRDecodingEnabled = True
+		qrReaderView.AutofocusInterval = 1500
+		qrReaderView.ResultPointColor = Colors.Red
 	
-	'Set the Camera IDs properly
-	qrReaderView.PreviewCameraId = 0
-	qrReaderView.setBackCamera()
-	qrReaderView.PreviewCameraId = 1
-	qrReaderView.setFrontCamera()
+		'Set the Camera IDs properly
+		qrReaderView.PreviewCameraId = 0
+		qrReaderView.setBackCamera()
+		
+		'
+		' Verify if the device has two Cameras first
+		' before proceeding further.
+		'
+		' Android API level 9+ (Android 2.3+)
+		'
+		If NativeMe2.RunMethod("DeviceHasAtleastTwoCameras", Null) Then
+			qrReaderView.PreviewCameraId = 1
+			qrReaderView.setFrontCamera()
+		End If
+	Catch
+		Log(LastException)
+		
+		'Display the error dialog
+		DisplayCameraErrorDialog
+		
+		'Return to the Main module as if the user pressed the back key
+		btnBack_Click
+	End Try
 	
 End Sub
 
@@ -248,15 +340,13 @@ Private Sub StartQrCodeReader As Void
 			qrReaderView.ScanNow = True
 		End If
 	Catch
+		Log(LastException)
 		
 		'Display the error dialog
 		DisplayCameraErrorDialog
 		
 		'Return to the Main module as if the user pressed the back key
 		btnBack_Click
-		
-		Log(LastException)
-		
 	End Try
 	
 End Sub
@@ -292,6 +382,7 @@ Private Sub StopQrCodeReader As Void
 		'Set isCameraAlreadyStarted to False to allow
 		'the Camera to be started again.
 		isCameraAlreadyStarted = False
+		
 	Catch
 		'
 		'Don't show an error message when stopping the Camera
@@ -398,8 +489,15 @@ End Sub
 
 Private Sub btnToggleFlash_Click
 	
-	isTorchOn = Not(isTorchOn)
-	qrReaderView.TorchEnabled = isTorchOn
+	Try
+		isTorchOn = Not(isTorchOn)
+		qrReaderView.TorchEnabled = isTorchOn
+	Catch
+		isTorchOn = Not(isTorchOn)
+		
+		Log(LastException)
+		Return
+	End Try
 	
 	'
 	'Dynamic torch on/off icon
@@ -415,28 +513,59 @@ Private Sub btnToggleFlash_Click
 End Sub
 
 Private Sub btnSwitchCam_Click
+	'
+	' Verify if the device has two Cameras first
+	' before proceeding further.
+	'
+	' Android API level 9+ (Android 2.3+)
+	'
+	If Not(NativeMe2.RunMethod("DeviceHasAtleastTwoCameras", Null)) Then
+		'
+		' In the rare case where it doesn't have two Cameras I don't
+		' disable the Camera switching button, because I want the user
+		' to be able to see that it's an available functionality and
+		' to know why they can't use it, rather than seeing a disabled
+		' Camera switching button and thinking that it may be an App bug.
+		'
+		ToastMessageShow("Two cameras required for the switch", False)
+		Return
+	End If
 	
-	'Disabling the Flashlight when changing camera
-	isTorchOn = False
-	qrReaderView.TorchEnabled = isTorchOn
+	Dim oldTorchOnValue As Boolean = isTorchOn
+	
+	Try
+		'Disabling the Flashlight when changing camera
+		isTorchOn = False
+		qrReaderView.TorchEnabled = isTorchOn
+	Catch
+		Log(LastException)
+		
+		isTorchOn = oldTorchOnValue
+		Return
+	End Try
 	
 	'
 	'Dynamic torch on/off icon
 	'
 	btnToggleFlash.Text = "" 'Flash on icon (because flash turned off)
 	
+	StopQrCodeReader
+	
 	'Change Camera to the opposite side
 	isBackCamera = Not(isBackCamera)
 	
-	StopQrCodeReader
-	
-	If isBackCamera Then
-		qrReaderView.PreviewCameraId = 0
-		qrReaderView.setBackCamera()
-	Else
-		qrReaderView.PreviewCameraId = 1
-		qrReaderView.setFrontCamera()
-	End If
+	Try
+		If isBackCamera Then
+			qrReaderView.PreviewCameraId = 0
+			qrReaderView.setBackCamera()
+		Else
+			qrReaderView.PreviewCameraId = 1
+			qrReaderView.setFrontCamera()
+		End If
+	Catch
+		Log(LastException)
+		isBackCamera = Not(isBackCamera)
+	End Try
 	
 	StartQrCodeReader
 	
@@ -459,4 +588,80 @@ End Sub
 '
 'Native code
 '
+
+#If JAVA
+
+//
+// Add ability To check If the device has a Camera
+//
+
+import android.hardware.Camera;
+
+//
+// For getting the device scale (DPI)
+//
+
+// Android 11+
+import android.content.Context;
+
+// Already imported at start of Main code.
+//import android.view.WindowManager;
+import android.view.WindowMetrics;
+
+import android.content.res.Configuration;
+
+// Android 4.2+
+import android.util.DisplayMetrics;
+import android.view.Display;
+
+// Android 4.1 & older
+import android.content.res.Resources;
+
+/* ************************************************ */
+
+//
+// Get screen DPI function (support API 9+ / Android 2.3+)
+//
+
+public float getDeviceScale() {
+	
+	int sdkVersion = android.os.Build.VERSION.SDK_INT;
+	
+	// Android 11+
+	if ( sdkVersion >= 31 )
+	{
+		Configuration cfg = new Configuration();
+		return (float)cfg.densityDpi; // int->float
+	}
+	// Android 4.2+
+	else if ( sdkVersion >= 17 )
+	{
+		WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
+		Display display = wm.getDefaultDisplay();
+		
+		DisplayMetrics dm = new DisplayMetrics();
+		display.getRealMetrics(dm);
+		
+		return dm.density; // already float
+	}
+	// Android 4.1 & older
+	else
+	{
+		return Resources.getSystem().getDisplayMetrics().density; // already float
+	}
+}
+
+//
+// Some devices don't even have two cameras so I want to check
+// If the device actually has two, otherwise I will disable
+// the Camera switching function To avoid crashing the App.
+//
+public boolean DeviceHasAtleastTwoCameras() {
+	//
+	// Thanks To https://stackoverflow.com/a/10593071
+	//
+	return Camera.getNumberOfCameras() >= 2; // Android API level 9+ (Android 2.3+)
+}
+
+#End If
 
