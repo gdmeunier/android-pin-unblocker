@@ -4,6 +4,6 @@ ModuleBreakpoints0=
 ModuleBreakpoints1=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=Main,DisplayAdminKeyLength,490,0,Main,btnHashMenuBg_Click,536,0,Main,mnuAbout_Click,521,0,Main,btnSha256_Click,591,0,Main,btnSha512_Click,592,0,Main,btnScanRequest_Click,649,0,Main,chkHideAdminKey_CheckedChange,669,0,Main,btnShareResponse_Click,943,0,Main,btnGenerate_Click,818,6,Main,Activity_Create,129,0,Main,Process_Globals,37,0
+NavigationStack=Main,btnGenerate_Click,851,0,Scan,btnBack_Click,641,0,Scan,Globals,81,0,Main,btnScanRequest_Click,813,0,Main,inpAdminKey_TextChanged,820,0,Main,Process_Globals,110,0,Main,Globals,198,0,Main,Activity_Create,315,6,Scan,Activity_Create,189,6,Main,Activity_Pause,356,0
 SelectedBuild=0
 VisibleModules=1
