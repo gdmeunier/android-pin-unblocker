@@ -22,75 +22,66 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 35
-	#VersionName: 3.12.0
+	#VersionCode: 36
+	#VersionName: 3.13.0
 	'
-	' Update from 3.11.0:
+	' Update from 3.12.0:
 	'
-	' 3.12.0: - (x) Fixed wrong comment in native Java code
-	'               from '12 chars' to '48 chars' in the
-	'               2DES (DES-EDE2) code that allocates
-	'               the temporary Admin key byte array.
+	' 3.13.0: - (x) Change the #SupportedOrientations flag
+	'               to allow screen rotation (unspecified).
 	'
-	'         - (x) Optimized some line breaks in the
-	'               QR scanner module.
+	'         - (+) Added a fix for verifying if the Activity
+	'               is actually being destroyed for real in
+	'               the Main module code's onDestroy handler,
+	'               which fixes the App close on screen rotation.
 	'
-	'         - (+) QR code scanning is now available on devices
-	'               with only 1 camera.
+	'         - (+) Added extra check for the ExitApplication flag
+	'               in the pre-API 21 (Android 5.0) function that
+	'               handles the finishAndRemoveTask() alternative
+	'               in the Main module code's onCreate function.
 	'
-	'         - (x) Modified QR scan unavailable toast messages.
+	'         - (+) Added a fix to make sure the Admin Key doesn't
+	'               get replaced by the default one (48 zeroes)
+	'               when the device configuration changes,
+	'               such as device screen orientation (rotation).
 	'
-	'         - (+) The user will now be informed of the need
-	'               for two cameras when trying to click the
-	'               'Switch camera' button in the QR scanner module
-	'               if their device only has one.
+	'         - (+) Added a fix to make sure the 'Hide Admin Key' checkbox
+	'               doesn't get re-enabled by the default when
+	'               the device configuration changes,
+	'               such as device screen orientation (rotation),
+	'               while making sure that the Admin Key stays hidden too
+	'               if the 'Hide Admin Key' checkbox was disabled.
 	'
-	'         - (+) Added more exception handling in the
-	'               QR scanner module to be sure to catch
-	'               any potential QR code reader view
-	'               exception anywhere it could happen.
+	'         - (+) Added a fix to make sure the Challenge code field
+	'               doesn't get reset to empty value when
+	'               the device configuration changes,
+	'               such as device screen orientation (rotation).
 	'
-	'         - (+) Added compatibility with even older
-	'               Android versions such as Android
-	'               2.3.0 - 3.0 & 4.0.3.
+	'         - (+) Added a fix to make sure the Response code field
+	'               doesn't get reset to empty value when
+	'               the device configuration changes,
+	'               such as device screen orientation (rotation).
 	'
-	'         - (x) Cleared the default Scan and QR scanner
-	'               layouts' Activity titles.
+	'         - (+) Added informational text about the ability to
+	'               long-click the Hash buttons in the Hash Text
+	'               menu's background button (btnHashMenuBg text),
+	'               which is now top-left aligned with
+	'               a padding of (20, 20, 20, 20), a bold styling
+	'               and the WhiteSmoke text color.
 	'
-	'         - (x) Modified the 'Scan Challenge' label in the
-	'               QR scanner module to be vertically top-aligned.
+	'         - (x) Modified the padding of all EditTexts in the
+	'               Main module layout to be (5, 5, 5, 5).
 	'
-	'         - (x) Modified the vertical alignment of the
-	'               Challenge code and Response code fields to be
-	'               vertically middle-aligned (it was previously top).
+	'         - (+) Disabled usage of the fullscreen keyboard because
+	'               it cans reveal hidden Admin keys (unrevealable)
+	'               when the device is in landscape mode and the
+	'               unrevealable Admin key field is clicked.
 	'
-	'         - (+) Added support for low-DPI devices and
-	'               devices with very small screen sizes
-	'               such as the Samsung Galaxy Y (GT-S5360).
+	'         - (+) Add a better landscape layout to the Designer's
+	'               Main & Scan layout files to better support
+	'               the landscape orientation.
 	'
-	'         - (x) Optimized the algorithm identification
-	'               and response code generation code in
-	'               the native Java code section (more compact).
-	'
-	'         - (+) Added the ability to automatically trim
-	'               line breaks in the Admin Key input field.
-	'
-	'         - (x) Modified the About dialog icon to be resized
-	'               so that devices with a very low DPI can
-	'               properly render the About dialog.
-	'
-	'         - (x) Uncommented the #MultiDex flag to explicitly
-	'               set it to False.
-	'
-	
-	'The value 'unspecified' will cause problems when
-	'the user is using the App then switches orientation,
-	'because the App will unexpectedly quit in this case.
-	'
-	'Until I resolve this behavior, make sure to only
-	'allow the portrait screen orientation.
-	'
-	#SupportedOrientations: portrait
+	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
 	
 	'Compile-time settings
@@ -100,7 +91,8 @@ Version=12.5
 	'Ignore recommended target SDK warning (31)
 	'Ignore function value returns warning (2)
 	'Ignore file is not used warning (15)
-	#IgnoreWarnings: 31,2,15
+	'Ignore return value is missing warning (4)
+	#IgnoreWarnings: 31,2,15,4
 	
 #End Region
 
@@ -160,6 +152,55 @@ Sub Process_Globals
 	'It will be set to True or False when launching the App inside
 	'the Activity_Create function.
 	Private DontHideAdminKeyBecauseFirstActivityLaunch As Boolean = False
+	
+	'When the device screen orientation rotates while the App is running,
+	'the App's Activity gets:
+	' - Paused (UserClosed = False)
+	' - Created
+	' - Resumed
+	'
+	'So I need to make sure that the Admin Key field stays the same
+	'even when you rotate the device screen's orientation.
+	Private SavedAdminKeyBeforeConfigurationChange As String = ""
+	
+	'Also make sure the Challenge code field doesn't get
+	'reset to empty value when e.g. the device rotates too.
+	Private SavedChallengeBeforeConfigurationChange As String = ""
+	
+	'Also make sure the Response code field doesn't get
+	'reset to empty value when e.g. the device rotates too.
+	Private SavedResponseBeforeConfigurationChange As String = ""
+	
+	'When the device rotates, a disabled hide Admin Key checkbox
+	'becomes enabled again; so we have to check for whether
+	'the 'Hide Admin Key' checkbox was disabled before,
+	'and if yes we disable it again.
+	'
+	'Note: No need to restore the Admin Key field's PasswordMode
+	'      because it's always set to PasswordMode on both the
+	'      Activity pause & Activity resume events.
+	'
+	'By default in the first App run in memory, it's set to True
+	'which means the checkbox is by default enabled (not disabled).
+	'
+	Private SavedHideAdminKeyStateBeforeConfigurationChange As Boolean = True
+	
+	'Add more constants to support disabling the fullscreen keyboard.
+	'
+	'In Java code, they will be called:
+	' * _ime_flag_no_extract_ui
+	' * _ime_flag_no_fullscreen
+	'
+	'Thanks to:
+	'https://stuff.mit.edu/afs/sipb/project/android/docs/reference/android/view/inputmethod/EditorInfo.html
+	'
+	'These constants have been added because
+	'the "android.view.inputmethod package" package
+	'refuses to correctly get imported,
+	'so I directly re-implemented the constants here.
+	'
+	Public Const IME_FLAG_NO_EXTRACT_UI As Int = 0x10000000 'Added in API level 3+  (Android 1.5+)
+	Public Const IME_FLAG_NO_FULLSCREEN As Int = 0x02000000 'Added in API level 11+ (Android 3.0+)
 	
 End Sub
 
@@ -271,8 +312,13 @@ Sub Activity_Create(FirstTime As Boolean)
 			// Thanks to:
 			// https://stackoverflow.com/a/50745444
 			//
+			// Added extra verification to check if the
+			// ExitApplication flag is actually set to true.
+			//
+			// intent.getBooleanExtra("<ExtraKeyName>", <default value if not found>)
+			//
 			Intent intent = getIntent();
-			if (intent.hasExtra("ExitApplication"))
+			if ( intent.hasExtra("ExitApplication") && intent.getBooleanExtra("ExitApplication", false) )
 			{
 				// Check if device is SDK 16 or higher (Android 4.1+)
 				//
@@ -342,6 +388,20 @@ Sub Activity_Create(FirstTime As Boolean)
 		// I decide To use finish() instead of finishAffinity()
 		// in the _onCreate() function's ExitApplication check.
 		//
+		// onDestroy() cans actually fire even when the Activity
+		// isn't being destroyed for good:
+		//
+		// "Permanent Termination (Finishing):
+		//  The user dismisses the activity (e.g., by pressing the Back button).
+		//  The code explicitly calls finish().
+		//
+		//  Temporary Destruction (Configuration Changes):
+		//  The device rotates (landscape/portrait).
+		//  The user enters multi-window mode.
+		//
+		//  The system kills the activity instance to save space,
+		//  with plans to recreate it later."
+		//
 		public void _onDestroy() {
 			//
 			// Close the App For real without any background process
@@ -351,7 +411,38 @@ Sub Activity_Create(FirstTime As Boolean)
 			// https://stackoverflow.com/q/53494605
 			// https://stackoverflow.com/a/53494692
 			//
-			System.exit(0); // Return success
+			// Added a check to verify if the Activity
+			// is actually finishing for real.
+			//
+			// Thanks to:
+			// https://stackoverflow.com/a/5227142
+			// https://old.reddit.com/r/androiddev/comments/m26vub/activityisfinishing_vs/
+			//
+			if ( isFinishing() == true )
+			{
+				// Check if device is SDK 11 or higher (Android 3.0+)
+				//
+				// "The isChangingConfigurations() method was introduced
+				//  in API level 11 (Android 3.0 Honeycomb).
+				//
+				//  It is used within an Activity to check if the
+				//  current activity instance is being destroyed
+				//  because of a configuration change (like a screen rotation),
+				//  which means it will be immediately recreated."
+				//
+				if ( android.os.Build.VERSION.SDK_INT >= 11 )
+				{
+					if ( !isChangingConfigurations() )
+					{
+						System.exit(0); // Return success
+					}
+				}
+				else
+				{
+					// On Android < 3.0 we just rely on isFinishing()
+					System.exit(0); // Return success
+				}
+			}
 		}
 #End If
 		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
@@ -370,6 +461,13 @@ Sub Activity_Create(FirstTime As Boolean)
 		DontHideAdminKeyBecauseFirstActivityLaunch = False
 	End If
 	
+	'Hide the fullscreen keyboard in this Activity's EditTexts.
+	'Must be done after NativeMe.InitializeContext
+	'
+	NativeMe.RunMethod("disableFullscreenKeyboard", Array(inpChallenge))
+	NativeMe.RunMethod("disableFullscreenKeyboard", Array(inpAdminKey))
+	NativeMe.RunMethod("disableFullscreenKeyboard", Array(inpResponse))
+	
 	'Show the length of the Admin key
 	DisplayAdminKeyLength
 	
@@ -387,9 +485,156 @@ Sub Activity_Pause (UserClosed As Boolean)
 	inpAdminKey.PasswordMode = True
 	chkHideAdminKey.Checked  = True
 	
+	'
+	'When the device screen orientation rotates while the App is running,
+	'the App's Activity gets:
+	' - Paused (UserClosed = False)
+	' - Created
+	' - Resumed
+	'
+	'So I need to make sure that the Admin Key field stays the same
+	'even when you rotate the device screen's orientation.
+	'
+	If Not(UserClosed) Then
+		'
+		'Save Admin Key so that I restore it after
+		'the device configuration changed (e.g. screen rotation).
+		'
+		SavedAdminKeyBeforeConfigurationChange = inpAdminKey.Text
+		
+		'Also make sure the Challenge code field doesn't get
+		'reset to empty value when e.g. the device rotates too.
+		SavedChallengeBeforeConfigurationChange = inpChallenge.Text
+		
+		'Also make sure the Response code field doesn't get
+		'reset to empty value when e.g. the device rotates too.
+		SavedResponseBeforeConfigurationChange = inpResponse.Text
+	Else
+		'
+		'If it's user-closed then no need to save the Admin Key,
+		'just erase the SavedAdminKeyBeforeConfigurationChange variable.
+		'
+		SavedAdminKeyBeforeConfigurationChange = ""
+		
+		'Erasing the SavedChallengeBeforeConfigurationChange variable too.
+		SavedChallengeBeforeConfigurationChange = ""
+		
+		'Erasing the SavedResponseBeforeConfigurationChange variable too.
+		SavedResponseBeforeConfigurationChange = ""
+	End If
+	
+	'When the device rotates, a disabled hide Admin Key checkbox
+	'becomes enabled again; so we have to check for whether
+	'the 'Hide Admin Key' checkbox was disabled before,
+	'and if yes we disable it again.
+	'
+	'Note: I want to do this one always, not just when UserClosed is false.
+	'
+	SavedHideAdminKeyStateBeforeConfigurationChange = chkHideAdminKey.Enabled
+	
 End Sub
 
 Sub Activity_Resume
+	
+	'When the device rotates, a disabled hide Admin Key checkbox
+	'becomes enabled again; so we have to check for whether
+	'the 'Hide Admin Key' checkbox was disabled before,
+	'and if yes we disable it again.
+	'
+	'Note: I want to do this one very firstly before others.
+	'
+	If Not(SavedHideAdminKeyStateBeforeConfigurationChange) Then
+		'
+		'Special handling for the 'Hide Admin Key' checkbox:
+		'
+		
+		'Restore the disabled Hide Admin Key checkbox state.
+		chkHideAdminKey.Enabled = SavedHideAdminKeyStateBeforeConfigurationChange
+		
+		'Restore the PasswordMode on the Admin Key input field
+		'because it could otherwise potentially not get
+		'restored automatically.
+		inpAdminKey.PasswordMode = True
+		
+		'Restore the checked Hide Admin Key checkbox state.
+		chkHideAdminKey.Checked  = True
+		
+		'
+		'I don't reset the SavedHideAdminKeyStateBeforeConfigurationChange
+		'variable (I keep its status as-is).
+		'
+		
+	End If
+	
+	'
+	'When the device screen orientation rotates while the App is running,
+	'the App's Activity gets:
+	' - Paused (UserClosed = False)
+	' - Created
+	' - Resumed
+	'
+	'So I need to make sure that the Admin Key field stays the same
+	'even when you rotate the device screen's orientation.
+	'
+	'Note: It has to be done before checking for CHALLENGE_CODE or
+	'      it will not allow restoring the Admin Key field when
+	'      the user rotates the device after scanning a QR code.
+	'
+	'      That's because it has a Return statement that would
+	'      prevent this code from being reached if I placed it
+	'      after the CHALLENGE_CODE intent verification.
+	'
+	If SavedAdminKeyBeforeConfigurationChange <> "" Then
+		
+		'Restore the Admin Key as it was before 
+		'the device configuration changed (e.g. screen rotation).
+		inpAdminKey.Text = SavedAdminKeyBeforeConfigurationChange
+		
+		'Now clear the SavedAdminKeyBeforeConfigurationChange variable.
+		SavedAdminKeyBeforeConfigurationChange = ""
+		
+		'Special handling for restoring the Admin Key:
+		'recount its length again (just incase).
+		DisplayAdminKeyLength
+		
+	End If
+	
+	'Also make sure the Challenge code field doesn't get
+	'reset to empty value when e.g. the device rotates too.
+	If SavedChallengeBeforeConfigurationChange <> "" Then
+		
+		'Restore the Challenge code as it was before
+		'the device configuration changed (e.g. screen rotation).
+		inpChallenge.Text = SavedChallengeBeforeConfigurationChange
+		
+		'Now clear the SavedChallengeBeforeConfigurationChange variable.
+		SavedChallengeBeforeConfigurationChange = ""
+		
+	End If
+	
+	'Also make sure the Response code field doesn't get
+	'reset to empty value when e.g. the device rotates too.
+	If SavedResponseBeforeConfigurationChange <> "" Then
+		
+		'Restore the Response code as it was before
+		'the device configuration changed (e.g. screen rotation).
+		inpResponse.Text = SavedResponseBeforeConfigurationChange
+		
+		'Now clear the SavedResponseBeforeConfigurationChange variable.
+		SavedResponseBeforeConfigurationChange = ""
+		
+		'Special handling for restoring the Response code:
+		'Re-run the Algorithm detection function to restore
+		'the e.g. 'Response: 3DES (DES-EDE3)' label too.
+		'
+		'False = Didn't already check the input to be in the correct format,
+		'        so it will be verified inside the
+		'        DetectResponseCodeAlgorithmType function.
+		'
+		DetectResponseCodeAlgorithmType(inpAdminKey.Text, inpChallenge.Text, inpResponse.Text, False)
+		
+	End If
+	
 	'
 	'Add ability to receive Admin Key with Android's Share To
 	'
@@ -652,6 +897,82 @@ Private Sub DisplayAdminKeyLength() As Void
 	
 End Sub
 
+Private Sub DetectResponseCodeAlgorithmType(sanitizedAdminKey As String, sanitizedChallenge As String, responseCode As String, AlreadyVerifiedInputs As Boolean) As Void
+	
+	'
+	'Reset the Response Code label before generating a new Response Code
+	'
+	lblResponse.Text = "Response:"
+	
+	'Redo the verification of the inputs (sanitization) here too
+	'incase it's needed, if the caller function didn't already do it.
+	If Not(AlreadyVerifiedInputs) Then
+		
+		'Not using RegEx here since I don't want users to send invalid chars in the first place
+		'So I don't accept the input at all if there are invalid chars, instead of cleaning them
+		'
+		sanitizedAdminKey	= sanitizedAdminKey		.Replace(" ", "").Replace("-", "")
+		sanitizedChallenge	= sanitizedChallenge	.Replace(" ", "").Replace("-", "")
+		responseCode		= responseCode			.Replace(" ", "").Replace("-", "")
+		
+		'The Admin Key field supports line breaks, so we should also automatically trim them
+		sanitizedAdminKey = sanitizedAdminKey.Replace(CRLF, "")
+		
+		If Regex.IsMatch2("^[0-9a-f]{16,64}$", Regex.CASE_INSENSITIVE, sanitizedChallenge)	== False _
+		Or Regex.IsMatch2("^[0-9a-f]{32,64}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)	== False _
+		Or Regex.IsMatch2("^[0-9a-f]{16,64}$", Regex.CASE_INSENSITIVE, responseCode)		== False Then
+			'
+			'In the case where the inputs were incorrect anyway,
+			'I don't need to re-verify which algorithm they were.
+			'
+			Return
+			
+		End If
+		
+	End If
+	
+	'
+	'Add the ability to know which algorithm was detected
+	'and used to generate the Response code by modifying
+	'the 'Response:' label to contain the detected algorithm.
+	'
+	Dim detectedChallengeResponseAlgorithm As String = ""
+	
+	'Notice how we had a leading space because it will be appended
+	'to the 'Response:' label later.
+	'
+	'I also verify the Response code length too as extra precaution.
+	'
+	If	sanitizedAdminKey.Length	== 48 And _
+		sanitizedChallenge.Length	== 16 And _
+		responseCode.Length			== 16 Then
+		
+		detectedChallengeResponseAlgorithm = " 3DES (DES-EDE3)"
+		
+	Else If	sanitizedAdminKey.Length	== 32 And _
+			sanitizedChallenge.Length	== 16 And _
+			responseCode.Length			== 16 Then
+		
+		detectedChallengeResponseAlgorithm = " 2DES (DES-EDE2)"
+		
+	Else If	sanitizedAdminKey.Length	== 32 And _
+			sanitizedChallenge.Length	== 32 And _
+			responseCode.Length			== 32 Then
+		
+		detectedChallengeResponseAlgorithm = " AES (AES-128)"
+		
+	Else If	sanitizedAdminKey.Length	== 64 And _
+			sanitizedChallenge.Length	== 64 And _
+			responseCode.Length			== 64 Then
+		
+		detectedChallengeResponseAlgorithm = " AES (AES-256)"
+		
+	End If
+	
+	lblResponse.Text = lblResponse.Text&detectedChallengeResponseAlgorithm
+	
+End Sub
+
 '
 'UI event handlers
 '
@@ -864,6 +1185,10 @@ Private Sub btnGenerate_Click
 	'
 	'Reset the Response Code label before generating a new Response Code
 	'
+	'We need to do it here too since it's possible that there are
+	'invalid inputs and therefore we won't reach the
+	'DetectResponseCodeAlgorithmType function to fix the label.
+	'
 	lblResponse.Text = "Response:"
 	
 	'
@@ -973,40 +1298,9 @@ Private Sub btnGenerate_Click
 		'and used to generate the Response code by modifying
 		'the 'Response:' label to contain the detected algorithm.
 		'
-		Dim detectedChallengeResponseAlgorithm As String = ""
-		
-		'Notice how we had a leading space because it will be appended
-		'to the 'Response:' label later.
+		'True = Already checked the input to be in the correct format
 		'
-		'I also verify the Response code length too as extra precaution.
-		'
-		If	sanitizedAdminKey.Length	== 48 And _
-			sanitizedChallenge.Length	== 16 And _
-			responseCode.Length			== 16 Then
-			
-			detectedChallengeResponseAlgorithm = " 3DES (DES-EDE3)"
-			
-		Else If	sanitizedAdminKey.Length	== 32 And _
-				sanitizedChallenge.Length	== 16 And _
-				responseCode.Length			== 16 Then
-			
-			detectedChallengeResponseAlgorithm = " 2DES (DES-EDE2)"
-			
-		Else If	sanitizedAdminKey.Length	== 32 And _
-				sanitizedChallenge.Length	== 32 And _
-				responseCode.Length			== 32 Then
-			
-			detectedChallengeResponseAlgorithm = " AES (AES-128)"
-			
-		Else If	sanitizedAdminKey.Length	== 64 And _
-				sanitizedChallenge.Length	== 64 And _
-				responseCode.Length			== 64 Then
-			
-			detectedChallengeResponseAlgorithm = " AES (AES-256)"
-			
-		End If
-		
-		lblResponse.Text = lblResponse.Text&detectedChallengeResponseAlgorithm
+		DetectResponseCodeAlgorithmType(sanitizedAdminKey, sanitizedChallenge, responseCode, True)
 		
 		'
 		'Cans be tweaked to have separators if needed (4x4)
@@ -1145,7 +1439,53 @@ import android.view.Display;
 // Android 4.1 & older
 import android.content.res.Resources;
 
+//
+// Disable the fullscreen keyboard on this Activity's EditTexts.
+//
+// Thanks to:
+// https://stuff.mit.edu/afs/sipb/project/android/docs/reference/android/view/inputmethod/EditorInfo.html
+//
+import android.widget.EditText;
+
+// This one refuses to work so I skip it.
+//import android.view.inputmethod;
+
 /* ************************************************ */
+
+//
+// Disable the fullscreen keyboard on this Activity's EditTexts.
+//
+public void disableFullscreenKeyboard(EditText myEditText) {
+	//
+	// It's a safety measure to avoid showing the Admin keys in clear
+	// when the fullscreen keyboard appears instead of the normal one.
+	//
+	// IME_FLAG_NO_EXTRACT_UI is only available on Android 1.5+
+	// IME_FLAG_NO_FULLSCREEN is only available on Android 3.0+
+	//
+	// Make sure to have these constants in your Process_Globals!
+	//
+	// They will then be called as below in native Java code:
+	// * _ime_flag_no_extract_ui
+	// * _ime_flag_no_fullscreen
+	//
+	
+	// Check the SDK version (API level).
+	int sdkVersion = android.os.Build.VERSION.SDK_INT;
+	
+	// Android 3.0+
+	if ( sdkVersion >= 11 )
+	{
+		int imeOptions = myEditText.getImeOptions();
+		myEditText.setImeOptions(imeOptions | _ime_flag_no_extract_ui | _ime_flag_no_fullscreen);
+	}
+	// Android 1.5+
+	else if ( sdkVersion >= 3 )
+	{
+		int imeOptions = myEditText.getImeOptions();
+		myEditText.setImeOptions(imeOptions | _ime_flag_no_extract_ui);
+	}
+}
 
 //
 // Get screen DPI function (support API 9+ / Android 2.3+)
