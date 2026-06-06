@@ -22,71 +22,61 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 36
-	#VersionName: 3.13.0
+	#VersionCode: 37
+	#VersionName: 3.14.0
 	'
-	' Update from 3.12.0:
+	' Update from 3.13.0:
 	'
-	' 3.13.0: - (x) Change the #SupportedOrientations flag
-	'               to allow screen rotation (unspecified).
+	' 3.14.0: - (x) Fixed QR scanner module layouts to have square camera previews.
 	'
-	'         - (+) Added a fix for verifying if the Activity
-	'               is actually being destroyed for real in
-	'               the Main module code's onDestroy handler,
-	'               which fixes the App close on screen rotation.
+	'         - (+) Added better padding for the Hash menu button background's
+	'               info text (works across any layout and device orientation).
 	'
-	'         - (+) Added extra check for the ExitApplication flag
-	'               in the pre-API 21 (Android 5.0) function that
-	'               handles the finishAndRemoveTask() alternative
-	'               in the Main module code's onCreate function.
+	'         - (x) Fixed the text color of the Hash Text button being white on
+	'               white background color on Android API level < 14 devices.
 	'
-	'         - (+) Added a fix to make sure the Admin Key doesn't
-	'               get replaced by the default one (48 zeroes)
-	'               when the device configuration changes,
-	'               such as device screen orientation (rotation).
+	'         - (x) Additional adjustments to the landscape layout of the
+	'               Main module for 480p+ (scale 1.0) devices,
+	'               so that the icons are bigger.
 	'
-	'         - (+) Added a fix to make sure the 'Hide Admin Key' checkbox
-	'               doesn't get re-enabled by the default when
-	'               the device configuration changes,
-	'               such as device screen orientation (rotation),
-	'               while making sure that the Admin Key stays hidden too
-	'               if the 'Hide Admin Key' checkbox was disabled.
+	'         - (x) Fixed the QR scanner module's landscape orientation for
+	'               480p+ (scale 1.0) devices, so that its buttons are
+	'               properly sized visually instead of looking small.
 	'
-	'         - (+) Added a fix to make sure the Challenge code field
-	'               doesn't get reset to empty value when
-	'               the device configuration changes,
-	'               such as device screen orientation (rotation).
+	'         - (+) Make icon buttons bigger in landscape mode for the
+	'               Main module layout on 480p+ (scale 1.0) devices.
 	'
-	'         - (+) Added a fix to make sure the Response code field
-	'               doesn't get reset to empty value when
-	'               the device configuration changes,
-	'               such as device screen orientation (rotation).
+	'         - (+) Updated project readme to mention all the supported
+	'               challenge-response algorithms and Admin key lengths.
 	'
-	'         - (+) Added informational text about the ability to
-	'               long-click the Hash buttons in the Hash Text
-	'               menu's background button (btnHashMenuBg text),
-	'               which is now top-left aligned with
-	'               a padding of (20, 20, 20, 20), a bold styling
-	'               and the WhiteSmoke text color.
+	'         - (x) Updated project readme to use https instead of http for
+	'               the recommended InputStick hardware's website URL.
 	'
-	'         - (x) Modified the padding of all EditTexts in the
-	'               Main module layout to be (5, 5, 5, 5).
+	'         - (x) Updated the jhscore.jar library (zxing) to version 2.3.0
+	'               using a maven jar file that I debloated and re-compressed.
 	'
-	'         - (+) Disabled usage of the fullscreen keyboard because
-	'               it cans reveal hidden Admin keys (unrevealable)
-	'               when the device is in landscape mode and the
-	'               unrevealable Admin key field is clicked.
+	'               This new 2.3.0 version stays compatible with Android 2.3
+	'               or later (API 9+).
 	'
-	'         - (+) Add a better landscape layout to the Designer's
-	'               Main & Scan layout files to better support
-	'               the landscape orientation.
+	'               Note: this is a custom version of zxing 2.3.0 where I removed
+	'                     all the non-QR code functionality from its code.
 	'
-	#SupportedOrientations: unspecified
+	'         - (x) Improved code spacing and organzization (small tweaks).
+	'
+	'         - (+) Added a function for checking whether the device has
+	'               a flashlight in the QR scanner module.
+	'
+	'         - (+) Added a check for whether the device has a flashlight
+	'               in the QR scanner module's Flashlight toggle function,
+	'               and explain why the user can't toggle the Flashlight
+	'               if they try clicking the Flashlight toggle button.
+	'
+	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
 	
 	'Compile-time settings
 	#BridgeLogger: False
-	#MultiDex: False
+	#MultiDex:     False
 	
 	'Ignore recommended target SDK warning (31)
 	'Ignore function value returns warning (2)
@@ -207,6 +197,9 @@ End Sub
 Sub Globals
 	'These global variables will be redeclared each time the activity is created.
 	'These variables can only be accessed from this module.
+	
+	'Tweak the padding of the Hash menu button background (btnHashMenuBg)
+	Private lblChallenge   As Label
 	
 	Private inpChallenge   As EditText
 	Private btnScanRequest As Button
@@ -470,6 +463,29 @@ Sub Activity_Create(FirstTime As Boolean)
 	
 	'Show the length of the Admin key
 	DisplayAdminKeyLength
+	
+	'Tweak the padding of the Hash menu button background (btnHashMenuBg)
+	'
+	'We use the Challenge code label as alignment base because
+	'it's the first and top-most element of this Activity's layout.
+	'
+	btnHashMenuBg.Padding = Array As Int( lblChallenge.Left, _ ' Left   = [0]
+	                                      lblChallenge.Top,  _ ' Top    = [1]
+	                                      lblChallenge.Left, _ ' Right  = [2]
+	                                      lblChallenge.Top   _ ' Bottom = [3]
+										)
+	
+	'
+	'The p variable is already Dim'd at the start of Activity_Create.
+	'
+	If p.SdkVersion < 14 Then
+		
+		'Fix the white-on-white text color of the Hash Text button when
+		'running on legacy devices with the original Android 2.x-3.x theme.
+		'
+		btnHashMenu.TextColor = Colors.Black
+		
+	End If
 	
 End Sub
 
@@ -875,7 +891,7 @@ End Sub
 'Helper code
 '
 
-Private Sub QuicklyHideAdminKey()
+Private Sub QuicklyHideAdminKey() As Void
 	
 	'Immediately hide the Admin key if any was shown before,
 	'to avoid leaking the Admin key inside the Recent Apps thumbnails.
@@ -1425,9 +1441,7 @@ import android.util.Log;
 
 // Android 11+
 import android.content.Context;
-
-// Already imported at start of Main code.
-//import android.view.WindowManager;
+//import android.view.WindowManager; // Already imported at start of Main code
 import android.view.WindowMetrics;
 
 import android.content.res.Configuration;
@@ -1446,9 +1460,7 @@ import android.content.res.Resources;
 // https://stuff.mit.edu/afs/sipb/project/android/docs/reference/android/view/inputmethod/EditorInfo.html
 //
 import android.widget.EditText;
-
-// This one refuses to work so I skip it.
-//import android.view.inputmethod;
+//import android.view.inputmethod; // This one refuses to work so I skip it.
 
 /* ************************************************ */
 
