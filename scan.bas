@@ -488,14 +488,33 @@ Private Sub qrReaderView_result_found(ReturnValue As String)
 End Sub
 
 Private Sub btnToggleFlash_Click
+	'
+	' Verify if the device has a flashlight first
+	' before proceeding further.
+	'
+	' Android API level 7+ (Android 2.1+)
+	'
+	If Not(NativeMe2.RunMethod("checkDeviceFlashlight", Null)) Then
+		'
+		' In the few cases nowadays where it doesn't have a flashlight
+		' I don't disable the Flashlight toggle button,
+		' because I want the user to be able to see that it's
+		' an available functionality and to know why they can't use it,
+		' rather than seeing a disabled Flashlight toggle button and
+		' thinking that it may be an App bug.
+		'
+		ToastMessageShow("Flashlight required for the toggle", False)
+		Return
+	End If
+	
+	isTorchOn = Not(isTorchOn)
 	
 	Try
-		isTorchOn = Not(isTorchOn)
 		qrReaderView.TorchEnabled = isTorchOn
 	Catch
 		isTorchOn = Not(isTorchOn)
-		
 		Log(LastException)
+		
 		Return
 	End Try
 	
@@ -592,7 +611,7 @@ End Sub
 #If JAVA
 
 //
-// Add ability To check If the device has a Camera
+// Add ability to check if the device has a Camera
 //
 
 import android.hardware.Camera;
@@ -604,8 +623,7 @@ import android.hardware.Camera;
 // Android 11+
 import android.content.Context;
 
-// Already imported at start of Main code.
-//import android.view.WindowManager;
+//import android.view.WindowManager; // Already imported at start of Main code
 import android.view.WindowMetrics;
 
 import android.content.res.Configuration;
@@ -617,7 +635,30 @@ import android.view.Display;
 // Android 4.1 & older
 import android.content.res.Resources;
 
+//
+// Check if the device has a flashlight
+//
+
+//import android.content.Context; // Already imported for getting the device scale
+import android.content.pm.PackageManager;
+
 /* ************************************************ */
+
+//
+// Check if the device has a flashlight
+//
+// Thanks to:
+// https://stackoverflow.com/questions/29622298/getpackagemanager-hassystemfeaturepackagemanager-feature-camera-flash-return
+//
+
+public boolean checkDeviceFlashlight() {
+	
+	// "getApplicationContext();" or "this.getContext();"
+	Context ctx = getApplicationContext();
+	
+	// Android API level 7+ (Android 2.1+)
+	return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+}
 
 //
 // Get screen DPI function (support API 9+ / Android 2.3+)
@@ -660,6 +701,7 @@ public boolean DeviceHasAtleastTwoCameras() {
 	//
 	// Thanks To https://stackoverflow.com/a/10593071
 	//
+	
 	return Camera.getNumberOfCameras() >= 2; // Android API level 9+ (Android 2.3+)
 }
 
