@@ -27,6 +27,9 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 Here you can type the *Request Code* and also choose to hide the *Admin Key* with the checkbox below it.
 
+The supported algorithms for unblock code generation are 3DES, 2DES, AES-128 & AES-256.\
+The algorithm to be used is automatically determined by the Application based on your Admin key and Challenge code.
+
 ## Hide & reveal the Admin Key
 
 ![Main App screen with visible Admin Key.](https://i.postimg.cc/grvz2Cy2/1-main-app-screen.png) ![Hiding the previously entered Admin Key.](https://i.postimg.cc/kRFqYSMb/2-admin-key-hide.png)
@@ -68,7 +71,7 @@ From there you can share the *Response Code* over to Telegram, Signal, WhatsApp,
 
 Otherwise you could type the *Response Code* automatically on e.g. employees' computers with an agent program, using the Android *Share To* functionality.
 
-*You can also generally type passwords & sensitive input material using your phone and an [USB InputStick](http://inputstick.com/) device, which is hardware and works for full-disk encryption as well. It has a KeePass2Android plugin, for example.*
+*You can also generally type passwords & sensitive input material using your phone and an [USB InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well. It has a KeePass2Android plugin, for example.*
 
 ## Share Admin Key to the App
 
@@ -78,10 +81,10 @@ Here you can see that it's possible to write your *Admin Key* on a native Androi
 
 That's also where you can generate *Admin Key* hashes yourself with a different Android app then share the generated hash to **Android PIN Unblocker**.
 
-The App automatically verifies whether the shared text is a valid *32* or *48* digits string and is made of *0-9 A-F* characters only (*hex chars*).
+The App automatically verifies whether the shared text is a valid *32*, *48* or *64* digits string and is made of *0-9 A-F* characters only (*hex chars*).
 The App discards shared texts that are invalid *Admin Keys* and will simply behave as if you launched it yourself.
 
-*I decided to allow 32-digits Admin Keys since that's what some smartcard manufacturers actually use (AES challenge/response instead of 3DES).*
+*I decided to allow 32- & 64-digits Admin Keys since that's what some smartcard manufacturers actually use (AES challenge/response instead of 3DES).*
 
 ## Prevent disclosing Admin Keys
 
