@@ -12,7 +12,7 @@ Library3=javaobject
 Library4=newqrcodereaderview
 Library5=phone
 Library6=runtimepermissions
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Default")~\n~CreateResource(values-v20, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Material">~\n~    </style>~\n~</resources>)~\n~CreateResource(values-v14, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Holo">~\n~    </style>~\n~</resources>)~\n~CreateResource(values, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme">~\n~    </style>~\n~</resources>)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~'AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Try improving compatibility of zxing QR code scanning~\n~'with older devices that might require hardware acceleration~\n~'due to the use of GPU for rendering the camera preview, etc.~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Default")~\n~~\n~CreateResource(values-v20, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Material">~\n~    </style>~\n~</resources>)~\n~CreateResource(values-v14, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Holo">~\n~    </style>~\n~</resources>)~\n~CreateResource(values, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme">~\n~    </style>~\n~</resources>)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~'AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
 NumberOfFiles=3
 NumberOfLibraries=6
@@ -22,54 +22,35 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 37
-	#VersionName: 3.14.0
+	#VersionCode: 38
+	#VersionName: 3.15.0
 	'
-	' Update from 3.13.0:
+	' Update from 3.14.0:
 	'
-	' 3.14.0: - (x) Fixed QR scanner module layouts to have square camera previews.
+	' 3.15.0: - (+) Added the android:hardwareAccelerated="true" attribute
+	'               in the application manifest to improve compatibility
+	'               of QR code scanning on very old devices.
 	'
-	'         - (+) Added better padding for the Hash menu button background's
-	'               info text (works across any layout and device orientation).
+	'         - (x) Improved the QR scanner module layout again for
+	'               landscape orientation by using a better and
+	'               more spacious UI elements arrangement.
 	'
-	'         - (x) Fixed the text color of the Hash Text button being white on
-	'               white background color on Android API level < 14 devices.
+	'         - (x) Optimized the jhscore.jar library file even more to remove
+	'               every single unnecessary package and class file,
+	'               and also properly cleaned up all import references for
+	'               removed classes and object types (even smaller file size).
 	'
-	'         - (x) Additional adjustments to the landscape layout of the
-	'               Main module for 480p+ (scale 1.0) devices,
-	'               so that the icons are bigger.
+	'         - (-) Removed the now unnecessary "android-support-annotations.jar"
+	'               library file from the project because I optimized the
+	'               jhscore.jar library so much that it longer references it
+	'               anymore (not used at all).
 	'
-	'         - (x) Fixed the QR scanner module's landscape orientation for
-	'               480p+ (scale 1.0) devices, so that its buttons are
-	'               properly sized visually instead of looking small.
+	'         - (+) Added a readme file that explains how to install the provided
+	'               libraries into the Basic4Android IDE and configure
+	'               the Additional Libraries path values, so that new users of
+	'               the Basic4Android IDE know how to install them.
 	'
-	'         - (+) Make icon buttons bigger in landscape mode for the
-	'               Main module layout on 480p+ (scale 1.0) devices.
-	'
-	'         - (+) Updated project readme to mention all the supported
-	'               challenge-response algorithms and Admin key lengths.
-	'
-	'         - (x) Updated project readme to use https instead of http for
-	'               the recommended InputStick hardware's website URL.
-	'
-	'         - (x) Updated the jhscore.jar library (zxing) to version 2.3.0
-	'               using a maven jar file that I debloated and re-compressed.
-	'
-	'               This new 2.3.0 version stays compatible with Android 2.3
-	'               or later (API 9+).
-	'
-	'               Note: this is a custom version of zxing 2.3.0 where I removed
-	'                     all the non-QR code functionality from its code.
-	'
-	'         - (x) Improved code spacing and organzization (small tweaks).
-	'
-	'         - (+) Added a function for checking whether the device has
-	'               a flashlight in the QR scanner module.
-	'
-	'         - (+) Added a check for whether the device has a flashlight
-	'               in the QR scanner module's Flashlight toggle function,
-	'               and explain why the user can't toggle the Flashlight
-	'               if they try clicking the Flashlight toggle button.
+	'         - (x) Small newline tweak in one of the readme.md file's paragraphs.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
