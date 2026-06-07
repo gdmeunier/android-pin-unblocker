@@ -27,7 +27,8 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 Here you can type the *Request Code* and also choose to hide the *Admin Key* with the checkbox below it.
 
-The supported algorithms for unblock code generation are 3DES, 2DES, AES-128 & AES-256.\
+The supported algorithms for unblock code generation are 3DES, 2DES, AES-128 & AES-256.
+
 The algorithm to be used is automatically determined by the Application based on your Admin key and Challenge code.
 
 ## Hide & reveal the Admin Key
