@@ -1,9 +1,12 @@
 ﻿ModuleBookmarks0=
 ModuleBookmarks1=
+ModuleBookmarks2=
 ModuleBreakpoints0=
 ModuleBreakpoints1=
+ModuleBreakpoints2=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
-NavigationStack=Scan,btnSwitchCam_Click,574,0,Visual Designer,ScanLayout.bal,-100,3,Visual Designer,MainLayout.bal,-100,3,Scan,btnBack_Click,654,0,Scan,qrReaderView_result_found,469,0,Scan,DisplayCameraErrorDialog,391,0,Scan,InitializeQrCodeReader,278,0,Main,Activity_Create,382,0,Main,btnShareResponse_Click,1419,1,Main,Process_Globals,67,0
+ModuleClosedNodes2=
+NavigationStack=Scan,Activity_Create,119,0,Scan,Process_Globals,19,0,Main,Process_Globals,99,0,Shared,Initialize,19,0,Scan,InitializeQrCodeReader,300,0,Scan,Globals,61,0,Visual Designer,MainLayout.bal,-100,1,Visual Designer,ScanLayout.bal,-100,1,Main,btnHashMenuBg_Click,1128,6,Main,btnHashMenu_Click,1110,6
 SelectedBuild=0
-VisibleModules=1
+VisibleModules=1,2
