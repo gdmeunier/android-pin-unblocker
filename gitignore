@@ -17,3 +17,6 @@ Releases/*
 # APK files
 *.apk
 
+# MyApkTool Pro's program files
+MyApkTool/*
+
