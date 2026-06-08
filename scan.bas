@@ -119,7 +119,13 @@ Sub Activity_Create(FirstTime As Boolean)
 			//
 			// Hide the Title bar / Action bar on very-low DPI devices
 			//
-			if ( getDeviceScale() < 1.0 ) // less than 1.0 (160dpi/mdpi)
+			// Thanks to:
+			// * https://stackoverflow.com/a/4141627
+			//
+			//   For providing info about how to provide
+			//   the current context to a Java native function.
+			//
+			if ( shared.getDeviceScale(this) < 1.0 ) // less than 1.0 (160dpi/mdpi)
 			{
 				// The device is 120/ldpi so we need more space.
 				// that means we will want to remove the
@@ -150,8 +156,23 @@ Sub Activity_Create(FirstTime As Boolean)
 			//
 			if ( android.os.Build.VERSION.SDK_INT >= 11 )
 			{
-				// Add FLAG_SECURE to this Window (Activity view)
-				this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+				// Added the ability for users who compile the App themselves
+				// to choose whether they want a build configuration without
+				// the FLAG_SECURE attribute used for the App's Activities.
+				//
+				// All pre-compiled builds on Github have it by default
+				// set to False which means that FLAG_SECURE is always
+				// used in the App's Activities, for security reasons.
+				//
+				// Please only disable FLAG_SECURE if you know what you're doing
+				// and the potential risks of Admin key leaks by Android itself
+				// in recent thumbnails and by screen capture applications.
+				//
+				if ( !shared.IsFlagSecureDisabled() )
+				{
+					// Add FLAG_SECURE to this Window (Activity view)
+					this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+				}
 			}
 		}
 #End If
@@ -282,7 +303,12 @@ Private Sub InitializeQrCodeReader As Void
 		'
 		' Android API level 9+ (Android 2.3+)
 		'
-		If NativeMe2.RunMethod("DeviceHasAtleastTwoCameras", Null) Then
+		
+		'Must use a separate JavaObject for the Shared class
+		Dim TempNativeMe As JavaObject
+		TempNativeMe.InitializeStatic(Application.PackageName&".shared")
+	
+		If TempNativeMe.RunMethod("GetNumberOfDeviceCameras", Null) >= 2 Then
 			qrReaderView.PreviewCameraId = 1
 			qrReaderView.setFrontCamera()
 		End If
@@ -538,7 +564,12 @@ Private Sub btnSwitchCam_Click
 	'
 	' Android API level 9+ (Android 2.3+)
 	'
-	If Not(NativeMe2.RunMethod("DeviceHasAtleastTwoCameras", Null)) Then
+	
+	'Must use a separate JavaObject for the Shared class
+	Dim TempNativeMe As JavaObject
+	TempNativeMe.InitializeStatic(Application.PackageName&".shared")
+	
+	If TempNativeMe.RunMethod("GetNumberOfDeviceCameras", Null) < 2 Then
 		'
 		' In the rare case where it doesn't have two Cameras I don't
 		' disable the Camera switching button, because I want the user
@@ -611,35 +642,10 @@ End Sub
 #If JAVA
 
 //
-// Add ability to check if the device has a Camera
-//
-
-import android.hardware.Camera;
-
-//
-// For getting the device scale (DPI)
-//
-
-// Android 11+
-import android.content.Context;
-
-//import android.view.WindowManager; // Already imported at start of Main code
-import android.view.WindowMetrics;
-
-import android.content.res.Configuration;
-
-// Android 4.2+
-import android.util.DisplayMetrics;
-import android.view.Display;
-
-// Android 4.1 & older
-import android.content.res.Resources;
-
-//
 // Check if the device has a flashlight
 //
 
-//import android.content.Context; // Already imported for getting the device scale
+import android.content.Context;
 import android.content.pm.PackageManager;
 
 /* ************************************************ */
@@ -653,56 +659,10 @@ import android.content.pm.PackageManager;
 
 public boolean checkDeviceFlashlight() {
 	
-	// "getApplicationContext();" or "this.getContext();"
 	Context ctx = getApplicationContext();
 	
 	// Android API level 7+ (Android 2.1+)
 	return ctx.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-}
-
-//
-// Get screen DPI function (support API 9+ / Android 2.3+)
-//
-
-public float getDeviceScale() {
-	
-	int sdkVersion = android.os.Build.VERSION.SDK_INT;
-	
-	// Android 11+
-	if ( sdkVersion >= 31 )
-	{
-		Configuration cfg = new Configuration();
-		return (float)cfg.densityDpi; // int->float
-	}
-	// Android 4.2+
-	else if ( sdkVersion >= 17 )
-	{
-		WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
-		Display display = wm.getDefaultDisplay();
-		
-		DisplayMetrics dm = new DisplayMetrics();
-		display.getRealMetrics(dm);
-		
-		return dm.density; // already float
-	}
-	// Android 4.1 & older
-	else
-	{
-		return Resources.getSystem().getDisplayMetrics().density; // already float
-	}
-}
-
-//
-// Some devices don't even have two cameras so I want to check
-// If the device actually has two, otherwise I will disable
-// the Camera switching function To avoid crashing the App.
-//
-public boolean DeviceHasAtleastTwoCameras() {
-	//
-	// Thanks To https://stackoverflow.com/a/10593071
-	//
-	
-	return Camera.getNumberOfCameras() >= 2; // Android API level 9+ (Android 2.3+)
 }
 
 #End If
