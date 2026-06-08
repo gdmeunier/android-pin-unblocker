@@ -1,4 +1,5 @@
 ﻿Build1=Default,net.generic.smartcardpuk
+Build2=NO_FLAG_SECURE,net.generic.smartcardpuk,NO_FLAG_SECURE
 File1=About.png
 File2=MainLayout.bal
 File3=ScanLayout.bal
@@ -14,43 +15,101 @@ Library5=phone
 Library6=runtimepermissions
 ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Try improving compatibility of zxing QR code scanning~\n~'with older devices that might require hardware acceleration~\n~'due to the use of GPU for rendering the camera preview, etc.~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Default")~\n~~\n~CreateResource(values-v20, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Material">~\n~    </style>~\n~</resources>)~\n~CreateResource(values-v14, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Holo">~\n~    </style>~\n~</resources>)~\n~CreateResource(values, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme">~\n~    </style>~\n~</resources>)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~'AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
 Module1=|relative|.\Scan
+Module2=Shared
 NumberOfFiles=3
 NumberOfLibraries=6
-NumberOfModules=1
+NumberOfModules=2
 Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 38
-	#VersionName: 3.15.0
+	#VersionCode: 39
+	#VersionName: 3.16.0
 	'
-	' Update from 3.14.0:
+	' Update from 3.15.0:
 	'
-	' 3.15.0: - (+) Added the android:hardwareAccelerated="true" attribute
-	'               in the application manifest to improve compatibility
-	'               of QR code scanning on very old devices.
+	' 3.16.0: - (x) Even smaller About.png file size (by a few bytes).
 	'
-	'         - (x) Improved the QR scanner module layout again for
-	'               landscape orientation by using a better and
-	'               more spacious UI elements arrangement.
+	'               Note: It was not possible to make the icon.png file
+	'                     even smaller because even though it was
+	'                     correctly generated and smaller in size,
+	'                     it would actually compress less efficiently
+	'                     in a ZIP archive than our current version.
 	'
-	'         - (x) Optimized the jhscore.jar library file even more to remove
-	'               every single unnecessary package and class file,
-	'               and also properly cleaned up all import references for
-	'               removed classes and object types (even smaller file size).
+	'                     So in the end our current icon.png file is fine
+	'                     because when it gets compressed in a ZIP file,
+	'                     the compressed stream size is smaller than
+	'                     the newer one that I finally don't include
+	'                     in the App (icon.png is left unchanged).
 	'
-	'         - (-) Removed the now unnecessary "android-support-annotations.jar"
-	'               library file from the project because I optimized the
-	'               jhscore.jar library so much that it longer references it
-	'               anymore (not used at all).
+	'         - (+) Added an additional build configuration that allows
+	'               users who compile the App themselves to choose
+	'               if they want the FLAG_SECURE flag in the App Activities.
 	'
-	'         - (+) Added a readme file that explains how to install the provided
-	'               libraries into the Basic4Android IDE and configure
-	'               the Additional Libraries path values, so that new users of
-	'               the Basic4Android IDE know how to install them.
+	'               When choosing the NO_FLAG_SECURE build configuration
+	'               instead of Default, screenshotting the App's Activities
+	'               becomes possible but puts the user at risk of
+	'               Admin key leaks in Android recent thumbnails,
+	'               which could be forensically recovered using
+	'               chipset partition extractors & HW key dumping tools.
 	'
-	'         - (x) Small newline tweak in one of the readme.md file's paragraphs.
+	'               Unless you want to e.g. make demo screenshots of the App,
+	'               you should never use the NO_FLAG_SECURE build configuration.
+	'
+	'         - (x) De-duplicated native Java code from the Main & QR scanner modules
+	'               so that they don't have to be included twice in the App code,
+	'               with the Main & QR scanner modules now directly calling them
+	'               from the "shared" class.
+	'
+	'               (This is done with a new Shared module and "public static" methods).
+	'
+	'         - (x) Improved both the Main and QR scanner module layouts to be
+	'               pixel-perfect across various dpi and scale values.
+	'
+	'         - (-) Removed the unnecessary ldpi module layout variants with
+	'               incorrect scale values of 1.0 (the correct one is 0.75).
+	'
+	'         - (x) The modal background shade for the Main module's
+	'               "Hash Text" menu is now darker to more properly
+	'               imitate the builtin Android background modal shade.
+	'
+	'         - (x) The Scan QR / Request code And Share Response code
+	'               button icons are now bigger on higher-dpi module layouts too.
+	'
+	'         - (x) The QR scanner module layout's Flashlight, Camera switch
+	'               and back button icons are now bigger on higher-dpi
+	'               module layouts too.
+	'
+	'         - (x) The lblResponseCode field in the Main module layout is now
+	'               above the btnGenerateResponse, in order to allow
+	'               btnGenerateResponse & other buttons to be on-top of it.
+	'
+	'               Note: This is intentional, not a mistake.
+	'
+	'                     It actually properly allows arranging the
+	'                     Main module's 160dpi/mdpi layout variant.
+	'
+	'         - (+) Added an additional fix for very old devices running
+	'               Android < 3.0 to correct the Main module's
+	'               "Hash Text" button TextColor when the
+	'               Hash Text menu background is displayed on-top of it.
+	'
+	'         - (x) Trimmed the jhscore.jar library (zxing 2.3.0) even more
+	'               to also remove QR code encoding functionalities,
+	'               since this App only does QR code decoding (20KB smaller).
+	'
+	'         - (x) Updated the ".gitignore" file to ignore the MyApkTool Pro
+	'               program folder that I store locally inside
+	'               my "android-pin-unblocker" project folder,
+	'               to avoid accidentally committing it to the Github repo.
+	'
+	'         - (x) Updated the App screenshots to more properly reflect
+	'               an up-to-date App version (old screenshots were for version 3.1.1).
+	'
+	'         - (x) Updated the project readme.md file to directly link
+	'               to the repository's screenshots instead of relying on
+	'               external image hosters.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
@@ -190,12 +249,22 @@ Sub Globals
 	Private inpAdminKey     As EditText
 	Private chkHideAdminKey As CheckBox
 	
-	Private btnGenerate As Button
-	
+	'
+	' Note: The lblResponseCode field in the Main module layout is now
+	'       above the btnGenerateResponse, in order to allow
+	'       btnGenerateResponse & other buttons to be on-top of it.
+	'
+	'       This is intentional, not a mistake.
+	'       It actually properly allows arranging the Main module's
+	'       160dpi/mdpi layout variant.
 	'
 	'Need to show which algorithm was detected when
 	'generating a response code (there are many now)
+	'
 	Private lblResponse      As Label
+	
+	Private btnGenerate As Button
+	
 	Private inpResponse      As EditText
 	Private btnShareResponse As Button
 	
@@ -321,7 +390,13 @@ Sub Activity_Create(FirstTime As Boolean)
 			//
 			// Hide the Title bar / Action bar on very-low DPI devices
 			//
-			if ( getDeviceScale() < 1.0 ) // less than 1.0 (160dpi/mdpi)
+			// Thanks to:
+			// * https://stackoverflow.com/a/4141627
+			//
+			//   For providing info about how to provide
+			//   the current context to a Java native function.
+			//
+			if ( shared.getDeviceScale(this) < 1.0 ) // less than 1.0 (160dpi/mdpi)
 			{
 				// The device is 120/ldpi so we need more space.
 				// that means we will want to remove the
@@ -352,8 +427,23 @@ Sub Activity_Create(FirstTime As Boolean)
 			//
 			if ( android.os.Build.VERSION.SDK_INT >= 11 )
 			{
-				// Add FLAG_SECURE to this Window (Activity view)
-				this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+				// Added the ability for users who compile the App themselves
+				// to choose whether they want a build configuration without
+				// the FLAG_SECURE attribute used for the App's Activities.
+				//
+				// All pre-compiled builds on Github have it by default
+				// set to False which means that FLAG_SECURE is always
+				// used in the App's Activities, for security reasons.
+				//
+				// Please only disable FLAG_SECURE if you know what you're doing
+				// and the potential risks of Admin key leaks by Android itself
+				// in recent thumbnails and by screen capture applications.
+				//
+				if ( !shared.IsFlagSecureDisabled() )
+				{
+					// Add FLAG_SECURE to this Window (Activity view)
+					this.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
+				}
 			}
 		}
 		
@@ -1032,6 +1122,18 @@ Private Sub btnHashMenu_Click
 	
 	btnSha256.Visible = True
 	btnSha512.Visible = True
+	
+	Dim p As Phone
+	If p.SdkVersion < 14 Then
+		
+		'Fix the hard to read black text color of the Hash Text button when
+		'running on legacy devices with the original Android 2.x-3.x theme,
+		'and the dark shade background modal is on-top of it.
+		'
+		btnHashMenu.TextColor = Colors.Red
+		
+	End If
+	
 End Sub
 
 Private Sub btnHashMenuBg_Click
@@ -1040,6 +1142,20 @@ Private Sub btnHashMenuBg_Click
 	
 	btnHashMenu.Checked = False
 	btnHashMenuBg.Visible = False
+	
+	Dim p As Phone
+	If p.SdkVersion < 14 Then
+		
+		'Restore the black text color which is specific for older devices:
+		'It should be restored to black when the Hash Text menu disappears.
+		'
+		'It fixes the white-on-white text color of the Hash Text button when
+		'running on legacy devices with the original Android 2.x-3.x theme.
+		'
+		btnHashMenu.TextColor = Colors.Black
+		
+	End If
+	
 End Sub
 
 '
@@ -1095,6 +1211,7 @@ Private Sub btnSha256_Click
 	btnHashMenuBg_Click
 	
 End Sub
+
 Private Sub btnSha512_Click
 	
 	Dim sha512 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-512"))
@@ -1125,7 +1242,12 @@ Private Sub btnScanRequest_Click
 	' Verify if the device has a Camera first before proceeding further
 	' Android API level 9+ (Android 2.3+)
 	'
-	If NativeMe.RunMethod("GetNumberOfDeviceCameras", Null) < 1 Then
+	
+	'Must use a separate JavaObject for the Shared class
+	Dim TempNativeMe As JavaObject
+	TempNativeMe.InitializeStatic(Application.PackageName&".shared")
+	
+	If TempNativeMe.RunMethod("GetNumberOfDeviceCameras", Null) < 1 Then
 		'
 		' In the rare case where it doesn't have a Camera I don't
 		' disable the QR code scanning button, because I want
@@ -1398,12 +1520,6 @@ import java.security.MessageDigest;
 import java.math.BigInteger;
 
 //
-// Add ability to check if the device has a Camera
-//
-
-import android.hardware.Camera;
-
-//
 // Alternative to finishAndRemoveTask() for Android versions
 // lower than Android 5.0 (Android API level < 21)
 //
@@ -1417,22 +1533,9 @@ import android.content.Intent;
 import android.util.Log;
 
 //
-// For getting the device scale (DPI)
+// For getting the App's package name (the getPackageName() function)
 //
-
-// Android 11+
 import android.content.Context;
-//import android.view.WindowManager; // Already imported at start of Main code
-import android.view.WindowMetrics;
-
-import android.content.res.Configuration;
-
-// Android 4.2+
-import android.util.DisplayMetrics;
-import android.view.Display;
-
-// Android 4.1 & older
-import android.content.res.Resources;
 
 //
 // Disable the fullscreen keyboard on this Activity's EditTexts.
@@ -1480,46 +1583,6 @@ public void disableFullscreenKeyboard(EditText myEditText) {
 	}
 }
 
-//
-// Get screen DPI function (support API 9+ / Android 2.3+)
-//
-
-public float getDeviceScale() {
-	
-	int sdkVersion = android.os.Build.VERSION.SDK_INT;
-	
-	// Android 11+
-	if ( sdkVersion >= 31 )
-	{
-		Configuration cfg = new Configuration();
-		return (float)cfg.densityDpi; // int->float
-	}
-	// Android 4.2+
-	else if ( sdkVersion >= 17 )
-	{
-		WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
-		Display display = wm.getDefaultDisplay();
-		
-		DisplayMetrics dm = new DisplayMetrics();
-		display.getRealMetrics(dm);
-		
-		return dm.density; // already float
-	}
-	// Android 4.1 & older
-	else
-	{
-		return Resources.getSystem().getDisplayMetrics().density; // already float
-	}
-}
-
-//
-// Get Package Name from native Java code
-//
-
-public String getPackageName() {
-	return getApplicationContext().getPackageName();
-}
-
 public void finishAndRemoveTaskForNewerAndroid() {
 	
 	finishAndRemoveTask();
@@ -1558,18 +1621,6 @@ public void finishAndRemoveTaskForOlderAndroid() {
 	clearIntent.putExtra("ExitApplication", true);
 	
 	startActivity(clearIntent);
-}
-
-//
-// Some devices don't even have a Camera so I want to check
-// if the device actually has one, otherwise I will disable
-// the QR code scanning function to avoid crashing the App.
-//
-public int GetNumberOfDeviceCameras() {
-	//
-	// Thanks to https://stackoverflow.com/a/10593071
-	//
-	return Camera.getNumberOfCameras(); // Android API level 9+ (Android 2.3+)
 }
 
 public String TextToHash(final String text, final String hashType) throws Exception {
