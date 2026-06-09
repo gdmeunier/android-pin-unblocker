@@ -23,3 +23,19 @@ android.jar: C:\Android\platforms\android-33\android.jar
 You can change the paths to your own if you installed
 the Java JDK and Android SDK elsewhere on your system.
 
+4. Clear Basic4Android library cache
+====================================
+
+If your Android SDK is installed in "C:\Android" then
+you can delete all folders located inside:
+
+C:\Android\extras\b4a_local
+
+Finally inside this project's "Objects" folder delete
+all the contents except this file which needs to exist:
+
+Objects\res\drawable\icon.png
+
+Doing the above will force refreshing the library files
+with the latest updated versions.
+
