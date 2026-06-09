@@ -24,92 +24,30 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 39
-	#VersionName: 3.16.0
+	#VersionCode: 40
+	#VersionName: 3.16.1
 	'
-	' Update from 3.15.0:
+	' Update from 3.16.0:
 	'
-	' 3.16.0: - (x) Even smaller About.png file size (by a few bytes).
+	' 3.16.1: - (x) Trimmed the jhscore.jar library even more again
+	'               to remove the unnecessary (unused) MultiFormatReader
+	'               class file, and recompressed the jar again in Ultra mode.
 	'
-	'               Note: It was not possible to make the icon.png file
-	'                     even smaller because even though it was
-	'                     correctly generated and smaller in size,
-	'                     it would actually compress less efficiently
-	'                     in a ZIP archive than our current version.
+	'         - (x) Modified the NewQRCodeReaderView.jar library to fix
+	'               a Camera preview error on older Android 2.3.6 devices.
 	'
-	'                     So in the end our current icon.png file is fine
-	'                     because when it gets compressed in a ZIP file,
-	'                     the compressed stream size is smaller than
-	'                     the newer one that I finally don't include
-	'                     in the App (icon.png is left unchanged).
+	'               The modification should resolve the registerBuffers -38
+	'               error code when calling startPreview().
 	'
-	'         - (+) Added an additional build configuration that allows
-	'               users who compile the App themselves to choose
-	'               if they want the FLAG_SECURE flag in the App Activities.
+	'               Note: This might not fully fix the problem for
+	'                     older devices running a custom Android 2.3.6 ROM.
 	'
-	'               When choosing the NO_FLAG_SECURE build configuration
-	'               instead of Default, screenshotting the App's Activities
-	'               becomes possible but puts the user at risk of
-	'               Admin key leaks in Android recent thumbnails,
-	'               which could be forensically recovered using
-	'               chipset partition extractors & HW key dumping tools.
+	'               On newer devices running Android 4.0 or later,
+	'               the QR scanner module will now be faster to load with
+	'               Camera previews that load and refresh faster.
 	'
-	'               Unless you want to e.g. make demo screenshots of the App,
-	'               you should never use the NO_FLAG_SECURE build configuration.
-	'
-	'         - (x) De-duplicated native Java code from the Main & QR scanner modules
-	'               so that they don't have to be included twice in the App code,
-	'               with the Main & QR scanner modules now directly calling them
-	'               from the "shared" class.
-	'
-	'               (This is done with a new Shared module and "public static" methods).
-	'
-	'         - (x) Improved both the Main and QR scanner module layouts to be
-	'               pixel-perfect across various dpi and scale values.
-	'
-	'         - (-) Removed the unnecessary ldpi module layout variants with
-	'               incorrect scale values of 1.0 (the correct one is 0.75).
-	'
-	'         - (x) The modal background shade for the Main module's
-	'               "Hash Text" menu is now darker to more properly
-	'               imitate the builtin Android background modal shade.
-	'
-	'         - (x) The Scan QR / Request code And Share Response code
-	'               button icons are now bigger on higher-dpi module layouts too.
-	'
-	'         - (x) The QR scanner module layout's Flashlight, Camera switch
-	'               and back button icons are now bigger on higher-dpi
-	'               module layouts too.
-	'
-	'         - (x) The lblResponseCode field in the Main module layout is now
-	'               above the btnGenerateResponse, in order to allow
-	'               btnGenerateResponse & other buttons to be on-top of it.
-	'
-	'               Note: This is intentional, not a mistake.
-	'
-	'                     It actually properly allows arranging the
-	'                     Main module's 160dpi/mdpi layout variant.
-	'
-	'         - (+) Added an additional fix for very old devices running
-	'               Android < 3.0 to correct the Main module's
-	'               "Hash Text" button TextColor when the
-	'               Hash Text menu background is displayed on-top of it.
-	'
-	'         - (x) Trimmed the jhscore.jar library (zxing 2.3.0) even more
-	'               to also remove QR code encoding functionalities,
-	'               since this App only does QR code decoding (20KB smaller).
-	'
-	'         - (x) Updated the ".gitignore" file to ignore the MyApkTool Pro
-	'               program folder that I store locally inside
-	'               my "android-pin-unblocker" project folder,
-	'               to avoid accidentally committing it to the Github repo.
-	'
-	'         - (x) Updated the App screenshots to more properly reflect
-	'               an up-to-date App version (old screenshots were for version 3.1.1).
-	'
-	'         - (x) Updated the project readme.md file to directly link
-	'               to the repository's screenshots instead of relying on
-	'               external image hosters.
+	'         - (+) Added information on how to clear your library cache for
+	'               Basic4Android in the Libraries folder's readme.txt file.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
