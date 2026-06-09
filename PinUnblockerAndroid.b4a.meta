@@ -7,6 +7,6 @@ ModuleBreakpoints2=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
 ModuleClosedNodes2=
-NavigationStack=Shared,Initialize,19,0,Scan,InitializeQrCodeReader,300,0,Scan,Globals,61,0,Visual Designer,MainLayout.bal,-100,1,Visual Designer,ScanLayout.bal,-100,1,Main,btnHashMenuBg_Click,1128,6,Main,btnHashMenu_Click,1110,6,Scan,StartQrCodeReader,371,0,Scan,StopQrCodeReader,399,0,Scan,DisplayCameraErrorDialog,420,0,Scan,Process_Globals,17,0
+NavigationStack=Scan,InitializeQrCodeReader,300,0,Scan,Globals,61,0,Visual Designer,MainLayout.bal,-100,1,Visual Designer,ScanLayout.bal,-100,1,Main,btnHashMenuBg_Click,1128,6,Main,btnHashMenu_Click,1110,6,Scan,StartQrCodeReader,371,0,Scan,StopQrCodeReader,399,0,Scan,DisplayCameraErrorDialog,420,0,Scan,Process_Globals,17,0,Main,btnScanRequest_Click,1152,0
 SelectedBuild=0
 VisibleModules=1,2
