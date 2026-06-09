@@ -24,36 +24,19 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 40
-	#VersionName: 3.16.1
+	#VersionCode: 41
+	#VersionName: 3.16.2
 	'
-	' Update from 3.16.0:
+	' Update from 3.16.1:
 	'
-	' 3.16.1: - (x) Trimmed the jhscore.jar library even more again
-	'               to remove the unnecessary (unused) MultiFormatReader
-	'               class file, and recompressed the jar again in Ultra mode.
+	' 3.16.2: - (x) Modified the NewQRCodeReaderView.jar library again
+	'               to fix a Camera preview error on older versions of
+	'               Android (2.3.6) by setting the QR code view's
+	'               Surface type to "SURFACE_TYPE_PUSH_BUFFERS".
 	'
-	'         - (x) Modified the NewQRCodeReaderView.jar library to fix
-	'               a Camera preview error on older Android 2.3.6 devices.
-	'
-	'               The modification should resolve the registerBuffers -38
-	'               error code when calling startPreview().
-	'
-	'               Note: This might not fully fix the problem for
-	'                     older devices running a custom Android 2.3.6 ROM.
-	'
-	'               On newer devices running Android 4.0 or later,
-	'               the QR scanner module will now be faster to load with
-	'               Camera previews that load and refresh faster.
-	'
-	'         - (+) Added information on how to clear your library cache for
-	'               Basic4Android in the Libraries folder's readme.txt file.
-	'
-	'         - (x) Modified the clipboard history warning in the project's
-	'               readme file to more properly describe the risks of
-	'               copy-pasting Admin keys on stock Android ROMs,
-	'               and added a recommendation for password managers with
-	'               their own secure keyboard (no use of the clipboard).
+	'               This modification definitely solves the
+	'               registerBuffers -38 error code when calling
+	'               startPreview() on Android < 3.0 devices.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
