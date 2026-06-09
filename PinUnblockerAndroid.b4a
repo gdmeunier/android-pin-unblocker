@@ -49,6 +49,12 @@ Version=12.5
 	'         - (+) Added information on how to clear your library cache for
 	'               Basic4Android in the Libraries folder's readme.txt file.
 	'
+	'         - (x) Modified the clipboard history warning in the project's
+	'               readme file to more properly describe the risks of
+	'               copy-pasting Admin keys on stock Android ROMs,
+	'               and added a recommendation for password managers with
+	'               their own secure keyboard (no use of the clipboard).
+	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
 	
