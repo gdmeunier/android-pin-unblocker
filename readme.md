@@ -95,9 +95,10 @@ Whenever you share an Admin Key to the app instead of copy-pasting it yourself, 
 
 This feature prevents accidental disclosure of your *Admin Key* while unblocking cards on your employees' computers.
 
-> Make sure to verify whether your Android ROM doesn't have a clipboard history prior to copy-pasting Admin Keys (Samsung & Huawei have one).
-
-> If clipboard history cannot be disabled then use a different keyboard application instead of your Android built-in one.
+> [!CAUTION]
+> Make sure to verify that your Android ROM doesn't have a clipboard history feature prior to copy-pasting Admin Keys, Samsung & Huawei ROMs have one.
+>
+> If clipboard history cannot be disabled on your phone then don't use the clipboard at all, or use a password manager with a built-in secure Keyboard (e.g. [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version 3.2.0 for older devices).
 
 You can also type your original text in the Admin Key field and directly generate a *sha256* or *sha512* hash from within the app, by long-pressing the hashing buttons.
 
