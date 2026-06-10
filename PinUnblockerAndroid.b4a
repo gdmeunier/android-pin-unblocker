@@ -7,36 +7,69 @@ FileGroup1=Default Group
 FileGroup2=Default Group
 FileGroup3=Default Group
 Group=Default Group
-Library1=clipboard
-Library2=core
-Library3=javaobject
-Library4=newqrcodereaderview
-Library5=phone
-Library6=runtimepermissions
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Try improving compatibility of zxing QR code scanning~\n~'with older devices that might require hardware acceleration~\n~'due to the use of GPU for rendering the camera preview, etc.~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Default")~\n~~\n~CreateResource(values-v20, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Material">~\n~    </style>~\n~</resources>)~\n~CreateResource(values-v14, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Holo">~\n~    </style>~\n~</resources>)~\n~CreateResource(values, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme">~\n~    </style>~\n~</resources>)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~'AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~
+Library1=core
+Library2=javaobject
+Library3=newqrcodereaderview
+Library4=runtimepermissions
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Try improving compatibility of zxing QR code scanning~\n~'with older devices that might require hardware acceleration~\n~'due to the use of GPU for rendering the camera preview, etc.~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Default")~\n~~\n~CreateResource(values-v20, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Material">~\n~    </style>~\n~</resources>)~\n~CreateResource(values-v14, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Holo">~\n~    </style>~\n~</resources>)~\n~CreateResource(values, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme">~\n~    </style>~\n~</resources>)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~'AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~'~\n~'Open browser URL Intents for Android API level 30+ (Android 11+)~\n~'~\n~' Thanks to:~\n~' https://stackoverflow.com/a/10120624~\n~' https://developer.android.com/training/basics/intents/filters#AddIntentFilter~\n~'~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~
 Module1=|relative|.\Scan
 Module2=Shared
 NumberOfFiles=3
-NumberOfLibraries=6
+NumberOfLibraries=4
 NumberOfModules=2
 Version=12.5
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 41
-	#VersionName: 3.16.2
+	#VersionCode: 42
+	#VersionName: 3.17.0
 	'
-	' Update from 3.16.1:
+	' Update from 3.16.2:
 	'
-	' 3.16.2: - (x) Modified the NewQRCodeReaderView.jar library again
-	'               to fix a Camera preview error on older versions of
-	'               Android (2.3.6) by setting the QR code view's
-	'               Surface type to "SURFACE_TYPE_PUSH_BUFFERS".
+	' 3.17.0: - (+) Add secure overwriting of Admin keys and old values in memory
+	'               when they're no longer used or needed.
 	'
-	'               This modification definitely solves the
-	'               registerBuffers -38 error code when calling
-	'               startPreview() on Android < 3.0 devices.
+	'         - (+) Added additional hardening against potential force-enabling hacks
+	'               of UI elements then trying to click buttons when it must not work.
+	'
+	'         - (+) Added Android 11+ (API level 30+) <queries/> element
+	'               in the App manifest to support sending browser URL open intents
+	'               on newer devices without the Phone library.
+	'
+	'         - (x) Small tweak so that you can rotate the device screen orientation
+	'               without it restoring the default values if you left a field empty,
+	'               in the Main module's EditText fields.
+	'
+	'         - (x) Made the Response code algorithm detection and
+	'               user input sanitization process better
+	'               by de-duplicating the functions code.
+	'
+	'         - (x) The Admin key field doesn't get hidden unnecessarily now
+	'               if the field was empty,
+	'               unless it was already set to be unrevealable
+	'               by long-clicking an Hash button prior.
+	'
+	'         - (x) Improved the checking of Admin keys shared to the App,
+	'               by verifying that the shared Admin keys have an even length.
+	'
+	'         - (-) Removed length trimming of Admin keys shared to the App,
+	'               because some people might want to use the last part of
+	'               a SHA512 hash as their Admin key.
+	'
+	'         - (-) Removed re-calculation of the Response code algorithm
+	'               when rotating the device screen orientation,
+	'               now I just save the Response label text content then
+	'               restore it as-is (faster code now).
+	'
+	'         - (-) Removed the Camera error dialog incase of Camera service exceptions
+	'               since it didn't actually show anyway on affected CyanogenMod ROMs.
+	'
+	'         - (-) Removed usage of the BClipboard library, but the library files
+	'               will stay available in the project repository.
+	'
+	'         - (-) Removed usage of the Phone library and replaced the few
+	'               needed functions from it with quicker Java native functions.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
@@ -49,7 +82,8 @@ Version=12.5
 	'Ignore function value returns warning (2)
 	'Ignore file is not used warning (15)
 	'Ignore return value is missing warning (4)
-	#IgnoreWarnings: 31,2,15,4
+	'Ignore this sub only for variable declarations warning (29)
+	#IgnoreWarnings: 31,2,15,4,29
 	
 #End Region
 
@@ -110,6 +144,23 @@ Sub Process_Globals
 	'the Activity_Create function.
 	Private DontHideAdminKeyBecauseFirstActivityLaunch As Boolean = False
 	
+	'Add secure overwriting of Admin keys in memory
+	'when they're no longer used or needed.
+	'
+	' - ERASE_CHALLENGE_RESPONSE_STRING_VALUE cans contain up to 64 chars (AES-256).
+	' - ERASE_ADMIN_KEY_STRING_VALUE cans contain up to 128 chars (SHA512).
+	'
+	'In java code, they will be called:
+	'
+	' * _erase_challenge_response_string_value
+	' * _erase_admin_key_string_value
+	'
+	'These ones have to be before the Saved state variables,
+	'otherwise these values wouldn't exist yet.
+	'
+	Public Const ERASE_CHALLENGE_RESPONSE_STRING_VALUE As String = "################################################################"
+	Public Const ERASE_ADMIN_KEY_STRING_VALUE          As String = ERASE_CHALLENGE_RESPONSE_STRING_VALUE&ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+	
 	'When the device screen orientation rotates while the App is running,
 	'the App's Activity gets:
 	' - Paused (UserClosed = False)
@@ -118,15 +169,27 @@ Sub Process_Globals
 	'
 	'So I need to make sure that the Admin Key field stays the same
 	'even when you rotate the device screen's orientation.
-	Private SavedAdminKeyBeforeConfigurationChange As String = ""
+	'
+	'They now need an initial value because I don't use empty-string
+	'as initial value anymore ("empty" is now when it has the erase value).
+	'
+	Private SavedAdminKeyBeforeConfigurationChange  As String = ERASE_ADMIN_KEY_STRING_VALUE
 	
 	'Also make sure the Challenge code field doesn't get
 	'reset to empty value when e.g. the device rotates too.
-	Private SavedChallengeBeforeConfigurationChange As String = ""
+	Private SavedChallengeBeforeConfigurationChange As String = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
 	
 	'Also make sure the Response code field doesn't get
 	'reset to empty value when e.g. the device rotates too.
-	Private SavedResponseBeforeConfigurationChange As String = ""
+	Private SavedResponseBeforeConfigurationChange  As String = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+	
+	'Save the response label text as it was instead of
+	're-computing the response algorithm detection.
+	'
+	'This one needs an initial value because it will be used
+	'at the start of the Application too.
+	'
+	Private SavedResponseLabelBeforeConfigurationChange As String = "Response:"
 	
 	'When the device rotates, a disabled hide Admin Key checkbox
 	'becomes enabled again; so we have to check for whether
@@ -158,6 +221,33 @@ Sub Process_Globals
 	'
 	Public Const IME_FLAG_NO_EXTRACT_UI As Int = 0x10000000 'Added in API level 3+  (Android 1.5+)
 	Public Const IME_FLAG_NO_FULLSCREEN As Int = 0x02000000 'Added in API level 11+ (Android 3.0+)
+	
+	'Must use a separate JavaObject for the Shared class
+	Dim TempNativeMe As JavaObject
+	TempNativeMe.InitializeStatic(Application.PackageName&".shared")
+	
+	'Declare a constant containing the device's SDK version
+	'
+	'We do it using a TempNativeMe JavaObject because
+	'we don't yet have access to the proper NativeMe object.
+	'
+	'It will only be initialized later on Activity_Create(FirstTime = True).
+	'
+	'So because we want to set this SDK_INT constant very early,
+	'we have to temporarily create a totally separate JavaObject.
+	'
+	Public Const SDK_INT As Int = TempNativeMe.RunMethod("getAndroidSdkVersion", Null)
+	
+	'This flag stores the state of the Hide Admin Key checkbox
+	'If it was enabled before e.g. a configuration change,
+	'then it will be restored properly.
+	'
+	'Do note that this is a different kind of flag than the other ones.
+	'
+	'This flag is set by the chkHideAdminKey_CheckedChange function itself.
+	'It also cannot re-enable or uncheck a checkbox that became disabled.
+	'
+	Private WasHideAdminKeyCheckboxCheckedFlag As Boolean = False
 	
 End Sub
 
@@ -235,10 +325,8 @@ Sub Activity_Create(FirstTime As Boolean)
 	Activity.LoadLayout("MainLayout")
 	Activity.Title = Application.LabelName
 	
-	Dim p As Phone
-	
 	'Method for API 11+ (Android 3.0+ with Action Bar buttons)
-	If p.SdkVersion >= 11 Then
+	If SDK_INT >= 11 Then
 		'
 		'Trying to make a better Activity menu with just one button
 		'instead of a full menu (which is not necessary yet).
@@ -445,6 +533,9 @@ Sub Activity_Create(FirstTime As Boolean)
 		inpAdminKey.PasswordMode = False
 		chkHideAdminKey.Checked  = False
 		
+		'And we properly register the checkbox checked flag too.
+		WasHideAdminKeyCheckboxCheckedFlag = False
+		
 	Else
 		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
 		'set the global variable to False if it's not the first time that
@@ -473,10 +564,7 @@ Sub Activity_Create(FirstTime As Boolean)
 	                                      lblChallenge.Top   _ ' Bottom = [3]
 										)
 	
-	'
-	'The p variable is already Dim'd at the start of Activity_Create.
-	'
-	If p.SdkVersion < 14 Then
+	If SDK_INT < 14 Then
 		
 		'Fix the white-on-white text color of the Hash Text button when
 		'running on legacy devices with the original Android 2.x-3.x theme.
@@ -495,9 +583,16 @@ Sub Activity_Pause (UserClosed As Boolean)
 	'instead of relaunching from scratch (background task)
 	'
 	
-	'Hide the Admin Key when switching to another app
-	inpAdminKey.PasswordMode = True
-	chkHideAdminKey.Checked  = True
+	'Always hide the Admin Key field when switching to another app (if not empty).
+	'However no need to hide it if the field was empty anyway.
+	If inpAdminKey.Text <> "" Then
+		inpAdminKey.PasswordMode = True
+		chkHideAdminKey.Checked  = True
+		
+		'And we properly register the checkbox checked flag too.
+		WasHideAdminKeyCheckboxCheckedFlag = True
+		
+	End If
 	
 	'
 	'When the device screen orientation rotates while the App is running,
@@ -514,27 +609,31 @@ Sub Activity_Pause (UserClosed As Boolean)
 		'Save Admin Key so that I restore it after
 		'the device configuration changed (e.g. screen rotation).
 		'
-		SavedAdminKeyBeforeConfigurationChange = inpAdminKey.Text
+		SavedAdminKeyBeforeConfigurationChange  = inpAdminKey.Text
+		
+		'Also make sure the Response code field doesn't get
+		'reset to empty value when e.g. the device rotates too.
+		SavedResponseBeforeConfigurationChange  = inpResponse.Text
 		
 		'Also make sure the Challenge code field doesn't get
 		'reset to empty value when e.g. the device rotates too.
 		SavedChallengeBeforeConfigurationChange = inpChallenge.Text
 		
-		'Also make sure the Response code field doesn't get
-		'reset to empty value when e.g. the device rotates too.
-		SavedResponseBeforeConfigurationChange = inpResponse.Text
 	Else
+		'
+		'Now trying to securely erase the values first before emptying them.
 		'
 		'If it's user-closed then no need to save the Admin Key,
 		'just erase the SavedAdminKeyBeforeConfigurationChange variable.
 		'
-		SavedAdminKeyBeforeConfigurationChange = ""
+		SavedAdminKeyBeforeConfigurationChange  = ERASE_ADMIN_KEY_STRING_VALUE
 		
 		'Erasing the SavedChallengeBeforeConfigurationChange variable too.
-		SavedChallengeBeforeConfigurationChange = ""
+		SavedChallengeBeforeConfigurationChange = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
 		
 		'Erasing the SavedResponseBeforeConfigurationChange variable too.
-		SavedResponseBeforeConfigurationChange = ""
+		SavedResponseBeforeConfigurationChange  = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+		
 	End If
 	
 	'When the device rotates, a disabled hide Admin Key checkbox
@@ -544,7 +643,18 @@ Sub Activity_Pause (UserClosed As Boolean)
 	'
 	'Note: I want to do this one always, not just when UserClosed is false.
 	'
-	SavedHideAdminKeyStateBeforeConfigurationChange = chkHideAdminKey.Enabled
+	If SavedHideAdminKeyStateBeforeConfigurationChange == True Then
+		'
+		'If the state was Disabled, it stays disabled (only change if True).
+		'This is incase some hacks are used to force-enable the App UI buttons.
+		'
+		SavedHideAdminKeyStateBeforeConfigurationChange = chkHideAdminKey.Enabled
+		
+	End If
+	
+	'Save the response label text as it was instead of
+	're-computing the response algorithm detection.
+	SavedResponseLabelBeforeConfigurationChange = lblResponse.Text
 	
 End Sub
 
@@ -573,11 +683,13 @@ Sub Activity_Resume
 		'Restore the checked Hide Admin Key checkbox state.
 		chkHideAdminKey.Checked  = True
 		
+		'And we properly register the checkbox checked flag too.
+		WasHideAdminKeyCheckboxCheckedFlag = True
+		
 		'
 		'I don't reset the SavedHideAdminKeyStateBeforeConfigurationChange
 		'variable (I keep its status as-is).
 		'
-		
 	End If
 	
 	'
@@ -598,14 +710,29 @@ Sub Activity_Resume
 	'      prevent this code from being reached if I placed it
 	'      after the CHALLENGE_CODE intent verification.
 	'
-	If SavedAdminKeyBeforeConfigurationChange <> "" Then
+	If SavedAdminKeyBeforeConfigurationChange <> ERASE_ADMIN_KEY_STRING_VALUE Then
+		
+		'Hide the Admin key field if the saved Admin key wasn't empty.
+		'However no need to hide it if the field was empty anyway.
+		'
+		'It might also have been hidden anyway if the checkbox was
+		'disabled by an unrevealable Hash menu function prior.
+		'
+		If SavedAdminKeyBeforeConfigurationChange <> "" Then
+			inpAdminKey.PasswordMode = True
+			chkHideAdminKey.Checked  = True
+			
+			'And we properly register the checkbox checked flag too.
+			WasHideAdminKeyCheckboxCheckedFlag = True
+			
+		End If
 		
 		'Restore the Admin Key as it was before 
 		'the device configuration changed (e.g. screen rotation).
 		inpAdminKey.Text = SavedAdminKeyBeforeConfigurationChange
 		
 		'Now clear the SavedAdminKeyBeforeConfigurationChange variable.
-		SavedAdminKeyBeforeConfigurationChange = ""
+		SavedAdminKeyBeforeConfigurationChange = ERASE_ADMIN_KEY_STRING_VALUE
 		
 		'Special handling for restoring the Admin Key:
 		'recount its length again (just incase).
@@ -613,41 +740,105 @@ Sub Activity_Resume
 		
 	End If
 	
-	'Also make sure the Challenge code field doesn't get
-	'reset to empty value when e.g. the device rotates too.
-	If SavedChallengeBeforeConfigurationChange <> "" Then
-		
-		'Restore the Challenge code as it was before
-		'the device configuration changed (e.g. screen rotation).
-		inpChallenge.Text = SavedChallengeBeforeConfigurationChange
-		
-		'Now clear the SavedChallengeBeforeConfigurationChange variable.
-		SavedChallengeBeforeConfigurationChange = ""
-		
+	'Restore the previous Hide Admin Key checkbox checked value
+	'only if the current security state allows it:
+	'
+	'Admin Key not empty / disabled checkbox = must not re-enable or uncheck.
+	'
+	If SavedHideAdminKeyStateBeforeConfigurationChange == True Then
+		'
+		'If the checkbox was checked.
+		'
+		'On first Activity launch it will always be False anyway,
+		'so no need to check for DontHideAdminKeyBecauseFirstActivityLaunch.
+		'
+		If WasHideAdminKeyCheckboxCheckedFlag Then
+			'
+			'Hide the Admin key field even if empty because the user wanted to anyway.
+			'
+			inpAdminKey.PasswordMode = True
+			chkHideAdminKey.Checked  = True
+			
+			'Flag is already set to True, no need for duplicate calls.
+			'WasHideAdminKeyCheckboxCheckedFlag = True
+			
+		Else
+			'
+			'Verify that the Admin key is empty.
+			'Must not reveal the Admin key field if not empty.
+			'
+			If inpAdminKey.Text == "" Then
+				inpAdminKey.PasswordMode = False
+				chkHideAdminKey.Checked  = False
+				
+				'Flag is already set to False, no need for duplicate calls.
+				'WasHideAdminKeyCheckboxCheckedFlag = False
+				
+			Else
+				'
+				'Verify that it's not the first Activity launch
+				'
+				'The method is to check DontHideAdminKeyBecauseFirstActivityLaunch
+				'because we still have access to it before it gets set to False
+				'at the end of Activity_Resume.
+				'
+				If Not(DontHideAdminKeyBecauseFirstActivityLaunch) Then
+					'
+					'The key wasn't empty so we're hiding it anyway,
+					'even though the checkbox was unchecked.
+					'
+					'It's only exceptionally when running the App and
+					'the Activity is at its first lifecycle start (FirstStart)
+					'that we don't forcibly hide the Admin key on Activity resume.
+					'
+					inpAdminKey.PasswordMode = True
+					chkHideAdminKey.Checked  = True
+					
+					'And we properly register the checkbox checked flag too.
+					WasHideAdminKeyCheckboxCheckedFlag = True
+				End If
+			End If
+		End If
+	Else
+		'
+		'No need to harden it because it was already taken care of
+		'by the first Activity_Resume code part.
+		'
 	End If
 	
 	'Also make sure the Response code field doesn't get
 	'reset to empty value when e.g. the device rotates too.
-	If SavedResponseBeforeConfigurationChange <> "" Then
+	If SavedResponseBeforeConfigurationChange <> ERASE_CHALLENGE_RESPONSE_STRING_VALUE Then
 		
 		'Restore the Response code as it was before
 		'the device configuration changed (e.g. screen rotation).
 		inpResponse.Text = SavedResponseBeforeConfigurationChange
 		
 		'Now clear the SavedResponseBeforeConfigurationChange variable.
-		SavedResponseBeforeConfigurationChange = ""
-		
-		'Special handling for restoring the Response code:
-		'Re-run the Algorithm detection function to restore
-		'the e.g. 'Response: 3DES (DES-EDE3)' label too.
-		'
-		'False = Didn't already check the input to be in the correct format,
-		'        so it will be verified inside the
-		'        DetectResponseCodeAlgorithmType function.
-		'
-		DetectResponseCodeAlgorithmType(inpAdminKey.Text, inpChallenge.Text, inpResponse.Text, False)
+		SavedResponseBeforeConfigurationChange = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
 		
 	End If
+	
+	'Also make sure the Challenge code field doesn't get
+	'reset to empty value when e.g. the device rotates too.
+	If SavedChallengeBeforeConfigurationChange <> ERASE_CHALLENGE_RESPONSE_STRING_VALUE Then
+		
+		'Restore the Challenge code as it was before
+		'the device configuration changed (e.g. screen rotation).
+		inpChallenge.Text = SavedChallengeBeforeConfigurationChange
+		
+		'Now clear the SavedChallengeBeforeConfigurationChange variable.
+		SavedChallengeBeforeConfigurationChange = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+		
+	End If
+	
+	'Restore the response label text as it was instead of
+	're-computing the response algorithm detection.
+	'
+	'I don't reset the SavedResponseLabelBeforeConfigurationChange
+	'variable (I keep its status as-is).
+	'
+	lblResponse.Text = SavedResponseLabelBeforeConfigurationChange
 	
 	'
 	'Add ability to receive Admin Key with Android's Share To
@@ -693,6 +884,9 @@ Sub Activity_Resume
 		inpAdminKey.PasswordMode = True
 		chkHideAdminKey.Checked  = True
 		
+		'And we properly register the checkbox checked flag too.
+		WasHideAdminKeyCheckboxCheckedFlag = True
+		
 		'Get the received Admin Key text and remove all invalid hex chars and newlines
 		Dim receivedText As String = receivedIntent.GetExtra("android.intent.extra.TEXT")
 		
@@ -703,25 +897,29 @@ Sub Activity_Resume
 		' 48 = 3DES (DES-EDE3)
 		' 32 = AES-128 / 2DES (DES-EDE2)
 		'
-		
+		' Thanks to:
+		' https://www.b4x.com/android/forum/threads/mod-operator.19316/
+		'
 		If  receivedText <> "" And receivedText.Length >= 32 _
+		And receivedText.Length Mod 2 == 0 _
 		And Regex.IsMatch2("^[0-9a-f]+$", Regex.CASE_INSENSITIVE, receivedText) == True Then
 			'
 			'Here we're sure that we atleast have a valid AES-128 / 2DES Admin Key
 			'
 			
 			'
-			'After adding support for AES-256 challenge-response
-			'to this App, we will now only trim the shared
-			'Admin Key texts if they exceed 64 chars (SHA256 hash).
+			'I now let the user share a full hash without trimming it,
+			'since some users actually use the last part of a SHA512 hash
+			'as their Admin key instead of the first part.
 			'
 			
-			If receivedText.Length > 64 Then
-				receivedText = receivedText.SubString2(0, 64)
-			End If
+			'If receivedText.Length > 64 Then
+			'	receivedText = receivedText.SubString2(0, 64)
+			'End If
 			
 			'Set the Admin Key text with the received & sanitized data
 			inpAdminKey.Text = receivedText
+			
 		Else
 			'
 			'If no valid Admin Key was received
@@ -739,10 +937,17 @@ Sub Activity_Resume
 			inpAdminKey.PasswordMode = False
 			chkHideAdminKey.Checked  = False
 			
+			'And we properly register the checkbox checked flag too.
+			WasHideAdminKeyCheckboxCheckedFlag = False
+			
 			'Explain error to the user in a toast (better than modifying textfield hints)
 			ToastMessageShow("Shared Admin Key is invalid", False)
 			
 		End If
+		
+		'Clear the contents of the receivedText variable once it's
+		'no longer needed for the next part of the App lifecycle.
+		receivedText = ERASE_ADMIN_KEY_STRING_VALUE
 		
 		'Show the length of the Admin key
 		DisplayAdminKeyLength
@@ -791,6 +996,10 @@ Sub Activity_Resume
 		If inpAdminKey.Text <> "" And Not(DontHideAdminKeyBecauseFirstActivityLaunch) Then
 			inpAdminKey.PasswordMode = True
 			chkHideAdminKey.Checked  = True
+			
+			'And we properly register the checkbox checked flag too.
+			WasHideAdminKeyCheckboxCheckedFlag = True
+			
 		Else
 			'Clear the global variable 'DontHideAdminKeyBecauseFirstActivityLaunch'
 			'once it has already been used once by setting it to False,
@@ -798,6 +1007,16 @@ Sub Activity_Resume
 			DontHideAdminKeyBecauseFirstActivityLaunch = False
 		End If
 	End If
+	
+	'
+	'Request running the garbage collector as soon as possible.
+	'This way old values will be soon cleared from the App's RAM space.
+	'
+	'I do it at the end of this function so that if an Admin key was
+	'shared to the App, then it will also benefit from having the
+	'receivedText variable cleared by the Garbage Collector shortly after.
+	'
+	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 	'Always return a correct ActivityResult
 	Activity.SetActivityResult(0, receivedIntent)
@@ -823,6 +1042,14 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 			'the Recent Apps thumbnail.
 			QuicklyHideAdminKey
 			
+			'
+			'Now trying to securely erase the values first before emptying them.
+			'
+			'This function will already trigger the garbage collector.
+			'No need to manually call it after running this function.
+			'
+			TryToSecureEraseSensitiveValuesFromRAM
+			
 			'Exit the application directly when back key is pressed
 			'This prevents the app from running in the background
 			'
@@ -831,14 +1058,13 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 			'Try using a better method to exit the App rather than using
 			'the Activity.Finish() or ExitApplication() functions.
 			'
-			Dim p As Phone
 			
 			'Method for API 21+ (Android 5.0+)
-			If p.SdkVersion >= 21 Then
+			If SDK_INT >= 21 Then
 				NativeMe.RunMethod("finishAndRemoveTaskForNewerAndroid", Null)
 				
 			'Method for API 16 - 19 (Android 4.1 - 4.4)
-			Else If p.SdkVersion >= 16 Then
+			Else If SDK_INT >= 16 Then
 				'NativeMe.RunMethod("finishAffinity", Null)
 				
 				'Trying a better method that replicates this function
@@ -846,7 +1072,7 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 				NativeMe.RunMethod("finishAndRemoveTaskForOlderAndroid", Null)
 				
 			'Method for API 11 - 15 (Android 3.0 - 4.0.3)
-			Else If p.SdkVersion >= 11 Then
+			Else If SDK_INT >= 11 Then
 				
 				'Trying a better method that replicates this function
 				'for Android phones older than Android 5.0
@@ -889,14 +1115,47 @@ End Sub
 'Helper code
 '
 
-Private Sub QuicklyHideAdminKey() As Void
+Private Sub TryToSecureEraseSensitiveValuesFromRAM As Void
+	'
+	'Now trying to securely erase the values first before emptying them.
+	'
+	NativeMe.RunMethod("overwriteAdminKeyContent",            Array(inpAdminKey))
+	SavedAdminKeyBeforeConfigurationChange  = ERASE_ADMIN_KEY_STRING_VALUE
 	
+	NativeMe.RunMethod("overwriteChallengeOrResponseContent", Array(inpResponse))
+	SavedResponseBeforeConfigurationChange  = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+	
+	NativeMe.RunMethod("overwriteChallengeOrResponseContent", Array(inpChallenge))
+	SavedChallengeBeforeConfigurationChange = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+	
+	'
+	'Request running the garbage collector as soon as possible.
+	'This way old values will be soon cleared from the App's RAM space.
+	'
+	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	
+	'
+	'Follow-up with a normal erase of the EditText values
+	'before the Main module's Activity gets re-created.
+	'
+	inpAdminKey.Text  = ""
+	inpResponse.Text  = ""
+	inpChallenge.Text = ""
+	
+End Sub
+
+Private Sub QuicklyHideAdminKey() As Void
+	'
 	'Immediately hide the Admin key if any was shown before,
 	'to avoid leaking the Admin key inside the Recent Apps thumbnails.
 	'
 	If inpAdminKey.Text <> "" Then
 		inpAdminKey.PasswordMode = True
 		chkHideAdminKey.Checked  = True
+		
+		'And we properly register the checkbox checked flag too.
+		WasHideAdminKeyCheckboxCheckedFlag = True
+		
 	End If
 	
 End Sub
@@ -911,39 +1170,15 @@ Private Sub DisplayAdminKeyLength() As Void
 	
 End Sub
 
-Private Sub DetectResponseCodeAlgorithmType(sanitizedAdminKey As String, sanitizedChallenge As String, responseCode As String, AlreadyVerifiedInputs As Boolean) As Void
+'
+'Inputs should already be provided sanitized here.
+'
+Private Sub DetectResponseCodeAlgorithmType(sanitizedAdminKey As String, sanitizedChallenge As String, sanitizedResponseCode As String) As Void
 	
 	'
 	'Reset the Response Code label before generating a new Response Code
 	'
 	lblResponse.Text = "Response:"
-	
-	'Redo the verification of the inputs (sanitization) here too
-	'incase it's needed, if the caller function didn't already do it.
-	If Not(AlreadyVerifiedInputs) Then
-		
-		'Not using RegEx here since I don't want users to send invalid chars in the first place
-		'So I don't accept the input at all if there are invalid chars, instead of cleaning them
-		'
-		sanitizedAdminKey	= sanitizedAdminKey		.Replace(" ", "").Replace("-", "")
-		sanitizedChallenge	= sanitizedChallenge	.Replace(" ", "").Replace("-", "")
-		responseCode		= responseCode			.Replace(" ", "").Replace("-", "")
-		
-		'The Admin Key field supports line breaks, so we should also automatically trim them
-		sanitizedAdminKey = sanitizedAdminKey.Replace(CRLF, "")
-		
-		If Regex.IsMatch2("^[0-9a-f]{16,64}$", Regex.CASE_INSENSITIVE, sanitizedChallenge)	== False _
-		Or Regex.IsMatch2("^[0-9a-f]{32,64}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)	== False _
-		Or Regex.IsMatch2("^[0-9a-f]{16,64}$", Regex.CASE_INSENSITIVE, responseCode)		== False Then
-			'
-			'In the case where the inputs were incorrect anyway,
-			'I don't need to re-verify which algorithm they were.
-			'
-			Return
-			
-		End If
-		
-	End If
 	
 	'
 	'Add the ability to know which algorithm was detected
@@ -957,33 +1192,76 @@ Private Sub DetectResponseCodeAlgorithmType(sanitizedAdminKey As String, sanitiz
 	'
 	'I also verify the Response code length too as extra precaution.
 	'
-	If	sanitizedAdminKey.Length	== 48 And _
-		sanitizedChallenge.Length	== 16 And _
-		responseCode.Length			== 16 Then
+	If	sanitizedAdminKey.Length		== 48 And _
+		sanitizedChallenge.Length		== 16 And _
+		sanitizedResponseCode.Length	== 16 Then
 		
 		detectedChallengeResponseAlgorithm = " 3DES (DES-EDE3)"
 		
-	Else If	sanitizedAdminKey.Length	== 32 And _
-			sanitizedChallenge.Length	== 16 And _
-			responseCode.Length			== 16 Then
+	Else If	sanitizedAdminKey.Length		== 32 And _
+			sanitizedChallenge.Length		== 16 And _
+			sanitizedResponseCode.Length	== 16 Then
 		
 		detectedChallengeResponseAlgorithm = " 2DES (DES-EDE2)"
 		
-	Else If	sanitizedAdminKey.Length	== 32 And _
-			sanitizedChallenge.Length	== 32 And _
-			responseCode.Length			== 32 Then
+	Else If	sanitizedAdminKey.Length		== 32 And _
+			sanitizedChallenge.Length		== 32 And _
+			sanitizedResponseCode.Length	== 32 Then
 		
 		detectedChallengeResponseAlgorithm = " AES (AES-128)"
 		
-	Else If	sanitizedAdminKey.Length	== 64 And _
-			sanitizedChallenge.Length	== 64 And _
-			responseCode.Length			== 64 Then
+	Else If	sanitizedAdminKey.Length		== 64 And _
+			sanitizedChallenge.Length		== 64 And _
+			sanitizedResponseCode.Length	== 64 Then
 		
 		detectedChallengeResponseAlgorithm = " AES (AES-256)"
 		
 	End If
 	
 	lblResponse.Text = lblResponse.Text&detectedChallengeResponseAlgorithm
+	
+End Sub
+
+'
+' String Array  = ReturnValue(0) = (Boolean) isValidInput
+'                 ReturnValue(1) = (String)  sanitizedChallenge (if valid input)
+'                 ReturnValue(2) = (String)  sanitizedAdminKey  (if valid input)
+'
+Private Sub GetSanitizedUserInput(challengeCode As String, adminKey As String) As String()
+	'
+	' Not using RegEx here since I don't want users to send invalid chars in the first place
+	' So I don't accept the input at all if there are invalid chars, instead of cleaning them
+	'
+	Dim sanitizedChallenge	As String = challengeCode.Replace(" ", "").Replace("-", "")
+	Dim sanitizedAdminKey	As String = adminKey     .Replace(" ", "").Replace("-", "")
+	
+	' The Admin Key field supports line breaks, so we should also automatically trim them
+	sanitizedAdminKey = sanitizedAdminKey.Replace(CRLF, "")
+	
+	' Allow 32 chars up to 64 chars for Admin Keys
+	'
+	' Some cards have AES-128 Admin Keys, e.g. Crescendo Key or Crescendo C2300
+	' However some other HID Global cards have AES-256 Admin Keys (OTP devices)
+	'
+	' Finally some very old cards even have DES-EDE2 (2DES) Admin Keys,
+	' such as the SAGEM ypsID S2 card (which you probably shouldn't use anymore).
+	'
+	' If using AES-128 Admin Keys then the challenge code will be 32 chars.
+	' If using AES-256 Admin Keys then the challenge code will be 64 chars.
+	'
+	' This code will also detect empty strings too.
+	'
+	If Regex.IsMatch2("^[0-9a-f]{16,64}$", Regex.CASE_INSENSITIVE, sanitizedChallenge)	== False _
+	Or Regex.IsMatch2("^[0-9a-f]{32,64}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)	== False Then
+		'
+		'In the case where the inputs were incorrect anyway.
+		'
+		Return Array As String(False, "", "")
+		
+	End If
+	
+	'If values are correct
+	Return Array As String(True, sanitizedChallenge, sanitizedAdminKey)
 	
 End Sub
 
@@ -1038,8 +1316,7 @@ This App generates unblock codes for cryptographic PKI smartcards such as Yubike
 	Wait For Msgbox_Result (Result As Int)
 	
 	If Result = DialogResponse.POSITIVE Then
-		Dim pI As PhoneIntents
-		StartActivity(pI.OpenBrowser(APP_HOMEPAGE_URL))
+		NativeMe.RunMethod("openBrowserUrl", Array(APP_HOMEPAGE_URL))
 	End If
 	
 End Sub
@@ -1050,8 +1327,7 @@ Private Sub btnHashMenu_Click
 	btnSha256.Visible = True
 	btnSha512.Visible = True
 	
-	Dim p As Phone
-	If p.SdkVersion < 14 Then
+	If SDK_INT < 14 Then
 		
 		'Fix the hard to read black text color of the Hash Text button when
 		'running on legacy devices with the original Android 2.x-3.x theme,
@@ -1070,8 +1346,7 @@ Private Sub btnHashMenuBg_Click
 	btnHashMenu.Checked = False
 	btnHashMenuBg.Visible = False
 	
-	Dim p As Phone
-	If p.SdkVersion < 14 Then
+	If SDK_INT < 14 Then
 		
 		'Restore the black text color which is specific for older devices:
 		'It should be restored to black when the Hash Text menu disappears.
@@ -1093,22 +1368,36 @@ End Sub
 '
 
 Private Sub btnSha256_LongClick
+	'
+	'Hardening against potential force-enable UI control hacks.
+	'
+	SavedHideAdminKeyStateBeforeConfigurationChange = False
 	
 	chkHideAdminKey.Enabled  = False
 	
 	inpAdminKey.PasswordMode = True
 	chkHideAdminKey.Checked  = True
+	
+	'And we properly register the checkbox checked flag too.
+	WasHideAdminKeyCheckboxCheckedFlag = True
 	
 	btnSha256_Click
 	
 End Sub
 
 Private Sub btnSha512_LongClick
+	'
+	'Hardening against potential force-enable UI control hacks.
+	'
+	SavedHideAdminKeyStateBeforeConfigurationChange = False
 	
 	chkHideAdminKey.Enabled  = False
 	
 	inpAdminKey.PasswordMode = True
 	chkHideAdminKey.Checked  = True
+	
+	'And we properly register the checkbox checked flag too.
+	WasHideAdminKeyCheckboxCheckedFlag = True
 	
 	btnSha512_Click
 	
@@ -1135,6 +1424,12 @@ Private Sub btnSha256_Click
 		ToastMessageShow(sha256, False)
 	End If
 	
+	'
+	'Request running the garbage collector as soon as possible.
+	'This way old values will be soon cleared from the App's RAM space.
+	'
+	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	
 	btnHashMenuBg_Click
 	
 End Sub
@@ -1159,6 +1454,12 @@ Private Sub btnSha512_Click
 		'
 		ToastMessageShow(sha512, False)
 	End If
+	
+	'
+	'Request running the garbage collector as soon as possible.
+	'This way old values will be soon cleared from the App's RAM space.
+	'
+	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 	btnHashMenuBg_Click
 	
@@ -1217,11 +1518,39 @@ Private Sub inpAdminKey_TextChanged(Old As String, New As String)
 End Sub
 
 Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
+	'
+	'Add an additional check against UI controls force-enable hacks.
+	'
+	' It's impossible that "Checked" cans ever be "False"
+	' if the "SavedHideAdminKeyStateBeforeConfigurationChange" is "False".
+	'
+	If Not(SavedHideAdminKeyStateBeforeConfigurationChange) And Checked == False Then
+		'
+		'The user should never be able to reach this code.
+		'
+		'If this code part is reached, then activate some defenses
+		'and exit the App because it's probably a Forensic attack.
+		'
+		
+		'False = short duration Toast.
+		ToastMessageShow("What are you trying to do?", False)
+		
+		'
+		'Emergency exit.
+		'
+		btnHashMenuBg_Click
+		Activity_KeyPress(KeyCodes.KEYCODE_BACK)
+		
+		Return
+		
+	End If
 	
 	If Checked == True Then
 		inpAdminKey.PasswordMode = True
+		WasHideAdminKeyCheckboxCheckedFlag = True
 	Else
 		inpAdminKey.PasswordMode = False
+		WasHideAdminKeyCheckboxCheckedFlag = False
 	End If
 	
 End Sub
@@ -1242,39 +1571,39 @@ Private Sub btnGenerate_Click
 	'
 	inpResponse.Text = ""
 	
+	Dim challengeCodeInput, adminKeyInput As String
+	challengeCodeInput = inpChallenge.Text
+	adminKeyInput      = inpAdminKey.Text
+	
 	'
 	'Sanitizing inputs
 	'
-	If inpChallenge.Text == "" Or inpAdminKey.Text == "" Then
+	If challengeCodeInput == "" Or adminKeyInput == "" Then
 		
 		inpResponse.Hint = "Some input(s) are empty"
 		Return
 	End If
 	
-	'Not using RegEx here since I don't want users to send invalid chars in the first place
-	'So I don't accept the input at all if there are invalid chars, instead of cleaning them
-	'
-	Dim sanitizedChallenge As String = inpChallenge.Text .Replace(" ", "").Replace("-", "")
-	Dim sanitizedAdminKey  As String = inpAdminKey.Text  .Replace(" ", "").Replace("-", "")
+	Dim sanitizedUserInput() As String = GetSanitizedUserInput(challengeCodeInput, adminKeyInput)
 	
-	'The Admin Key field supports line breaks, so we should also automatically trim them
-	sanitizedAdminKey = sanitizedAdminKey.Replace(CRLF, "")
-	
-	' Allow 32 chars up to 64 chars for Admin Keys
-	'
-	' Some cards have AES-128 Admin Keys, e.g. Crescendo Key or Crescendo C2300
-	' However some other HID Global cards have AES-256 Admin Keys (OTP devices)
-	'
-	' Finally some very old cards even have DES-EDE2 (2DES) Admin Keys,
-	' such as the SAGEM ypsID S2 card (which you probably shouldn't use anymore).
-	'
-	' If using AES-128 Admin Keys then the challenge code will be 32 chars.
-	' If using AES-256 Admin Keys then the challenge code will be 64 chars.
-	'
-	If Regex.IsMatch2("^[0-9a-f]{16,64}$", Regex.CASE_INSENSITIVE, sanitizedChallenge) == False _
-	Or Regex.IsMatch2("^[0-9a-f]{32,64}$", Regex.CASE_INSENSITIVE, sanitizedAdminKey)  == False Then
+	'If we got a False then we know it was incorrect input anyway.
+	If sanitizedUserInput(0) == False Then
 		
 		inpResponse.Hint = "Invalid input(s) format"
+		Return
+	End If
+	
+	Dim sanitizedChallenge, sanitizedAdminKey As String
+	sanitizedChallenge = sanitizedUserInput(1)
+	sanitizedAdminKey  = sanitizedUserInput(2)
+	
+	' Verify the exact allowed Challenge Code lengths (16 and 32 Hex digits)
+	'
+	If	sanitizedChallenge.Length <> 16 And _	'DES-EDE2 or DES-EDE3 (2DES / 3DES)
+		sanitizedChallenge.Length <> 32 And _	'AES-128
+		sanitizedChallenge.Length <> 64 Then	'AES-256
+		
+		inpResponse.Hint = "Wrong Challenge length"
 		Return
 	End If
 	
@@ -1285,16 +1614,6 @@ Private Sub btnGenerate_Click
 		sanitizedAdminKey.Length <> 64 Then		'AES-256
 		
 		inpResponse.Hint = "Wrong Admin Key length"
-		Return
-	End If
-	
-	' Verify the exact allowed Challenge Code lengths (16 and 32 Hex digits)
-	'
-	If	sanitizedChallenge.Length <> 16 And _	'DES-EDE2 or DES-EDE3 (2DES / 3DES)
-		sanitizedChallenge.Length <> 32 And _	'AES-128
-		sanitizedChallenge.Length <> 64 Then	'AES-256
-		
-		inpResponse.Hint = "Wrong Challenge length"
 		Return
 	End If
 	
@@ -1346,7 +1665,7 @@ Private Sub btnGenerate_Click
 		'
 		'True = Already checked the input to be in the correct format
 		'
-		DetectResponseCodeAlgorithmType(sanitizedAdminKey, sanitizedChallenge, responseCode, True)
+		DetectResponseCodeAlgorithmType(sanitizedAdminKey, sanitizedChallenge, responseCode)
 		
 		'
 		'Cans be tweaked to have separators if needed (4x4)
@@ -1386,6 +1705,12 @@ Private Sub btnGenerate_Click
 		inpResponse.Hint = responseCode
 		
 	End If
+	
+	'
+	'Request running the garbage collector as soon as possible.
+	'This way old values will be soon cleared from the App's RAM space.
+	'
+	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 End Sub
 
@@ -1473,7 +1798,79 @@ import android.content.Context;
 import android.widget.EditText;
 //import android.view.inputmethod; // This one refuses to work so I skip it.
 
+//
+// Securely overwrite EditText contents with
+// dummy data when needed (for security reasons).
+//
+//import android.widget.EditText; // already imported for disabling the fullscreen keyboard.
+import android.widget.TextView;
+
+//
+// Replace the Phone library with quick Java functions
+//
+//import android.content.Intent; // already imported for the finishAndRemoveTask workaround.
+import android.net.Uri;
+
 /* ************************************************ */
+
+//
+// Replace the Phone library with quick Java functions
+//
+public void openBrowserUrl(String browserUrl) {
+	//
+	// Thanks to:
+	// https://stackoverflow.com/a/10532210
+	// https://stackoverflow.com/a/10120624
+	//
+	if ( !browserUrl.startsWith("https://") && !browserUrl.startsWith("http://") )
+	{
+		browserUrl = "http://" + browserUrl;
+	}
+	
+	/* Intent i = new Intent(Intent.ACTION_VIEW);
+	   i.setData(Uri.parse(browserUrl));
+	   startActivity(i);
+	*/
+	startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl)));
+}
+
+//
+// Securely overwrite EditText contents with
+// dummy data when needed (for security reasons).
+//
+public void overwriteChallengeOrResponseContent(EditText myChallengeOrResponseField) {
+	//
+	// Add secure overwriting of challenge & response codes in memory
+	// when they're no longer used or needed.
+	//
+	// Make sure to have this constant in your Process_Globals!
+	// - ERASE_CHALLENGE_RESPONSE_STRING_VALUE
+	//
+	
+	// Or TextView.BufferType.EDITABLE (?)
+	myChallengeOrResponseField.setText(_erase_challenge_response_string_value, TextView.BufferType.NORMAL);
+}
+public void overwriteAdminKeyContent(EditText myAdminKeyField) {
+	//
+	// Add secure overwriting of Admin keys in memory
+	// when they're no longer used or needed.
+	//
+	// Make sure to have this constant in your Process_Globals!
+	// - ERASE_ADMIN_KEY_STRING_VALUE
+	//
+	
+	// Or TextView.BufferType.EDITABLE (?)
+	myAdminKeyField.setText(_erase_admin_key_string_value, TextView.BufferType.NORMAL);
+}
+public void overwriteTriggerGarbageCollector() {
+	//
+	// Request that the JVM please runs the garbage collector
+	// as soon as possible to make sure that older Admin keys
+	// and challenge / response code values in memory will be
+	// cleared as soon as possible.
+	//
+	System.gc();
+}
 
 //
 // Disable the fullscreen keyboard on this Activity's EditTexts.
