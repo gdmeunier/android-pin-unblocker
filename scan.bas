@@ -39,8 +39,8 @@ Sub Globals
 	Catch
 		Log(LastException)
 		
-		'Display the error dialog
-		DisplayCameraErrorDialog
+		' Display the error dialog
+		'DisplayCameraErrorDialog
 		
 		'Return to the Main module as if the user pressed the back key
 		btnBack_Click
@@ -315,8 +315,8 @@ Private Sub InitializeQrCodeReader As Void
 	Catch
 		Log(LastException)
 		
-		'Display the error dialog
-		DisplayCameraErrorDialog
+		' Display the error dialog
+		'DisplayCameraErrorDialog
 		
 		'Return to the Main module as if the user pressed the back key
 		btnBack_Click
@@ -368,8 +368,8 @@ Private Sub StartQrCodeReader As Void
 	Catch
 		Log(LastException)
 		
-		'Display the error dialog
-		DisplayCameraErrorDialog
+		' Display the error dialog
+		'DisplayCameraErrorDialog
 		
 		'Return to the Main module as if the user pressed the back key
 		btnBack_Click
@@ -421,37 +421,37 @@ Private Sub StopQrCodeReader As Void
 	
 End Sub
 
-Private Sub DisplayCameraErrorDialog
-	'
-	'The CameraFix command incase the user needs it
-	'
-	Dim CameraFixCommand As String = "su -c killall mediaserver"
-	
-	'
-	'Positive button is named 'Copy Command'
-	'Cancel button is named 'Dismiss'
-	'
-	Msgbox2Async($"Connecting to the Camera service failed.
-If your phone runs a custom ROM based on CyanogenMod or LineageOS, this might sometimes happen.
-
-To fix this issue, reboot your phone or use root access with the command:
-""${CameraFixCommand}"""$&".", "Camera Failed", "Copy Command", "Dismiss", "", Application.Icon, True)
-	
-	Wait For Msgbox_Result (Result As Int)
-	
-	If Result = DialogResponse.POSITIVE Then
-		'
-		'Copy the root CameraFix command to clipboard
-		'
-		Dim BClipboard As BClipboard
-		BClipboard.setText(CameraFixCommand)
-		
-		'Tell the user that the command has been copied to clipboard
-		ToastMessageShow("Command copied to clipboard", False)
-		
-	End If
-	
-End Sub
+'Private Sub DisplayCameraErrorDialog
+'	'
+'	'The CameraFix command incase the user needs it
+'	'
+'	Dim CameraFixCommand As String = "su -c killall mediaserver"
+'	
+'	'
+'	'Positive button is named 'Copy Command'
+'	'Cancel button is named 'Dismiss'
+'	'
+'	Msgbox2Async($"Connecting to the Camera service failed.
+'If your phone runs a custom ROM based on CyanogenMod Or LineageOS, this might sometimes happen.
+'
+'To fix this issue, reboot your phone Or use root access with the command:
+'""${CameraFixCommand}"""$&".", "Camera Failed", "Copy Command", "Dismiss", "", Application.Icon, True)
+'	
+'	Wait For Msgbox_Result (Result As Int)
+'	
+'	If Result = DialogResponse.POSITIVE Then
+'		'
+'		'Copy the root CameraFix command to clipboard
+'		'
+'		Dim BClipboard As BClipboard
+'		BClipboard.setText(CameraFixCommand)
+'		
+'		'Tell the user that the command has been copied to clipboard
+'		ToastMessageShow("Command copied to clipboard", False)
+'		
+'	End If
+'	
+'End Sub
 
 Private Sub ExitScanLayout As Void
 	
