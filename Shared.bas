@@ -68,6 +68,13 @@ import android.content.res.Resources;
 /* ************************************************ */
 
 //
+// Replace the Phone library with quick Java functions
+//
+public static int getAndroidSdkVersion() {
+	return android.os.Build.VERSION.SDK_INT;
+}
+
+//
 // Get screen DPI function (support API 9+ / Android 2.3+)
 //
 public static float getDeviceScale(Context ctx) {
