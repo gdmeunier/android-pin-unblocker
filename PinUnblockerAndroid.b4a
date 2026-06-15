@@ -22,54 +22,36 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 42
-	#VersionName: 3.17.0
+	#VersionCode: 43
+	#VersionName: 3.18.0
 	'
-	' Update from 3.16.2:
+	' Update from 3.17.0:
 	'
-	' 3.17.0: - (+) Add secure overwriting of Admin keys and old values in memory
-	'               when they're no longer used or needed.
+	' 3.18.0: - (+) Added the ability to know the length of your character
+	'               selection length for the Admin key field.
 	'
-	'         - (+) Added additional hardening against potential force-enabling hacks
-	'               of UI elements then trying to click buttons when it must not work.
+	'               It should be easier now to create a long Hash then
+	'               trim a specific part of it from its beginning or end.
 	'
-	'         - (+) Added Android 11+ (API level 30+) <queries/> element
-	'               in the App manifest to support sending browser URL open intents
-	'               on newer devices without the Phone library.
+	'         - (+) Added the ability to know at which position the cursor is
+	'               (also called caret aka. SelectionStart) is to make
+	'               trimming of Admin key text hashes easier for users.
 	'
-	'         - (x) Small tweak so that you can rotate the device screen orientation
-	'               without it restoring the default values if you left a field empty,
-	'               in the Main module's EditText fields.
+	'         - (x) Renamed the NativeMe JavaObject from the Main module
+	'               and the NativeMe2 JavaObject from the QR scanner module
+	'               to NativeMain and NativeScan respectively.
 	'
-	'         - (x) Made the Response code algorithm detection and
-	'               user input sanitization process better
-	'               by de-duplicating the functions code.
+	'         - (x) Optimized the App code for both the Main and QR scanner
+	'               modules so that it uses one NativeShared JavaObject
+	'               instead of initializing a new TempNativeMe JavaObject
+	'               everytime it's needed.
 	'
-	'         - (x) The Admin key field doesn't get hidden unnecessarily now
-	'               if the field was empty,
-	'               unless it was already set to be unrevealable
-	'               by long-clicking an Hash button prior.
+	'               Now the App uses a single NativeShared JavaObject
+	'               which is Public and cans be accessed from all modules,
+	'               and is initialized only once.
 	'
-	'         - (x) Improved the checking of Admin keys shared to the App,
-	'               by verifying that the shared Admin keys have an even length.
-	'
-	'         - (-) Removed length trimming of Admin keys shared to the App,
-	'               because some people might want to use the last part of
-	'               a SHA512 hash as their Admin key.
-	'
-	'         - (-) Removed re-calculation of the Response code algorithm
-	'               when rotating the device screen orientation,
-	'               now I just save the Response label text content then
-	'               restore it as-is (faster code now).
-	'
-	'         - (-) Removed the Camera error dialog incase of Camera service exceptions
-	'               since it didn't actually show anyway on affected CyanogenMod ROMs.
-	'
-	'         - (-) Removed usage of the BClipboard library, but the library files
-	'               will stay available in the project repository.
-	'
-	'         - (-) Removed usage of the Phone library and replaced the few
-	'               needed functions from it with quicker Java native functions.
+	'         - (-) Removed a duplicate Admin key length recount in the
+	'               Activity resume event function (event Sub).
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
@@ -97,7 +79,7 @@ Sub Process_Globals
 	'
 	
 	'For using and running Java functions
-	Private NativeMe As JavaObject
+	Private NativeMain As JavaObject
 	
 	'Anti-leak protection for Admin keys in Recent thumbnails:
 	'
@@ -223,20 +205,20 @@ Sub Process_Globals
 	Public Const IME_FLAG_NO_FULLSCREEN As Int = 0x02000000 'Added in API level 11+ (Android 3.0+)
 	
 	'Must use a separate JavaObject for the Shared class
-	Dim TempNativeMe As JavaObject
-	TempNativeMe.InitializeStatic(Application.PackageName&".shared")
+	Public NativeShared As JavaObject
+	NativeShared.InitializeStatic(Application.PackageName&".shared")
 	
 	'Declare a constant containing the device's SDK version
 	'
-	'We do it using a TempNativeMe JavaObject because
-	'we don't yet have access to the proper NativeMe object.
+	'We do it using a NativeShared JavaObject because
+	'we don't yet have access to the proper NativeMain object.
 	'
 	'It will only be initialized later on Activity_Create(FirstTime = True).
 	'
 	'So because we want to set this SDK_INT constant very early,
-	'we have to temporarily create a totally separate JavaObject.
+	'we have to create a totally separate JavaObject.
 	'
-	Public Const SDK_INT As Int = TempNativeMe.RunMethod("getAndroidSdkVersion", Null)
+	Public Const SDK_INT As Int = NativeShared.RunMethod("getAndroidSdkVersion", Null)
 	
 	'This flag stores the state of the Hide Admin Key checkbox
 	'If it was enabled before e.g. a configuration change,
@@ -248,6 +230,19 @@ Sub Process_Globals
 	'It also cannot re-enable or uncheck a checkbox that became disabled.
 	'
 	Private WasHideAdminKeyCheckboxCheckedFlag As Boolean = False
+	
+	' Add the ability to know the length of the text selection
+	' for the Admin key field, when the user selects a range of text.
+	'
+	' This is done using a Timer that only works (ticks) when
+	' the Admin key field is selected (has focus).
+	'
+	Private AdminKeyTextSelectionTimer As Timer
+	
+	'Default init value = False.
+	'Always give this variable a default value directly during init.
+	'
+	Private WasAdminKeyFieldFocused As Boolean = False
 	
 End Sub
 
@@ -347,7 +342,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'I need to initialize the native Java object context
 		'It's for generating the unblock code (native Java code)
 		'
-		NativeMe.InitializeContext
+		NativeMain.InitializeContext
 		
 		'Adding the ability to block Android from capturing
 		'screenshots of this App because otherwise they leak
@@ -536,6 +531,22 @@ Sub Activity_Create(FirstTime As Boolean)
 		'And we properly register the checkbox checked flag too.
 		WasHideAdminKeyCheckboxCheckedFlag = False
 		
+		'For showing the length of the text selection
+		'for the Admin key field when needed.
+		'
+		'On App launch it's always first set to disabled
+		'then it's initialized, in this order so that
+		'it doesn't tick immediately when initializing it.
+		'
+		AdminKeyTextSelectionTimer.Enabled = False
+		
+		'The event function will be named:
+		' * "AdminKeyTextSelectionTimer" + "_Tick"
+		'
+		'So it will be AdminKeyTextSelectionTimer_Tick
+		'
+		AdminKeyTextSelectionTimer.Initialize("AdminKeyTextSelectionTimer", 100) '100ms
+		
 	Else
 		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
 		'set the global variable to False if it's not the first time that
@@ -546,9 +557,9 @@ Sub Activity_Create(FirstTime As Boolean)
 	'Hide the fullscreen keyboard in this Activity's EditTexts.
 	'Must be done after NativeMe.InitializeContext
 	'
-	NativeMe.RunMethod("disableFullscreenKeyboard", Array(inpChallenge))
-	NativeMe.RunMethod("disableFullscreenKeyboard", Array(inpAdminKey))
-	NativeMe.RunMethod("disableFullscreenKeyboard", Array(inpResponse))
+	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpChallenge))
+	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpAdminKey))
+	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpResponse))
 	
 	'Show the length of the Admin key
 	DisplayAdminKeyLength
@@ -656,6 +667,11 @@ Sub Activity_Pause (UserClosed As Boolean)
 	're-computing the response algorithm detection.
 	SavedResponseLabelBeforeConfigurationChange = lblResponse.Text
 	
+	'Disable the Admin key text selection update timer
+	'always when the Activity is paused.
+	'
+	AdminKeyTextSelectionTimer.Enabled = False
+	
 End Sub
 
 Sub Activity_Resume
@@ -733,10 +749,6 @@ Sub Activity_Resume
 		
 		'Now clear the SavedAdminKeyBeforeConfigurationChange variable.
 		SavedAdminKeyBeforeConfigurationChange = ERASE_ADMIN_KEY_STRING_VALUE
-		
-		'Special handling for restoring the Admin Key:
-		'recount its length again (just incase).
-		DisplayAdminKeyLength
 		
 	End If
 	
@@ -839,6 +851,21 @@ Sub Activity_Resume
 	'variable (I keep its status as-is).
 	'
 	lblResponse.Text = SavedResponseLabelBeforeConfigurationChange
+	
+	'Re-enable the Admin key text selection update timer
+	'when the Activity is resumed, but only if
+	'the Admin key field was focused at the time
+	'the Activity was paused
+	'
+	If WasAdminKeyFieldFocused Then
+		AdminKeyTextSelectionTimer.Enabled = True
+	Else
+		'No need to explicitly disable the timer if
+		'the Admin key field wasn't focused at the time
+		'the Activity was paused, because it was already
+		'paused always on Activity pause events.
+		'
+	End If
 	
 	'
 	'Add ability to receive Admin Key with Android's Share To
@@ -1016,7 +1043,7 @@ Sub Activity_Resume
 	'shared to the App, then it will also benefit from having the
 	'receivedText variable cleared by the Garbage Collector shortly after.
 	'
-	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	NativeMain.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 	'Always return a correct ActivityResult
 	Activity.SetActivityResult(0, receivedIntent)
@@ -1059,9 +1086,14 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 			'the Activity.Finish() or ExitApplication() functions.
 			'
 			
+			'Disable the  showing the Admin key length selection timer
+			'on Application exit.
+			'
+			AdminKeyTextSelectionTimer.Enabled = False
+			
 			'Method for API 21+ (Android 5.0+)
 			If SDK_INT >= 21 Then
-				NativeMe.RunMethod("finishAndRemoveTaskForNewerAndroid", Null)
+				NativeMain.RunMethod("finishAndRemoveTaskForNewerAndroid", Null)
 				
 			'Method for API 16 - 19 (Android 4.1 - 4.4)
 			Else If SDK_INT >= 16 Then
@@ -1069,14 +1101,14 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 				
 				'Trying a better method that replicates this function
 				'for Android phones older than Android 5.0
-				NativeMe.RunMethod("finishAndRemoveTaskForOlderAndroid", Null)
+				NativeMain.RunMethod("finishAndRemoveTaskForOlderAndroid", Null)
 				
 			'Method for API 11 - 15 (Android 3.0 - 4.0.3)
 			Else If SDK_INT >= 11 Then
 				
 				'Trying a better method that replicates this function
 				'for Android phones older than Android 5.0
-				NativeMe.RunMethod("finishAndRemoveTaskForOlderAndroid", Null)
+				NativeMain.RunMethod("finishAndRemoveTaskForOlderAndroid", Null)
 				
 			'Method for API 9 - 10 (Android 2.3.0 - 2.3.7)
 			Else
@@ -1119,20 +1151,20 @@ Private Sub TryToSecureEraseSensitiveValuesFromRAM As Void
 	'
 	'Now trying to securely erase the values first before emptying them.
 	'
-	NativeMe.RunMethod("overwriteAdminKeyContent",            Array(inpAdminKey))
+	NativeMain.RunMethod("overwriteAdminKeyContent",            Array(inpAdminKey))
 	SavedAdminKeyBeforeConfigurationChange  = ERASE_ADMIN_KEY_STRING_VALUE
 	
-	NativeMe.RunMethod("overwriteChallengeOrResponseContent", Array(inpResponse))
+	NativeMain.RunMethod("overwriteChallengeOrResponseContent", Array(inpResponse))
 	SavedResponseBeforeConfigurationChange  = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
 	
-	NativeMe.RunMethod("overwriteChallengeOrResponseContent", Array(inpChallenge))
+	NativeMain.RunMethod("overwriteChallengeOrResponseContent", Array(inpChallenge))
 	SavedChallengeBeforeConfigurationChange = ERASE_CHALLENGE_RESPONSE_STRING_VALUE
 	
 	'
 	'Request running the garbage collector as soon as possible.
 	'This way old values will be soon cleared from the App's RAM space.
 	'
-	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	NativeMain.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 	'
 	'Follow-up with a normal erase of the EditText values
@@ -1161,11 +1193,67 @@ Private Sub QuicklyHideAdminKey() As Void
 End Sub
 
 Private Sub DisplayAdminKeyLength() As Void
+	'
+	' Modified to also display the length of the
+	' character selection when applicable.
+	'
+	Dim TextLength, SelectionLength, SelectionStart As Int
 	
-	lblAdminKey.Text = "Admin Key:"
+	TextLength		= inpAdminKey.Text.Length
+	SelectionLength	= inpAdminKey.SelectionLength
+	SelectionStart	= inpAdminKey.SelectionStart
 	
-	If inpAdminKey.Text.Length >= 1 Then
-		lblAdminKey.Text = lblAdminKey.Text & " ("&inpAdminKey.Text.Length&" chars)"
+	'
+	'If the text length is zero, then logically it's
+	'impossible anyway for the selection length to be
+	'greater than zero, since there's no text to select.
+	'
+	
+	'Because I added the ability to know the cursor position
+	'for the Admin key field, I need to update the Admin key
+	'label when the Admin key EditText loses focus.
+	'
+	'Do not remove this "And WasAdminKeyFieldFocused" part.
+	'
+	If	TextLength >= 1 And SelectionLength < 1 And WasAdminKeyFieldFocused And _
+		SelectionStart > 0 And SelectionStart < TextLength Then
+		'
+		'Added a bonus to know at which character position we are
+		'if the user doesn't select text and only points the cursor
+		'to a specific part of the Admin key field's text.
+		'
+		
+		'
+		'Added a check to see if the cursor position is zero.
+		'If it's zero then no need to show it anyway.
+		'zero (0) = cursor before the first character.
+		'
+		
+		'
+		'Also added a check to see if the cursor position is
+		'at the end of the text, in which case we don't need
+		'to show the cursor position either.
+		'
+		'That's because it would be the same number as the
+		'text length, so it would be redundant to show it
+		'in this case.
+		'
+		
+		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars) - Pos: "&SelectionStart
+		
+	Else If TextLength >= 1 And SelectionLength >= 1 And WasAdminKeyFieldFocused Then
+		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars) - Sel: "&SelectionLength
+		
+	Else If TextLength >= 1 Then
+		'
+		'When the Admin key field isn't focused, selection length
+		'and the cursor position should not be shown.
+		'
+		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars)"
+		
+	Else
+		lblAdminKey.Text = "Admin Key:"
+		
 	End If
 	
 End Sub
@@ -1316,7 +1404,7 @@ This App generates unblock codes for cryptographic PKI smartcards such as Yubike
 	Wait For Msgbox_Result (Result As Int)
 	
 	If Result = DialogResponse.POSITIVE Then
-		NativeMe.RunMethod("openBrowserUrl", Array(APP_HOMEPAGE_URL))
+		NativeMain.RunMethod("openBrowserUrl", Array(APP_HOMEPAGE_URL))
 	End If
 	
 End Sub
@@ -1405,7 +1493,7 @@ End Sub
 
 Private Sub btnSha256_Click
 	
-	Dim sha256 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-256"))
+	Dim sha256 As String = NativeMain.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-256"))
 	
 	'Verify if the returned SHA256 hash has a correct format
 	'It must be 64 hexadecimal characters.
@@ -1428,7 +1516,7 @@ Private Sub btnSha256_Click
 	'Request running the garbage collector as soon as possible.
 	'This way old values will be soon cleared from the App's RAM space.
 	'
-	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	NativeMain.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 	btnHashMenuBg_Click
 	
@@ -1436,7 +1524,7 @@ End Sub
 
 Private Sub btnSha512_Click
 	
-	Dim sha512 As String = NativeMe.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-512"))
+	Dim sha512 As String = NativeMain.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-512"))
 	
 	'Verify if the returned SHA512 hash has a correct format
 	'It must be 128 hexadecimal characters.
@@ -1459,7 +1547,7 @@ Private Sub btnSha512_Click
 	'Request running the garbage collector as soon as possible.
 	'This way old values will be soon cleared from the App's RAM space.
 	'
-	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	NativeMain.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 	btnHashMenuBg_Click
 	
@@ -1472,10 +1560,7 @@ Private Sub btnScanRequest_Click
 	'
 	
 	'Must use a separate JavaObject for the Shared class
-	Dim TempNativeMe As JavaObject
-	TempNativeMe.InitializeStatic(Application.PackageName&".shared")
-	
-	If TempNativeMe.RunMethod("GetNumberOfDeviceCameras", Null) < 1 Then
+	If NativeShared.RunMethod("GetNumberOfDeviceCameras", Null) < 1 Then
 		'
 		' In the rare case where it doesn't have a Camera I don't
 		' disable the QR code scanning button, because I want
@@ -1510,9 +1595,53 @@ Private Sub btnScanRequest_Click
 	
 End Sub
 
+'
+'Always keep both "inpAdminKey_TextChanged" and "inpAdminKey_FocusChanged".
+'
+'Don't remove "inpAdminKey_TextChanged" from the code because
+'it's always needed when the user types text or when
+'an Hash button is pressed.
+'
+'Then it's "inpAdminKey_TextChanged" that gets called.
+'
 Private Sub inpAdminKey_TextChanged(Old As String, New As String)
 	
 	'Keep the Admin Key length display updated on text change
+	DisplayAdminKeyLength
+	
+End Sub
+
+Private Sub inpAdminKey_FocusChanged(HasFocus As Boolean)
+	
+	If HasFocus Then
+		WasAdminKeyFieldFocused = True
+		AdminKeyTextSelectionTimer.Enabled = True
+	Else
+		WasAdminKeyFieldFocused = False
+		AdminKeyTextSelectionTimer.Enabled = False
+		
+		'Because I added the ability to know the cursor position
+		'for the Admin key field, I need to update the Admin key
+		'label when the Admin key EditText loses focus.
+		'
+		'Do not remove this part.
+		'
+		DisplayAdminKeyLength
+		
+	End If
+	
+End Sub
+
+'For showing the length of the text selection
+'for the Admin key field when needed.
+'
+Private Sub AdminKeyTextSelectionTimer_Tick
+	
+	'Show the length of the text selection for Admin key field.
+	'
+	'The DisplayAdminKeyLength function now also does this
+	'additionally to showing the length of the text itself.
+	'
 	DisplayAdminKeyLength
 	
 End Sub
@@ -1651,7 +1780,7 @@ Private Sub btnGenerate_Click
 	'then it will contain the exception text instead of
 	'a valid hex string.
 	'
-	Dim responseCode As String = NativeMe.RunMethod("GenerateResponseCode", Array(sanitizedChallenge, sanitizedAdminKey))
+	Dim responseCode As String = NativeMain.RunMethod("GenerateResponseCode", Array(sanitizedChallenge, sanitizedAdminKey))
 	
 	'Verify if the returned Response Code has a correct format
 	'It cans currently be 16 to 64 characters (for AES-256)
@@ -1710,7 +1839,7 @@ Private Sub btnGenerate_Click
 	'Request running the garbage collector as soon as possible.
 	'This way old values will be soon cleared from the App's RAM space.
 	'
-	NativeMe.RunMethod("overwriteTriggerGarbageCollector", Null)
+	NativeMain.RunMethod("overwriteTriggerGarbageCollector", Null)
 	
 End Sub
 
