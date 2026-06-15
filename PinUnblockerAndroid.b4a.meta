@@ -7,6 +7,6 @@ ModuleBreakpoints2=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
 ModuleClosedNodes2=
-NavigationStack=Main,QuicklyHideAdminKey,1107,0,Main,btnSha256_LongClick,1332,0,Main,btnSha512_LongClick,1350,0,Main,chkHideAdminKey_CheckedChange,1502,2,Main,Activity_Pause,597,6,Main,Activity_Create,495,1,Main,Activity_Resume,871,6,Main,TryToSecureEraseSensitiveValuesFromRAM,1083,0,Main,mnuAbout_Click,1284,0,Main,Process_Globals,212,6
+NavigationStack=Main,Activity_KeyPress,1056,6,Main,inpAdminKey_TextChanged,1560,0,Main,btnScanRequest_Click,1552,0,Main,inpAdminKey_FocusChanged,1582,6,Main,Globals,277,0,Main,Activity_Create,553,6,Main,Activity_Pause,644,0,Main,Activity_Resume,700,0,Main,Process_Globals,104,6,Main,DisplayAdminKeyLength,1237,6
 SelectedBuild=0
 VisibleModules=1,2
