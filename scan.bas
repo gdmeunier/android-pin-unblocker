@@ -26,7 +26,7 @@ Sub Process_Globals
 	'
 	
 	'For using and running Java functions
-	Private NativeMe2 As JavaObject
+	Private NativeScan As JavaObject
 	
 End Sub
 
@@ -98,7 +98,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'
 		'I need to initialize the native Java object context
 		'
-		NativeMe2.InitializeContext
+		NativeScan.InitializeContext
 		
 		'
 		'Adding the ability to block Android from capturing
@@ -305,10 +305,7 @@ Private Sub InitializeQrCodeReader As Void
 		'
 		
 		'Must use a separate JavaObject for the Shared class
-		Dim TempNativeMe As JavaObject
-		TempNativeMe.InitializeStatic(Application.PackageName&".shared")
-	
-		If TempNativeMe.RunMethod("GetNumberOfDeviceCameras", Null) >= 2 Then
+		If Main.NativeShared.RunMethod("GetNumberOfDeviceCameras", Null) >= 2 Then
 			qrReaderView.PreviewCameraId = 1
 			qrReaderView.setFrontCamera()
 		End If
@@ -520,7 +517,7 @@ Private Sub btnToggleFlash_Click
 	'
 	' Android API level 7+ (Android 2.1+)
 	'
-	If Not(NativeMe2.RunMethod("checkDeviceFlashlight", Null)) Then
+	If Not(NativeScan.RunMethod("checkDeviceFlashlight", Null)) Then
 		'
 		' In the few cases nowadays where it doesn't have a flashlight
 		' I don't disable the Flashlight toggle button,
@@ -566,10 +563,7 @@ Private Sub btnSwitchCam_Click
 	'
 	
 	'Must use a separate JavaObject for the Shared class
-	Dim TempNativeMe As JavaObject
-	TempNativeMe.InitializeStatic(Application.PackageName&".shared")
-	
-	If TempNativeMe.RunMethod("GetNumberOfDeviceCameras", Null) < 2 Then
+	If Main.NativeShared.RunMethod("GetNumberOfDeviceCameras", Null) < 2 Then
 		'
 		' In the rare case where it doesn't have two Cameras I don't
 		' disable the Camera switching button, because I want the user
