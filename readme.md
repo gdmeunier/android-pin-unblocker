@@ -123,9 +123,15 @@ So here's below a list of assets that have previously been, or are currently bei
 Asset Name | Author | License | Commercial Use
 -- | :-: | :-: | :-: |
 [Basic4Android](https://www.b4x.com/b4a.html) | Anywhere Software | [Apache 2.0](https://github.com/AnywhereSoftware/B4A/blob/master/LICENSE) | Allowed
+[FontAwesome](https://fontawesome.com/v4/) | Dave Gandy | [SIL OFL 1.1](https://fontawesome.com/v4/license/) | Allowed
+[Material Icons](https://github.com/google/material-design-icons) | Google | [Apache 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE) | Allowed
+[NewQRCodeReaderView](https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/#post-523013) | Johan Schoeman | [Apache 2.0](https://www.b4x.com/android/forum/help/terms/) | Allowed
+[ZXing](https://github.com/zxing/zxing) | ZXing Project | [Apache 2.0](https://github.com/zxing/zxing/blob/master/LICENSE) | Allowed
+[Clipboard Library](https://www.b4x.com/android/forum/threads/clipboard-library.7382/) | mtw | [Apache 2.0](https://www.b4x.com/android/forum/help/terms/) | Allowed
+[Devices secure card Icon](https://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Devices-secure-card-icon.html) | Oxygen Team | [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.html) | Allowed
+[Info 24 Icon](https://www.iconarchive.com/show/octicons-icons-by-github/info-24-icon.html) | Github | [MIT License](https://github.com/primer/octicons/blob/main/LICENSE) | Allowed
+[Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
+[Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](https://icons8.com/license/) | Allowed
 [Color Quantizer](https://x128.ho.ua/color-quantizer.html) | x128 | [No License](https://choosealicense.com/no-permission/) | Allowed
 [7-Zip](https://www.7-zip.org/) | Igor Pavlov | [LGPL 2.1](https://www.7-zip.org/license.txt) | Allowed
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
-[Devices secure card Icon](https://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Devices-secure-card-icon.html) | Oxygen Team | [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.html) | Allowed
-[Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
-[Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](https://icons8.com/license/) | Allowed
