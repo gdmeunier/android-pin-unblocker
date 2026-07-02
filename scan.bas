@@ -6,8 +6,7 @@ Version=12
 @EndOfDesignText@
 #Region  Project Attributes 
 	'Ignore function value returns warning (2)
-	'Ignore return value is missing warning (4)
-	#IgnoreWarnings: 2,4
+	#IgnoreWarnings: 2
 #End Region
 
 #Region  Activity Attributes 
@@ -33,6 +32,9 @@ End Sub
 Sub Globals
 	'These global variables will be redeclared each time the activity is created.
 	'These variables can only be accessed from this module.
+	
+	'Hotfix for resizing the Camera preview on devices without navbar
+	Private qrReaderBg As Label
 	
 	Try
 		Private qrReaderView As NewQRCodeReaderView
@@ -179,6 +181,49 @@ Sub Activity_Create(FirstTime As Boolean)
 	
 	End If
 	
+	'
+	' Hotfix for resizing the Camera preview on devices without navbar.
+	' That's because I want to have a neatly square Camera preview.
+	'
+	' Only for 1.0+ density devices (160/mdpi).
+	'
+	' "According to android developers: the standard height of
+	'  the navigation bar is 48dp in portrait mode and 42dp for
+	'  the width when placed vertically in landscape mode on tablets."
+	'
+	' HOWEVER the device I used for calibration is Huawei P9 Lite,
+	' which actually has a 38dip navbar in portrait mode and a
+	' 48dip navbar in landscape mode, so I have to use these instead.
+	'
+	' Thanks to:
+	' - https://forums.solar2d.com/t/height-of-android-navigation-bar-solved/353073
+	' - https://community.appinventor.mit.edu/t/nav-bar-height-without-extensions/174318
+	'
+	' ORIENTATION_UNKNOWN   As Int = 0
+	' ORIENTATION_PORTRAIT  As Int = 1 'Includes reverse too
+	' ORIENTATION_LANDSCAPE As Int = 2 'Includes reverse too
+	'
+	If NativeScan.RunMethod("deviceNeedsSquareCameraPreviewFix", Array(1)) Then
+		'
+		' Portrait Fix
+		'
+		qrReaderBg.Height   = qrReaderBg.Height   - 38dip
+		qrReaderView.Height = qrReaderView.Height - 38dip
+		
+		btnToggleFlash.Top = btnToggleFlash.Top - 38dip
+		btnSwitchCam.Top   = btnSwitchCam.Top   - 38dip
+		btnBack.Top        = btnBack.Top        - 38dip
+		
+	Else If NativeScan.RunMethod("deviceNeedsSquareCameraPreviewFix", Array(2)) Then
+		'
+		' Landscape Fix
+		'
+		qrReaderView.Width = qrReaderView.Width - 48dip
+		qrReaderView.Left  = qrReaderView.Left  + 24dip 'Re-align the Camera preview
+		
+	End If
+	
+	'
 	'Set default Camera flags when initializing
 	'this Activity for the first time.
 	'
@@ -201,6 +246,15 @@ Sub Activity_Create(FirstTime As Boolean)
 	'It means initializing the global variable to False.
 	'
 	'This one cans be done after the InitializeQrCodeReader function.
+	'
+	'Modified: Even after removing (commenting) the redudant
+	'          StartQrCodeReader call in this module,
+	'          keep this isBackCamera directive here anyway.
+	'
+	'          Because perhaps the Activity resume might later allow
+	'          resuming with the last selected Camera orientation
+	'          in a future version of this App.
+	'
 	isBackCamera = True
 	isCameraAlreadyStarted = False
 	
@@ -220,8 +274,15 @@ Sub Activity_Create(FirstTime As Boolean)
 		Log(LastException)
 	End Try
 	
-	'Start scanning QR codes immediately
-	StartQrCodeReader
+	'
+	' Start scanning QR codes immediately
+	'
+	' Modified: Don't start the QR code reader in Activity create,
+	'           it will be done in Activity resume anyway.
+	'           Activity resume is always called after the create
+	'           even if it's actually a create event.
+	'
+	'StartQrCodeReader
 	
 End Sub
 
@@ -643,6 +704,28 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 /* ************************************************ */
+
+//
+// Check if device needs fixed square Camera previews
+//
+// Public Const ORIENTATION_UNKNOWN   As Int = 0
+// Public Const ORIENTATION_PORTRAIT  As Int = 1 'Includes reverse too
+// Public Const ORIENTATION_LANDSCAPE As Int = 2 'Includes reverse too
+//
+public boolean deviceNeedsSquareCameraPreviewFix(final int orientation) {
+	
+	if	(	shared.hasNavBar(this)            == false &&
+			shared.getDeviceScale(this)       >= 1.0   &&
+			shared.getDeviceOrientation(this) == orientation
+		)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 //
 // Check if the device has a flashlight
