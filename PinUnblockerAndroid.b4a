@@ -22,36 +22,38 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 43
-	#VersionName: 3.18.0
+	#VersionCode: 44
+	#VersionName: 3.19.0
 	'
-	' Update from 3.17.0:
+	' Update from 3.18.0:
 	'
-	' 3.18.0: - (+) Added the ability to know the length of your character
-	'               selection length for the Admin key field.
+	' 3.19.0: - (+) Added the ability to know if the device has a navbar
+	'               (software navigation bar).
 	'
-	'               It should be easier now to create a long Hash then
-	'               trim a specific part of it from its beginning or end.
+	'         - (+) Added the ability to know the device orientation.
 	'
-	'         - (+) Added the ability to know at which position the cursor is
-	'               (also called caret aka. SelectionStart) is to make
-	'               trimming of Admin key text hashes easier for users.
+	'         - (x) Cosmetic hotfix to have neatly square Camera previews in the
+	'               QR Scanner module for 160dpi and higher devices (not 120/ldpi).
 	'
-	'         - (x) Renamed the NativeMe JavaObject from the Main module
-	'               and the NativeMe2 JavaObject from the QR scanner module
-	'               to NativeMain and NativeScan respectively.
+	'         - (-) Removed unnecessary warning ignore directives in the
+	'               Main & QR scanner modules.
 	'
-	'         - (x) Optimized the App code for both the Main and QR scanner
-	'               modules so that it uses one NativeShared JavaObject
-	'               instead of initializing a new TempNativeMe JavaObject
-	'               everytime it's needed.
+	'         - (x) De-duplicated code for text hashing in the Main module.
 	'
-	'               Now the App uses a single NativeShared JavaObject
-	'               which is Public and cans be accessed from all modules,
-	'               and is initialized only once.
+	'         - (-) Removed a redundant StartQrCodeReader call in the
+	'               QR scanner module.
 	'
-	'         - (-) Removed a duplicate Admin key length recount in the
-	'               Activity resume event function (event Sub).
+	'         - (x) Re-arranged Java native code imports for the Shared module.
+	'
+	'         - (x) Modified the App icon with an even smaller one that looks great
+	'               on all device DPI sizes, low, medium & high.
+	'
+	'               This results in a smaller APK file by 4KB of size difference.
+	'
+	'         - (-) Modified the App's readme.md file to remove the sideloading notice.
+	'
+	'         - (+) Modified the App's readme.md file to add the App icon to it
+	'               and additional legalese information for people who care about it.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
@@ -62,10 +64,8 @@ Version=12.5
 	
 	'Ignore recommended target SDK warning (31)
 	'Ignore function value returns warning (2)
-	'Ignore file is not used warning (15)
-	'Ignore return value is missing warning (4)
 	'Ignore this sub only for variable declarations warning (29)
-	#IgnoreWarnings: 31,2,15,4,29
+	#IgnoreWarnings: 31,2,29
 	
 #End Region
 
@@ -1456,91 +1456,56 @@ End Sub
 '
 
 Private Sub btnSha256_LongClick
-	'
-	'Hardening against potential force-enable UI control hacks.
-	'
-	SavedHideAdminKeyStateBeforeConfigurationChange = False
-	
-	chkHideAdminKey.Enabled  = False
-	
-	inpAdminKey.PasswordMode = True
-	chkHideAdminKey.Checked  = True
-	
-	'And we properly register the checkbox checked flag too.
-	WasHideAdminKeyCheckboxCheckedFlag = True
-	
-	btnSha256_Click
-	
+	btnHash_LongClickStub("SHA-256", 64)
 End Sub
-
 Private Sub btnSha512_LongClick
-	'
-	'Hardening against potential force-enable UI control hacks.
-	'
-	SavedHideAdminKeyStateBeforeConfigurationChange = False
-	
-	chkHideAdminKey.Enabled  = False
-	
-	inpAdminKey.PasswordMode = True
-	chkHideAdminKey.Checked  = True
-	
-	'And we properly register the checkbox checked flag too.
-	WasHideAdminKeyCheckboxCheckedFlag = True
-	
-	btnSha512_Click
-	
+	btnHash_LongClickStub("SHA-512", 128)
 End Sub
 
 Private Sub btnSha256_Click
+	btnHash_ClickStub("SHA-256", 64)
+End Sub
+Private Sub btnSha512_Click
+	btnHash_ClickStub("SHA-512", 128)
+End Sub
+
+Private Sub btnHash_LongClickStub(HashType As String, Length As Int) As Void
+	'
+	'Hardening against potential force-enable UI control hacks.
+	'
+	SavedHideAdminKeyStateBeforeConfigurationChange = False
 	
-	Dim sha256 As String = NativeMain.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-256"))
+	chkHideAdminKey.Enabled  = False
 	
-	'Verify if the returned SHA256 hash has a correct format
+	inpAdminKey.PasswordMode = True
+	chkHideAdminKey.Checked  = True
+	
+	'And we properly register the checkbox checked flag too.
+	WasHideAdminKeyCheckboxCheckedFlag = True
+	
+	btnHash_ClickStub(HashType, Length)
+	
+End Sub
+
+Private Sub btnHash_ClickStub(HashType As String, Length As Int) As Void
+	
+	Dim Hash As String = NativeMain.RunMethod("TextToHash", Array(inpAdminKey.Text, HashType))
+	
+	'Verify if the returned hash has a correct format
 	'It must be 64 hexadecimal characters.
 	'
 	'If not then it contains an exception message to display.
 	'
-	If Regex.IsMatch2("^[0-9a-f]{64}$", Regex.CASE_INSENSITIVE, sha256) == True Then
+	If Regex.IsMatch2("^[0-9a-f]{"&Length&"}$", Regex.CASE_INSENSITIVE, Hash) == True Then
 		
-		inpAdminKey.Text = sha256 '.ToUpperCase() part not needed anymore
-		
-	Else
-		'Don't clear the Admin key text input unlike the Response Code one
-		'because it would be a bit harsh to do that, rather just show the
-		'exception text in a Toast message.
-		'
-		ToastMessageShow(sha256, False)
-	End If
-	
-	'
-	'Request running the garbage collector as soon as possible.
-	'This way old values will be soon cleared from the App's RAM space.
-	'
-	NativeMain.RunMethod("overwriteTriggerGarbageCollector", Null)
-	
-	btnHashMenuBg_Click
-	
-End Sub
-
-Private Sub btnSha512_Click
-	
-	Dim sha512 As String = NativeMain.RunMethod("TextToHash", Array(inpAdminKey.Text, "SHA-512"))
-	
-	'Verify if the returned SHA512 hash has a correct format
-	'It must be 128 hexadecimal characters.
-	'
-	'If not then it contains an exception message to display.
-	'
-	If Regex.IsMatch2("^[0-9a-f]{128}$", Regex.CASE_INSENSITIVE, sha512) == True Then
-		
-		inpAdminKey.Text = sha512 '.ToUpperCase() part not needed anymore
+		inpAdminKey.Text = Hash '.ToUpperCase() part not needed anymore
 		
 	Else
 		'Don't clear the Admin key text input unlike the Response Code one
 		'because it would be a bit harsh to do that, rather just show the
 		'exception text in a Toast message.
 		'
-		ToastMessageShow(sha512, False)
+		ToastMessageShow(Hash, False)
 	End If
 	
 	'
