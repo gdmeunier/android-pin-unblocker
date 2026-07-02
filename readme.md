@@ -1,10 +1,7 @@
-> [!NOTE] 
-> This Android application will not comply with Google's [Android Developer Verification](https://news.itsfoss.com/new-android-sideloading-rules/) program.\
-> Your options for installing this application in the future are the following:
-> 
-> **1.** Keep using an older mobile phone with Android 15 or older,\
-> **2.** Use a custom Android 16 ROM that removes the APK sideloading restriction,\
-> **3.** Root your phone and use an Xposed module that removes the APK sideloading restriction.
+
+<p align="center">
+	<img src="./icon.png" width="128" height="128"/>
+</p>
 
 # Android PIN Unblocker
 
@@ -109,3 +106,26 @@ Long-pressing the SHA-256 or SHA-512 buttons actually generates the hash but als
 Well I don't care about legalese anyway but let's pick **GNU GPLv3 (or later version)** since my friends at the [Free Software Foundation](https://www.gnu.org/proprietary/proprietary.html) recommend it.
 
 **Basic4Android** also allows completely free usage of their IDE for both commercial and non-commercial purposes so it should be OK.
+
+And also the additional allowances below for this App which are useful for use in restricted & sensitive environments.
+
+Action Type | Status | Reason for Status
+-- | :-: | --
+Modify the App's package name | Allowed | Security / Hardening
+Sign the App with a different key | Allowed | Security / Hardening
+Compile the App from source | Allowed | Security / Hardening
+
+# Legalese
+
+Perhaps oneday if somebody randomly stumbles upon this App and likes it, they might actually care about legalese before using it.\
+So here's below a list of assets that have previously been, or are currently being used, for this App.
+
+Asset Name | Author | License | Commercial Use
+-- | :-: | :-: | :-: |
+[Basic4Android](https://www.b4x.com/b4a.html) | Anywhere Software | [Apache 2.0](https://github.com/AnywhereSoftware/B4A/blob/master/LICENSE) | Allowed
+[Color Quantizer](https://x128.ho.ua/color-quantizer.html) | x128 | [No License](https://choosealicense.com/no-permission/) | Allowed
+[7-Zip](https://www.7-zip.org/) | Igor Pavlov | [LGPL 2.1](https://www.7-zip.org/license.txt) | Allowed
+[MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
+[Devices secure card Icon](https://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Devices-secure-card-icon.html) | Oxygen Team | [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.html) | Allowed
+[Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
+[Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](http://icons8.com/license/) | Allowed
