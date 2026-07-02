@@ -128,4 +128,4 @@ Asset Name | Author | License | Commercial Use
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
 [Devices secure card Icon](https://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Devices-secure-card-icon.html) | Oxygen Team | [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.html) | Allowed
 [Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
-[Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](http://icons8.com/license/) | Allowed
+[Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](https://icons8.com/license/) | Allowed
