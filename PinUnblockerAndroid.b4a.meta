@@ -7,6 +7,6 @@ ModuleBreakpoints2=
 ModuleClosedNodes0=
 ModuleClosedNodes1=
 ModuleClosedNodes2=
-NavigationStack=Main,btnSha256_LongClick,1427,0,Main,btnSha512_LongClick,1430,0,Main,btnHash_LongClickStub,1454,0,Main,btnHash_ClickStub,1487,0,Visual Designer,ScanLayout.bal,-100,3,Shared,Initialize,12,0,Scan,Activity_Create,212,6,Scan,Globals,28,0,Main,btnHashMenu_Click,1400,0,Main,btnHashMenuBg_Click,1420,0,Main,btnSha512_Click,1442,0
+NavigationStack=Main,SetAdminKeyPasswordMode,1525,6,Main,DisplayAdminKeyLength,1669,0,Main,DetectResponseCodeAlgorithmType,1687,0,Main,GetSanitizedUserInput,1766,0,Main,Process_Globals,331,3,Main,Globals,341,1,Main,Activity_Create,454,6,Main,btnShareResponse_Click,2403,0,Main,Activity_Pause,907,0,Main,Activity_Resume,909,6
 SelectedBuild=0
 VisibleModules=1,2
