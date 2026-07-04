@@ -11,7 +11,7 @@ Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
 Library4=runtimepermissions
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Try improving compatibility of zxing QR code scanning~\n~'with older devices that might require hardware acceleration~\n~'due to the use of GPU for rendering the camera preview, etc.~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Default")~\n~~\n~CreateResource(values-v20, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Material">~\n~    </style>~\n~</resources>)~\n~CreateResource(values-v14, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme.Holo">~\n~    </style>~\n~</resources>)~\n~CreateResource(values, theme.xml,<resources>~\n~    <style~\n~        name="Default" parent="@android:style/Theme">~\n~    </style>~\n~</resources>)~\n~~\n~'Support Android 4.4+ (API level 19+)~\n~'AddManifestText(<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 4.1+ now (API level 16+)~\n~'~\n~'The first added manifest text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~'AddManifestText(<uses-sdk android:minSdkVersion="16" android:targetSdkVersion="32"/>)~\n~~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="32"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~'~\n~'Open browser URL Intents for Android API level 30+ (Android 11+)~\n~'~\n~' Thanks to:~\n~' https://stackoverflow.com/a/10120624~\n~' https://developer.android.com/training/basics/intents/filters#AddIntentFilter~\n~'~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Try improving compatibility of zxing QR code scanning~\n~'with older devices that might require hardware acceleration~\n~'due to the use of GPU for rendering the camera preview, etc.~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Application theme~\n~'CreateResourceFromFile(Macro, Themes.DarkTheme)~\n~~\n~'Try supporting for Android 2.3+ now (API level 9+)~\n~SetApplicationAttribute(android:theme, "@style/Tweak")~\n~~\n~'~\n~' Tweaking the theme values to have the correct API levels.~\n~'~\n~' Thanks to:~\n~' - https://stackoverflow.com/a/9832255~\n~' - https://android.googlesource.com/platform/frameworks/base/+/HEAD/core/res/res/values/themes.xml~\n~'~\n~' XML attributes in res/values can actually have any filename,~\n~' it doesn't have to be named 'theme.xml' or anything actually.~\n~'~\n~' So I can customize the theme XML filename too.~\n~'~\n~' Thanks to:~\n~' - https://stackoverflow.com/a/68598815~\n~'~\n~CreateResource(values-v21, tweak.xml,<resources>~\n~	<style name="Tweak" parent="@android:style/Theme.Material">~\n~	</style>~\n~</resources>) ' aka. 'theme.xml'~\n~CreateResource(values-v11, tweak.xml,<resources>~\n~	<style name="Tweak" parent="@android:style/Theme.Holo">~\n~	</style>~\n~</resources>) ' aka. 'theme.xml'~\n~CreateResource(values,     tweak.xml,<resources>~\n~	<style name="Tweak" parent="@android:style/Theme">~\n~	</style>~\n~</resources>) ' aka. 'theme.xml'~\n~~\n~'~\n~' Disable the new Android 8.0+ Autofill service~\n~' for the entire project (additionally to disabling it in code).~\n~'~\n~' Thanks to:~\n~' - https://stackoverflow.com/a/46853690~\n~' - https://stackoverflow.com/a/18365454~\n~' - https://reactnative.dev/docs/textinput#importantforautofill-android~\n~' - https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/res/res/values/themes_device_defaults.xml~\n~' - https://blog.octo.com/android-themes-styles-a-real-architecture~\n~' - https://blog.octo.com/android-themes-and-styles-a-real-architecture~\n~' - https://medium.com/@debasishraut.dev/introduction-to-android-ui-design-with-xml-b777e09c8d10~\n~'~\n~CreateResource(values-v26, tweak.xml,<resources>~\n~	<style name="Tweak" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:editTextStyle">@style/Tweak.EditText</item>~\n~	</style>~\n~</resources>) ' aka. 'theme.xml'~\n~CreateResource(values-v26, tweak_edittext.xml,<resources>~\n~	<style name="Tweak.EditText" parent="@android:style/Widget.EditText">~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>) ' aka. 'styles.xml' | ^ hardening againt allowUndo attribute~\n~~\n~'~\n~' Disable the ability to use Undo & Redo functions on~\n~' the EditText fields to prevent recovery of a previous~\n~' text that was Hashed (for example).~\n~'~\n~' Hypothetical attack scenario:~\n~' An attacker plugs an USB keyboard over OTG to the phone,~\n~' focuses on the Admin Key field then presses CTRL+Z.~\n~'~\n~' This styling makes this impossible to do (hardening).~\n~'~\n~' This undo / redo functionality is also only available on~\n~' Android 6.0+ (API level 23+)~\n~'~\n~' Thanks to:~\n~' https://developer.android.com/reference/android/widget/TextView#attr_android:allowUndo~\n~' https://android.stackexchange.com/a/241708~\n~' https://stackoverflow.com/questions/79722988/intercept-api-35-system-undo-and-redo~\n~' https://android.googlesource.com/platform/frameworks/base/+/android-8.0.0_r1/core/res/res/values/attrs.xml~\n~'~\n~CreateResource(values-v23, tweak.xml,<resources>~\n~	<style name="Tweak" parent="@android:style/Theme.Material">~\n~		<item name="android:editTextStyle">@style/Tweak.EditText</item>~\n~	</style>~\n~</resources>) ' aka. 'theme.xml'~\n~CreateResource(values-v23, tweak_edittext.xml,<resources>~\n~	<style name="Tweak.EditText" parent="@android:style/Widget.EditText">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>) ' aka. 'styles.xml' | ^ hardening againt allowUndo attribute~\n~~\n~'~\n~'Try supporting Android 2.3+ now (API level 9+)~\n~'~\n~'Update: Increase Target SDK version to 33 (was 32) in order to activate~\n~'        the new privacy hardening tweaks on newer Android versions.~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33"/>)~\n~~\n~'Support all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:largeScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:smallScreens="true" ~\n~	android:anyDensity="true"/>)~\n~~\n~'Require Camera runtime permission (Android 6.0+)~\n~'~\n~'Turns out I actually don't need to explicitly add this~\n~'in the manifest editor since the NewQRCodeReader library~\n~'automatically adds it anyway, and adding it explicitly~\n~'actually caused the App to have two duplicate~\n~'Camera permission lines in the App manifest.~\n~'~\n~'So I comment this to avoid having two duplicate Camera permissions.~\n~'~\n~'AddManifestText(~\n~'<uses-permission android:name="android.permission.CAMERA"/>)~\n~~\n~'Require Flashlight permission~\n~AddPermission(android.permission.FLASHLIGHT)~\n~~\n~'Use Camera feature but it's not required (required="false")~\n~'These uses-feature lines are actually required for the App~\n~'but it's the Android feature attribute "required" that we set to "false".~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false"/>~\n~<uses-feature android:name="android.hardware.camera.any" android:required="false"/>)~\n~~\n~'Add Share To functionality for receiving the Admin Keys~\n~'~\n~'The first added Activity text doesn't need to have a line break~\n~'added before the text, because Basic4Android already adds the~\n~'first one itself when generating the App manifest.~\n~'~\n~AddActivityText(Main,<intent-filter>~\n~	<action android:name="android.intent.action.SEND"/>~\n~	<category android:name="android.intent.category.DEFAULT"/>~\n~	<data android:mimeType="text/plain"/>~\n~</intent-filter>)~\n~~\n~'Exclude the App from the Recent Apps list because otherwise~\n~'there's a risk of leaking the Admin keys inside~\n~'the Recent thumbnails (visible text)~\n~'~\n~'Finally not implemented in favor of FLAG_SECURE:~\n~'SetActivityAttribute(Main, "android:excludeFromRecents", "true")~\n~~\n~'Always detach the Main activity from any task affinity~\n~'~\n~'This way if another application launches this one then~\n~'it will not share the same Task manager affinity level with it~\n~'~\n~'Google summary:~\n~'~\n~'Security (Anti-Hijacking): It is a security best practice to prevent~\n~'Task Hijacking attacks. By clearing the affinity, you prevent~\n~'malicious apps from potentially launching their own activities into~\n~'your app's task stack.~\n~'~\n~'Task Isolation: When combined with intent flags like FLAG_ACTIVITY_NEW_TASK,~\n~'it forces the activity to start in a separate task environment rather than~\n~'grouping with other app activities.~\n~'~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Exclude the Scan Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Scan Activity non-exported (private Activity)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Prevent the App from running in background~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~'~\n~'Open browser URL Intents for Android API level 30+ (Android 11+)~\n~'~\n~' Thanks to:~\n~' https://stackoverflow.com/a/10120624~\n~' https://developer.android.com/training/basics/intents/filters#AddIntentFilter~\n~'~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~
 Module1=|relative|.\Scan
 Module2=Shared
 NumberOfFiles=3
@@ -22,38 +22,124 @@ Version=12.5
 #Region  Project Attributes 
 	'Application identity
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 44
-	#VersionName: 3.19.0
+	#VersionCode: 45
+	#VersionName: 3.20.0
 	'
-	' Update from 3.18.0:
+	' Update from 3.19.0:
 	'
-	' 3.19.0: - (+) Added the ability to know if the device has a navbar
-	'               (software navigation bar).
+	' 3.20.0: - (+) Blocked the ability for Android to do autocomplete.
 	'
-	'         - (+) Added the ability to know the device orientation.
+	'         - (+) Blocked the ability for Android to auto-suggestions.
 	'
-	'         - (x) Cosmetic hotfix to have neatly square Camera previews in the
-	'               QR Scanner module for 160dpi and higher devices (not 120/ldpi).
+	'         - (+) Blocked the ability for Android to autocorrect text.
 	'
-	'         - (-) Removed unnecessary warning ignore directives in the
-	'               Main & QR scanner modules.
+	'         - (+) Blocked the ability for Android to learn new words.
 	'
-	'         - (x) De-duplicated code for text hashing in the Main module.
+	'         - (+) Blocked the ability to use Android 8.0 / API 26's builtin
+	'               Autofill service so that it doesn't interact with this App.
 	'
-	'         - (-) Removed a redundant StartQrCodeReader call in the
-	'               QR scanner module.
+	'         - (x) Increase target SDK version to 33 (was 32) in order to activate
+	'               the new privacy hardening tweaks on newer Android versions.
 	'
-	'         - (x) Re-arranged Java native code imports for the Shared module.
+	'         - (x) Modified the App manifest to refactor the theme resources
+	'               declaration and the App theme's name, XML filenames.
 	'
-	'         - (x) Modified the App icon with an even smaller one that looks great
-	'               on all device DPI sizes, low, medium & high.
+	'               This includes using proper / corrected API level values.
 	'
-	'               This results in a smaller APK file by 4KB of size difference.
+	'         - (x) Compiling the App against the Android 17's android.jar file
+	'               now that I need some constant values from it (version 37.0),
+	'               when I introduced privacy hardening tweaks for EditTexts.
 	'
-	'         - (-) Modified the App's readme.md file to remove the sideloading notice.
+	'               The App was previously compiled using version 33 of the
+	'               Android SDK platform (android.jar file).
 	'
-	'         - (+) Modified the App's readme.md file to add the App icon to it
-	'               and additional legalese information for people who care about it.
+	'               The App will stay compatible with Android 2.3+ anyway.
+	'
+	'         - (+) Disabled the ability to use Undo & Redo functions on
+	'               the EditText fields To prevent recovery of a previous
+	'               text that was Hashed (For example).
+	'
+	'         - (x) Finally corrected the annoying issue of the monospace font
+	'               not applying correctly on some Android devices for the
+	'               Admin Key EditText field, by re-creating it from scratch.
+	'
+	'         - (+) Added a fix for Android's flawed monospace implementation
+	'               for monospace digits.
+	'
+	'               Also known As 'enabling tabular numbers' in monospace fonts.
+	'
+	'         - (+) Added a fix for Android's flawed monospace implementation
+	'               for monospace font-family vs typeface selection.
+	'
+	'         - (+) Made the Admin Key field in the Main module register
+	'               as a visible password field by default rather than
+	'               registering as a normal text field (improves security).
+	'
+	'         - (+) Made the Admin Key field retain its cursor position and
+	'               text selection when toggle the Hide Admin key checkbox,
+	'               because this previously moved the cursor to the beginning
+	'               of the EditText everytime PasswordMode visibility was toggled.
+	'
+	'         - (+) Made the Admin Key field get unfocused when clicking
+	'               the Generate button to get a Response code,
+	'               because it's an opportunity to make the Admin key
+	'               cursor position Timer run less often.
+	'
+	'               It's now automatically focusing on the Response code field
+	'               when you click on the Generate button.
+	'
+	'         - (+) Made the Hash buttons automatically focus on the Admin Key field
+	'               to bring attention to the Hash result visually.
+	'
+	'         - (+) Added the ability to now know both the cursor position and
+	'               the selection length when selecting text in the Admin Key field,
+	'               rather than only knowing the selection length.
+	'
+	'               This is useful for people who trim Admin key hashes to only
+	'               keep the first 48-chars without having to calculate
+	'               the number of characters to trim (e.g. 128-48 = 80 chars to remove).
+	'
+	'         - (+) Added the ability to now know the number of characters after
+	'               the last selected character when selecting Admin key characters
+	'               starting at the first position (first character ie. index 0).
+	'
+	'               This is useful for people who only keep the last 48-chars
+	'               of an Hash as their Admin key.
+	'
+	'         - (+) The App is now focusing by default on the Challenge code field
+	'               when running it for the first time (first time = launching the app).
+	'
+	'               When pausing then resuming the App (switching to another App),
+	'               the last focused element is left as-is (no focus change).
+	'
+	'         - (x) Corrected the package import not found in native Java code
+	'               when importing the inputmethod's EditorInfo package,
+	'               which means that the workaround constants are now
+	'               commented out too and left in the code for
+	'               historical reference only (now using proper builtin constants).
+	'
+	'         - (x) Improved Java native code package imports documentation.
+	'
+	'         - (x) Corrected the QR Scanner module's Activity background color
+	'               not being set (Default) which caused a different
+	'               background color to appear on older devices (e.g. CyanogenMod 7 ROMs).
+	'
+	'         - (-) De-duplicated the Main & QR scanner layouts' button text sizes
+	'               which were always being set to the same size in all the various
+	'               layout variant scripts anyway.
+	'
+	'         - (x) Slowed down the Admin Key cursor position Timer from 100ms
+	'               to 200ms since it doesn't need to be very fast,
+	'               and 200ms is perfect for our use-case since it's still
+	'               instantaneous for the Human eye (like an eyeblink).
+	'
+	'         - (+) Added a Hotfix for the App not being able to properly exit
+	'               on the first back button press in the Main module,
+	'               after having successfully scanned a QR code.
+	'
+	'               The Hotfix is an uncommon trick but it does the job.
+	'
+	'         - (+) Updated app screenshots since the last App version release.
 	'
 	#SupportedOrientations:       unspecified
 	#CanInstallToExternalStorage: False
@@ -187,22 +273,29 @@ Sub Process_Globals
 	'
 	Private SavedHideAdminKeyStateBeforeConfigurationChange As Boolean = True
 	
-	'Add more constants to support disabling the fullscreen keyboard.
+	' Update: These mentioned constants below aren't needed anymore
+	'         because I managed to fix the package import issue.
 	'
-	'In Java code, they will be called:
-	' * _ime_flag_no_extract_ui
-	' * _ime_flag_no_fullscreen
+	'         This code stays here in commented form
+	'         for historical reference purposes only.
+	' ----------------------------------------------------------------
+	' Add more constants to support disabling the fullscreen keyboard.
 	'
-	'Thanks to:
-	'https://stuff.mit.edu/afs/sipb/project/android/docs/reference/android/view/inputmethod/EditorInfo.html
+	' In Java code, they will be called:
+	'  * _ime_flag_no_extract_ui
+	'  * _ime_flag_no_fullscreen
 	'
-	'These constants have been added because
-	'the "android.view.inputmethod package" package
-	'refuses to correctly get imported,
-	'so I directly re-implemented the constants here.
+	' Thanks to:
+	' https://stuff.mit.edu/afs/sipb/project/android/docs/reference/android/view/inputmethod/EditorInfo.html
 	'
-	Public Const IME_FLAG_NO_EXTRACT_UI As Int = 0x10000000 'Added in API level 3+  (Android 1.5+)
-	Public Const IME_FLAG_NO_FULLSCREEN As Int = 0x02000000 'Added in API level 11+ (Android 3.0+)
+	' These constants have been added because
+	' the "android.view.inputmethod package" package
+	' refuses to correctly get imported,
+	' so I directly re-implemented the constants here.
+	'
+	'Public Const IME_FLAG_NO_EXTRACT_UI As Int = 0x10000000 'Added in API level 3+  (Android 1.5+)
+	'Public Const IME_FLAG_NO_FULLSCREEN As Int = 0x02000000 'Added in API level 11+ (Android 3.0+)
+	'
 	
 	'Must use a separate JavaObject for the Shared class
 	Public NativeShared As JavaObject
@@ -243,6 +336,21 @@ Sub Process_Globals
 	'Always give this variable a default value directly during init.
 	'
 	Private WasAdminKeyFieldFocused As Boolean = False
+	
+	'
+	' Backup & restore the cursor position & text selection when
+	' toggling PasswordMode visibility.
+	'
+	' Here they need a default initial value
+	'
+	Private SavedAdminKeySelectionStartBeforeConfigurationChange  As Int = 0
+	Private SavedAdminKeySelectionLengthBeforeConfigurationChange As Int = 0
+	
+	' Hotfix for the App not being able to properly exit
+	' on the first back button press in the Main module,
+	' after having successfully scanned a QR code.
+	'
+	Private HotfixForOldDevicesExitAppFlag As Boolean = False
 	
 End Sub
 
@@ -302,20 +410,72 @@ End Sub
 // on devices with a very low display scale
 // such as 0.75 (120dpi/ldpi).
 //
-import android.view.Window;
-import android.app.Activity; // requestWindowFeature() & getActionBar()
+import android.app.Activity;  // getWindow(), requestWindowFeature() & getActionBar()
+import android.view.Window;   // Window object & Window constants
 import android.app.ActionBar; // ActionBar object
 
 //
 // Adding FLAG_SECURE support to this App to avoid
 // leaking Admin keys in Recent Apps thumbnails.
 //
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
+import android.view.WindowManager;              // setFlags()
+import android.view.WindowManager.LayoutParams; // LayoutParams constants
+
+//
+// Disable the new Android 8.0+ Autofill service.
+//
+// We don't want any autofill service from Android itself
+// inside this App, if people need autofill then they
+// need to use a third-party secure one such as KeePassDX.
+//
+// The builtin Android Autofill service should never be trusted.
+//
+// This function will also be used for the QR scanner module,
+// so I put it inside the Shared class.
+//
+// Perhaps I might even move move Java native methods here
+// in the Shared class, if the App oneday gets more Activities
+// with EditTexts inside.
+//
+// Why I want to disable the Autofill service in the
+// QR scanner module, you may ask, especially since
+// it has no EditTexts?
+//
+// That's because I don't want the Android Autofill service
+// to ever initialize in any way inside this App's process,
+// and it could risk getting initialized when trying to
+// scan QR codes even if there are no EditTexts inside.
+//
+// Thanks to:
+// https://stackoverflow.com/questions/45731372/disabling-android-o-auto-fill-service-for-an-application
+// https://reactnative.dev/docs/textinput#importantforautofill-android
+//
+
+//import android.app.Activity;       // getWindow()
+//import android.view.Window;        // getDecorView()
+import android.view.ViewStructure;   // setImportantForAutofill()
+import android.view.View;            // View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
 
 #End If
 
 Sub Activity_Create(FirstTime As Boolean)
+	'
+	' Hotfix for the App not being able to properly exit
+	' on the first back button press in the Main module,
+	' after having successfully scanned a QR code.
+	'
+	If HotfixForOldDevicesExitAppFlag == True Then
+		For i = 0x00000001 To 0x7FFFFFFE
+			'
+			' So a Do While True / ExitApplication / Loop
+			' won't work?
+			'
+			' Well so you bet this one method will work!
+			'
+			ExitApplication()	' Use ExitApplication here
+								' to truly close the App.
+		Next
+	End If
 	
 	Activity.LoadLayout("MainLayout")
 	Activity.Title = Application.LabelName
@@ -395,6 +555,21 @@ Sub Activity_Create(FirstTime As Boolean)
 				//
 				System.exit(0); // return success
 				return;
+			}
+			
+			//
+			// Disable the new Android 8.0+ Autofill service (API level 26+)
+			//
+			// This function automatically verifies if we have the correct
+			// Android API level before trying to do it.
+			//
+			// Provide it with the Activity context.
+			//
+			
+			// Check Android SDK version - Android 8.0+ (API level 26+)
+			if ( android.os.Build.VERSION.SDK_INT >= 26 )
+			{
+				this.getWindow().getDecorView().setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
 			}
 			
 			//
@@ -525,11 +700,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'Updated: I prefer showing the default 48-zeroes Admin Key
 		'on App's first Activity start (it gets hidden on Activity resume anyway)
 		'
-		inpAdminKey.PasswordMode = False
-		chkHideAdminKey.Checked  = False
-		
-		'And we properly register the checkbox checked flag too.
-		WasHideAdminKeyCheckboxCheckedFlag = False
+		SetAdminKeyPasswordMode(False, False)
 		
 		'For showing the length of the text selection
 		'for the Admin key field when needed.
@@ -545,21 +716,60 @@ Sub Activity_Create(FirstTime As Boolean)
 		'
 		'So it will be AdminKeyTextSelectionTimer_Tick
 		'
-		AdminKeyTextSelectionTimer.Initialize("AdminKeyTextSelectionTimer", 100) '100ms
+		AdminKeyTextSelectionTimer.Initialize("AdminKeyTextSelectionTimer", 200) '200ms
 		
 	Else
+		'
 		'Add hotfix to avoid hiding the Admin key on App's first Activity launch
 		'set the global variable to False if it's not the first time that
 		'the activity is launched
+		'
 		DontHideAdminKeyBecauseFirstActivityLaunch = False
+		
 	End If
 	
+	'
 	'Hide the fullscreen keyboard in this Activity's EditTexts.
 	'Must be done after NativeMe.InitializeContext
 	'
-	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpChallenge))
 	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpAdminKey))
+	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpChallenge))
 	NativeMain.RunMethod("disableFullscreenKeyboard", Array(inpResponse))
+	
+	'
+	' Disable the Android annoyances that are:
+	' - Autocomplete
+	' - Autosuggestions
+	' - Autocorrect
+	' - Dictionary word learning
+	'
+	' Must be done after NativeMe.InitializeContext
+	'
+	' Even disable auto-correct too because it's annoying and
+	' cans potentially cause the user To generate wrong hashes
+	' If their original text gets auto-corrected by Android.
+	'
+	' This function automatically checks if the Android version
+	' is high enough to have the personalized learning annoyance,
+	' and makes it disabled it if it does have it.
+	'
+	NativeMain.RunMethod("disableTextFieldAnnoyances", Array(inpAdminKey))
+	NativeMain.RunMethod("disableTextFieldAnnoyances", Array(inpChallenge))
+	NativeMain.RunMethod("disableTextFieldAnnoyances", Array(inpResponse))
+	
+	'
+	' Add a fix for Android's flawed monospace font system.
+	'
+	' Thanks to:
+	' https://dev.to/maximsaplin/androids-monospace-font-is-not-monospace-151j
+	'
+	NativeMain.RunMethod("forceCorrectMonospaceFont", Array(inpAdminKey))
+	
+	'
+	' Fixing Android's flawed monospace implementation for digits.
+	' Also known As 'enabling tabular numbers' in monospace fonts.
+	'
+	NativeMain.RunMethod("fixMonospaceDigitsFont", Array(inpAdminKey))
 	
 	'Show the length of the Admin key
 	DisplayAdminKeyLength
@@ -584,6 +794,41 @@ Sub Activity_Create(FirstTime As Boolean)
 		
 	End If
 	
+	' Make sure that the PasswordMode is properly set
+	' to have a 'visible password' mode if needed,
+	' rather than a 'normal text' mode (privacy benefits).
+	'
+	' This if for having it done atleast once initially
+	' when the App is started.
+	'
+	' I can do it here because on the first Activity_Create,
+	' SetAdminKeyPasswordMode always runs atleast once in the end.
+	'
+	If	Not(SavedHideAdminKeyStateBeforeConfigurationChange) Or _
+		WasHideAdminKeyCheckboxCheckedFlag                      _
+	Then
+		'
+		' If Admin Key was unrevealable or the Hide checkbox was checked.
+		'
+		SetAdminKeyPasswordMode(True, False)
+		
+	Else
+		'
+		' If the Admin Key was not hidden or unrevealable (ie. not locked down)
+		'
+		SetAdminKeyPasswordMode(False, False)
+		
+	End If
+	
+	'
+	'After completing the Activity_Create tasks,
+	'if it's the first time it's run then
+	'focus on the Challenge code field.
+	'
+	If FirstTime Then
+		inpChallenge.RequestFocus
+	End If
+	
 End Sub
 
 Sub Activity_Pause (UserClosed As Boolean)
@@ -594,14 +839,23 @@ Sub Activity_Pause (UserClosed As Boolean)
 	'instead of relaunching from scratch (background task)
 	'
 	
+	'
+	'Save cursor position and selection length.
+	'
+	SaveAdminKeyCursorPosAndSel
+	
 	'Always hide the Admin Key field when switching to another app (if not empty).
 	'However no need to hide it if the field was empty anyway.
 	If inpAdminKey.Text <> "" Then
-		inpAdminKey.PasswordMode = True
-		chkHideAdminKey.Checked  = True
 		
-		'And we properly register the checkbox checked flag too.
-		WasHideAdminKeyCheckboxCheckedFlag = True
+		' Lie about the change coming from the Hide Admin Key checkbox,
+		' otherwise this function will recurse two times and lose the
+		' original cursor position and selection length information
+		' on App pause event.
+		'
+		' This is so that we don't fire the checkbox's CheckedChange event.
+		'
+		SetAdminKeyPasswordMode(True, True)
 		
 	End If
 	
@@ -675,6 +929,23 @@ Sub Activity_Pause (UserClosed As Boolean)
 End Sub
 
 Sub Activity_Resume
+	'
+	' Hotfix for the App not being able to properly exit
+	' on the first back button press in the Main module,
+	' after having successfully scanned a QR code.
+	'
+	If HotfixForOldDevicesExitAppFlag == True Then
+		For i = 0x00000001 To 0x7FFFFFFE
+			'
+			' So a Do While True / ExitApplication / Loop
+			' won't work?
+			'
+			' Well so you bet this one method will work!
+			'
+			ExitApplication()	' Use ExitApplication here
+								' to truly close the App.
+		Next
+	End If
 	
 	'When the device rotates, a disabled hide Admin Key checkbox
 	'becomes enabled again; so we have to check for whether
@@ -689,18 +960,22 @@ Sub Activity_Resume
 		'
 		
 		'Restore the disabled Hide Admin Key checkbox state.
-		chkHideAdminKey.Enabled = SavedHideAdminKeyStateBeforeConfigurationChange
+		LockAdminKeyOnPasswordMode
 		
 		'Restore the PasswordMode on the Admin Key input field
 		'because it could otherwise potentially not get
 		'restored automatically.
-		inpAdminKey.PasswordMode = True
-		
-		'Restore the checked Hide Admin Key checkbox state.
-		chkHideAdminKey.Checked  = True
-		
-		'And we properly register the checkbox checked flag too.
-		WasHideAdminKeyCheckboxCheckedFlag = True
+		'
+		'Restores the checked Hide Admin Key checkbox state too.
+		'
+		'Lie about it coming from the Hide Admin Key checkbox
+		'so that we don't recurse two times into firing the
+		'same events, which would cause loss of saved
+		'cursor position & selection length information.
+		'
+		'The Hide Admin Key checkbox state will be restored later.
+		'
+		SetAdminKeyPasswordMode(True, True)
 		
 		'
 		'I don't reset the SavedHideAdminKeyStateBeforeConfigurationChange
@@ -735,11 +1010,15 @@ Sub Activity_Resume
 		'disabled by an unrevealable Hash menu function prior.
 		'
 		If SavedAdminKeyBeforeConfigurationChange <> "" Then
-			inpAdminKey.PasswordMode = True
-			chkHideAdminKey.Checked  = True
 			
-			'And we properly register the checkbox checked flag too.
-			WasHideAdminKeyCheckboxCheckedFlag = True
+			'Lie about it coming from the Hide Admin Key checkbox
+			'so that we don't recurse two times into firing the
+			'same events, which would cause loss of saved
+			'cursor position & selection length information.
+			'
+			'The Hide Admin Key checkbox state will be restored later.
+			'
+			SetAdminKeyPasswordMode(True, True)
 			
 		End If
 		
@@ -768,11 +1047,14 @@ Sub Activity_Resume
 			'
 			'Hide the Admin key field even if empty because the user wanted to anyway.
 			'
-			inpAdminKey.PasswordMode = True
-			chkHideAdminKey.Checked  = True
-			
-			'Flag is already set to True, no need for duplicate calls.
-			'WasHideAdminKeyCheckboxCheckedFlag = True
+			'Lie about it coming from the Hide Admin Key checkbox
+			'so that we don't recurse two times into firing the
+			'same events, which would cause loss of saved
+			'cursor position & selection length information.
+			'
+			'The Hide Admin Key checkbox state will be restored later.
+			'
+			SetAdminKeyPasswordMode(True, True)
 			
 		Else
 			'
@@ -780,11 +1062,15 @@ Sub Activity_Resume
 			'Must not reveal the Admin key field if not empty.
 			'
 			If inpAdminKey.Text == "" Then
-				inpAdminKey.PasswordMode = False
-				chkHideAdminKey.Checked  = False
-				
-				'Flag is already set to False, no need for duplicate calls.
-				'WasHideAdminKeyCheckboxCheckedFlag = False
+				'
+				'Lie about it coming from the Hide Admin Key checkbox
+				'so that we don't recurse two times into firing the
+				'same events, which would cause loss of saved
+				'cursor position & selection length information.
+				'
+				'The Hide Admin Key checkbox state will be restored later.
+				'
+				SetAdminKeyPasswordMode(False, True)
 				
 			Else
 				'
@@ -803,11 +1089,15 @@ Sub Activity_Resume
 					'the Activity is at its first lifecycle start (FirstStart)
 					'that we don't forcibly hide the Admin key on Activity resume.
 					'
-					inpAdminKey.PasswordMode = True
-					chkHideAdminKey.Checked  = True
+					'Lie about it coming from the Hide Admin Key checkbox
+					'so that we don't recurse two times into firing the
+					'same events, which would cause loss of saved
+					'cursor position & selection length information.
+					'
+					'The Hide Admin Key checkbox state will be restored later.
+					'
+					SetAdminKeyPasswordMode(True, True)
 					
-					'And we properly register the checkbox checked flag too.
-					WasHideAdminKeyCheckboxCheckedFlag = True
 				End If
 			End If
 		End If
@@ -858,7 +1148,19 @@ Sub Activity_Resume
 	'the Activity was paused
 	'
 	If WasAdminKeyFieldFocused Then
+		'
+		'Just incase some Android ROMs somehow don't restore
+		'the focus state, mine does but perhaps not all do.
+		'
+		inpAdminKey.RequestFocus
+		'
+		'Restore the cursor position & text selection
+		'which works in all app pause/resume cases.
+		'
+		RestoreAdminKeyCursorPosAndSel
+		
 		AdminKeyTextSelectionTimer.Enabled = True
+		
 	Else
 		'No need to explicitly disable the timer if
 		'the Admin key field wasn't focused at the time
@@ -866,6 +1168,17 @@ Sub Activity_Resume
 		'paused always on Activity pause events.
 		'
 	End If
+	
+	'
+	'Now we manually fire the Hide Admin Key checkbox's
+	'CheckedChange event Sub after having restored the
+	'correct saved cursor position and selection length info.
+	'
+	'Hotfix for cases where after successfully scanning a QR code
+	'the Hide Admin Key checkbox didn't get visually re-checked
+	'again even though the Admin Key was correctly hidden (non-empty).
+	'
+	chkHideAdminKey.Checked = WasHideAdminKeyCheckboxCheckedFlag
 	
 	'
 	'Add ability to receive Admin Key with Android's Share To
@@ -908,11 +1221,7 @@ Sub Activity_Resume
 	And Not(AdminKeyAlreadySharedOnce) Then
 		
 		'Hide the Admin Key by default
-		inpAdminKey.PasswordMode = True
-		chkHideAdminKey.Checked  = True
-		
-		'And we properly register the checkbox checked flag too.
-		WasHideAdminKeyCheckboxCheckedFlag = True
+		SetAdminKeyPasswordMode(True, False)
 		
 		'Get the received Admin Key text and remove all invalid hex chars and newlines
 		Dim receivedText As String = receivedIntent.GetExtra("android.intent.extra.TEXT")
@@ -961,11 +1270,7 @@ Sub Activity_Resume
 			inpAdminKey.Text = ""
 			
 			'No need to set password-mode by default if the Admin Key is empty
-			inpAdminKey.PasswordMode = False
-			chkHideAdminKey.Checked  = False
-			
-			'And we properly register the checkbox checked flag too.
-			WasHideAdminKeyCheckboxCheckedFlag = False
+			SetAdminKeyPasswordMode(False, False)
 			
 			'Explain error to the user in a toast (better than modifying textfield hints)
 			ToastMessageShow("Shared Admin Key is invalid", False)
@@ -983,15 +1288,20 @@ Sub Activity_Resume
 		'Useful to prevent accidentally leaking Admin Keys
 		
 		If inpAdminKey.Text <> "" Then
-			chkHideAdminKey.Enabled = False
+			
+			LockAdminKeyOnPasswordMode
+			
 		Else
+			'
 			'If you Long-Click one of the Hash buttons then go back
 			'to this app in the Recents panel, after having shared
 			'an invalid Admin key first, then the 'Hide Admin Key'
 			'checkbox will not be automatically re-enabled.
 			'
 			' So we have to do it here explicitly (fixes minor UI glitch).
+			'
 			chkHideAdminKey.Enabled = True
+			
 		End If
 		
 		'Once an Admin key has already been shared to the App via Share To,
@@ -1021,11 +1331,8 @@ Sub Activity_Resume
 		'With added Hotfix for letting the Admin key be shown at the first
 		'App's Activity launch (Activity create with FirstTime flag set to True)
 		If inpAdminKey.Text <> "" And Not(DontHideAdminKeyBecauseFirstActivityLaunch) Then
-			inpAdminKey.PasswordMode = True
-			chkHideAdminKey.Checked  = True
 			
-			'And we properly register the checkbox checked flag too.
-			WasHideAdminKeyCheckboxCheckedFlag = True
+			SetAdminKeyPasswordMode(True, False)
 			
 		Else
 			'Clear the global variable 'DontHideAdminKeyBecauseFirstActivityLaunch'
@@ -1112,7 +1419,27 @@ Sub Activity_KeyPress(KeyCode As Int) As Boolean
 				
 			'Method for API 9 - 10 (Android 2.3.0 - 2.3.7)
 			Else
-				ExitApplication()
+				'
+				' Hotfix for the App not being able to properly exit
+				' on the first back button press in the Main module,
+				' after having successfully scanned a QR code.
+				'
+				HotfixForOldDevicesExitAppFlag = True
+				
+				For i = 0x00000001 To 0x7FFFFFFE
+					'
+					' So a Do While True / ExitApplication / Loop
+					' won't work?
+					'
+					' Well so you bet this one method will work!
+					'
+					Exit	' Use Exit here because we want the App
+							' to be able to try somehow re-running
+							' its launch Activity again, then it's
+							' exactly where we will terminate the App
+							' for real using ExitApplication instead.
+				Next
+				
 			End If
 			
 			'Consume the event (return True)
@@ -1182,13 +1509,106 @@ Private Sub QuicklyHideAdminKey() As Void
 	'to avoid leaking the Admin key inside the Recent Apps thumbnails.
 	'
 	If inpAdminKey.Text <> "" Then
-		inpAdminKey.PasswordMode = True
-		chkHideAdminKey.Checked  = True
 		
-		'And we properly register the checkbox checked flag too.
-		WasHideAdminKeyCheckboxCheckedFlag = True
+		SetAdminKeyPasswordMode(True, False)
 		
 	End If
+	
+End Sub
+
+'
+' New helper function to centrally to the current cursor
+' position and selection backup when toggling
+' PasswordMode visibility for the Admin Key field.
+'
+Private Sub SetAdminKeyPasswordMode(State As Boolean, FromCheckbox As Boolean) As Void
+	'
+	' Note: Don't do the cursor position & selection saving inside
+	'       this function, because many internal parts of the App
+	'       also call this function.
+	'
+	'       Always separately do the backup & restore of the cursor
+	'       position & selection where appropriate.
+	'
+	
+	'inpAdminKey.PasswordMode = State
+	
+	'
+	' Make sure that the PasswordMode is properly set
+	' to have a 'visible password' mode if needed,
+	' rather than a 'normal text' mode (privacy benefits).
+	'
+	' So it's either hidden password or visible password,
+	' but always atleast a password bitmask (not normal text).
+	'
+	' The last True value = MultiLine-enabled mode for it.
+	'
+	NativeMain.RunMethod("setEditTextPasswordModeHelper", Array(inpAdminKey, State))
+	
+	'
+	' Because Android's EditText bitmask system is stubborn
+	' I have to re-call these functions again on every
+	' EditText field PasswordMode change.
+	'
+	NativeMain.RunMethod("forceCorrectMonospaceFont", Array(inpAdminKey))
+	NativeMain.RunMethod("fixMonospaceDigitsFont", Array(inpAdminKey))
+	
+	' Don't do a redundant call to set the Admin Key checkbox
+	' if the event (function call) comes from the checkbox already.
+	'
+	If Not(FromCheckbox) Then
+		chkHideAdminKey.Checked = State
+	End If
+	
+	'And we properly register the checkbox checked flag too.
+	WasHideAdminKeyCheckboxCheckedFlag = State
+	
+End Sub
+
+'
+' Centrally handling the Admin Key lockdown too.
+' Cans only be True value for PasswordMode here.
+'
+' This function doesn't automatically hide the Admin key,
+' it only disables the Hide Admin Key checkbox.
+'
+' The Admin Key hiding is done separately right after
+' calling this function.
+'
+Private Sub LockAdminKeyOnPasswordMode() As Void
+	'
+	'Hardening against potential force-enable UI control hacks.
+	'
+	SavedHideAdminKeyStateBeforeConfigurationChange = False
+	chkHideAdminKey.Enabled = False
+	
+End Sub
+
+'
+' Backup the cursor position & text selection when
+' toggling PasswordMode visibility.
+'
+Private Sub SaveAdminKeyCursorPosAndSel() As Void
+	
+	SavedAdminKeySelectionStartBeforeConfigurationChange  = inpAdminKey.SelectionStart
+	SavedAdminKeySelectionLengthBeforeConfigurationChange = inpAdminKey.SelectionLength
+	
+End Sub
+
+'
+' Restore the cursor position & text selection when
+' toggling PasswordMode visibility.
+'
+Private Sub RestoreAdminKeyCursorPosAndSel() As Void
+	
+	'
+	' Separated for better readability
+	'
+	Dim SelectionStart, SelectionLength As Int
+	SelectionStart	= SavedAdminKeySelectionStartBeforeConfigurationChange
+	SelectionLength	= SavedAdminKeySelectionLengthBeforeConfigurationChange
+	
+	inpAdminKey.SetSelection(SelectionStart, SelectionLength)
 	
 End Sub
 
@@ -1241,7 +1661,35 @@ Private Sub DisplayAdminKeyLength() As Void
 		
 		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars) - Pos: "&SelectionStart
 		
-	Else If TextLength >= 1 And SelectionLength >= 1 And WasAdminKeyFieldFocused Then
+	Else If	TextLength >= 1 And SelectionLength >= 1 And WasAdminKeyFieldFocused _
+		And SelectionStart > 0 Then
+		'
+		'The user does need to know the cursor position too,
+		'not just the selection length if they're selecting
+		'texts in the middle of the Admin key string (for example).
+		'
+		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars) - Pos: "&SelectionStart&" | Sel: "&SelectionLength
+		
+	Else If TextLength >= 1 And SelectionLength >= 1 And WasAdminKeyFieldFocused _
+		And SelectionStart == 0 And SelectionLength < TextLength Then
+		'
+		'No need to show the cursor position if it's zero because
+		'the user obviously knows this.
+		'
+		'The user also doesn't need to know the number of chars
+		'after the selection end if they select all the text.
+		'
+		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars) - Sel: "&SelectionLength&" | After: "&(TextLength-(SelectionStart+SelectionLength))
+		
+	Else If TextLength >= 1 And SelectionLength >= 1 And WasAdminKeyFieldFocused _
+		And SelectionStart == 0 Then
+		'
+		'No need to show the cursor position if it's zero because
+		'the user obviously knows this.
+		'
+		'The user also doesn't need to know the number of chars
+		'after the selection end if they select all the text.
+		'
 		lblAdminKey.Text = "Admin Key: ("&TextLength&" chars) - Sel: "&SelectionLength
 		
 	Else If TextLength >= 1 Then
@@ -1473,21 +1921,25 @@ Private Sub btnHash_LongClickStub(HashType As String, Length As Int) As Void
 	'
 	'Hardening against potential force-enable UI control hacks.
 	'
-	SavedHideAdminKeyStateBeforeConfigurationChange = False
+	LockAdminKeyOnPasswordMode
 	
-	chkHideAdminKey.Enabled  = False
+	'
+	'Don't save the cursor position and selection when hashing text,
+	'this is intentional and not a bug because the text is going to be
+	'completely changed with an hash of it.
+	'
 	
-	inpAdminKey.PasswordMode = True
-	chkHideAdminKey.Checked  = True
-	
-	'And we properly register the checkbox checked flag too.
-	WasHideAdminKeyCheckboxCheckedFlag = True
+	SetAdminKeyPasswordMode(True, False)
 	
 	btnHash_ClickStub(HashType, Length)
 	
 End Sub
 
 Private Sub btnHash_ClickStub(HashType As String, Length As Int) As Void
+	'
+	'Visually bring attention to the Admin key field
+	'
+	inpAdminKey.RequestFocus
 	
 	Dim Hash As String = NativeMain.RunMethod("TextToHash", Array(inpAdminKey.Text, HashType))
 	
@@ -1639,17 +2091,33 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 		
 	End If
 	
-	If Checked == True Then
-		inpAdminKey.PasswordMode = True
-		WasHideAdminKeyCheckboxCheckedFlag = True
-	Else
-		inpAdminKey.PasswordMode = False
-		WasHideAdminKeyCheckboxCheckedFlag = False
-	End If
+	'
+	' Backup the cursor position & text selection when toggling
+	' PasswordMode visibility.
+	'
+	SaveAdminKeyCursorPosAndSel
+	
+	SetAdminKeyPasswordMode(Checked, True)
+	
+	'
+	' Restore the cursor position & text selection when toggling
+	' PasswordMode visibility.
+	'
+	RestoreAdminKeyCursorPosAndSel
 	
 End Sub
 
 Private Sub btnGenerate_Click
+	'
+	'Unfocus the Admin key field when the user clicks the Generate button.
+	'
+	'This helps makes the Admin key cursor position Timer run less often,
+	'especially useful since after generating the Response codes,
+	'the user might take some while to read & copy it on their computer.
+	'
+	'And for all these few seconds the Timer would've continued to run.
+	'
+	inpResponse.RequestFocus
 	
 	'
 	'Reset the Response Code label before generating a new Response Code
@@ -1890,7 +2358,7 @@ import android.content.Context;
 // https://stuff.mit.edu/afs/sipb/project/android/docs/reference/android/view/inputmethod/EditorInfo.html
 //
 import android.widget.EditText;
-//import android.view.inputmethod; // This one refuses to work so I skip it.
+import android.view.inputmethod.EditorInfo; // This one was tricky to figure out!
 
 //
 // Securely overwrite EditText contents with
@@ -1905,7 +2373,81 @@ import android.widget.TextView;
 //import android.content.Intent; // already imported for the finishAndRemoveTask workaround.
 import android.net.Uri;
 
+//
+// For hardening TextFields against Android invasive annoyances,
+// such as auto-suggestions, word dictionary learning, etc.
+//
+
+import android.text.InputType;
+
+//
+// Tweak to help make the Admin Key EditText become
+// a visible password or bulleted password field.
+//
+
+//import android.text.InputType; // already imported for disabling EditText annoyances
+
+//
+// Fixing Android's flawed monospace implementation for digits.
+// Also known as 'enabling tabular numbers' in monospace fonts.
+//
+// Android 5.0+ (API level 21+)
+//
+
+//import android.widget.EditText; // already imported for disabling the fullscreen keyboard.
+//import android.widget.TextView; // already imported for securely overwriting EditTexts.
+
+//
+// Set the fontFamily attribute for EditTexts with
+// the desired font family / typeface because some
+// Android phones don't prioritize typeface over font-family.
+//
+
+//import android.widget.EditText; // already imported for disabling the fullscreen keyboard.
+//import android.widget.TextView; // already imported for securely overwriting EditTexts.
+
+import android.graphics.Typeface;
+
 /* ************************************************ */
+
+//
+// Fixing Android's flawed monospace implementation for digits.
+// Also known as 'enabling tabular numbers' in monospace fonts.
+//
+// Thanks to:
+// https://stackoverflow.com/a/41143337
+// https://developer.android.com/reference/android/widget/TextView.html#setFontFeatureSettings(java.lang.String)
+// https://www.w3.org/TR/css-fonts-3/#font-feature-settings-prop
+//
+// https://dev.to/maximsaplin/androids-monospace-font-is-not-monospace-151j
+// https://github.com/adobe-fonts/source-code-pro
+//
+public void fixMonospaceDigitsFont(EditText myEditText) {
+	//
+	// Check Android SDK version - Android API level 21+ (Android 5.0+)
+	//
+	if ( android.os.Build.VERSION.SDK_INT >= 21 )
+	{
+		myEditText.setFontFeatureSettings("tnum");
+	}
+}
+
+//
+// Set the fontFamily attribute for EditTexts with the
+// desired monospace font-family / typeface because some
+// Android phones don't prioritize typeface over font-family.
+//
+// Thanks to:
+// https://stackoverflow.com/a/29109277
+// https://developer.android.com/reference/android/graphics/Typeface#MONOSPACE
+//
+public void forceCorrectMonospaceFont(EditText myEditText) {
+	//
+	// Two functions exist with different parameters.
+	//
+	myEditText.setTypeface(Typeface.MONOSPACE);
+	myEditText.setTypeface(Typeface.MONOSPACE, Typeface.NORMAL);
+}
 
 //
 // Replace the Phone library with quick Java functions
@@ -1956,6 +2498,7 @@ public void overwriteAdminKeyContent(EditText myAdminKeyField) {
 	// Or TextView.BufferType.EDITABLE (?)
 	myAdminKeyField.setText(_erase_admin_key_string_value, TextView.BufferType.NORMAL);
 }
+
 public void overwriteTriggerGarbageCollector() {
 	//
 	// Request that the JVM please runs the garbage collector
@@ -1974,14 +2517,8 @@ public void disableFullscreenKeyboard(EditText myEditText) {
 	// It's a safety measure to avoid showing the Admin keys in clear
 	// when the fullscreen keyboard appears instead of the normal one.
 	//
-	// IME_FLAG_NO_EXTRACT_UI is only available on Android 1.5+
-	// IME_FLAG_NO_FULLSCREEN is only available on Android 3.0+
-	//
-	// Make sure to have these constants in your Process_Globals!
-	//
-	// They will then be called as below in native Java code:
-	// * _ime_flag_no_extract_ui
-	// * _ime_flag_no_fullscreen
+	// IME_FLAG_NO_EXTRACT_UI is only available on Android 1.5+ (API level 3+)
+	// IME_FLAG_NO_FULLSCREEN is only available on Android 3.0+ (API level 11+)
 	//
 	
 	// Check the SDK version (API level).
@@ -1991,14 +2528,162 @@ public void disableFullscreenKeyboard(EditText myEditText) {
 	if ( sdkVersion >= 11 )
 	{
 		int imeOptions = myEditText.getImeOptions();
-		myEditText.setImeOptions(imeOptions | _ime_flag_no_extract_ui | _ime_flag_no_fullscreen);
+		myEditText.setImeOptions(imeOptions | EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_FULLSCREEN);
 	}
 	// Android 1.5+
 	else if ( sdkVersion >= 3 )
 	{
 		int imeOptions = myEditText.getImeOptions();
-		myEditText.setImeOptions(imeOptions | _ime_flag_no_extract_ui);
+		myEditText.setImeOptions(imeOptions | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 	}
+}
+
+//
+// Disable the Android annoyances that are:
+// - Autocomplete
+// - Autosuggestions
+// - Autocorrect
+// - Dictionary word learning
+//
+// Even disable auto-correct too because it's annoying and
+// cans potentially cause the user to generate wrong hashes
+// if their original text gets auto-corrected by Android.
+//
+// Thanks to:
+// https://developer.android.com/reference/android/text/InputType#TYPE_TEXT_FLAG_NO_SUGGESTIONS
+// https://groups.google.com/g/h2-database/c/g1kWVMnMcEk/m/YpLT-EpuePoJ
+//
+public void disableTextFieldAnnoyances(EditText myEditText) {
+	//
+	// Disable the aforementioned two Android annoyances.
+	//
+	// TYPE_TEXT_FLAG_AUTO_COMPLETE  is only available on Android 1.5+ (API level 3+)
+	// TYPE_TEXT_FLAG_AUTO_CORRECT   is only available on Android 1.5+ (API level 3+)
+	// TYPE_TEXT_FLAG_NO_SUGGESTIONS is only available on Android 2.0+ (API level 5+)
+	//
+	// IME_FLAG_NO_PERSONALIZED_LEARNING is only available on Android 8.0+ (API level 26+)
+	//
+	// TYPE_TEXT_FLAG_ENABLE_TEXT_CONVERSION_SUGGESTIONS only on Android 13+ (API level 33+)
+	// TYPE_TEXT_FLAG_ENABLE_TEXT_SUGGESTION_SELECTED    only on Android 17+ (API level 37+)
+	//
+	
+	// Check the SDK version (API level).
+	int sdkVersion = android.os.Build.VERSION.SDK_INT;
+	
+	//
+	// Changes done in cascading order (cumulative).
+	//
+	// Depending on the Android API level,
+	// multiple paths can be reached.
+	//
+	int inputType  = myEditText.getInputType();
+	int imeOptions = myEditText.getImeOptions();
+	
+	// Android 17+
+	//
+	if ( sdkVersion >= 37 )
+	{
+		inputType = inputType & ~InputType.TYPE_TEXT_FLAG_ENABLE_TEXT_SUGGESTION_SELECTED;
+	}
+	
+	// Android 13+
+	//
+	if ( sdkVersion >= 33 )
+	{
+		inputType = inputType & ~InputType.TYPE_TEXT_FLAG_ENABLE_TEXT_CONVERSION_SUGGESTIONS;
+	}
+	
+	// Android 8.0+
+	//
+	if ( sdkVersion >= 26 )
+	{
+		imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
+	}
+	
+	// Android 2.0+
+	//
+	if ( sdkVersion >= 5 )
+	{
+		inputType = inputType | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+	}
+	
+	// Android 1.5+
+	//
+	if ( sdkVersion >= 3 )
+	{
+		inputType = inputType & ~InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
+		inputType = inputType & ~InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+	}
+	
+	myEditText.setInputType(inputType);
+	myEditText.setImeOptions(imeOptions);
+}
+
+//
+// Tweak to help make the Admin Key EditText become
+// a visible password or bulleted password field.
+//
+// Making an EditText field a visible password has additinal
+// privacy & hardening benefits against accidental logging
+// and information leaks from the Android OS's builtin services.
+//
+public void setEditTextPasswordModeHelper(EditText myEditText, boolean setPasswordMode) {
+	//
+	// TYPE_TEXT_VARIATION_PASSWORD         is only available on Android 1.5+ (API level 3+)
+	// TYPE_TEXT_VARIATION_VISIBLE_PASSWORD is only available on Android 1.5+ (API level 3+)
+	//
+	
+	//
+	// Android 1.5+ (API level 3+)
+	//
+	if ( android.os.Build.VERSION.SDK_INT >= 3 )
+	{
+		//
+		// Since all constants require API level 3+
+		// I can just do it all in one if statement.
+		//
+		int inputType = myEditText.getInputType();
+		
+		if (setPasswordMode)
+		{
+			//
+			// For Password mode (hidden bullet chars)
+			//
+			inputType = inputType & ~InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+			inputType = inputType |  InputType.TYPE_TEXT_VARIATION_PASSWORD;
+		}
+		else
+		{
+			//
+			// For Normal mode (still make it a password but visible)
+			//
+			inputType = inputType & ~InputType.TYPE_TEXT_VARIATION_PASSWORD;
+			inputType = inputType |  InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
+		}
+		
+		myEditText.setInputType(inputType);
+	}
+	
+	//
+	// And because of course the Android OS APIs can be stubborn,
+	// I have to make sure that every single flag gets re-added again.
+	//
+	// Yes this is ridiculous in terms of performance decrease,
+	// but I have to do it or it just won't work to change the
+	// EditText field's PasswordMode without it breaking the monospace font.
+	//
+	disableFullscreenKeyboard(myEditText);
+	disableTextFieldAnnoyances(myEditText);
+	
+	//
+	// Note: not all EditText in PasswordMode will always have
+	// a monospace font style, perhaps in the future there
+	// might be new EditText in PasswordMode but without the
+	// monospace font style.
+	//
+	// So the repair of the monospace font style should be done
+	// separately in the original function that called this one.
+	//
 }
 
 public void finishAndRemoveTaskForNewerAndroid() {
