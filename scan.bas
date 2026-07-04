@@ -78,16 +78,51 @@ End Sub
 // on devices with a very low display scale
 // such as 0.75 (120dpi/ldpi).
 //
-import android.view.Window;
-import android.app.Activity; // requestWindowFeature() & getActionBar()
+import android.app.Activity;  // getWindow(), requestWindowFeature() & getActionBar()
+import android.view.Window;   // Window object & Window constants
 import android.app.ActionBar; // ActionBar object
 
 //
 // Adding FLAG_SECURE support to this App to avoid
 // leaking Admin keys in Recent Apps thumbnails.
 //
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
+import android.view.WindowManager;              // setFlags()
+import android.view.WindowManager.LayoutParams; // LayoutParams constants
+
+//
+// Disable the new Android 8.0+ Autofill service.
+//
+// We don't want any autofill service from Android itself
+// inside this App, if people need autofill then they
+// need to use a third-party secure one such as KeePassDX.
+//
+// The builtin Android Autofill service should never be trusted.
+//
+// This function will also be used for the QR scanner module,
+// so I put it inside the Shared class.
+//
+// Perhaps I might even move move Java native methods here
+// in the Shared class, if the App oneday gets more Activities
+// with EditTexts inside.
+//
+// Why I want to disable the Autofill service in the
+// QR scanner module, you may ask, especially since
+// it has no EditTexts?
+//
+// That's because I don't want the Android Autofill service
+// to ever initialize in any way inside this App's process,
+// and it could risk getting initialized when trying to
+// scan QR codes even if there are no EditTexts inside.
+//
+// Thanks to:
+// https://stackoverflow.com/questions/45731372/disabling-android-o-auto-fill-service-for-an-application
+// https://reactnative.dev/docs/textinput#importantforautofill-android
+//
+
+//import android.app.Activity;       // getWindow()
+//import android.view.Window;        // getDecorView()
+import android.view.ViewStructure;   // setImportantForAutofill()
+import android.view.View;            // View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
 
 #End If
 
@@ -117,6 +152,21 @@ Sub Activity_Create(FirstTime As Boolean)
 		// I already did the screenshots a while ago anyway.
 		//
 		public void _onCreate() {
+			
+			//
+			// Disable the new Android 8.0+ Autofill service (API level 26+)
+			//
+			// This function automatically verifies if we have the correct
+			// Android API level before trying to do it.
+			//
+			// Provide it with the Activity context.
+			//
+			
+			// Check Android SDK version - Android 8.0+ (API level 26+)
+			if ( android.os.Build.VERSION.SDK_INT >= 26 )
+			{
+				this.getWindow().getDecorView().setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
+			}
 			
 			//
 			// Hide the Title bar / Action bar on very-low DPI devices
