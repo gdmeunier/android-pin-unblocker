@@ -1,41 +1,46 @@
 
-1. Copy libraries
-=================
+1. Copy libraries to your Basic4Android install
+===============================================
 
-Copy these files to this folder (create it if it doesn't exist):
-
+Copy all provided library files (JAR & XML) to this folder:
 C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 
-2. Configure Additional Libraries path
-======================================
+[i] Create this folder structure if it doesn't already exist.
 
-After running Basic4Android go to the "Tools -> Configure Paths"
-menu and set the Additional Libraries path to this folder:
+2. Configure the Additional Libraries path
+==========================================
+
+After running Basic4Android, click on the
+'Tools -> Configure Paths' menu item and set
+the 'Additional Libraries' path to this value:
 
 C:\Program Files\Anywhere Software\B4A\AdditionalLibraries
 
-3. Example javac.exe and android.jar paths
-==========================================
+[i] Basic4Android automatically search subfolders for
+    compatible Basic4Android additional libraries.
+
+3. Example javac.exe and android.jar file paths
+===============================================
 
 javac.exe:   C:\java\jdk-14.0.1\bin\javac.exe
-android.jar: C:\Android\platforms\android-33\android.jar
+android.jar: C:\Android\platforms\android-37.0\android.jar
 
-You can change the paths to your own if you installed
-the Java JDK and Android SDK elsewhere on your system.
+[i] You can change the paths to your own if you installed
+    the Java JDK and Android SDK elsewhere on your system.
 
-4. Clear Basic4Android library cache
-====================================
+4. Clear the Basic4Android library cache
+========================================
 
 If your Android SDK is installed in "C:\Android" then
-you can delete all folders located inside:
+you can delete all the files & folders located at:
 
 C:\Android\extras\b4a_local
 
 Finally inside this project's "Objects" folder delete
-all the contents except this file which needs to exist:
+all the contents except this file which must exist:
 
 Objects\res\drawable\icon.png
 
-Doing the above will force refreshing the library files
-with the latest updated versions.
+[i] Doing the above step will force refreshing
+    the library cache with the updated libraries.
 
