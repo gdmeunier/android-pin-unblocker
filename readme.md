@@ -1,6 +1,6 @@
 
 <p align="center">
-	<img src="./icon.png" width="128" height="128"/>
+	<img src="./Objects/res/drawable/icon.png" width="128" height="128"/>
 </p>
 
 # Android PIN Unblocker
