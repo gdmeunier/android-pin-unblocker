@@ -1,0 +1,1767 @@
+﻿Build1=Default,net.gdmeunier.pinunblocker
+Build2=NO_FLAG_SECURE,net.gdmeunier.pinunblocker,NO_FLAG_SECURE
+File1=About.png
+File2=Main.bal
+File3=Scan.bal
+FileGroup1=Assets
+FileGroup2=Layouts
+FileGroup3=Layouts
+Group=Activities
+Library1=core
+Library2=javaobject
+Library3=runtimepermissions
+Library4=newqrcodereaderview
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3 & later (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Supported device screen sizes & densities~\n~AddManifestText(~\n~<supports-screens ~\n~	android:smallScreens="true" ~\n~	android:normalScreens="true" ~\n~	android:largeScreens="true" ~\n~	android:anyDensity="true" ~\n~/>)~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/MyTheme")~\n~~\n~'Android 8.0+ theme~\n~CreateResource(values-v26, mytheme.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:editTextStyle">@style/MyTheme.EditText</item>~\n~	</style>~\n~</resources>)~\n~'Disable Android Autofill service (Android 8.0+)~\n~'Disable Undo & Redo function (Android 6.0+)~\n~CreateResource(values-v26, mytheme_edittext.xml,~\n~<resources>~\n~	<style name="MyTheme.EditText" parent="@android:style/Widget.EditText">~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6.0+ theme~\n~CreateResource(values-v23, mytheme.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme.Material">~\n~		<item name="android:editTextStyle">@style/MyTheme.EditText</item>~\n~	</style>~\n~</resources>)~\n~'Disallow Undo & Redo functionality (Android 6.0+)~\n~CreateResource(values-v23, mytheme_edittext.xml,~\n~<resources>~\n~	<style name="MyTheme.EditText" parent="@android:style/Widget.EditText">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0+ theme~\n~CreateResource(values-v21, mytheme.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme.Material">~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0+ theme~\n~CreateResource(values-v11, mytheme.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme.Holo">~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3- theme~\n~CreateResource(values,     mytheme.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~	</style>~\n~</resources>)~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~SetActivityAttribute(Main, "android:taskAffinity", "")~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"   android:required="false" />)~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Make the QR scanner Activity non-exportable (private)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Add a Share To functionality for receiving Admin keys~\n~'~\n~'This allows other Android applications to send text to~\n~'this App, and if they're valid Hex strings then it gets~\n~'used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and~\n~'forward this Hash to Android PIN Unblocker~\n~'~\n~AddActivityText(Main,~\n~<intent-filter>~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
+Module1=MyAdvanced
+Module2=MyCommon
+Module3=MyConstants
+Module4=MyCryptography
+Module5=MySecurity
+Module6=Scan
+NumberOfFiles=3
+NumberOfLibraries=4
+NumberOfModules=6
+Version=12.5
+@EndOfDesignText@
+
+#Region Project Attributes
+	#ApplicationLabel: Android PIN Unblocker
+	#VersionCode: 47
+	#VersionName: 4.0.0
+	
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+	
+	#BridgeLogger: False
+	#MultiDex:     False
+	
+#End Region
+
+#Region Activity Attributes
+	#FullScreen:   False
+	#IncludeTitle: True
+	
+#End Region
+
+#Region Module File Attributes
+	'Ignore "The recommended value for android:targetSdkVersion is x (manifest editor)" warning (#31)
+	#IgnoreWarnings: 31
+	
+#End Region
+
+'Java functions ------------------------------------------------
+#If Java
+private myadvanced MainAdvanced = new myadvanced();
+
+import android.content.Context;
+public void jBetterActivityFinish()
+{
+	// Method of providing context to a class
+	// Call its functions with the "this" keyword
+	MainAdvanced.jBetterActivityFinish(this);
+}
+
+import android.content.Context;
+public void jOpenBrowserUrl(String browserUrl)
+{
+	MainAdvanced.jOpenBrowserUrl(browserUrl, this);
+}
+
+import android.content.Context;
+public float jGetDeviceScale()
+{
+	return MainAdvanced.jGetDeviceScale(this);
+}
+
+import android.content.Context;
+public void jDisableActivityTitleBar()
+{
+	MainAdvanced.jDisableActivityTitleBar(this);
+}
+
+import android.content.Context;
+public void jDisableActivityActionBar()
+{
+	MainAdvanced.jDisableActivityActionBar(this);
+}
+
+import android.content.Context;
+public boolean jEnableActivityFlagSecure()
+{
+	return MainAdvanced.jEnableActivityFlagSecure(this);
+}
+
+import android.content.Context;
+public boolean jDisableRecentAppsThumbnails()
+{
+	return MainAdvanced.jDisableRecentAppsThumbnails(this);
+}
+
+import android.content.Context;
+public void jDisableAndroidAutofillService()
+{
+	MainAdvanced.jDisableAndroidAutofillService(this);
+}
+#End If
+'------------------------------------------------------------------
+
+Sub Process_Globals
+	'ViewState registers for restoring the App state
+	'on Activity destruction & re-creation
+	Private ViewState_LastFocusedElement As String
+	
+	Private ViewState_edtChallenge_Text            As String
+	Private ViewState_edtChallenge_SelectionStart  As Int
+	Private ViewState_edtChallenge_SelectionLength As Int
+	
+	'The Admin Key label is always dynamically updated
+	'so it doesn't need to be saved & restored
+	'it will always be updated to the correct latest state
+	
+	Private ViewState_edtAdminKey_Text            As String
+	Private ViewState_edtAdminKey_SelectionStart  As Int
+	Private ViewState_edtAdminKey_SelectionLength As Int
+	
+	Private ViewState_chkHideAdminKey_Checked As Boolean
+	Private ViewState_chkHideAdminKey_Enabled As Boolean = True 'Sensitive flag
+	
+	Private ViewState_btnHashMenu_Checked As Boolean
+	
+	Private ViewState_lblResponse_Text As String
+	
+	Private ViewState_edtResponse_Text            As String
+	Private ViewState_edtResponse_SelectionStart  As Int
+	Private ViewState_edtResponse_SelectionLength As Int
+	
+	'Admin Key selection information in Admin Key label
+	Private SelectionTimer_edtAdminKey As Timer
+	
+	'Convenience constants stored inside this class
+	Private Constants As MyConstants
+	
+	'Better method of managing the App's security
+	Private Security As MySecurity
+	
+	'For getting Phone library functions without
+	'bundling the big Phone library
+	Private Common As MyCommon
+	
+	'For generating text hashes & encryption (response codes)
+	Private Cryptography As MyCryptography
+	
+	'For advanced Java functions that require context
+	Private joMain As JavaObject
+	
+	'For the QR code scanner module
+	Public Shared_AllowEmptyQRCodeContent As Boolean 'Whether the QR code content was literally empty
+	Public Shared_DetectedQRCodeContents  As String
+	
+	'For sharing Admin Keys to the App
+	'Don't allow Android to repeatedly re-send its Share To Intents
+	Private AdminKeyAlreadySharedToTheAppOnce As Boolean = False 'Must have a default value here
+	
+	'For always hiding the Admin Key on App switch
+	'except on the first Activity launch
+	Private IsFirstActivityLaunch As Boolean = True 'Must have a default value here
+	
+End Sub
+
+Sub Globals
+	Private lblChallenge As Label 'For getting its properties to fix btnHashMenuBg's
+	Private edtChallenge As EditText
+	
+	Private lblAdminKey As Label
+	Private edtAdminKey As EditText
+	
+	Private chkHideAdminKey As CheckBox
+	Private btnHashMenu     As ToggleButton
+	
+	Private btnHashMenuBg As Button
+	Private btnSha256     As Button
+	Private btnSha512     As Button
+	
+	Private lblResponse As Label
+	Private edtResponse As EditText
+	
+End Sub
+
+#Region ViewState functions
+
+'Special function used for either setting initial defaults
+'or for securely erasing the ViewState before Activity exit
+Private Sub ResetViewState
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] ResetViewState: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] ResetViewState: Setting the focus on the Activity handle itself"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] ResetViewState: This automatically causes all other UI elements to lose the focus"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] ResetViewState: This also means that selection information and timers automatically stop themselves"$, Colors.Blue)
+	Activity.RequestFocus
+	
+	LogColor($"[Main-${LogContextId}] ResetViewState: Setting the ViewState last focused element to "Activity""$, Colors.Blue)
+	ViewState_LastFocusedElement = "Activity"
+	
+	LogColor($"[Main-${LogContextId}] ResetViewState: Setting initial values for text fields"$, Colors.Blue)
+	Private ViewState_edtChallenge_Text As String = ""
+	Private ViewState_edtAdminKey_Text  As String = "000000000000000000000000000000000000000000000000"
+	Private ViewState_edtResponse_Text  As String = ""
+	
+	'The Admin Key label is always dynamically re-generated anyway
+	'No need to save and restore it
+	LogColor($"[Main-${LogContextId}] ResetViewState: Setting initial values for text labels"$, Colors.Blue)
+	Private ViewState_lblResponse_Text As String = "Response:"
+	
+	'The layout file for Main has the Admin Key field
+	'in PasswordMode and the Hide Admin Key checkbox
+	'in Checked state by default
+	LogColor($"[Main-${LogContextId}] ResetViewState: Setting initial states for checkboxes & menu buttons"$, Colors.Blue)
+	Private ViewState_chkHideAdminKey_Checked As Boolean = True
+	Private ViewState_btnHashMenu_Checked     As Boolean = False
+	
+	LogColor($"[Main-${LogContextId}] ResetViewState: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub SaveViewState()
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] SaveViewState: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Challenge field .Text"$, Colors.Blue)
+	ViewState_edtChallenge_Text = edtChallenge.Text
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Challenge field .Selection state"$, Colors.Blue)
+	ViewState_edtChallenge_SelectionStart  = edtChallenge.SelectionStart
+	ViewState_edtChallenge_SelectionLength = edtChallenge.SelectionLength
+	
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Admin Key field .Text"$, Colors.Blue)
+	ViewState_edtAdminKey_Text = edtAdminKey.Text
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Admin Key field .Selection state"$, Colors.Blue)
+	ViewState_edtAdminKey_SelectionStart  = edtAdminKey.SelectionStart
+	ViewState_edtAdminKey_SelectionLength = edtAdminKey.SelectionLength
+	
+	'The Hide Admin Key checkbox's .Checked is saved in realtime
+	'in its own respective CheckedChanged event handler
+	
+	'The Admin Key label is always dynamically re-generated anyway
+	'No need to save and restore it
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Response label .Text"$, Colors.Blue)
+	ViewState_lblResponse_Text = lblResponse.Text
+	
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Response field .Text"$, Colors.Blue)
+	ViewState_edtResponse_Text = edtResponse.Text
+	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Response field .Selection state"$, Colors.Blue)
+	ViewState_edtResponse_SelectionStart  = edtResponse.SelectionStart
+	ViewState_edtResponse_SelectionLength = edtResponse.SelectionLength
+	
+	'Last focused element is always saved in realtime in their
+	'own respective FocusChanged event handlers
+	
+	LogColor($"[Main-${LogContextId}] SaveViewState: Stopping any running selection timer by setting the focus on the Activity handle itself"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] SaveViewState: However we do it without affecting the ViewState last selected element register because we will restore this information on App resume"$, Colors.Blue)
+	Activity.RequestFocus
+	
+	LogColor($"[Main-${LogContextId}] SaveViewState: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub RestoreViewState()
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Hide Admin Key checkbox .Enabled state"$, Colors.Blue)
+	chkHideAdminKey.Enabled = ViewState_chkHideAdminKey_Enabled
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Hide Admin Key checkbox .Checked state"$, Colors.Blue)
+	chkHideAdminKey.Checked = ViewState_chkHideAdminKey_Checked
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Challenge field .Text"$, Colors.Blue)
+	edtChallenge.Text = ViewState_edtChallenge_Text
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Admin Key field .Text"$, Colors.Blue)
+	edtAdminKey.Text = ViewState_edtAdminKey_Text
+	
+	'The Admin Key label is always dynamically re-generated anyway
+	'No need to save and restore it
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Response label .Text"$, Colors.Blue)
+	lblResponse.Text = ViewState_lblResponse_Text
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Response field .Text"$, Colors.Blue)
+	edtResponse.Text = ViewState_edtResponse_Text
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the Hash Text menu button .Checked state"$, Colors.Blue)
+	btnHashMenu.Checked = ViewState_btnHashMenu_Checked
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Checking what was the last focused element before"$, Colors.Blue)
+	Select ViewState_LastFocusedElement
+		Case "edtChallenge"
+			LogColor($"[Main-${LogContextId}] RestoreViewState: The last focused element before was edtChallenge"$, Colors.Blue)
+			
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the focus state on edtChallenge"$, Colors.Blue)
+			edtChallenge.RequestFocus
+			
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the .Selection state for edtChallenge"$, Colors.Blue)
+			edtChallenge.SetSelection(ViewState_edtChallenge_SelectionStart, ViewState_edtChallenge_SelectionLength)
+			
+		Case "edtAdminKey"
+			LogColor($"[Main-${LogContextId}] RestoreViewState: The last focused element before was edtAdminKey"$, Colors.Blue)
+			
+			'This will fire its FocusChanged event which will
+			'update the Admin Key label accordingly
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the focus state on edtAdminKey"$, Colors.Blue)
+			edtAdminKey.RequestFocus
+			
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the .Selection state for edtAdminKey"$, Colors.Blue)
+			edtAdminKey.SetSelection(ViewState_edtAdminKey_SelectionStart, ViewState_edtAdminKey_SelectionLength)
+			
+		Case "edtResponse"
+			LogColor($"[Main-${LogContextId}] RestoreViewState: The last focused element before was edtResponse"$, Colors.Blue)
+			
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the focus state on edtResponse"$, Colors.Blue)
+			edtResponse.RequestFocus
+			
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Restoring the .Selection state for edtResponse"$, Colors.Blue)
+			edtResponse.SetSelection(ViewState_edtResponse_SelectionStart, ViewState_edtResponse_SelectionLength)
+			
+		Case Else
+			LogColor($"[Main-${LogContextId}] RestoreViewState: The last focused element was not found in the list"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] RestoreViewState: Not restoring the focus state on any specific element"$, Colors.Magenta)
+			
+	End Select
+	
+	LogColor($"[Main-${LogContextId}] RestoreViewState: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Activity Event Handlers
+
+Sub Activity_Create(FirstTime As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Load Main layout"$, Colors.Blue)
+	Activity.LoadLayout("Main")
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Set Activity title"$, Colors.Blue)
+	Activity.Title = Application.LabelName
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Check if it's the FirstTime Activity launch"$, Colors.Blue)
+	If FirstTime Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: It's the FirstTime Activity launch"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Disable the Admin Key selection timer so that it doesn't tick upon initialization"$, Colors.Blue)
+		SelectionTimer_edtAdminKey.Enabled = False
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Initialize the Admin Key selection timer at a tick rate of 100ms"$, Colors.Blue)
+		SelectionTimer_edtAdminKey.Initialize("SelectionTimer_edtAdminKey", 100)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Get an initial ViewState with default UI element values by resetting the ViewState"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: The layout files don't always contain default UI element values"$, Colors.Blue)
+		ResetViewState
+		
+		'Use ViewState registers here instead of calling elements' .RequestFocus
+		'The restore of the ViewState will be done in the Activity_Resume
+		LogColor($"[Main-${LogContextId}] Activity_Create: Alter the ViewState to display the Admin Key by default because it's the FirstTime Activity launch"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: Set the ViewState .Checked state of chkHideAdminKey to False"$, Colors.Blue)
+		ViewState_chkHideAdminKey_Checked = False
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Alter the ViewState to focus on the Challenge code field by default because it's the FirstTime Activity launch"$, Colors.Blue)
+		ViewState_LastFocusedElement = "edtChallenge"
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Initialize the Constants Class (MyConstants class)"$, Colors.Blue)
+		Constants.Initialize
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Initialize the Security Class (MySecurity class)"$, Colors.Blue)
+		Security.Initialize
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Initialize the Common Class (MyCommon class)"$, Colors.Blue)
+		Common.Initialize
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Initialize the Cryptography Class (MyCryptography class)"$, Colors.Blue)
+		Cryptography.Initialize
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Create: It's not the FirstTime Activity launch"$, Colors.Blue)
+		
+	End If
+	
+	'The Activity context must always be fresh,
+	'so always re-initialize the joMain JavaObject
+	'on every Activity create (not just on FirstTime)
+	'
+	'This is mandatory for context-dependent functions
+	'that receive the Activity context, because they
+	'must always have a fresh Activity context handle!
+	LogColor($"[Main-${LogContextId}] Activity_Create: Initialize the joMain JavaObject always (not just on FirstTime launch)"$, Colors.Blue)
+	joMain.InitializeContext
+	
+	'Warn about the risks of using the NO_FLAG_SECURE build
+	'on Android versions less than API level 33 (Android 13)
+	'
+	'Admin Keys can potentially leak in Recent Apps thumbnails
+	'if the user isn't careful with this special configuration
+	'
+	'Android versions older than 3.0 (API level 11) have no
+	'Recent Apps panel feature anyway, so they're not affected
+	'
+	'Recent Apps panel = the one with Apps' window thumbnails
+	'Not the legacy one with only the App icons
+	#If NO_FLAG_SECURE
+	'FirstTime launch Activity warnings
+	'Only for the Main Activity (Main module)
+	If FirstTime Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: This build of the App has the NO_FLAG_SECURE build flag set"$, Colors.Red)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Verify if the Android version is older than Android 13 (API level < 33) but is Android 3.0 or newer (API level >= 11)"$, Colors.Red)
+		If Common.GetAndroidSdkVersion < 33 And Common.GetAndroidSdkVersion >= 11 Then
+			LogColor($"[Main-${LogContextId}] Activity_Create: The Android version is older than Android 13 (API level < 33) but is also either Android 3.0 or newer (API level >= 11)"$, Colors.Red)
+			LogColor($"[Main-${LogContextId}] Activity_Create: The only way to protect against Recent Apps thumbnails in these older versions of Android is to use FLAG_SECURE"$, Colors.Red)
+			LogColor($"[Main-${LogContextId}] Activity_Create: However the FLAG_SECURE option is not set in this build"$, Colors.Red)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: Warn the user about it on the first Activity launch"$, Colors.Red)
+			ToastMessageShow("This build of the App is insecure!", Constants.TOAST_DURATION_SHORT)
+			ToastMessageShow("Admin Keys can be leaked in this build", Constants.TOAST_DURATION_LONG)
+			
+		Else If Common.GetAndroidSdkVersion >= 33 Then
+			LogColor($"[Main-${LogContextId}] Activity_Create: The Android version is Android 13 or newer (API level >= 33)"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] Activity_Create: On Android 13 and newer, it's possible to protect the user anyway"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] Activity_Create: We can selectively disable Recent Apps thumbnails for this App without FLAG_SECURE on these more recent Android versions"$, Colors.Magenta)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: No need to alert the user about it"$, Colors.Magenta)
+			
+		Else
+			LogColor($"[Main-${LogContextId}] Activity_Create: The Android version is older than Android 3.0 (API level < 11)"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] Activity_Create: It's so old that there was not even a Recent Apps panel feature on it yet"$, Colors.Magenta)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: No need to alert the user about it"$, Colors.Magenta)
+			
+		End If
+	End If
+	
+	'Try to disable Recent Apps thumbnails always even in NO_FLAG_SECURE mode
+	LogColor($"[Main-${LogContextId}] Activity_Create: Verifying if the device Android version is Android 13 or newer (API level >= 33)"$, Colors.Blue)
+	If Common.GetAndroidSdkVersion >= 33 Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: This device is running Android version 13 or newer (API level >= 33)"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: We don't need to add FLAG_SECURE in these newer versions thanks to the new Activity.setRecentsScreenshotEnabled(boolean) API introduced in Android 13+"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly instead"$, Colors.Blue)
+		If joMain.RunMethod("jDisableRecentAppsThumbnails", Null) Then
+			LogColor($"[Main-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly succeeded"$, Colors.Blue)
+			
+		Else
+			LogColor($"[Main-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly failed"$, Colors.Red)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: We won't try to add FLAG_SECURE to this Activity instead as a fallback"$, Colors.Red)
+			LogColor($"[Main-${LogContextId}] Activity_Create: This build of the App was specifically built without FLAG_SECURE"$, Colors.Red)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: Just notify the user about it in a toast notification"$, Colors.Red)
+			ToastMessageShow("Failed to disable Recent Apps thumbnail", Constants.TOAST_DURATION_SHORT)
+			
+		End If
+		
+	End If
+	#Else
+	'Add FLAG_SECURE to this Activity View on Activity_Create
+	'Add it always, not just on the FirstTime
+	LogColor($"[Main-${LogContextId}] Activity_Create: This build is compiled without NO_FLAG_SECURE, checking if we need to add FLAG_SECURE"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Verifying if the device Android version is Android 13 or newer (API level >= 33)"$, Colors.Blue)
+	If Common.GetAndroidSdkVersion >= 33 Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: This device is running Android version 13 or newer (API level >= 33)"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: We don't need to add FLAG_SECURE in these newer versions thanks to the new Activity.setRecentsScreenshotEnabled(boolean) API introduced in Android 13+"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly instead"$, Colors.Blue)
+		If joMain.RunMethod("jDisableRecentAppsThumbnails", Null) Then
+			LogColor($"[Main-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly succeeded"$, Colors.Blue)
+			
+		Else
+			LogColor($"[Main-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly failed"$, Colors.Red)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: Trying to add FLAG_SECURE to this Activity instead as a fallback"$, Colors.Red)
+			If joMain.RunMethod("jEnableActivityFlagSecure", Null) Then
+				LogColor($"[Main-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity as a fallback succeeded"$, Colors.Green)
+				
+			Else
+				LogColor($"[Main-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity as a fallback failed"$, Colors.Red)
+				
+				LogColor($"[Main-${LogContextId}] Activity_Create: Alerting the user about it in a toast notification"$, Colors.Red)
+				ToastMessageShow("Failed to secure this App Activity!", Constants.TOAST_DURATION_SHORT)
+				ToastMessageShow("The Activity FLAG_SECURE could not be set", Constants.TOAST_DURATION_LONG)
+				
+			End If
+			
+		End If
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Create: This device is running an Android version older than 13 (API level < 33)"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: The only way in these older Android versions to block Recent Apps thumbnails is to add FLAG_SECURE to the Activity on create"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity"$, Colors.Blue)
+		If joMain.RunMethod("jEnableActivityFlagSecure", Null) Then
+			LogColor($"[Main-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity succeeded"$, Colors.Blue)
+			
+		Else
+			LogColor($"[Main-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity failed"$, Colors.Red)
+			
+			LogColor($"[Main-${LogContextId}] Activity_Create: Alerting the user about it in a toast notification"$, Colors.Red)
+			ToastMessageShow("Failed to secure this App Activity!", Constants.TOAST_DURATION_SHORT)
+			ToastMessageShow("The Activity FLAG_SECURE could not be set", Constants.TOAST_DURATION_LONG)
+			
+		End If
+		
+	End If
+	#End If
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Always disabling the Android 8.0+ Autofill service (if available)"$, Colors.Blue)
+	joMain.RunMethod("jDisableAndroidAutofillService", Null)
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Harden this Activity's EditTexts to prevent Android from leaking sensitive information"$, Colors.Blue)
+	HardenActivityEditTexts
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the Android version is 3.0 or newer"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] Activity_Create: If the Android version is 3.0 or newer then it has ActionBar support"$, Colors.Blue)
+	If Common.GetAndroidSdkVersion >= 11 Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: The device is Android version is 3.0 or newer"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Adding the About menu as icon in the ActionBar"$, Colors.Blue)
+		Activity.AddMenuItem3("About", "mnuAbout", LoadBitmap(File.DirAssets, "About.png"), True)
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Create: The device is Android version is older than 3.0"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Adding the About menu as Activity options menu item"$, Colors.Blue)
+		Activity.AddMenuItem("About", "mnuAbout")
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Dynamically correcting the padding of the text hashing options menu's info-text"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] Activity_Create: It's needed to correct it to match the Challenge label"$, Colors.Blue)
+	btnHashMenuBg.Padding = Array As Int( lblChallenge.Left, _ 'Left   = [0]
+	                                      lblChallenge.Top,  _ 'Top    = [1]
+	                                      lblChallenge.Left, _ 'Right  = [2]
+	                                      lblChallenge.Top   _ 'Bottom = [3]
+										)
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the Android version is older than 3.0"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] Activity_Create: Some small Hash Text button text color tweak has to be done on such older versions on Android"$, Colors.Blue)
+	If Common.GetAndroidSdkVersion < 11 Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: Device is older than Android 3.0, apply the Text Hash button text color fix"$, Colors.Blue)
+		btnHashMenu.TextColor = Colors.Black
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Create: Device is either Android 3.0 or newer, no need for the Text Hash button text color fix"$, Colors.Blue)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the device display scale is too small (if scale < 1.0)"$, Colors.Blue)
+	If 1.0 > joMain.RunMethod("jGetDeviceScale", Null) Then
+		LogColor($"[Main-${LogContextId}] Activity_Create: The device display scale is too small"$, Colors.Magenta)
+		LogColor($"[Main-${LogContextId}] Activity_Create: There might not be enough space to display the UI layout with the TitleBar & ActionBar visible"$, Colors.Magenta)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: Disabling this Activity's TitleBar & ActionBar to save visual UI space"$, Colors.Magenta)
+		joMain.RunMethod("jDisableActivityTitleBar", Null)
+		joMain.RunMethod("jDisableActivityActionBar", Null)
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Create: The device display scale is correct (either 1.0 or higher)"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: There will be enough space to display the UI layout even with the TitleBar & ActionBar visible"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Create: So no need to disable this Activity's TitleBar & ActionBar"$, Colors.Blue)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
+End Sub
+
+Sub HardenActivityEditTexts
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Hardening the security of this Activity's EditText fields"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: This includes disabling autocomplete, autocorrect, fullscreen keyboard etc"$, Colors.Blue)
+	For Each MyEditText As EditText In Array As EditText(edtChallenge, edtAdminKey, edtResponse)
+		
+		Security.DisableFullscreenKeyboard(MyEditText)
+		Security.DisablePersonalizedLearning(MyEditText)
+		Security.DisableAutoCorrect(MyEditText)
+		Security.DisableAutoComplete(MyEditText)
+		Security.DisableAutoSuggestions(MyEditText)
+		Security.DisableTextConversionSuggestions(MyEditText)
+		Security.DisableTextSelectionSuggestions(MyEditText)
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: An EditText found in the list has been hardened"$, Colors.Blue)
+		
+	Next
+	
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Sub return"$, Colors.Blue)
+End Sub
+
+Sub Activity_Resume
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
+	RestoreViewState
+	
+	If Shared_DetectedQRCodeContents <> "" Or Shared_AllowEmptyQRCodeContent Then
+		LogColor($"[Main-${LogContextId}] Activity_Resume: We received a QR code result from the Scan Activity"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Resume: Setting the Challenge code field .Text to the QR code content (sensitive value)"$, Colors.Blue)
+		edtChallenge.Text = Shared_DetectedQRCodeContents
+		
+		'Clear the variable after use to prevent
+		'repeated setting on the QR code content
+		'on every Activity resume
+		LogColor($"[Main-${LogContextId}] Activity_Resume: Resetting shared QR code information registers for the next use"$, Colors.Blue)
+		Shared_DetectedQRCodeContents  = ""
+		Shared_AllowEmptyQRCodeContent = False
+		
+		'Now focus on the Challenge code field to
+		'bring visual attention to it
+		LogColor($"[Main-${LogContextId}] Activity_Resume: Setting the focus on the Challenge code field now to bring visual attention to it"$, Colors.Blue)
+		edtChallenge.RequestFocus
+		
+	End If
+	
+	'Always do this one as the last action
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Checking if any Admin Key was shared to this App"$, Colors.Blue)
+	CheckIfAdminKeySharedToTheApp
+	
+	'For Always hiding the Admin Key when switching Apps
+	'such as pausing this App to use another one,
+	'then coming back to this App
+	'
+	'This prevents accidental showing of Admin Key texts
+	'incase the user forgot that the Admin Key text was
+	'not hidden when they paused the App a few minutes prior
+	'(for example)
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Checking if this is the first Activity launch in this App lifecycle"$, Colors.Blue)
+	If Not(IsFirstActivityLaunch) Then
+		LogColor($"[Main-${LogContextId}] Activity_Resume: It's not the first-time Activity launch for this App lifecycle"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Resume: We want to hide the Admin Key field always to prevent accidental exposure in sensitive environments"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Resume: Setting the Hide Admin Key field's .Checked state to True"$, Colors.Blue)
+		chkHideAdminKey.Checked = True
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Resume: This is the first-time Activity launch for this App lifecycle"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Resume: We don't need to specifically hide the Admin Key field"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Resume: Now setting the IsFirstActivityLaunch process variable to False"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Resume: This will report to the next Activity resume calls that it's not the first Activity launch anymore"$, Colors.Blue)
+		IsFirstActivityLaunch = False
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
+End Sub
+
+Sub Activity_Pause(UserClosed As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] Activity_Pause: Sub entry (UserClosed = ${UserClosed})"$, Colors.Blue)
+	
+	If Not(UserClosed) Then
+		LogColor($"[Main-${LogContextId}] Activity_Pause: Activity is not UserClosed"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Pause: Save ViewState"$, Colors.Blue)
+		SaveViewState
+		
+	Else
+		LogColor($"[Main-${LogContextId}] Activity_Pause: Activity is UserClosed"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] Activity_Pause: Calling ActivityExit"$, Colors.Blue)
+		ActivityExit
+		
+		'ActivityExit in the Main module calls TrueApplicationExit
+		'That means the next code below should never be reached
+		
+		LogColor($"[Main-${LogContextId}] Activity_Pause: This code branch should not be reachable if the App has exited correctly"$, Colors.Red)
+		LogColor($"[Main-${LogContextId}] Activity_Pause: Sub return"$, Colors.Red)
+		Return
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] Activity_Pause: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub Activity_KeyPress(KeyCode As Int) As Boolean
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] Activity_KeyPress: Sub entry (KeyCode = ${KeyCode})"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] Activity_KeyPress: Verifying what the KeyCode is"$, Colors.Blue)
+	Select Case KeyCode
+		Case KeyCodes.KEYCODE_BACK
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: The KeyCode is KEYCODE_BACK"$, Colors.Blue)
+			
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Checking if there any modals visible"$, Colors.Blue)
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Don't exit the Activity if a modal was shown"$, Colors.Blue)
+			
+			If btnHashMenu.Checked Then
+				LogColor($"[Main-${LogContextId}] Activity_KeyPress: Found the text hashing options menu modal"$, Colors.Blue)
+				
+				LogColor($"[Main-${LogContextId}] Activity_KeyPress: Closing the text hashing options menu"$, Colors.Blue)
+				btnHashMenu.Checked = False
+				
+				LogColor($"[Main-${LogContextId}] Activity_KeyPress: Sub return (returning True to prevent exit)"$, Colors.Blue)
+				Return True
+				
+			End If
+			
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Calling ActivityExit"$, Colors.Blue)
+			ActivityExit
+			
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: This code should never be reachable if the Activity exits correctly"$, Colors.Red)
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Sub return (returning True)"$, Colors.Red)
+			Return True
+			
+		Case KeyCodes.KEYCODE_HOME, Constants.KEYCODE_LOCK, Constants.KEYCODE_RECENT_APPS
+			'This code branch might go too fast for
+			'the Basic4Android BridgeLogger to log
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: The KeyCode is KEYCODE_HOME / KEYCODE_LOCK / KEYCODE_RECENT_APPS"$, Colors.Blue)
+			
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Hiding the Admin Key field on App switching, device locking & Recent Apps panel opening events"$, Colors.Blue)
+			chkHideAdminKey.Checked = True
+			
+		Case Else
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: The KeyCode is something else"$, Colors.Blue)
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: We don't do anything particular with other KeyCodes"$, Colors.Blue)
+			
+	End Select
+	
+	LogColor($"[Main-${LogContextId}] Activity_KeyPress: Sub return (returning False)"$, Colors.Blue)
+	Return False
+	
+End Sub
+
+Private Sub ActivityExit
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] ActivityExit: Sub entry"$, Colors.Blue)
+	
+	'This function already stops any running selection timer
+	LogColor($"[Main-${LogContextId}] ActivityExit: Resetting the ViewState to clear all input contents etc"$, Colors.Blue)
+	ResetViewState
+	
+	LogColor($"[Main-${LogContextId}] ActivityExit: Asking the JVM to do a garbage collection as soon as possible"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] ActivityExit: This will clear traces of leftover variable contents"$, Colors.Blue)
+	Security.TriggerJvmGarbageCollection
+	
+	LogColor($"[Main-${LogContextId}] ActivityExit: Finishing the Activity using the better Activity finish method"$, Colors.Blue)
+	joMain.RunMethod("jBetterActivityFinish", Null)
+	
+	'This method of exiting the App is so fast that
+	'the Basic4Android BridgeLogger doesn't have
+	'enough time to display the App exit-related
+	'logging lines, probably only logcat-based logging
+	'over USB with ADB cans be fast enough to show them
+	LogColor($"[Main-${LogContextId}] ActivityExit: True exit of the App using the TrueApplicationExit method from the MyCommon class"$, Colors.Blue)
+	Common.TrueApplicationExit
+	
+	LogColor($"[Main-${LogContextId}] ActivityExit: This code should never be reachable if the App has exited correctly"$, Colors.Red)
+	LogColor($"[Main-${LogContextId}] ActivityExit: Sub return"$, Colors.Red)
+End Sub
+
+Private Sub CheckIfAdminKeySharedToTheApp
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub entry"$, Colors.Blue)
+	
+	'Add ability to receive Admin Key with Android's Share To
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking what the starting Intent is"$, Colors.Blue)
+	Dim ReceivedIntent As Intent = Activity.GetStartingIntent
+	
+	If  ReceivedIntent.Action == ReceivedIntent.ACTION_SEND  _
+	And ReceivedIntent.HasExtra("android.intent.extra.TEXT") Then
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is ACTION_SEND and it contains a TEXT extra"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Verifying if this App lifecycle didn't already get shared an Admin Key before"$, Colors.Blue)
+		If AdminKeyAlreadySharedToTheAppOnce Then
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: An Admin Key was already shared prior in this App's current lifecycle"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Ignoring this Admin Key Share To Intent, since it's just Android repeatedly re-sending it on every Activity resume"$, Colors.Magenta)
+			
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
+			Return
+			
+		Else
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: There was not any Admin Key already shared prior in this App's current lifecycle"$, Colors.Blue)
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Now we can proceed further and check what was received"$, Colors.Blue)
+			
+		End If
+		
+	Else
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is not something we specifically care about"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It's something other than an ACTION_SEND with a TEXT extra, so ignoring it"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
+		Return
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the process variable AdminKeyAlreadySharedToTheAppOnce to True"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: This will prevent Android from spamming its Share To Intent repeatedly later"$, Colors.Blue)
+	AdminKeyAlreadySharedToTheAppOnce = True
+	
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Fetching the shared Admin Key text from the Share To Intent's TEXT extra"$, Colors.Blue)
+	Dim ReceivedText As String = ReceivedIntent.GetExtra("android.intent.extra.TEXT")
+	
+	'Admin Keys can be 64-digits, 48-digits or 32-digits (Hex string)
+	'64 = AES-256
+	'48 = 3DES (DES-EDE3)
+	'32 = AES-128 / 2DES (DES-EDE2)
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking whether the shared Admin Key text (or hash) is valid"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It must be a string representing Hex bytes and be atleast 32 chars"$, Colors.Blue)
+	If Cryptography.VerifyIfTextIsHexBytes(ReceivedText) And ReceivedText.Length >= 32 Then
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is actually valid"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Locking down the Admin Key field to password mode"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: When a valid Admin Key or hash is shared to the App, it's always made unrevealable"$, Colors.Blue)
+		LockdownAdminKeyField
+		
+		'Only put the Admin Key text in the Admin Key field
+		'After it has been locked down and made unrevealable
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key field .Text to the text that we received"$, Colors.Blue)
+		edtAdminKey.Text = ReceivedText
+		
+	Else
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is invalid"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can't accept setting the Admin Key field .Text to an invalid value"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Blue)
+		edtAdminKey.Text = ""
+		
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Blue)
+		ToastMessageShow("Shared Admin key is invalid", Constants.TOAST_DURATION_SHORT)
+		
+	End If
+	
+	'Clear the contents of the receivedText variable once it's
+	'no longer needed for the next part of the App lifecycle.
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Clearing the temporary variable containing the shared Admin Key (or hash) text"$, Colors.Blue)
+	ReceivedText = ""
+	
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the received Admin Key text variable as soon as possible"$, Colors.Blue)
+	Security.TriggerJvmGarbageCollection
+	
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+Private Sub LockdownAdminKeyField
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] LockdownAdminKeyField: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] LockdownAdminKeyField: Disabling the Hide Admin Key checkbox permanently"$, Colors.Blue)
+	chkHideAdminKey.Enabled = False
+	
+	LogColor($"[Main-${LogContextId}] LockdownAdminKeyField: Registering the Hide Admin Key checkbox disabling in the ViewState registers"$, Colors.Blue)
+	ViewState_chkHideAdminKey_Enabled = False
+	
+	'This will fire the CheckedChange event even if
+	'the checkbox is actually disabled
+	LogColor($"[Main-${LogContextId}] LockdownAdminKeyField: Hiding the Admin Key field for security reasons"$, Colors.Blue)
+	chkHideAdminKey.Checked = True
+	
+	LogColor($"[Main-${LogContextId}] LockdownAdminKeyField: Sub return"$, Colors.Blue)
+End Sub
+
+#Region UI Event Handlers
+
+#Region Activity menu event handlers
+
+Private Sub mnuAbout_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Get the App icon"$, Colors.Blue)
+	Dim AboutIcon As Bitmap = Application.Icon
+	
+	'Get better-adapted About icons according to screen DPI & scale
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Get the proper square icon size for this device's display scale"$, Colors.Blue)
+	Dim SquareIcoSize As Int = Common.GetSquareIconSizeForDeviceScale
+	
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Check if the App icon needs to be resized to match this device's display scale"$, Colors.Blue)
+	If AboutIcon.Height <> SquareIcoSize Then
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: The App icon doesn't match this device's square icon size, it needs to be resized to match this device's display scale"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: Resizing the App icon to match this device's display scale"$, Colors.Blue)
+		AboutIcon = AboutIcon.Resize(SquareIcoSize, SquareIcoSize, Constants.BITMAP_RESIZE_KEEP_ASPECT_RATIO)
+		
+	Else
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: The App icon matches this device's square icon size or device scale is so high that it requires atleast the original App icon"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: No need to resize the App icon, using the original one as-is"$, Colors.Blue)
+		
+	End If
+	
+	'Positive button is 'Homepage'
+	'Cancel   button is 'Dismiss'
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Displaying the About MessageBox with the proper App icon and button options"$, Colors.Blue)
+	Msgbox2Async($"${Application.LabelName}
+Version ${Application.VersionName}
+
+This App generates unblock codes For Cryptographic PKI smartcards such As Yubikey & IDPrime, eToken${"."}"$, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, AboutIcon, Constants.MSGBOX_CANCELLABLE)
+	
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Waiting for the MessageBox to be closed to check its return result"$, Colors.Blue)
+	Wait For Msgbox_Result(Result As Int)
+	
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: The MessageBox was closed, checking its return result"$, Colors.Blue)
+	If Result = DialogResponse.POSITIVE Then
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: The MessageBox return result is POSITIVE"$, Colors.Blue)
+		
+		'Because I don't want to bundle the big Phone library
+		'Use the Advanced class to open the browser URL
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: Requesting the opening of the App homepage URL in the user's default Web browser"$, Colors.Blue)
+		joMain.RunMethod("jOpenBrowserUrl", Array(Constants.APPLICATION_HOMEPAGE_URL))
+		
+	Else
+		LogColor($"[Main-${LogContextId}] mnuAbout_Click: The MessageBox return result is not POSITIVE, no nothing to do here"$, Colors.Blue)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Challenge field event handlers
+
+Private Sub edtChallenge_FocusChanged(HasFocus As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] edtChallenge_FocusChanged: Sub entry (HasFocus = ${HasFocus})"$, Colors.Blue)
+	
+	If HasFocus Then
+		LogColor($"[Main-${LogContextId}] edtChallenge_FocusChanged: HasFocus is True"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] edtChallenge_FocusChanged: Set ViewState last focused element to "edtChallenge""$, Colors.Blue)
+		ViewState_LastFocusedElement = "edtChallenge"
+	Else
+		LogColor($"[Main-${LogContextId}] edtChallenge_FocusChanged: HasFocus is False"$, Colors.Blue)
+		
+		'Android doesn't reset the selection information of
+		'EditText fields when the focus is lost
+		'
+		'So the EditText selection timers call their respective
+		'EditText_ShowSelectionInfo method but these functions
+		'think that the their EditText selection didn't change
+		'
+		'To fix this, I just forewarn that the last focused
+		'element is "undetermined" and the EditTexts'
+		'respective EditText_ShowSelectionInfo methods will
+		'verify that their element still has the focus
+		'thanks to this forewarning being done in advance
+		LogColor($"[Main-${LogContextId}] edtChallenge_FocusChanged: Set ViewState last focused element to "undetermined" (will be set again properly by the next focused element)"$, Colors.Blue)
+		ViewState_LastFocusedElement = "undetermined"
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] edtChallenge_FocusChanged: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Scan QR button event handlers
+
+Private Sub btnScanQR_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: Verify if the device has a Camera first before proceeding further"$, Colors.Blue)
+	If Common.GetNumberOfDeviceCameras < 1 Then
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: The device doesn't have a Camera, cannot proceed further"$, Colors.Magenta)
+		
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: Display an exception message in a toast notification"$, Colors.Magenta)
+		ToastMessageShow("Camera required to scan QR codes", Constants.TOAST_DURATION_SHORT)
+		
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: Sub return"$, Colors.Magenta)
+		Return
+		
+	End If
+	
+	'Ask for authorization to use the Camera at runtime
+	'Required on Android 6.0+
+	'Has no effect on older Android versions
+	Dim RuntimePerms As RuntimePermissions
+
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: Checking if we have the Camera runtime permission"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: This is required on Android 6.0+ devices"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: This check will always return True on older Android versions"$, Colors.Blue)
+	If RuntimePerms.Check(RuntimePerms.PERMISSION_CAMERA) <> True Then
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: We don't have Camera runtime permission access"$, Colors.Magenta)
+		
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: Requesting Camera runtime permission (the user needs to agree)"$, Colors.Magenta)
+		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_CAMERA)
+		
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: Waiting for the result of our Camera runtime permission request"$, Colors.Magenta)
+		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
+		
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: The results of our runtime permission request has come, checking if we were granted Camera access"$, Colors.Magenta)
+		If HavePermission <> True Then
+			LogColor($"[Main-${LogContextId}] btnScanQR_Click: Our Camera runtime permission request was rejected, cannot proceed further"$, Colors.Red)
+			
+			LogColor($"[Main-${LogContextId}] btnScanQR_Click: Display an exception message in a toast notification"$, Colors.Red)
+			ToastMessageShow("Permission required to scan QR codes", Constants.TOAST_DURATION_SHORT)
+			
+			LogColor($"[Main-${LogContextId}] btnScanQR_Click: Sub return"$, Colors.Red)
+			Return
+			
+		Else
+			LogColor($"[Main-${LogContextId}] btnScanQR_Click: Our Camera runtime permission request was approved, now we can proceed further"$, Colors.Green)
+			
+		End If
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnScanQR_Click: We got Camera runtime permission access (or the device runs an older version of Android which always gives access anyway)"$, Colors.Blue)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: Launching the QR scanner module Activity"$, Colors.Blue)
+	StartActivity(Scan)
+	
+	LogColor($"[Main-${LogContextId}] btnScanQR_Click: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Admin Key field event handlers
+
+Private Sub edtAdminKey_FocusChanged(HasFocus As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: Sub entry (HasFocus = ${HasFocus})"$, Colors.Blue)
+	
+	If HasFocus Then
+		LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: HasFocus is True"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: Set ViewState last focused element to "edtAdminKey""$, Colors.Blue)
+		ViewState_LastFocusedElement = "edtAdminKey"
+		
+		'This will already call edtAdminKey_ShowSelectionInfo
+		'which will update the Admin Key label
+		LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: Enable the Admin Key selection timer because the Admin Key field is focused"$, Colors.Blue)
+		SelectionTimer_edtAdminKey.Enabled = True
+		
+	Else
+		LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: HasFocus is False"$, Colors.Blue)
+		
+		'Android doesn't reset the selection information of
+		'EditText fields when the focus is lost
+		'
+		'So the EditText selection timers call their respective
+		'EditText_ShowSelectionInfo method but these functions
+		'think that the their EditText selection didn't change
+		'
+		'To fix this, I just forewarn that the last focused
+		'element is "undetermined" and the EditTexts'
+		'respective EditText_ShowSelectionInfo methods will
+		'verify that their element still has the focus
+		'thanks to this forewarning being done in advance
+		LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: Set ViewState last focused element to "undetermined" (will be set again properly by the next focused element)"$, Colors.Blue)
+		ViewState_LastFocusedElement = "undetermined"
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] edtAdminKey_FocusChanged: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub edtAdminKey_TextChanged(Old As String, New As String)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] edtAdminKey_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
+	
+	'The Admin Key field text might be changed even if
+	'the Admin Key field is not focused, such as when
+	'generating a SHA256, SHA512 etc hash while another
+	'field is focused, so the TextChanged event should
+	'also update the Admin Key label too
+	LogColor($"[Main-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
+	edtAdminKey_ShowSelectionInfo
+	
+	LogColor($"[Main-${LogContextId}] edtAdminKey_TextChanged: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub SelectionTimer_edtAdminKey_Tick
+	'Don't add logging to avoid log spam
+	
+	'If the Admin Key field is unfocused:
+	'Make a call to edtAdminKey_ShowSelectionInfo atleast once
+	'to reflect the change for the unfocused version of the
+	'Admin Key label text
+	'
+	'Otherwise:
+	'The timer wasn't disabled and cans keep looping to
+	'continously update the Admin Key label text
+	edtAdminKey_ShowSelectionInfo
+	
+	'Check if the Admin Key field is still focused
+	If ViewState_LastFocusedElement <> "edtAdminKey" Then
+		'Admin Key field is not focused
+		
+		'Disable this selection timer because it's not needed
+		'when the Admin Key field is not focused
+		SelectionTimer_edtAdminKey.Enabled = False
+		
+	End If
+	
+End Sub
+
+Private Sub edtAdminKey_ShowSelectionInfo
+	'Don't add logging to avoid log spam
+	
+	Dim TextLength, SelectionStart, SelectionLength As Int
+	TextLength		= edtAdminKey.Text.Length
+	SelectionStart	= edtAdminKey.SelectionStart
+	SelectionLength	= edtAdminKey.SelectionLength
+	
+	'Only show selection information if the Admin Key field
+	'is actually focused, otherwise show generic information
+	Dim IsAdminKeyFocused As Boolean = (ViewState_LastFocusedElement == "edtAdminKey")
+	
+	'Visual neat tweak incase there's only one char
+	'in the Admin Key field
+	Dim chars As String
+	
+	'We say different from 1 instead of more than 1
+	'This is because in theory 0 should be said as:
+	' - "0 chars"
+	'
+	'Zero is a plural too, only the number 1 is singular
+	'So this check lets both 0 and values more than 1 pass
+	'
+	'But no worries since we don't display the count
+	'of characters if it's zero later on in this function
+	'
+	'This way of doing things is just so we stay correct
+	'with number semantics and the plurality of language
+	If TextLength <> 1 Then
+		chars = "chars"
+	Else
+		chars = "char"
+	End If
+	
+	If IsAdminKeyFocused And TextLength >= 1 And SelectionLength < 1 _
+		And SelectionStart > 0 And SelectionStart < TextLength Then
+		'When not selecting any text and just moving
+		'the cursor (caret) around in the Admin key field
+		'---------------|---------
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Pos: ${SelectionStart}"$
+		
+	Else If IsAdminKeyFocused And TextLength >= 1 And SelectionLength >= 1 _
+		And SelectionStart > 0 Then
+		'When selecting a part of text in the middle of the text
+		'but not at the start of the text
+		'-----xxxxxxxxxxxxxxxxxxxx
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Before: ${SelectionStart} | Sel: ${SelectionLength}"$
+		
+	Else If IsAdminKeyFocused And TextLength >= 1 And SelectionLength >= 1 _
+		And SelectionStart == 0 And SelectionLength < TextLength Then
+		
+		'When selecting text starting at the first character
+		'but not selecting the entire text length
+		'xxxxxxxxxxxxxxxxxxxx-----
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Sel: ${SelectionLength} | After: ${TextLength-(SelectionStart+SelectionLength)}"$
+		
+	Else If IsAdminKeyFocused And TextLength >= 1 And SelectionLength >= 1 _
+		And SelectionStart == 0 Then
+		'When all the text is selected
+		'xxxxxxxxxxxxxxxxxxxxxxxxx
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Sel: ${SelectionLength}"$
+		
+	Else If TextLength >= 1 Then
+		'Admin key field not focused
+		'When unfocused it automatically
+		'gets a SelectionStart value of 0
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars})"$
+		
+	Else
+		'Admin key field empty
+		lblAdminKey.Text = "Admin Key:"
+		
+	End If
+	
+End Sub
+
+#End Region
+
+#Region Hide Admin Key checkbox event handlers
+
+Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Sub entry (Checked = ${Checked})"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Verifying if the Admin Key was not made unrevealable before and the requested .Checked state is False"$, Colors.Blue)
+	If Not(ViewState_chkHideAdminKey_Enabled) And Not(Checked) Then
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: We have a problem, looks like the Hide Admin Key checkbox was forcibly re-enabled using hacks"$, Colors.Red)
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: This might be a forensic Admin Key recovery attack"$, Colors.Red)
+		
+		'Close any visible modal window before exit
+		'Then simulate a KEYCODE_BACK Activity keypress
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Exiting the App by simulating user natural exit (close any visible modal window then send a Back activity keypress)"$, Colors.Red)
+		btnHashMenu.Checked = False
+		Activity_KeyPress(KeyCodes.KEYCODE_BACK)
+		
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Sub return (this code shouldn't be reachable if the Activity exited correctly)"$, Colors.Red)
+		Return
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Set ViewState of this checkbox checked state to ${Checked}"$, Colors.Blue)
+	ViewState_chkHideAdminKey_Checked = Checked
+	
+	'Allow preserving the selection state when toggling password modes
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Saving information about the current selection state before toggling password modes"$, Colors.Blue)
+	Dim LastSelectionStart, LastSelectionLength As Int
+	LastSelectionStart  = edtAdminKey.SelectionStart
+	LastSelectionLength = edtAdminKey.SelectionLength
+	
+	If Checked Then
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Use the Security class to set the Admin Key password mode to PASSWORD_HIDDEN_PASSWORD"$, Colors.Blue)
+		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_HIDDEN_PASSWORD)
+		
+	Else
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Use the Security class to set the Admin Key password mode to PASSWORD_VISIBLE_PASSWORD"$, Colors.Blue)
+		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_VISIBLE_PASSWORD)
+		
+	End If
+	
+	'Allow preserving the selection state when toggling password modes
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Restoring information about the previous selection state after toggling password modes"$, Colors.Blue)
+	edtAdminKey.SetSelection(LastSelectionStart, LastSelectionLength)
+	
+	'The Admin Key selection timer will already update the
+	'Admin Key label text anyway within 100ms
+	
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Hash Text menu button event handlers
+
+Private Sub btnHashMenu_CheckedChange(Checked As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Sub entry (Checked = ${Checked})"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Set ViewState of this checkbox checked state to ${Checked}"$, Colors.Blue)
+	ViewState_btnHashMenu_Checked = Checked
+	
+	If Checked Then
+		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: The Hash Text button is checked"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Show the text hashing options menu"$, Colors.Blue)
+		btnHashMenuBg.Visible = True
+		btnSha256.Visible     = True
+		btnSha512.Visible     = True
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: The Hash Text button is unchecked"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Hide the text hashing options menu"$, Colors.Blue)
+		btnSha512.Visible     = False
+		btnSha256.Visible     = False
+		btnHashMenuBg.Visible = False
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Check if the Android version is older than 3.0"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Some small Hash Text button text color tweak has to be done on such older versions on Android"$, Colors.Blue)
+	If Common.GetAndroidSdkVersion < 11 Then
+		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Device is older than Android 3.0, apply the Text Hash button text color fix"$, Colors.Blue)
+		If Checked Then
+			btnHashMenu.TextColor = Colors.Red
+		Else
+			btnHashMenu.TextColor = Colors.Black
+		End If
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Device is either Android 3.0 or newer, no need for the Text Hash button text color fix"$, Colors.Blue)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub btnHashMenuBg_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnHashMenuBg_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnHashMenuBg_Click: The Hash Text menu shade background was clicked"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnHashMenuBg_Click: Hide the text hashing options menu"$, Colors.Blue)
+	btnHashMenu.Checked = False
+	
+	LogColor($"[Main-${LogContextId}] btnHashMenuBg_Click: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Text hashing button event handlers
+'-------------------------
+Private Sub btnSha256_LongClick
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnSha256_LongClick: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnSha256_LongClick: Calling btnHash_LongClick("SHA-256")"$, Colors.Blue)
+	btnHash_LongClick("SHA-256")
+	
+	LogColor($"[Main-${LogContextId}] btnSha256_LongClick: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub btnSha256_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnSha256_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnSha256_Click: Calling btnHash_Click("SHA-256")"$, Colors.Blue)
+	btnHash_Click("SHA-256")
+	
+	LogColor($"[Main-${LogContextId}] btnSha256_Click: Sub return"$, Colors.Blue)
+End Sub
+'-------------------------
+Private Sub btnSha512_LongClick
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnSha512_LongClick: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnSha512_LongClick: Calling btnHash_LongClick("SHA-512")"$, Colors.Blue)
+	btnHash_LongClick("SHA-512")
+	
+	LogColor($"[Main-${LogContextId}] btnSha512_LongClick: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub btnSha512_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnSha512_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnSha512_Click: Calling btnHash_Click("SHA-512")"$, Colors.Blue)
+	btnHash_Click("SHA-512")
+	
+	LogColor($"[Main-${LogContextId}] btnSha512_Click: Sub return"$, Colors.Blue)
+End Sub
+'-------------------------
+Private Sub btnHash_LongClick(HashType As String)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnHash_LongClick: Sub entry (HashType = ${HashType})"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnHash_LongClick: Now the Admin Key field will be permanently hidden for this App lifecycle"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnHash_LongClick: Calling LockdownAdminKeyField to make the Admin Key unrevealable"$, Colors.Blue)
+	LockdownAdminKeyField
+	
+	LogColor($"[Main-${LogContextId}] btnHash_LongClick: Calling btnHash_Click("${HashType}")"$, Colors.Blue)
+	btnHash_Click(HashType)
+	
+	LogColor($"[Main-${LogContextId}] btnHash_LongClick: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub btnHash_Click(HashType As String)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Sub entry (HashType = ${HashType})"$, Colors.Blue)
+	
+	Dim Text, TextHash As String
+	
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Fetching the text to hash from the Admin Key field (sensitive value)"$, Colors.Blue)
+	Text     = edtAdminKey.Text
+	
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Hashing the fetched Admin Key text (sensitive value) with ${HashType}"$, Colors.Blue)
+	TextHash = Cryptography.TextToHash(Text, HashType)
+	
+	'Verify if the returned hash has a correct format
+	'It must be Hexadecimal characters
+	'
+	'This also verifies that the return value isn't empty,
+	'because strings representing Hex bytes are atleast
+	'2-chars of text length (so not empty string)
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Verify if there was no problem hashing text with ${HashType}"$, Colors.Blue)
+	If Cryptography.VerifyIfTextIsHexBytes(TextHash) Then
+		LogColor($"[Main-${LogContextId}] btnHash_Click: No problem found while hashing text with ${HashType}"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] btnHash_Click: Setting the Admin Key field .Text content with the generated ${HashType} (sensitive value)"$, Colors.Blue)
+		edtAdminKey.Text = TextHash
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnHash_Click: There was a problem while hashing text with ${HashType}"$, Colors.Red)
+		
+		'Don't clear the Admin key text input on failure
+		'because it would be a bit harsh to do that
+		'just show an exception text in a toast message
+		LogColor($"[Main-${LogContextId}] btnHash_Click: Don't clear the Admin Key field .Text because it would be too harsh (even for showing an exception message)"$, Colors.Red)
+		LogColor($"[Main-${LogContextId}] btnHash_Click: Displaying an exception message in a toast notification instead"$, Colors.Red)
+		ToastMessageShow($"Failed to generate ${HashType}"$, Constants.TOAST_DURATION_SHORT)
+		
+	End If
+	
+	'Request running the garbage collector as soon as possible
+	'This way old values will be soon cleared from the App's memory
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Requesting a JVM garbage collection as soon as possible to discard this function's old text-related variable contents"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnHash_Click: We do the JVM garbage collection call even if the text hashing was unsuccessful, because atleast the Text variable must be discarded as soon as possible"$, Colors.Blue)
+	Security.TriggerJvmGarbageCollection
+	
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Now closing the text hashing options menu"$, Colors.Blue)
+	btnHashMenu.Checked = False
+	
+	'Visually bring attention to the Admin key field
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Setting current focused element to the Admin Key field to bring visual attention to it"$, Colors.Blue)
+	edtAdminKey.RequestFocus
+	
+	LogColor($"[Main-${LogContextId}] btnHash_Click: Sub return"$, Colors.Blue)
+End Sub
+'-------------------------
+#End Region
+
+#Region Generate (response code) button event handlers
+
+Private Sub btnGenerate_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Sub entry"$, Colors.Blue)
+	
+	'Reset the Response Code label before generating a new Response Code
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Resetting the Response code label before generating a new Response code"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: If a correct challenge-response algorithm is not found, then this default value stays"$, Colors.Blue)
+	lblResponse.Text = "Response:"
+	
+	'Reset the Response Code field before generating a new Response Code
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Resetting the Response code field .Text before generating a new Response code"$, Colors.Blue)
+	edtResponse.Text = ""
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Fetching the Challenge code & Admin Key .Text values for sanitization (sensitive values)"$, Colors.Blue)
+	Dim SanitizedUserInputs() As String = GetSanitizedUserInputs(edtChallenge.Text, edtAdminKey.Text)
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Checking whether the Challenge code & Admin Key values were valid and sanitized"$, Colors.Blue)
+	If SanitizedUserInputs(0) == False Then
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The Challenge code and/or Admin Key value(s) were invalid and therefore not returned sanitized"$, Colors.Magenta)
+		
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Set the Response code field .Hint value to the reason for why the input(s) were invalid"$, Colors.Magenta)
+		edtResponse.Hint = SanitizedUserInputs(1)
+		
+		'Unfocus the Admin key field when the user clicks Generate (if it was focused)
+		'
+		'This helps makes the Admin key cursor position Timer run less often,
+		'especially useful since after generating the Response codes,
+		'the user might take some while to read & copy it on their computer
+		'
+		'Focus instead on the Response code field (bring visual attention to it)
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Setting the focus on the Response code field to bring visual attention to it"$, Colors.Magenta)
+		edtResponse.RequestFocus
+		
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Sub return"$, Colors.Magenta)
+		Return
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Both the Challenge code & Admin Key values were verified as correct and matching a supported algorithm"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Fetching the sanitized Challenge code & Admin Key values from the return of GetSanitizedUserInputs (sensitive values)"$, Colors.Blue)
+	Dim SanitizedChallenge, SanitizedAdminKey As String
+	SanitizedChallenge = SanitizedUserInputs(1)
+	SanitizedAdminKey  = SanitizedUserInputs(2)
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Now we need to determine which challenge-response algorithm to use, running DetectChallengeAlgorithm (sensitive parameters)"$, Colors.Blue)
+	Dim DetectedAlgorithm As String = DetectChallengeAlgorithm(SanitizedChallenge, SanitizedAdminKey)
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Setting the initial Response code value to empty"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: If generating a response code fails, then this allows displaying the Response code field's .Hint value (where the exception messages are displayed)"$, Colors.Blue)
+	Dim ResponseCode      As String = ""
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Checking what was the detected algorithm to use"$, Colors.Blue)
+	If DetectedAlgorithm == Cryptography.CRYPTOGRAPHY_ALGORITHM_3DES _
+	Or DetectedAlgorithm == Cryptography.CRYPTOGRAPHY_ALGORITHM_2DES Then
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The detected algorithm is ${DetectedAlgorithm}"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Running the TripleDesEncrypt function for ${DetectedAlgorithm}"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The TripleDesEncrypt function supports both 2DES & 3DES"$, Colors.Blue)
+		ResponseCode = Cryptography.TripleDesEncrypt(SanitizedChallenge, SanitizedAdminKey)
+		
+	Else If DetectedAlgorithm == Cryptography.CRYPTOGRAPHY_ALGORITHM_AES128 _
+	     Or DetectedAlgorithm == Cryptography.CRYPTOGRAPHY_ALGORITHM_AES256 Then
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The detected algorithm is ${DetectedAlgorithm}"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Running the AesEncrypt function for ${DetectedAlgorithm}"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The AesEncrypt function supports both AES-128 & AES-256"$, Colors.Blue)
+		ResponseCode = Cryptography.AesEncrypt(SanitizedChallenge, SanitizedAdminKey)
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: No known algorithm could be detected ${DetectedAlgorithm}"$, Colors.Magenta)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Checking if the generated Response code is valid"$, Colors.Blue)
+	If Not(Cryptography.VerifyIfTextIsHexBytes(ResponseCode)) Then
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The generated Response code is invalid"$, Colors.Red)
+		
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The Response code field .Text value stays the initial one we have set before at the start of this function"$, Colors.Red)
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Setting the Response code field .Hint value to let the user know about the error"$, Colors.Red)
+		edtResponse.Hint = "Failed to compute"
+		
+		'Unfocus the Admin key field when the user clicks Generate (if it was focused)
+		'
+		'This helps makes the Admin key cursor position Timer run less often,
+		'especially useful since after generating the Response codes,
+		'the user might take some while to read & copy it on their computer
+		'
+		'Focus instead on the Response code field (bring visual attention to it)
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Setting the focus on the Response code field to bring visual attention to it"$, Colors.Red)
+		edtResponse.RequestFocus
+		
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Sub return"$, Colors.Red)
+		Return
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The generated Response code is valid, we can proceed further"$, Colors.Blue)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Checking if a correct algorithm was detected"$, Colors.Blue)
+	If DetectedAlgorithm <> Cryptography.CRYPTOGRAPHY_ALGORITHM_UNKNOWN Then
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: A correct algorithm detected"$, Colors.Blue)
+		
+		'Notice the space between the Response code label
+		'and the detected algorithm
+		'
+		'Otherwise it would give a result such as:
+		' - "Response:3DES (DES-EDE3)"
+		'
+		'What we instead want is a result such as:
+		' - "Response: 3DES (DES-EDE3)"
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: Updating the Response code label with the detected algorithm ${DetectedAlgorithm}"$, Colors.Blue)
+		lblResponse.Text = $"${lblResponse.Text} ${DetectedAlgorithm}"$
+		
+	Else
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: No correct algorithm was detected"$, Colors.Magenta)
+		LogColor($"[Main-${LogContextId}] btnGenerate_Click: The Response code label .Text value stays the initial one we have set before at the start of this function"$, Colors.Magenta)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Checking the exact length of the generated Response code"$, Colors.Blue)
+	Select ResponseCode.Length
+		Case 16
+			LogColor($"[Main-${LogContextId}] btnGenerate_Click: The response code length is 16 chars, setting 4x 4-chars separation on it"$, Colors.Blue)
+			ResponseCode =	Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", _
+								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4")
+		Case 32
+			LogColor($"[Main-${LogContextId}] btnGenerate_Click: The response code length is 32 chars, setting 8x 4-chars separation on it"$, Colors.Blue)
+			ResponseCode =	Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", _
+								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
+		Case 64
+			LogColor($"[Main-${LogContextId}] btnGenerate_Click: The response code length is 32 chars, setting 16x 4-chars separation on it"$, Colors.Blue)
+			'First part of the AES-256 response code:
+			'Match from the beginning without the end ('$' character)
+			'Also add a trailing space to separate the two response code parts
+			ResponseCode =	Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})", _
+								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8 ")
+			'Second part of the AES-256 response code:
+			'Here for the second part match it from the end (no '^' character at the beginning)
+			ResponseCode =	Regex.Replace2("([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", _
+								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
+			
+		Case Else
+			LogColor($"[Main-${LogContextId}] btnGenerate_Click: The response code length is not a length supported for setting separation on it yet"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] btnGenerate_Click: Not setting any separation on it, leaving it as-is"$, Colors.Magenta)
+			
+	End Select
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Setting the Response code field .Text value to the generated Response code"$, Colors.Blue)
+	edtResponse.Text = ResponseCode
+	
+	'Unfocus the Admin key field when the user clicks Generate (if it was focused)
+	'
+	'This helps makes the Admin key cursor position Timer run less often,
+	'especially useful since after generating the Response codes,
+	'the user might take some while to read & copy it on their computer
+	'
+	'Focus instead on the Response code field (bring visual attention to it)
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Setting the focus on the Response code field to bring visual attention to it"$, Colors.Blue)
+	edtResponse.RequestFocus
+	
+	LogColor($"[Main-${LogContextId}] btnGenerate_Click: Sub return"$, Colors.Blue)
+End Sub
+
+'If the inputs are valid then the return is:
+'
+'String Array = ReturnValue(0) = (Boolean) IsValidInput = True
+'               ReturnValue(1) = (String)  SanitizedChallenge
+'               ReturnValue(2) = (String)  SanitizedAdminKey
+'
+'If the inputs are invalid then the return is:
+'
+'String Array = ReturnValue(0) = (Boolean) IsValidInput = False
+'               ReturnValue(1) = (String)  ReasonForWhyInputsAreInvalid
+'               <there's no index 2 returned if inputs are invalid>
+Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) As String()
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Sub entry (sensitive parameters)"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Trimming space and hyphen separators from the Challenge code & Admin Key if any"$, Colors.Blue)
+	Dim SanitizedChallenge	As String = ChallengeCode.Replace(" ", "").Replace("-", "")
+	Dim SanitizedAdminKey	As String = AdminKey     .Replace(" ", "").Replace("-", "")
+	
+	'The Admin Key field supports line breaks,
+	'so we should also automatically trim them
+	'
+	'It supports line breaks because it's also
+	'used for generating text hashes
+	'
+	'Some people also write their 3DES Admin Key
+	'as 3 separate lines for each DES key too
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Trimming line breaks from the Admin Key if any"$, Colors.Blue)
+	SanitizedAdminKey = SanitizedAdminKey.Replace(CRLF, "")
+	
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Checking if any of the trimmed input values are now empty"$, Colors.Blue)
+	If SanitizedChallenge == "" Or SanitizedAdminKey == "" Then
+		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Atleast one of the inputs is now empty, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Some input(s) are empty")
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified as not being empty, verifying if they are valid strings representing Hex bytes"$, Colors.Blue)
+	If	Not(Cryptography.VerifyIfTextIsHexBytes(SanitizedChallenge))     _
+		Or Not(Cryptography.VerifyIfTextIsHexBytes(SanitizedAdminKey))   _
+	Then
+		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Atleast one of the inputs is not a correct string representing Hex bytes, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Input(s) must be Hex bytes")
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified as being valid strings representing Hex bytes, verifying if they are of correct supported lengths each"$, Colors.Blue)
+	'Challenge codes can currently only ever be 16, 32 or 64 chars
+	Dim KnownChallengeLength As Boolean =	SanitizedChallenge.Length == 16 Or _
+											SanitizedChallenge.Length == 32 Or _
+											SanitizedChallenge.Length == 64
+	
+	'Admin Keys can currenly only ever be 32, 48 or 64 chars
+	Dim KnownAdminKeyLength  As Boolean =	SanitizedAdminKey.Length == 32 Or _
+											SanitizedAdminKey.Length == 48 Or _
+											SanitizedAdminKey.Length == 64
+	'Now do the actual verification (much cleaner with two Booleans)
+	If Not(KnownChallengeLength) Or Not(KnownAdminKeyLength) Then
+		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Atleast one of the inputs does not have a correct supported length, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Wrong input length(s)")
+		
+	End If
+	
+	'Identify Algorithm mismatches between Challenges & Admin keys
+	'
+	'If using DES-EDE2 the Admin Key will be 32 chars and the challenge 16 chars
+	'If using DES-EDE3 the Admin Key will be 48 chars and the challenge 16 chars
+	'If using AES-128  the Admin Key and challenge code will be 32 chars each
+	'If using AES-256  the Admin Key and challenge code will be 64 chars each
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified to have correct supported lengths, now checking for Challenge vs. Admin Key algorithm mismatches"$, Colors.Blue)
+	'AES-128
+	If	SanitizedChallenge.Length == 32 And _		'AES-128 challenge
+		SanitizedAdminKey.Length  <> 32 Then		'Not AES-128 Admin Key
+		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-128 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Code needs AES-128 Key")
+		
+	'DES-EDE3 / DES-EDE2
+	Else If	SanitizedChallenge.Length == 16 And _	'DES-EDE2 or DES-EDE3 challenge
+			SanitizedAdminKey.Length  <> 32 And _	'Not DES-EDE2 Admin Key (2DES)
+			SanitizedAdminKey.Length  <> 48 Then	'Not DES-EDE3 Admin Key (3DES)
+		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs a 2DES or 3DES Admin Key but the provided one is neither, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Code needs 2/3DES Key")
+		
+	'AES-256
+	Else If	SanitizedChallenge.Length == 64 And _	'AES-256 challenge
+			SanitizedAdminKey.Length  <> 64 Then	'Not AES-256 Admin Key
+		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-256 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Code needs AES-256 Key")
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified not to be empty, to have correct supported lengths, and no algorithm mismatches"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: We can return the sanitized Admin Key and Challenge code values now (sensitive values)"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sub return (returning String(True, <the sanitized Challenge code>, <the sanitized Admin Key>))"$, Colors.Blue)
+	Return Array As String(True, SanitizedChallenge, SanitizedAdminKey)
+	
+End Sub
+
+'This function takes already-sanitized inputs
+Private Sub DetectChallengeAlgorithm(SanitizedChallenge As String, SanitizedAdminKey As String) As String
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sub entry (sensitive parameters)"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: This function takes already sanitized parameters"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Set initial detected algorithm to ${Cryptography.CRYPTOGRAPHY_ALGORITHM_UNKNOWN}"$, Colors.Blue)
+	Dim DetectedAlgorithm As String = Cryptography.CRYPTOGRAPHY_ALGORITHM_UNKNOWN
+	
+	LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Checking the sanitized Admin Key and Challenge code lengths to determine the correct algorithm"$, Colors.Blue)
+	If	SanitizedAdminKey.Length == 48 And SanitizedChallenge.Length == 16 Then
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are 48 and 16 chars respectively"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Setting the detected algorithm value to ${Cryptography.CRYPTOGRAPHY_ALGORITHM_3DES}"$, Colors.Blue)
+		DetectedAlgorithm = Cryptography.CRYPTOGRAPHY_ALGORITHM_3DES
+		
+	Else If	SanitizedAdminKey.Length == 32 And SanitizedChallenge.Length == 16 Then
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are 32 and 16 chars respectively"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Setting the detected algorithm value to ${Cryptography.CRYPTOGRAPHY_ALGORITHM_2DES}"$, Colors.Blue)
+		DetectedAlgorithm = Cryptography.CRYPTOGRAPHY_ALGORITHM_2DES
+		
+	Else If	SanitizedAdminKey.Length == 32 And SanitizedChallenge.Length == 32 Then
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are 32 and 32 chars respectively"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Setting the detected algorithm value to ${Cryptography.CRYPTOGRAPHY_ALGORITHM_AES128}"$, Colors.Blue)
+		DetectedAlgorithm = Cryptography.CRYPTOGRAPHY_ALGORITHM_AES128
+		
+	Else If	SanitizedAdminKey.Length == 64 And SanitizedChallenge.Length == 64 Then
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are 64 and 64 chars respectively"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Setting the detected algorithm value to ${Cryptography.CRYPTOGRAPHY_ALGORITHM_AES256}"$, Colors.Blue)
+		DetectedAlgorithm = Cryptography.CRYPTOGRAPHY_ALGORITHM_AES256
+		
+	Else
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are ${SanitizedAdminKey.Length} and ${SanitizedChallenge.Length} chars respectively"$, Colors.Magenta)
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Could not detect any suitable challenge-response algorithm"$, Colors.Magenta)
+		LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: The detected algorithm value stays the initial value ${DetectedAlgorithm}"$, Colors.Magenta)
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] DetectChallengeAlgorithm: Sub return (returning ${DetectedAlgorithm})"$, Colors.Blue)
+	Return DetectedAlgorithm
+End Sub
+
+#End Region
+
+#Region Response code field event handlers
+
+Private Sub edtResponse_FocusChanged(HasFocus As Boolean)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] edtResponse_FocusChanged: Sub entry (HasFocus = ${HasFocus})"$, Colors.Blue)
+	
+	If HasFocus Then
+		LogColor($"[Main-${LogContextId}] edtResponse_FocusChanged: HasFocus is True"$, Colors.Blue)
+		
+		LogColor($"[Main-${LogContextId}] edtResponse_FocusChanged: Set ViewState last focused element to "edtResponse""$, Colors.Blue)
+		ViewState_LastFocusedElement = "edtResponse"
+	Else
+		LogColor($"[Main-${LogContextId}] edtResponse_FocusChanged: HasFocus is False"$, Colors.Blue)
+		
+		'Android doesn't reset the selection information of
+		'EditText fields when the focus is lost
+		'
+		'So the EditText selection timers call their respective
+		'EditText_ShowSelectionInfo method but these functions
+		'think that the their EditText selection didn't change
+		'
+		'To fix this, I just forewarn that the last focused
+		'element is "undetermined" and the EditTexts'
+		'respective EditText_ShowSelectionInfo methods will
+		'verify that their element still has the focus
+		'thanks to this forewarning being done in advance
+		LogColor($"[Main-${LogContextId}] edtResponse_FocusChanged: Set ViewState last focused element to "undetermined" (will be set again properly by the next focused element)"$, Colors.Blue)
+		ViewState_LastFocusedElement = "undetermined"
+		
+	End If
+	
+	LogColor($"[Main-${LogContextId}] edtResponse_FocusChanged: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#Region Share To button event handlers
+
+Private Sub btnShareTo_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] btnShareTo_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[Main-${LogContextId}] btnShareTo_Click: Preparing a Share To Intent for sharing the Response code"$, Colors.Blue)
+	Dim ShareIntent As Intent
+	ShareIntent.Initialize(ShareIntent.ACTION_SEND, Constants.INTENT_NO_SPECIFIC_TARGET)
+	
+	ShareIntent.SetType("text/plain")
+	ShareIntent.PutExtra("android.intent.extra.TEXT", edtResponse.Text)
+	
+	ShareIntent.WrapAsIntentChooser("Share The Response Code")
+	
+	LogColor($"[Main-${LogContextId}] btnShareTo_Click: Starting the previously prepared Share To Intent to share the Response code"$, Colors.Blue)
+	StartActivity(ShareIntent)
+	
+	LogColor($"[Main-${LogContextId}] btnShareTo_Click: Sub return"$, Colors.Blue)
+End Sub
+
+#End Region
+
+#End Region
