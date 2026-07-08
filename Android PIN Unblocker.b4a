@@ -26,8 +26,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 47
-	#VersionName: 4.0.0
+	#VersionCode: 48
+	#VersionName: 4.0.1
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -336,6 +336,24 @@ Sub Activity_Create(FirstTime As Boolean)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[Main-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
 	
+	'----------------------------------------------
+	' Disabling the Activity TitleBar & ActionBar '
+	' must be done before adding content to the   '
+	' Activity, so before loading the layout file '
+	'----------------------------------------------
+	
+	#If Java
+	public void _onCreate()
+	{
+		if ( 1.0 > jGetDeviceScale() )
+		{
+			jDisableActivityTitleBar();
+			jDisableActivityActionBar();
+		}
+		jDisableAndroidAutofillService();
+	}
+	#End If
+	
 	LogColor($"[Main-${LogContextId}] Activity_Create: Load Main layout"$, Colors.Blue)
 	Activity.LoadLayout("Main")
 	
@@ -509,11 +527,12 @@ Sub Activity_Create(FirstTime As Boolean)
 	End If
 	#End If
 	
-	LogColor($"[Main-${LogContextId}] Activity_Create: Always disabling the Android 8.0+ Autofill service (if available)"$, Colors.Blue)
-	joMain.RunMethod("jDisableAndroidAutofillService", Null)
-	
 	LogColor($"[Main-${LogContextId}] Activity_Create: Harden this Activity's EditTexts to prevent Android from leaking sensitive information"$, Colors.Blue)
 	HardenActivityEditTexts
+	
+	LogColor($"[Main-${LogContextId}] Activity_Create: Fix this Activity's EditTexts that have a monospace font to stay monospace on older Android versions"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] Activity_Create: Otherwise some older Android devices see these EditTexts as not being monospace"$, Colors.Blue)
+	FixMonospaceEditTexts
 	
 	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the Android version is 3.0 or newer"$, Colors.Blue)
 	LogColor($"[Main-${LogContextId}] Activity_Create: If the Android version is 3.0 or newer then it has ActionBar support"$, Colors.Blue)
@@ -550,23 +569,6 @@ Sub Activity_Create(FirstTime As Boolean)
 		
 	End If
 	
-	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the device display scale is too small (if scale < 1.0)"$, Colors.Blue)
-	If 1.0 > joMain.RunMethod("jGetDeviceScale", Null) Then
-		LogColor($"[Main-${LogContextId}] Activity_Create: The device display scale is too small"$, Colors.Magenta)
-		LogColor($"[Main-${LogContextId}] Activity_Create: There might not be enough space to display the UI layout with the TitleBar & ActionBar visible"$, Colors.Magenta)
-		
-		LogColor($"[Main-${LogContextId}] Activity_Create: Disabling this Activity's TitleBar & ActionBar to save visual UI space"$, Colors.Magenta)
-		joMain.RunMethod("jDisableActivityTitleBar", Null)
-		joMain.RunMethod("jDisableActivityActionBar", Null)
-		
-	Else
-		LogColor($"[Main-${LogContextId}] Activity_Create: The device display scale is correct (either 1.0 or higher)"$, Colors.Blue)
-		LogColor($"[Main-${LogContextId}] Activity_Create: There will be enough space to display the UI layout even with the TitleBar & ActionBar visible"$, Colors.Blue)
-		
-		LogColor($"[Main-${LogContextId}] Activity_Create: So no need to disable this Activity's TitleBar & ActionBar"$, Colors.Blue)
-		
-	End If
-	
 	LogColor($"[Main-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
 
@@ -590,6 +592,23 @@ Sub HardenActivityEditTexts
 	Next
 	
 	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Sub return"$, Colors.Blue)
+End Sub
+
+Sub FixMonospaceEditTexts
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Sub entry"$, Colors.Blue)
+	
+	'Currently only the Admin Key field has a monospace font
+	
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Correcting the monospace EditTexts to always stay monospace"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: On older Android versions such as 2.x they are otherwise not monospace"$, Colors.Blue)
+	Common.ForceCorrectMonospaceFont(edtAdminKey)
+	
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Correcting the monospace EditTexts to also have proper monospace digits"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: On Android 5.0+ the monospace EditTexts don't have proper monospace digits otherwise"$, Colors.Blue)
+	Common.ForceCorrectMonospaceFontDigits(edtAdminKey)
+	
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Sub return"$, Colors.Blue)
 End Sub
 
 Sub Activity_Resume
@@ -1214,6 +1233,13 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_VISIBLE_PASSWORD)
 		
 	End If
+	
+	
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Android is sometimes dumb and loses the font properties of EditTexts when toggling the PasswordMode"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: So we have to fix the monospace font of the Admin Key field again on every .Checked change of this checkbox"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fixing the monospace property of the Admin Key field again..."$, Colors.Blue)
+	Common.ForceCorrectMonospaceFont(edtAdminKey)
+	Common.ForceCorrectMonospaceFontDigits(edtAdminKey)
 	
 	'Allow preserving the selection state when toggling password modes
 	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Restoring information about the previous selection state after toggling password modes"$, Colors.Blue)
