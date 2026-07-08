@@ -19,6 +19,6 @@ ModuleClosedNodes3=
 ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
-NavigationStack=Main,Process_Globals,140,6,Main,RestoreViewState,247,1,Main,Activity_Create,543,3,Main,Activity_Resume,598,6,Main,ActivityExit,726,0,Main,CheckIfAdminKeySharedToTheApp,799,6,Scan,Globals,108,0,Scan,Activity_Create,289,0,Scan,Activity_Pause,413,0,Scan,Process_Globals,10,0
+NavigationStack=Main,RestoreViewState,329,0,Main,SaveViewState,229,0,Scan,Activity_Create,182,0,MyCommon,ForceCorrectMonospaceFont,24,4,MyCommon,ForceCorrectMonospaceFontDigits,52,0,Visual Designer,Main.bal,-100,2,Main,chkHideAdminKey_CheckedChange,1227,6,Main,FixMonospaceEditTexts,571,6,Main,HardenActivityEditTexts,567,0,Main,Activity_Create,329,6
 SelectedBuild=0
 VisibleModules=6,3,5,2,1,4
