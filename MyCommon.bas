@@ -23,6 +23,44 @@ Public Sub Initialize
 	
 End Sub
 
+'For correcting the flawed monospace font
+'implementation of Android which doesn't
+'correctly make EditTexts monospace on
+'some older devices
+Public Sub ForceCorrectMonospaceFont(MyEditText As EditText)
+	joMyCommon.RunMethod("jForceCorrectMonospaceFont", Array(MyEditText))
+End Sub
+#If Java
+import android.widget.EditText;
+import android.widget.TextView;
+import android.graphics.Typeface;
+public static void jForceCorrectMonospaceFont(EditText myEditText)
+{
+	// Two functions exist with different parameters
+	myEditText.setTypeface(Typeface.MONOSPACE);
+	myEditText.setTypeface(Typeface.MONOSPACE, Typeface.NORMAL);
+}
+#End If
+
+Public Sub ForceCorrectMonospaceFontDigits(MyEditText As EditText)
+	joMyCommon.RunMethod("jForceCorrectMonospaceFontDigits", Array(MyEditText))
+End Sub
+#If Java
+import android.widget.EditText;
+import android.os.Build;
+import android.widget.TextView;
+public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
+{
+	// Check Android SDK version
+	// Android API level 21+ 
+	if ( Build.VERSION.SDK_INT >= 21 )
+	{
+		/* Android 5.0+ */
+		myEditText.setFontFeatureSettings("tnum");
+	}
+}
+#End If
+
 'For getting the Android SDK version without
 'bundling the big Phone library
 Public Sub GetAndroidSdkVersion As Int
