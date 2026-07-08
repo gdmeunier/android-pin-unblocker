@@ -1,367 +1,429 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-    <doclet-version-NOT-library-version>1.05</doclet-version-NOT-library-version>
-    <class>
-        <name>newqrcodereaderviewwrapper.newqrcodereaderviewWrapper</name>
-        <shortname>NewQRCodeReaderView</shortname>
-        <objectwrapper>com.dlazaro66.qrcodereaderview.QRCodeReaderView</objectwrapper>
-        <owner>process</owner>
-        <event>result_found(retval As String)</event>
-        <permission>android.permission.CAMERA</permission>
-        <permission>android.hardware.camera</permission>
-        <permission>android.hardware.camera.autofocus</permission>
-        <method>
-            <name>BringToFront</name>
-            <comment></comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>RequestFocus</name>
-            <comment></comment>
-            <returntype>boolean</returntype>
-        </method>
-        <method>
-            <name>RemoveView</name>
-            <comment></comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>SetBackgroundImage</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>android.graphics.Bitmap</type>
-            </parameter>
-        </method>
-        <method>
-            <name>setFrontCamera</name>
-            <comment>Camera preview from device front camera</comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>startCamera</name>
-            <comment>Starts camera preview and decoding</comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>forceAutoFocus</name>
-            <comment>Trigger an auto focus</comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>Invalidate3</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg1</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg2</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg3</name>
-                <type>int</type>
-            </parameter>
-        </method>
-        <method>
-            <name>setBackCamera</name>
-            <comment>Camera preview from device back camera</comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>Invalidate2</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>android.graphics.Rect</type>
-            </parameter>
-        </method>
-        <method>
-            <name>stopCamera</name>
-            <comment>Stop camera preview and decoding</comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>IsInitialized</name>
-            <comment></comment>
-            <returntype>boolean</returntype>
-        </method>
-        <method>
-            <name>Initialize</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>ba</name>
-                <type>anywheresoftware.b4a.BA</type>
-            </parameter>
-            <parameter>
-                <name>EventName</name>
-                <type>java.lang.String</type>
-            </parameter>
-        </method>
-        <method>
-            <name>Invalidate</name>
-            <comment></comment>
-            <returntype>void</returntype>
-        </method>
-        <method>
-            <name>SetLayout</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type Pixel="true">int</type>
-            </parameter>
-            <parameter>
-                <name>arg1</name>
-                <type Pixel="true">int</type>
-            </parameter>
-            <parameter>
-                <name>arg2</name>
-                <type Pixel="true">int</type>
-            </parameter>
-            <parameter>
-                <name>arg3</name>
-                <type Pixel="true">int</type>
-            </parameter>
-        </method>
-        <method>
-            <name>DesignerCreateView</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>base</name>
-                <type>anywheresoftware.b4a.objects.PanelWrapper</type>
-            </parameter>
-            <parameter>
-                <name>lw</name>
-                <type>anywheresoftware.b4a.objects.LabelWrapper</type>
-            </parameter>
-            <parameter>
-                <name>props</name>
-                <type>anywheresoftware.b4a.objects.collections.Map</type>
-            </parameter>
-        </method>
-        <method>
-            <name>SetColorAnimated</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg1</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg2</name>
-                <type>int</type>
-            </parameter>
-        </method>
-        <method>
-            <name>SetLayoutAnimated</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg1</name>
-                <type Pixel="true">int</type>
-            </parameter>
-            <parameter>
-                <name>arg2</name>
-                <type Pixel="true">int</type>
-            </parameter>
-            <parameter>
-                <name>arg3</name>
-                <type Pixel="true">int</type>
-            </parameter>
-            <parameter>
-                <name>arg4</name>
-                <type Pixel="true">int</type>
-            </parameter>
-        </method>
-        <method>
-            <name>SetVisibleAnimated</name>
-            <comment></comment>
-            <returntype>void</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>int</type>
-            </parameter>
-            <parameter>
-                <name>arg1</name>
-                <type>boolean</type>
-            </parameter>
-        </method>
-        <method>
-            <name>SendToBack</name>
-            <comment></comment>
-            <returntype>void</returntype>
-        </method>
-        <property>
-            <name>Enabled</name>
-            <returntype>boolean</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>boolean</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Parent</name>
-            <returntype>java.lang.Object</returntype>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Top</name>
-            <returntype>int</returntype>
-            <parameter>
-                <name>top</name>
-                <type>int</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Visible</name>
-            <returntype>boolean</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>boolean</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>ResultPointColor</name>
-            <parameter>
-                <name>color</name>
-                <type>int</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>ScanNow</name>
-            <parameter>
-                <name>scannow</name>
-                <type>boolean</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Height</name>
-            <returntype>int</returntype>
-            <parameter>
-                <name>height</name>
-                <type>int</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Background</name>
-            <returntype>android.graphics.drawable.Drawable</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>android.graphics.drawable.Drawable</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>QRDecodingEnabled</name>
-            <parameter>
-                <name>qrDecodingEnabled</name>
-                <type>boolean</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>TorchEnabled</name>
-            <parameter>
-                <name>enabled</name>
-                <type>boolean</type>
-            </parameter>
-            <comment>Set Torch enabled/disabled.
- default value is false</comment>
-        </property>
-        <property>
-            <name>Left</name>
-            <returntype>int</returntype>
-            <parameter>
-                <name>left</name>
-                <type>int</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Padding</name>
-            <returntype>int[]</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>int[]</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Color</name>
-            <parameter>
-                <name>arg0</name>
-                <type>int</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>Tag</name>
-            <returntype>java.lang.Object</returntype>
-            <parameter>
-                <name>arg0</name>
-                <type>java.lang.Object</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <property>
-            <name>PreviewCameraId</name>
-            <parameter>
-                <name>cameraId</name>
-                <type>int</type>
-            </parameter>
-            <comment>Allows user to specify the camera ID, rather than determine
- it automatically based on available cameras and their orientation.</comment>
-        </property>
-        <property>
-            <name>AutofocusInterval</name>
-            <parameter>
-                <name>autofocusIntervalInMs</name>
-                <type>long</type>
-            </parameter>
-            <comment>Set Camera autofocus interval value
- default value is 5000 ms.</comment>
-        </property>
-        <property>
-            <name>Width</name>
-            <returntype>int</returntype>
-            <parameter>
-                <name>Width</name>
-                <type>int</type>
-            </parameter>
-            <comment></comment>
-        </property>
-        <field>
-            <name>ba</name>
-            <comment></comment>
-            <returntype>anywheresoftware.b4a.BA</returntype>
-        </field>
-    </class>
-    <version>1.01</version>
-    <author>Github: David Lazaro, Wrapped by: Johan Schoeman</author>
-    <dependsOn>jhscore</dependsOn>
+	<doclet-version-NOT-library-version>1.05</doclet-version-NOT-library-version>
+	<!-- Depends on my custom modification of the ZXing 2.3.0 library -->
+	<dependsOn>ZXing-2.3.0-QR-scan-only</dependsOn>
+	<!-- Library identification for Basic4Android -->
+	<author>
+		Creation - David Lazaro   @ Github
+		Wrapping - Johan Schoeman @ B4X Forum
+		Tweaking - gdmeunier      @ Github
+	</author>
+	<!-- Increase the version number by one major version higher than the original library -->
+	<version>2.00</version>
+	<!-- =================================================
+		 Custom version of the NewQRCodeReaderView library
+		 =================================================
+		
+		Modified NewQRCodeReaderView library by gdmeunier.
+		Based on the works of Johan Schoeman & David Lazaro.
+		
+		Changes:
+		
+		- Added compatibility with Android 2.3 (API level 9)
+		  by checking for the necessary SDK level number and
+		  setting the QRCodeReaderView's surface type to
+		  SURFACE_TYPE_PUSH_BUFFERS if necessary (constant 0x3).
+		
+		- Added a setPreviewDisplay() method to the Camera manager
+		  to optimize this library for older Android versions.
+		
+		- Removed unnecessary and redundant startPreview() calls
+		  in the QRCodeReaderView's surfaceCreated() method,
+		  since this should be done in surfaceChanged() instead.
+		  
+		  The surfaceCreated method now only uses the methods
+		  setPreviewCallback() and the new setPreviewDisplay().
+		
+		- Added more exception handling try-catch blocks to
+		  the QRCodeReaderViews's surfaceCreated() and
+		  surfaceChanged() methods to prevent crashes
+		  if any error occurs while starting the Camera preview.
+		
+		- Added some setPreviewDisplay() calls additionally to
+		  the original setPreviewCallback() calls in the
+		  CameraManager class's surfaceCreated() and
+		  surfaceChanged() methods, additionally to adding
+		  more exception handling with try-catch blocks.
+		
+		- Updated the ZXing library to 2.3.0 instead of using
+		  the older 2.1.0 version (2.3.0 supports API level 9+).
+		
+		- Heavily trimmed the ZXing library to remove all
+		  the non-QR code functionalities and removed all
+		  references to their fields, properties and methods.
+		
+		- Removed all QR code encoding functionalities from
+		  this modified ZXing 2.3.0 library since this App
+		  doesn't need to create QR codes (Android PIN Unblocker).
+		
+		- Trimmed the Java JAR manifest file to only contain
+		  the bare minimum information necessary to be valid.
+		
+		- Heavily re-compressed the ZXing 2.3.0 JAR file for
+		  even smaller file sizes.
+		
+		- Increased the library version from 1.01 to 2.00
+		
+		 ================================================= -->
+	<class>
+		<name>newqrcodereaderviewwrapper.newqrcodereaderviewWrapper</name>
+		<shortname>NewQRCodeReaderView</shortname>
+		<objectwrapper>com.dlazaro66.qrcodereaderview.QRCodeReaderView</objectwrapper>
+		<owner>process</owner>
+		<!-- Permissions that will automatically be included in your App manifest -->
+		<permission>android.permission.CAMERA</permission>
+		<permission>android.permission.FLASHLIGHT</permission>
+		<permission>android.hardware.camera</permission>
+		<permission>android.hardware.camera.autofocus</permission>
+		<!-- Properly organized list of properties, methods and events etc -->
+		<property>
+			<name>PreviewCameraId</name>
+			<parameter>
+				<name>cameraId</name>
+				<type>int</type>
+			</parameter>
+			<comment>Specify the preview Camera ID rather than determine it automatically based on available cameras and their orientation (usually 0 for back and 1 for front).</comment>
+		</property>
+		<method>
+			<name>setBackCamera</name>
+			<returntype>void</returntype>
+			<comment>Camera preview from the device back camera.</comment>
+		</method>
+		<method>
+			<name>setFrontCamera</name>
+			<returntype>void</returntype>
+			<comment>Camera preview from the device front camera.</comment>
+		</method>
+		<method>
+			<name>startCamera</name>
+			<returntype>void</returntype>
+			<comment>Starts the Camera preview (and decoding if ScanNow and QRDecodingEnabled are set to True).</comment>
+		</method>
+		<property>
+			<name>AutofocusInterval</name>
+			<parameter>
+				<name>autofocusIntervalInMs</name>
+				<type>long</type>
+			</parameter>
+			<comment>Set Camera autofocus interval value in milliseconds (default value is 5000).</comment>
+		</property>
+		<method>
+			<name>forceAutoFocus</name>
+			<returntype>void</returntype>
+			<comment>Trigger an autofocus.</comment>
+		</method>
+		<property>
+			<name>TorchEnabled</name>
+			<parameter>
+				<name>enabled</name>
+				<type>boolean</type>
+			</parameter>
+			<comment>Sets the torchlight enabled or disabled state (default value is False - has no effect on devices without a torchlight).</comment>
+		</property>
+		<property>
+			<name>ScanNow</name>
+			<parameter>
+				<name>scannow</name>
+				<type>boolean</type>
+			</parameter>
+			<comment>Whether the QR code reader should start detecting QR codes and displaying dots around detected QR dots.</comment>
+		</property>
+		<property>
+			<name>ResultPointColor</name>
+			<parameter>
+				<name>color</name>
+				<type>int</type>
+			</parameter>
+			<comment>Sets the color of the dots to display around detected QR codes in the Camera preview (recommended value is Colors.Red for visibility).</comment>
+		</property>
+		<property>
+			<name>QRDecodingEnabled</name>
+			<parameter>
+				<name>qrDecodingEnabled</name>
+				<type>boolean</type>
+			</parameter>
+			<comment>Whether the QR code reader should decode the contents of detected QR codes and fire the appropriate result_found event (if ScanNow is set to True).</comment>
+		</property>
+		<event>result_found(retval As String)</event>
+		<method>
+			<name>stopCamera</name>
+			<returntype>void</returntype>
+			<comment>Stops the Camera preview, the scanning of QR codes and their decoding.</comment>
+		</method>
+		<!-- Common Basic4Android properties, methods and events etc -->
+		<property>
+			<name>Tag</name>
+			<returntype>java.lang.Object</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>java.lang.Object</type>
+			</parameter>
+			<comment>You can store any additional data for later reuse in this property.</comment>
+		</property>
+		<property>
+			<name>Enabled</name>
+			<returntype>boolean</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>boolean</type>
+			</parameter>
+			<comment></comment>
+		</property>
+		<property>
+			<name>Visible</name>
+			<returntype>boolean</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>boolean</type>
+			</parameter>
+			<comment></comment>
+		</property>
+		<method>
+			<name>SetVisibleAnimated</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg1</name>
+				<type>boolean</type>
+			</parameter>
+			<comment></comment>
+		</method>
+		<!-- Layout Basic4Android properties, methods and events etc -->
+		<property>
+			<name>Left</name>
+			<returntype>int</returntype>
+			<parameter>
+				<name>left</name>
+				<type>int</type>
+			</parameter>
+			<comment>Position offset relative to the current layout's left side (X offset).</comment>
+		</property>
+		<property>
+			<name>Top</name>
+			<returntype>int</returntype>
+			<parameter>
+				<name>top</name>
+				<type>int</type>
+			</parameter>
+			<comment>Position offset relative to the current layout's top side (Y offset).</comment>
+		</property>
+		<property>
+			<name>Height</name>
+			<returntype>int</returntype>
+			<parameter>
+				<name>height</name>
+				<type>int</type>
+			</parameter>
+			<comment></comment>
+		</property>
+		<property>
+			<name>Width</name>
+			<returntype>int</returntype>
+			<parameter>
+				<name>Width</name>
+				<type>int</type>
+			</parameter>
+			<comment></comment>
+		</property>
+		<property>
+			<name>Padding</name>
+			<returntype>int[]</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>int[]</type>
+			</parameter>
+			<comment></comment>
+		</property>
+		<property>
+			<name>Parent</name>
+			<returntype>java.lang.Object</returntype>
+			<comment></comment>
+		</property>
+		<method>
+			<name>SetLayout</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<parameter>
+				<name>arg1</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<parameter>
+				<name>arg2</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<parameter>
+				<name>arg3</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<comment></comment>
+		</method>
+		<method>
+			<name>SetLayoutAnimated</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg1</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<parameter>
+				<name>arg2</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<parameter>
+				<name>arg3</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<parameter>
+				<name>arg4</name>
+				<type Pixel="true">int</type>
+			</parameter>
+			<comment></comment>
+		</method>
+		<!-- Visual Basic4Android properties, methods and events etc -->
+		<property>
+			<name>Color</name>
+			<parameter>
+				<name>arg0</name>
+				<type>int</type>
+			</parameter>
+			<comment></comment>
+		</property>
+		<method>
+			<name>SetColorAnimated</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg1</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg2</name>
+				<type>int</type>
+			</parameter>
+			<comment></comment>
+		</method>
+		<property>
+			<name>Background</name>
+			<returntype>android.graphics.drawable.Drawable</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>android.graphics.drawable.Drawable</type>
+			</parameter>
+			<comment>Sets the default background of the UI element to a static color.</comment>
+		</property>
+		<method>
+			<name>SetBackgroundImage</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>android.graphics.Bitmap</type>
+			</parameter>
+			<comment>Sets the default background of the UI element to a bitmap picture.</comment>
+		</method>
+		<method>
+			<name>RequestFocus</name>
+			<returntype>boolean</returntype>
+			<comment></comment>
+		</method>
+		<method>
+			<name>SendToBack</name>
+			<returntype>void</returntype>
+			<comment></comment>
+		</method>
+		<method>
+			<name>RemoveView</name>
+			<returntype>void</returntype>
+			<comment>Deletes the UI element.</comment>
+		</method>
+		<!-- Generic Basic4Android properties, methods and events etc -->
+		<method>
+			<name>IsInitialized</name>
+			<returntype>boolean</returntype>
+			<comment>Verify whether the UI element is initialized before use.</comment>
+		</method>
+		<method>
+			<name>Initialize</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>ba</name>
+				<type>anywheresoftware.b4a.BA</type>
+			</parameter>
+			<parameter>
+				<name>EventName</name>
+				<type>java.lang.String</type>
+			</parameter>
+			<comment>Initialize the UI element (the Designer layouts automatically do this).</comment>
+		</method>
+		<method>
+			<name>Invalidate</name>
+			<returntype>void</returntype>
+			<comment>Force redrawing of the UI element.</comment>
+		</method>
+		<method>
+			<name>Invalidate2</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>android.graphics.Rect</type>
+			</parameter>
+			<comment>Force redrawing of the UI element.</comment>
+		</method>
+		<method>
+			<name>Invalidate3</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>arg0</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg1</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg2</name>
+				<type>int</type>
+			</parameter>
+			<parameter>
+				<name>arg3</name>
+				<type>int</type>
+			</parameter>
+			<comment>Force redrawing of the UI element.</comment>
+		</method>
+		<!-- Internal Basic4Android properties, methods and events etc -->
+		<method>
+			<name>DesignerCreateView</name>
+			<returntype>void</returntype>
+			<parameter>
+				<name>base</name>
+				<type>anywheresoftware.b4a.objects.PanelWrapper</type>
+			</parameter>
+			<parameter>
+				<name>lw</name>
+				<type>anywheresoftware.b4a.objects.LabelWrapper</type>
+			</parameter>
+			<parameter>
+				<name>props</name>
+				<type>anywheresoftware.b4a.objects.collections.Map</type>
+			</parameter>
+			<comment>Internal use only.</comment>
+		</method>
+		<field>
+			<name>ba</name>
+			<returntype>anywheresoftware.b4a.BA</returntype>
+			<comment>Internal use only.</comment>
+		</field>
+	</class>
 </root>
