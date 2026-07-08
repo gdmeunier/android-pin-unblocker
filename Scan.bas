@@ -176,6 +176,24 @@ Sub Activity_Create(FirstTime As Boolean)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
 	
+	'----------------------------------------------
+	' Disabling the Activity TitleBar & ActionBar '
+	' must be done before adding content to the   '
+	' Activity, so before loading the layout file '
+	'----------------------------------------------
+	
+	#If Java
+	public void _onCreate()
+	{
+		if ( 1.0 > jGetDeviceScale() )
+		{
+			jDisableActivityTitleBar();
+			jDisableActivityActionBar();
+		}
+		jDisableAndroidAutofillService();
+	}
+	#End If
+	
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Load Scan layout"$, Colors.Blue)
 	Activity.LoadLayout("Scan")
 	
@@ -289,31 +307,11 @@ Sub Activity_Create(FirstTime As Boolean)
 	End If
 	#End If
 	
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Always disabling the Android 8.0+ Autofill service (if available)"$, Colors.Blue)
-	joScan.RunMethod("jDisableAndroidAutofillService", Null)
-	
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Initialize the QR code reader view"$, Colors.Blue)
 	InitializeQRCodeReaderView
 	
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Fixing the Camera preview to be neatly square if needed (on devices without a software NavBar)"$, Colors.Blue)
 	FixSquareCameraPreviewIfNeeded
-	
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Check if the device display scale is too small (if scale < 1.0)"$, Colors.Blue)
-	If 1.0 > joScan.RunMethod("jGetDeviceScale", Null) Then
-		LogColor($"[Scan-${LogContextId}] Activity_Create: The device display scale is too small"$, Colors.Magenta)
-		LogColor($"[Scan-${LogContextId}] Activity_Create: There might not be enough space to display the UI layout with the TitleBar & ActionBar visible"$, Colors.Magenta)
-		
-		LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling this Activity's TitleBar & ActionBar to save visual UI space"$, Colors.Magenta)
-		joScan.RunMethod("jDisableActivityTitleBar", Null)
-		joScan.RunMethod("jDisableActivityActionBar", Null)
-		
-	Else
-		LogColor($"[Scan-${LogContextId}] Activity_Create: The device display scale is correct (either 1.0 or higher)"$, Colors.Blue)
-		LogColor($"[Scan-${LogContextId}] Activity_Create: There will be enough space to display the UI layout even with the TitleBar & ActionBar visible"$, Colors.Blue)
-		
-		LogColor($"[Scan-${LogContextId}] Activity_Create: So no need to disable this Activity's TitleBar & ActionBar"$, Colors.Blue)
-		
-	End If
 	
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
