@@ -61,6 +61,22 @@ public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 }
 #End If
 
+'
+'For allowing horinzontal scrolling on EditTexts
+'
+'Public Sub ForceAllowHorizontalScroll(MyEditText As EditText)
+'	joMyCommon.RunMethod("jForceAllowHorizontalScroll", Array(MyEditText))
+'End Sub
+'#If Java
+'import android.widget.EditText;
+'import android.widget.TextView;
+'public static void jForceAllowHorizontalScroll(EditText myEditText)
+'{
+'	// Added in API level 1
+'	myEditText.setHorizontallyScrolling(true);
+'}
+'#End If
+
 'For getting the Android SDK version without
 'bundling the big Phone library
 Public Sub GetAndroidSdkVersion As Int

@@ -14,15 +14,47 @@ Sub Class_Globals
 	// Device orientation type constants
 	//
 	// There's a copy of each one of these variables
-	// in the MyCommon class
+	// in the MyConstants class
 	//
 	// This version of the constants is for internal
 	// Advanced class access only
-	public static int ORIENTATION_UNKNOWN   = 0;
-	public static int ORIENTATION_PORTRAIT  = 1;
-	public static int ORIENTATION_LANDSCAPE = 2;
+	public static final int ORIENTATION_UNKNOWN   = 0;
+	public static final int ORIENTATION_PORTRAIT  = 1;
+	public static final int ORIENTATION_LANDSCAPE = 2;
+	
+	// Toast duration length constants
+	//
+	// There's a copy of each one of these variables
+	// in the MyConstants class
+	//
+	// This version of the constants is for internal
+	// Advanced class access only
+	public static final boolean TOAST_DURATION_SHORT = false;
+	public static final boolean TOAST_DURATION_LONG  = true;
+	
+	// Toast duration lengths in milliseconds
+	//
+	// These are the actual toast durations
+	// instead of boolean flags
+	//
+	// Useful for waiting until a toast has finished
+	// before showing another one
+	//
+	public static final int TOAST_LONG_DELAY  = 3500; // 3.5 seconds
+	public static final int TOAST_SHORT_DELAY = 2000; // 2 seconds
 	#End If
 	
+	'For letting the Java native code know whether
+	'the App was compiled without FLAG_SECURE
+	#If NO_FLAG_SECURE
+	#If Java
+	public static final boolean NO_FLAG_SECURE = true;
+	#End If
+	#Else
+	#If Java
+	public static final boolean NO_FLAG_SECURE = false;
+	#End If
+	#End If
 End Sub
 
 Public Sub Initialize
@@ -35,11 +67,37 @@ End Sub
 '
 
 '
-'Disable the Android Autofill service for an Activity
+'Display a toast notification from Java code
 '
 #If Java
 import android.content.Context;
 import android.app.Activity;
+import android.widget.Toast;
+public boolean jToastMessageShow(Activity ctx, final String text, final boolean longDuration)
+{
+	if ( ctx == null )
+	{
+		return false;
+	}
+	
+	try
+	{
+		Toast.makeText(ctx, text, longDuration ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+	}
+	catch (Exception e)
+	{
+		return false;
+	}
+	
+	return true;
+}
+#End If
+
+'
+'Disable the Android Autofill service for an Activity
+'
+#If Java
+import android.content.Context;
 import android.app.Activity;
 import android.view.Window;
 import android.view.ViewStructure;
@@ -216,8 +274,8 @@ public void jDisableActivityActionBar(Activity ctx)
 '
 #If Java
 import android.content.Context;
-import android.os.Build;
 import android.app.Activity;
+import android.os.Build;
 public void jBetterActivityFinish(Activity ctx)
 {
 	if ( ctx == null )
@@ -252,7 +310,7 @@ import android.content.Context;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-public void jOpenBrowserUrl(String browserUrl, Activity ctx)
+public void jOpenBrowserUrl(Activity ctx, String browserUrl)
 {
 	if ( ctx == null )
 	{
@@ -455,8 +513,8 @@ public int jGetDeviceOrientation(Context ctx)
 'Check if the device has a software NavBar
 '
 #If Java
-import android.os.Build;
 import android.content.Context;
+import android.os.Build;
 import android.content.res.Resources;
 import android.view.ViewConfiguration;
 import android.view.KeyCharacterMap;
@@ -510,8 +568,8 @@ public boolean jDeviceHasNavBar(Context ctx)
 'Check if the device has a flashlight
 '
 #If Java
-import android.os.Build;
 import android.content.Context;
+import android.os.Build;
 import android.content.pm.PackageManager;
 public boolean jDeviceHasFlashlight(Context ctx)
 {

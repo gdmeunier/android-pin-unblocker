@@ -64,11 +64,13 @@ End Sub
 
 'Java functions ------------------------------------------------
 #If Java
-private myadvanced ScanAdvanced = new myadvanced();
+private myadvanced ScanAdvanced  = new myadvanced();
 
 import android.content.Context;
 public boolean jDeviceHasFlashlight()
 {
+	// Method of providing context to a class
+	// Call its functions with the "this" keyword
 	return ScanAdvanced.jDeviceHasFlashlight(this);
 }
 
@@ -118,6 +120,32 @@ import android.content.Context;
 public void jDisableAndroidAutofillService()
 {
 	ScanAdvanced.jDisableAndroidAutofillService(this);
+}
+
+import android.content.Context;
+public boolean jToastMessageShow(final String text, final boolean longDuration)
+{
+	return ScanAdvanced.jToastMessageShow(this, text, longDuration);
+}
+
+import android.content.Context;
+public void jBetterActivityFinish()
+{
+	ScanAdvanced.jBetterActivityFinish(this);
+}
+#End If
+
+#If Java
+// Intercept mundane configuration change events to
+// ignore them instead of recreating this App's Activities
+//
+// This is what we've set in the App's manifest file
+//
+import android.content.res.Configuration;
+@Override
+public void onConfigurationChanged(Configuration newConfig)
+{
+	super.onConfigurationChanged(newConfig);
 }
 #End If
 '------------------------------------------------------------------
@@ -183,14 +211,160 @@ Sub Activity_Create(FirstTime As Boolean)
 	'----------------------------------------------
 	
 	#If Java
+	import android.os.Build;
+	import android.os.CountDownTimer;
 	public void _onCreate()
 	{
+		// Check if the device display scale is too small (scale < 1.0)
+		//
 		if ( 1.0 > jGetDeviceScale() )
 		{
+			// Device display scale is too small
+			// Disable the Activity TitleBar & ActionBar to save visuall UI space
+			//
 			jDisableActivityTitleBar();
 			jDisableActivityActionBar();
 		}
+		// Disable the Android 8.0+ Autofill service (for security reasons)
+		//
 		jDisableAndroidAutofillService();
+		
+		// Try disabling Recent Apps thumbnails
+		// API level 33+ (Android 13+)
+		//
+		// Returns false on older Android versions
+		//
+		if ( !jDisableRecentAppsThumbnails() )
+		{
+			// Disabling Recent Apps thumbnails failed
+			// Perhaps an older Android version
+			//
+			// Check if the App wasn't compiled with "NO_FLAG_SECURE"
+			// By default the App should not be compiled with it
+			//
+			if ( !myadvanced.NO_FLAG_SECURE )
+			{
+				/*
+				 * Try adding FLAG_SECURE to this Activity
+				 * as a fallback method to protect against
+				 * Android's Recent Apps thumbnails,
+				 * which might leak Admin Keys in them
+				 */
+				
+				/*
+				 * We will always warn the user on every
+				 * Activity relaunch incase they use
+				 * builds where this FLAG_SECURE feature
+				 * is expected to always work
+				 * 
+				 * If it was the NO_FLAG_SECURE build,
+				 * then we would warn only once
+				 */
+				 
+				/* Note: It's normal that adding the FLAG_SECURE
+				 *       fails on devices older than API level 11
+				 *       (Android 3.0)
+				 *       
+				 *       In such cases we don't need to warn since
+				 *       there was no FLAG_SECURE feature in these
+				 *       older Android versions, and they are not
+				 *       at risk of Recent Apps thumbnail leaks
+				 *       
+				 *       There was a different Recent Apps panel
+				 *       back in these older versions without
+				 *       App thumbnails (only App icons)
+				 */
+				if ( !jEnableActivityFlagSecure() && Build.VERSION.SDK_INT >= 11 )
+				{
+					// Adding FLAG_SECURE to this Activity
+					// as a fallback protection method failed
+					
+					// Notify the user about the failure
+					// to add FLAG_SECURE in this Activity
+					//
+					if ( !jToastMessageShow("Failed to add FLAG_SECURE!", myadvanced.TOAST_DURATION_SHORT) )
+					{
+						jBetterActivityFinish();
+						mycommon.jTrueApplicationExit();
+					}
+					//
+					// Wait until the first toast disappears
+					// before showing another one
+					//
+					new CountDownTimer(myadvanced.TOAST_SHORT_DELAY, 500)
+					{
+						@Override
+						public void onTick(long millisUntilFinished) { }
+						@Override
+						public void onFinish()
+						{
+							if ( !jToastMessageShow("Admin Keys might leak in Camera preview buffers", myadvanced.TOAST_DURATION_LONG) )
+							{
+								jBetterActivityFinish();
+								mycommon.jTrueApplicationExit();
+							}
+						}
+					}.start();
+				}
+			}
+			/* Devices older than API level 33 of course didn't support
+			 * disabling the Recent Apps thumbnails only without FLAG_SECURE
+			 * No need to warn on such devices, and they already got one
+			 * specifically for their older version (API level < 33 and >= 11)
+			 */
+			else if ( _myglobals.Scan_IsFirstLaunch && Build.VERSION.SDK_INT >= 33 )
+			{
+				// The App was compiled with NO_FLAG_SECURE,
+				// so we don't try to add FLAG_SECURE as a
+				// fallback protection method to this Activity
+				
+				/* We notify the user only once on first *
+				 * Application lifecycle launch          *
+				 * Not spamming them all the time...     */
+				
+				// Notify the user instead about the failure
+				// to disable the Recent Apps thumbnails
+				if ( !jToastMessageShow("Failed to disable Recent Apps thumbnail!", myadvanced.TOAST_DURATION_SHORT) )
+				{
+					jBetterActivityFinish();
+					mycommon.jTrueApplicationExit();
+				}
+				//
+				// Wait until the first toast disappears
+				// before showing another one
+				//
+				new CountDownTimer(myadvanced.TOAST_SHORT_DELAY, 500)
+				{
+					@Override
+					public void onTick(long millisUntilFinished) { }
+					@Override
+					public void onFinish()
+					{
+						if ( !jToastMessageShow("Admin Keys might leak in Camera preview buffers", myadvanced.TOAST_DURATION_LONG) )
+						{
+							jBetterActivityFinish();
+							mycommon.jTrueApplicationExit();
+						}
+					}
+				}.start();
+			}
+		}
+		else
+		{
+			// If disabling Recent Apps thumbnails worked
+			// without needing FLAG_SECURE, then no problem
+		}
+		
+		// Check if it's the first-time Activity launch
+		// in this Activity's lifecycle
+		//
+		// This part is done at the end of the onCreate event
+		if ( _myglobals.Scan_IsFirstLaunch )
+		{
+			// Mark that the next Activity onCreate events
+			// will no longer be the first-time Activity launch
+			_myglobals.Scan_IsFirstLaunch = false;
+		}
 	}
 	#End If
 	
@@ -231,81 +405,6 @@ Sub Activity_Create(FirstTime As Boolean)
 	'must always have a fresh Activity context handle!
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Initialize the joScan JavaObject always (not just on FirstTime launch)"$, Colors.Blue)
 	joScan.InitializeContext
-	
-	#If NO_FLAG_SECURE
-	'Try to disable Recent Apps thumbnails always even in NO_FLAG_SECURE mode
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Verifying if the device Android version is Android 13 or newer (API level >= 33)"$, Colors.Blue)
-	If Common.GetAndroidSdkVersion >= 33 Then
-		LogColor($"[Scan-${LogContextId}] Activity_Create: This device is running Android version 13 or newer (API level >= 33)"$, Colors.Blue)
-		LogColor($"[Scan-${LogContextId}] Activity_Create: We don't need to add FLAG_SECURE in these newer versions thanks to the new Activity.setRecentsScreenshotEnabled(boolean) API introduced in Android 13+"$, Colors.Blue)
-		
-		LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly instead"$, Colors.Blue)
-		If joScan.RunMethod("jDisableRecentAppsThumbnails", Null) Then
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly succeeded"$, Colors.Blue)
-			
-		Else
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly failed"$, Colors.Red)
-			
-			LogColor($"[Scan-${LogContextId}] Activity_Create: We won't try to add FLAG_SECURE to this Activity instead as a fallback"$, Colors.Red)
-			LogColor($"[Scan-${LogContextId}] Activity_Create: This build of the App was specifically built without FLAG_SECURE"$, Colors.Red)
-			
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Just notify the user about it in a toast notification"$, Colors.Red)
-			ToastMessageShow("Failed to disable Recent Apps thumbnail", Constants.TOAST_DURATION_SHORT)
-			
-		End If
-		
-	End If
-	#Else
-	'Add FLAG_SECURE to this Activity View on Activity_Create
-	'Add it always, not just on the FirstTime
-	LogColor($"[Scan-${LogContextId}] Activity_Create: This build is compiled without NO_FLAG_SECURE, checking if we need to add FLAG_SECURE"$, Colors.Blue)
-	
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Verifying if the device Android version is Android 13 or newer (API level >= 33)"$, Colors.Blue)
-	If Common.GetAndroidSdkVersion >= 33 Then
-		LogColor($"[Scan-${LogContextId}] Activity_Create: This device is running Android version 13 or newer (API level >= 33)"$, Colors.Blue)
-		LogColor($"[Scan-${LogContextId}] Activity_Create: We don't need to add FLAG_SECURE in these newer versions thanks to the new Activity.setRecentsScreenshotEnabled(boolean) API introduced in Android 13+"$, Colors.Blue)
-		
-		LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly instead"$, Colors.Blue)
-		If joScan.RunMethod("jDisableRecentAppsThumbnails", Null) Then
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly succeeded"$, Colors.Blue)
-			
-		Else
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Disabling Recent Apps thumbnails properly failed"$, Colors.Red)
-			
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Trying to add FLAG_SECURE to this Activity instead as a fallback"$, Colors.Red)
-			If joScan.RunMethod("jEnableActivityFlagSecure", Null) Then
-				LogColor($"[Scan-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity as a fallback succeeded"$, Colors.Green)
-				
-			Else
-				LogColor($"[Scan-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity as a fallback failed"$, Colors.Red)
-				
-				LogColor($"[Scan-${LogContextId}] Activity_Create: Alerting the user about it in a toast notification"$, Colors.Red)
-				ToastMessageShow("Failed to secure this App Activity!", Constants.TOAST_DURATION_SHORT)
-				ToastMessageShow("The Activity FLAG_SECURE could not be set", Constants.TOAST_DURATION_LONG)
-				
-			End If
-			
-		End If
-		
-	Else
-		LogColor($"[Scan-${LogContextId}] Activity_Create: This device is running an Android version older than 13 (API level < 33)"$, Colors.Blue)
-		LogColor($"[Scan-${LogContextId}] Activity_Create: The only way in these older Android versions to block Recent Apps thumbnails is to add FLAG_SECURE to the Activity on create"$, Colors.Blue)
-		
-		LogColor($"[Scan-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity"$, Colors.Blue)
-		If joScan.RunMethod("jEnableActivityFlagSecure", Null) Then
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity succeeded"$, Colors.Blue)
-			
-		Else
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Adding FLAG_SECURE to this Activity failed"$, Colors.Red)
-			
-			LogColor($"[Scan-${LogContextId}] Activity_Create: Alerting the user about it in a toast notification"$, Colors.Red)
-			ToastMessageShow("Failed to secure this App Activity!", Constants.TOAST_DURATION_SHORT)
-			ToastMessageShow("The Activity FLAG_SECURE could not be set", Constants.TOAST_DURATION_LONG)
-			
-		End If
-		
-	End If
-	#End If
 	
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Initialize the QR code reader view"$, Colors.Blue)
 	InitializeQRCodeReaderView
