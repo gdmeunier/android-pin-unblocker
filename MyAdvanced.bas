@@ -62,6 +62,400 @@ Public Sub Initialize
 End Sub
 
 '
+'Java-only functions for making the Activity --------------------------
+'onCreate events easier to read
+'
+
+#If Java
+import android.content.Context;
+import android.app.Activity;
+public void jDisableTitleBarAndActionBarIfNeeded(Activity ctx)
+{
+	// Check if the device display scale is too small (scale < 1.0)
+	//
+	if ( 1.0 > jGetDeviceScale(ctx) )
+	{
+		// Device display scale is too small
+		// Disable the Activity TitleBar & ActionBar to save visual UI space
+		//
+		jDisableActivityTitleBar(ctx);
+		jDisableActivityActionBar(ctx);
+	}
+}
+#End If
+
+#If Java
+import android.content.Context;
+import android.app.Activity;
+import android.os.Build;
+import android.os.CountDownTimer;
+public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
+{
+	/* Try disabling Recent Apps thumbnails
+	 * API level 33+ (Android 13+)
+	 * 
+	 * Older versions from a certain point in time
+	 * must use FLAG_SECURE (Android 4.0.3+ / API level 15+)
+	 * 
+	 * Legacy versions already allow us to censor
+	 * the Recent Apps thumbnail with the onCreateThumbnail
+	 * Activity event (Android 4.0.2- / API level 14-)
+	 */
+	boolean thumbnailDisabledSuccessfully = false;
+	
+	if ( Build.VERSION.SDK_INT >= 33 )
+	{
+		if ( !jDisableRecentAppsThumbnails(ctx) )
+		{
+			/* If the user is running the FLAG_SECURE build
+			 * then it's not really a problem because
+			 * the FLAG_SECURE will prevent the thumbnail
+			 * from being created by Android anyway
+			 *
+			 * FLAG_SECURE is added later on in this function
+			 * if disabling the Recent Apps thumbnail failed
+			 * 
+			 * However if the user runs the NO_FLAG_SECURE
+			 * special-purpose build then it's a problem:
+			 *  - Admin keys might leak in Recent Apps thumbnails
+			 * 
+			 * Check if the user was running the special-purpose
+			 * NO_FLAG_SECURE build of this App
+			 * 
+			 * Note: warn only on first Activity launch
+			 */
+			if ( NO_FLAG_SECURE && firstTimeLaunch )
+			{
+				// User runs the NO_FLAG_SECURE build of this App
+				// Don't try adding FLAG_SECURE as a fallback
+				//
+				// However the user does deserve to be warned
+				// about this issue to avoid any potential trouble
+				//
+				if ( !jToastMessageShow(ctx, "Failed to disable Recent Apps thumbnail", TOAST_DURATION_SHORT) )
+				{
+					jBetterActivityFinish(ctx);
+					mycommon.jTrueApplicationExit();
+				}
+				//
+				// Wait until the first toast disappears
+				// before showing another one
+				//
+				new CountDownTimer(TOAST_SHORT_DELAY, 500)
+				{
+					@Override
+					public void onTick(long millisUntilFinished) { }
+					@Override
+					public void onFinish()
+					{
+						if ( !jToastMessageShow(ctx, "Admin Keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
+						{
+							jBetterActivityFinish(ctx);
+							mycommon.jTrueApplicationExit();
+						}
+					}
+				}.start();
+			}
+		}
+		else
+		{
+			// Recent Apps thumbnail disabled
+			// No problem here
+			thumbnailDisabledSuccessfully = true;
+		}
+	}
+	
+	/* Legacy versions of Android allow us to properly
+	 * censor Recent Apps thumbnails without FLAG_SECURE
+	 * 
+	 * On these legacy versions we consider that the
+	 * Recent Apps thumbnails have been successfully
+	 * censored, because it's done in the Activity's
+	 * onCreateThumbnail event automatically
+	 * 
+	 * These legacy versions are Android 4.0.2 & older
+	 * (API levels 14 & older)
+	 */
+	if ( Build.VERSION.SDK_INT <= 14 )
+	{
+		thumbnailDisabledSuccessfully = true;
+	}
+	
+	/* Important reminder:
+	 * We don't actually want to always add FLAG_SECURE
+	 * even when the FLAG_SECURE build is used
+	 * 
+	 * The goal is not to block screenshots of this App,
+	 * it's just that on some devices it's the only way
+	 * to disable the Recent Apps thumbnails
+	 *
+	 * That's what FLAG_SECURE is used for, but if we
+	 * were able to disable Recent Apps without it
+	 * then alright, no need to add FLAG_SECURE
+	 *
+	 * If the user doesn't want the FLAG_SECURE build
+	 * and decides to use NO_FLAG_SECURE, then they
+	 * have been warned already and are on their own
+	 */
+	if ( !thumbnailDisabledSuccessfully && !NO_FLAG_SECURE )
+	{
+		// Returns true if the device is too old
+		// and FLAG_SECURE did not exit in their
+		// Android version (Android < 3.0)
+		//
+		if ( !jEnableActivityFlagSecure(ctx) )
+		{
+			/* Always warn every time on every Activity launch
+			 * if the user runs the FLAG_SECURE build and the
+			 * Activity's Recent Apps thumbnail could not be
+			 * censored or disabled
+			 */
+			if ( !jToastMessageShow(ctx, "Failed to add FLAG_SECURE", TOAST_DURATION_SHORT) )
+			{
+				jBetterActivityFinish(ctx);
+				mycommon.jTrueApplicationExit();
+			}
+			//
+			// Wait until the first toast disappears
+			// before showing another one
+			//
+			new CountDownTimer(TOAST_SHORT_DELAY, 500)
+			{
+				@Override
+				public void onTick(long millisUntilFinished) { }
+				@Override
+				public void onFinish()
+				{
+					if ( !jToastMessageShow(ctx, "Admin Keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
+					{
+						jBetterActivityFinish(ctx);
+						mycommon.jTrueApplicationExit();
+					}
+				}
+			}.start();
+		}
+	}
+}
+#End If
+
+#If Java
+/*
+ * Available since Android 1.0 (API level 1)
+ * Works up to Android 4.0.2 (API level 14)
+ * 
+ * Accidentally broken since Android 4.0.3 (API level 15)
+ * Deliberately removed since Android 5.0 (API level 21)
+ * 
+ * Officially deprecated notice since Android 9 (API level 28)
+ */
+//
+// Avoid re-drawing thumbnails all the time
+//
+/* ----- ----- Not used ----- ----- **
+private Bitmap cachedDrawableCensorThumbnail = null;
+** ----- ----- Not used ----- ----- */
+private Bitmap cachedDynamicCensorThumbnail  = null;
+
+import android.content.Context;
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.content.res.Resources;
+import android.graphics.Bitmap.Config;
+import android.graphics.Color;
+import java.lang.Class;         // For Reflection
+import java.lang.reflect.Field; // For Reflection
+import net.gdmeunier.pinunblocker.R; // Must match App's package name
+import android.os.Build;
+import android.content.res.Resources.Theme;
+import android.graphics.Paint;
+import android.graphics.Paint.Style;
+import android.graphics.BitmapFactory;
+public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas canvas)
+{
+	//
+	// Return true to prevent the default thumbnail from being generated
+	// You can also draw your own thumbnail or dynamically generate one
+	//
+	
+	//
+	// [Reminders] The Canvas object "canvas" is provided by the caller
+	//             The outBitmap object is not used for our purposes
+	//
+	
+	//
+	// ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+	//
+	/* If you want to dynamically generate a Bitmap
+	 * instead of using one in your "res/drawable" folder
+	 */
+	
+	try
+	{
+		Bitmap censorThumbnail;
+		
+		if ( cachedDynamicCensorThumbnail != null )
+		{
+			censorThumbnail = cachedDynamicCensorThumbnail;
+			
+			//
+			// Canvas.drawBitmap(Bitmap bitmap, float left, float top, Paint paint);
+			//
+			canvas.drawBitmap(censorThumbnail, 0, 0, null);
+		}
+		else
+		{
+			//
+			// Default height & width of the preview thumbnail
+			//
+			int h = 1;
+			int w = 1;
+			
+			/* Undocumented method for getting Android's
+			 * default thumbnail preview size dynamically
+			 * instead of using hardcoded values
+			 */
+			
+			Resources res = ctx.getResources();
+			
+			// com.android.internal.R.dimen.thumbnail_height
+			//
+			int heightResId = res.getSystem().getIdentifier("thumbnail_height", "dimen", "android");
+			
+			// com.android.internal.R.dimen.thumbnail_width
+			//
+			int widthResId  = res.getSystem().getIdentifier("thumbnail_width", "dimen", "android");
+			
+			if ( heightResId > 0 && widthResId > 0 )
+			{
+				h = res.getDimensionPixelSize(heightResId);
+				w = res.getDimensionPixelSize(widthResId);
+			}
+			
+			// Android actually uses RGB_565 for thumbnail previews
+			//
+			censorThumbnail = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
+			
+			// Default color for censoring the preview thumbnail
+			//
+			int censorColor = Color.BLACK; // Or Color.DKGRAY
+			
+			// Get Activity's windowBackground color
+			//
+			try
+			{
+				// Use Reflection to get it 5x faster
+				//
+				Class colorClass = R.color.class;
+				Field colorField = colorClass.getField("windowBackground");
+				int   colorResId = colorField.getInt(null);
+				
+				if ( colorResId > 0 )
+				{
+					if ( Build.VERSION.SDK_INT < 23 )
+					{
+						/* Android 5.1.1- */
+						
+						// Deprecated on API level 23+ (Android 6+)
+						//
+						censorColor = res.getColor(colorResId);
+					}
+					else
+					{
+						/* Android 6+ */
+						
+						// Only available on API level 23+ (Android 6+)
+						// Using null to avoid requesting any specific Resources.Theme
+						//
+						censorColor = res.getColor(colorResId, null);
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				// Incase we have a botched value
+				censorColor = Color.BLACK; // Or Color.DKGRAY
+			}
+			
+			Paint censorPaint = new Paint();
+			//
+			// The default Paint style is already FILL
+			// We could've used a null value anyway
+			//
+			censorPaint.setStyle(Paint.Style.FILL);
+			censorPaint.setColor(censorColor);
+			
+			//
+			// Canvas.drawBitmap(Bitmap bitmap, float left, float top, Paint paint);
+			//
+			canvas.drawBitmap(censorThumbnail, 0, 0, censorPaint);
+			cachedDynamicCensorThumbnail = censorThumbnail;
+		}
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+	
+	//
+	// ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+	//
+	/* If you want to use a bitmap file as the source
+	 * for your preview thumbnail instead of
+	 * dynamically generating it on-the-fly
+	 *
+	 */
+	 
+	/* ----- ----- Not used ----- ----- **
+	try
+	{
+		//
+		// Example: "myCensorThumbnail.bmp" in your App's "res/drawable" folder
+		//
+		Bitmap censorThumbnail;
+		
+		if ( cachedDrawableCensorThumbnail != null )
+		{
+			censorThumbnail = cachedDrawableCensorThumbnail;
+		}
+		else
+		{
+			censorThumbnail = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.myCensorThumbnail);
+		}
+		
+		//
+		// Canvas.drawBitmap(Bitmap bitmap, float left, float top, Paint paint);
+		//
+		// We don't provide a Paint object (using null)
+		// Paint objects should not be provided for drawing Bitmap files
+		//
+		canvas.drawBitmap(censorThumbnail, 0, 0, null);
+		
+		if ( cachedDrawableCensorThumbnail == null )
+		{
+			cachedDrawableCensorThumbnail = censorThumbnail;
+		}
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+	** ----- ----- Not used ---- ----- */
+	
+	//
+	// ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+	//
+	
+	// Return true always to censor the thumbnail
+	// Works even if we cannot provide a valid Bitmap
+	//
+	// Then the thumbnail is just nulled (prevented)
+	//
+	return true;
+}
+#End If
+
+'
 'Java-only functions --------------------------------------------------
 'Some functions implicitly convert a Context to Activity & vice-versa
 '
