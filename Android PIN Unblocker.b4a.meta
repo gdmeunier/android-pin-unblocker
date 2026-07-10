@@ -22,6 +22,6 @@ ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
 ModuleClosedNodes7=
-NavigationStack=Visual Designer,Scan.bal,-100,2,Main,HardenActivityEditTexts,661,0,Main,FixMonospaceEditTexts,681,0,Main,ResetViewState,391,0,Scan,Process_Globals,12,0,Scan,Activity_Create,197,0,MyAdvanced,Initialize,61,0,Scan,Globals,142,0,Main,RestoreViewState,527,0,Main,Activity_Create,624,6
+NavigationStack=Scan,Process_Globals,25,0,Scan,ResetViewState,209,0,Main,Process_Globals,251,6,MyConstants,Class_Globals,68,6,Main,chkHideAdminKey_CheckedChange,2169,6,MyCommon,Initialize,21,0,MyCommon,ForceCorrectMonospaceFontDigits,71,0,Main,Activity_Create,741,6,Main,FixMonospaceEditTexts,847,6,Main,HardenActivityEditTexts,819,6
 SelectedBuild=0
 VisibleModules=7,3,6,2,1,4,5

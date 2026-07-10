@@ -70,6 +70,11 @@ Sub Class_Globals
 	Public Const ORIENTATION_PORTRAIT  As Int = 0x1
 	Public Const ORIENTATION_LANDSCAPE As Int = 0x2
 	
+	'These constants only exist to make reading
+	'the source code easier to read
+	Public Const EDITTEXT_SPECIFIC_ONE    As Boolean  = True
+	Public Const EDITTEXT_NO_SPECIFIC_ONE As Boolean  = False
+	
 End Sub
 
 Public Sub Initialize

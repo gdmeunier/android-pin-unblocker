@@ -29,8 +29,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 50
-	#VersionName: 4.2.0
+	#VersionCode: 51
+	#VersionName: 4.3.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -299,6 +299,44 @@ Sub Process_Globals
 	'For sharing Admin Keys to the App
 	'Don't allow Android to repeatedly re-send its Share To Intents
 	Private AdminKeyAlreadySharedToTheAppOnce As Boolean = False 'Must have a default value here
+	
+	'Better method of checking whether Android's
+	'Share To Intents for sharing Admin keys to
+	'this App are repeated attempts or not
+	Private SharedTextTruncatedRehash      As String = Null      'Must have a Null value here
+	
+	'The below configuration is enough for our purposes
+	'
+	'Remember that we don't store anything at all,
+	'We just want to make any potential local device
+	'memory forensics harder incase anyone tries to
+	'extract the shared Admin keys from the phone's
+	'live memory (in RAM)
+	'
+	'Not only there's a salt that changes on every
+	'lifecycle run of this App,
+	'but also the shared texts are stored as
+	'truncated hashes (missing half of the hash)
+	'
+	'Additionally, using more than one hashing round
+	'and never storing the truncated hashes at all
+	'looks like a good & secure solution for me
+	'
+	'There's no password protection use-case here,
+	'think of it as some kind of CRC-check but
+	'without potential false positives (hash collisions)
+	'
+	'Remember that we ourselves need to be *sure*
+	'that the truncated hashes are not the same,
+	'all while making it impossible to crack the
+	'truncated hashes if they were extracted from
+	'an unwillingly acquired memory dump of a phone
+	'
+	'That's why you must never use CRC here,
+	'you must use something with "0.00000000% hashing collisions"
+	Private SharedTextRehashAlgorithm      As String = "SHA-512"
+	Private SharedTextNumberOfRehashRounds As Int    = 3
+	Private SharedTextRehashSalt           As String = Rnd(1000000000, 2147483646).As(String)
 	
 	'For always hiding the Admin Key on App switch
 	'except on the first Activity launch
@@ -667,19 +705,16 @@ Sub Activity_Create(FirstTime As Boolean)
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Harden this Activity's EditTexts to prevent Android from leaking sensitive information"$, Colors.Blue)
 	#End If
-	HardenActivityEditTexts
+	HardenActivityEditTexts(Constants.EDITTEXT_NO_SPECIFIC_ONE, Null)
 	
+	'Currently only the Admin Key field has a monospace font
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Fix this Activity's EditTexts that have a monospace font to stay monospace on older Android versions"$, Colors.Blue)
 	#End If
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Otherwise some older Android devices see these EditTexts as not being monospace"$, Colors.Blue)
 	#End If
-	FixMonospaceEditTexts
-	
-	'LogColor($"[Main-${LogContextId}] Activity_Create: Allow the Admin Key field to be horizontally scrolled"$, Colors.Blue)
-	'LogColor($"[Main-${LogContextId}] Activity_Create: Because when generating Admin Key text hashes, it's important to distinguish newlines from text wrapping"$, Colors.Blue)
-	'Common.ForceAllowHorizontalScroll(edtAdminKey)
+	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the Android version is 3.0 or newer"$, Colors.Blue)
@@ -745,7 +780,7 @@ Sub Activity_Create(FirstTime As Boolean)
 	#End If
 End Sub
 
-Sub HardenActivityEditTexts
+Sub HardenActivityEditTexts(WantsToHardenASpecificOne As Boolean, WhichOneIfYes As EditText)
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	#End If
@@ -753,14 +788,73 @@ Sub HardenActivityEditTexts
 	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Sub entry"$, Colors.Blue)
 	#End If
 	
+	'Caller sanity check:
+	'If you want a specific one, then don't say a "Null" one
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Hardening the security of this Activity's EditText fields"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Checking if the caller is "sane" (if what they ask for is logical)"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Checking whether the caller requested a specific EditText to harden but says that it's "Null""$, Colors.Blue)
+	#End If
+	If WantsToHardenASpecificOne And WhichOneIfYes == Null Then
+		'Caller is confused about what it wants
+		'Not doing anything in such cases
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: The caller is illogical, providing illogical parameters to this function"$, Colors.Magenta)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: The caller asks us to harden a specific EditText then gives "Null""$, Colors.Magenta)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Since the caller is asking for an illogical thing, we just cannot proceed further"$, Colors.Magenta)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Sub return"$, Colors.Magenta)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Sanity check completed, the caller is logical (good news!)"$, Colors.Blue)
+	#End If
+	
+	'Create a list of EditTexts to harden
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Creating a list of EditTexts to harden (currently empty)"$, Colors.Blue)
+	#End If
+	Dim EditTextsToHarden() As EditText
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Checking if the caller wants to harden a specific EditText"$, Colors.Blue)
+	#End If
+	If WantsToHardenASpecificOne Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Caller wants to harden a specific EditText"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Adding only the specified EditText to our list"$, Colors.Blue)
+		#End If
+		EditTextsToHarden = Array As EditText(WhichOneIfYes)
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Caller wants to harden any & all EditTexts in this Activity (no specific one)"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Adding all this Activity's EditTexts to our list"$, Colors.Blue)
+		#End If
+		EditTextsToHarden = Array As EditText(edtChallenge, edtAdminKey, edtResponse)
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Hardening the security of the EditText fields in our completed list"$, Colors.Blue)
 	#End If
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: This includes disabling autocomplete, autocorrect, fullscreen keyboard etc"$, Colors.Blue)
 	#End If
-	For Each MyEditText As EditText In Array As EditText(edtChallenge, edtAdminKey, edtResponse)
-		
+	For Each MyEditText As EditText In EditTextsToHarden
 		Security.DisableFullscreenKeyboard(MyEditText)
 		Security.DisablePersonalizedLearning(MyEditText)
 		Security.DisableAutoCorrect(MyEditText)
@@ -779,7 +873,7 @@ Sub HardenActivityEditTexts
 	#End If
 End Sub
 
-Sub FixMonospaceEditTexts
+Sub FixMonospaceEditTexts(WantsToFixASpecificOne As Boolean, WhichOneIfYes As EditText)
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	#End If
@@ -787,23 +881,83 @@ Sub FixMonospaceEditTexts
 	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Sub entry"$, Colors.Blue)
 	#End If
 	
-	'Currently only the Admin Key field has a monospace font
+	'Caller sanity check:
+	'If you want a specific one, then don't say a "Null" one
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Checking if the caller is "sane" (if what they ask for is logical)"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Checking whether the caller requested a specific EditText to fix but says that it's "Null""$, Colors.Blue)
+	#End If
+	If WantsToFixASpecificOne And WhichOneIfYes == Null Then
+		'Caller is confused about what it wants
+		'Not doing anything in such cases
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: The caller is illogical, providing illogical parameters to this function"$, Colors.Magenta)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: The caller asks us to fix a specific EditText then gives "Null""$, Colors.Magenta)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Since the caller is asking for an illogical thing, we just cannot proceed further"$, Colors.Magenta)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Sub return"$, Colors.Magenta)
+		#End If
+		Return
+		
+	End If
 	
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Correcting the monospace EditTexts to always stay monospace"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Sanity check completed, the caller is logical (good news!)"$, Colors.Blue)
+	#End If
+	
+	'Create a list of EditTexts to harden
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Creating a list of EditTexts to fix (currently empty)"$, Colors.Blue)
+	#End If
+	Dim EditTextsToFix() As EditText
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Checking if the caller wants to fix a specific EditText"$, Colors.Blue)
+	#End If
+	If WantsToFixASpecificOne Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Caller wants to fix a specific EditText"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Adding only the specified EditText to our list"$, Colors.Blue)
+		#End If
+		EditTextsToFix = Array As EditText(WhichOneIfYes)
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Caller wants to fix any & all EditTexts in this Activity (no specific one)"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Adding all this Activity's EditTexts to our list"$, Colors.Blue)
+		#End If
+		EditTextsToFix = Array As EditText(edtChallenge, edtAdminKey, edtResponse)
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Correcting the monospace EditTexts in our completed list to always stay monospace"$, Colors.Blue)
 	#End If
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: On older Android versions such as 2.x they are otherwise not monospace"$, Colors.Blue)
 	#End If
-	Common.ForceCorrectMonospaceFont(edtAdminKey)
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Correcting the monospace EditTexts to also have proper monospace digits"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: On Android 5.0+ the monospace EditTexts don't have proper monospace digits otherwise"$, Colors.Blue)
-	#End If
-	Common.ForceCorrectMonospaceFontDigits(edtAdminKey)
+	For Each MyEditText As EditText In EditTextsToFix
+		Common.ForceCorrectMonospaceFont(MyEditText)
+		'Correcting the monospace EditTexts to also have proper monospace digits
+		'On Android 5.0+ the monospace EditTexts don't have proper monospace digits otherwise
+		Common.ForceCorrectMonospaceFontDigits(MyEditText)
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: An EditText found in the list has been fixed"$, Colors.Blue)
+		#End If
+		
+	Next
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Sub return"$, Colors.Blue)
@@ -1092,11 +1246,20 @@ Private Sub CheckIfAdminKeySharedToTheApp
 	#End If
 	Dim ReceivedIntent As Intent = Activity.GetStartingIntent
 	
+	'This variable will receive the Share To
+	'Intents TEXT extra data if applicable
+	Dim ReceivedText As String
+	
 	If  ReceivedIntent.Action == ReceivedIntent.ACTION_SEND  _
 	And ReceivedIntent.HasExtra("android.intent.extra.TEXT") Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is ACTION_SEND and it contains a TEXT extra"$, Colors.Blue)
 		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Fetching the shared Admin Key text from the Share To Intent's TEXT extra"$, Colors.Blue)
+		#End If
+		ReceivedText = ReceivedIntent.GetExtra("android.intent.extra.TEXT")
 		
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Verifying if this App lifecycle didn't already get shared an Admin Key before"$, Colors.Blue)
@@ -1105,14 +1268,66 @@ Private Sub CheckIfAdminKeySharedToTheApp
 			#If LOGGING
 			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: An Admin Key was already shared prior in this App's current lifecycle"$, Colors.Magenta)
 			#End If
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Ignoring this Admin Key Share To Intent, since it's just Android repeatedly re-sending it on every Activity resume"$, Colors.Magenta)
-			#End If
 			
 			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Verify whether it's just Android repeatedly re-sending it on every Activity resume"$, Colors.Magenta)
 			#End If
-			Return
+			If Not(VerifyIfSharedTextTruncatedRehashIsDifferent(ReceivedText)) Then
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text is the same as the previous one"$, Colors.Magenta)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Ignoring Android's Share To Intent spam on every App resume..."$, Colors.Magenta)
+				#End If
+				
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the shared Admin Key text as soon as possible"$, Colors.Magenta)
+				#End If
+				Security.TriggerJvmGarbageCollection
+				
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
+				#End If
+				Return
+				
+			Else
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text is different from the previous one"$, Colors.Green)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So it was not an Android Share To Intent spam afterall..."$, Colors.Green)
+				#End If
+				
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Storing a truncated rehash of this shared text for future Intent spam identification purposes"$, Colors.Green)
+				#End If
+				If Not(StoreSharedTextTruncatedRehash(ReceivedText)) Then
+					#If LOGGING
+					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Failed to store a truncated rehash of the currently shared text"$, Colors.Red)
+					#End If
+					#If LOGGING
+					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: If storing it fails then it will not allow identifying future Android spam Intents"$, Colors.Red)
+					#End If
+					#If LOGGING
+					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It also means that if storing the truncated rehash of the shared text fails, then it will fail everytime anyway"$, Colors.Red)
+					#End If
+					#If LOGGING
+					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So we just simply disallow proceeding further and consider that the shared Admin Key txt is the same as the old one"$, Colors.Red)
+					#End If
+					
+					#If LOGGING
+					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the shared Admin Key text as soon as possible"$, Colors.Red)
+					#End If
+					Security.TriggerJvmGarbageCollection
+					
+					#If LOGGING
+					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Red)
+					#End If
+					Return
+					
+				End If
+				
+			End If
 			
 		Else
 			#If LOGGING
@@ -1121,6 +1336,38 @@ Private Sub CheckIfAdminKeySharedToTheApp
 			#If LOGGING
 			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Now we can proceed further and check what was received"$, Colors.Blue)
 			#End If
+			
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Just one thing before we proceed further, remembering a truncated rehash of the shared text"$, Colors.Blue)
+			#End If
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Storing a truncated rehash of this shared text for future Intent spam identification purposes"$, Colors.Blue)
+			#End If
+			If Not(StoreSharedTextTruncatedRehash(ReceivedText)) Then
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Failed to store a truncated rehash of the currently shared text"$, Colors.Red)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: If storing it fails then it will not allow identifying future Android spam Intents"$, Colors.Red)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It also means that if storing the truncated rehash of the shared text fails, then it will fail everytime anyway"$, Colors.Red)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So we just simply disallow proceeding further and consider that the shared Admin Key txt is the same as the old one"$, Colors.Red)
+				#End If
+				
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the shared Admin Key text as soon as possible"$, Colors.Red)
+				#End If
+				Security.TriggerJvmGarbageCollection
+				
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Red)
+				#End If
+				Return
+				
+			End If
 			
 		End If
 		
@@ -1131,6 +1378,12 @@ Private Sub CheckIfAdminKeySharedToTheApp
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It's something other than an ACTION_SEND with a TEXT extra, so ignoring it"$, Colors.Blue)
 		#End If
+		
+		'
+		'No JVM garbage collection because no Share To
+		'Intent with a TEXT extra was shared,
+		'so there's nothing sensitive to discard
+		'
 		
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
@@ -1146,11 +1399,6 @@ Private Sub CheckIfAdminKeySharedToTheApp
 	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: This will prevent Android from spamming its Share To Intent repeatedly later"$, Colors.Blue)
 	#End If
 	AdminKeyAlreadySharedToTheAppOnce = True
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Fetching the shared Admin Key text from the Share To Intent's TEXT extra"$, Colors.Blue)
-	#End If
-	Dim ReceivedText As String = ReceivedIntent.GetExtra("android.intent.extra.TEXT")
 	
 	'Admin Keys can be 64-digits, 48-digits or 32-digits (Hex string)
 	'64 = AES-256
@@ -1217,6 +1465,196 @@ Private Sub CheckIfAdminKeySharedToTheApp
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
 	#End If
+End Sub
+
+Sub StoreSharedTextTruncatedRehash(MySharedText As String) As Boolean
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Sub entry (sensitive parameters)"$, Colors.Blue)
+	#End If
+	
+	Dim SharedText As String = MySharedText
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Hashing the shared Admin Key text ${SharedTextNumberOfRehashRounds} times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
+	#End If
+	For i = 1 To SharedTextNumberOfRehashRounds
+		SharedText = Cryptography.TextToHash(SharedText&SharedTextRehashSalt, SharedTextRehashAlgorithm)
+	Next
+	
+	Dim HasStoreOperationSucceeded As Boolean = False
+	
+	'The text hashing function returns empty string on failure
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Checking if the shared Admin Key text hashing operations succeeded"$, Colors.Blue)
+	#End If
+	If SharedText <> "" Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: The shared Admin Key text hashing operations succeeded"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Truncating the final hash's length in half (from ${SharedText.Length} to ${(SharedText.Length / 2).As(Int)} chars)"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: This makes it theorically impossible to crack it since there would be so many possible hashing collisions (pigeonhole principle)"$, Colors.Blue)
+		#End If
+		SharedText = SharedText.SubString2(0, (SharedText.Length / 2).As(Int))
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Storing the truncated Admin Key text rehash in the appropriate lifecycle process variable (sensitive value)"$, Colors.Blue)
+		#End If
+		SharedTextTruncatedRehash = SharedText
+		
+		HasStoreOperationSucceeded = True
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: The shared Admin Key text hashing failed"$, Colors.Red)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: We don't update our previous shared text rehash in this case"$, Colors.Red)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: That's because we want to keep our previous value rather than lose it for an empty string"$, Colors.Red)
+		#End If
+		
+	End If
+	
+	'
+	'Don't do JVM garbage collection here
+	'It's already going to be done on
+	'Application resume if necessary
+	'
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Sub return (returning ${HasStoreOperationSucceeded})"$, Colors.Blue)
+	#End If
+	Return HasStoreOperationSucceeded
+	
+End Sub
+
+Sub VerifyIfSharedTextTruncatedRehashIsDifferent(MySharedText As String) As Boolean
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Sub entry (sensitive parameters)"$, Colors.Blue)
+	#End If
+	
+	Dim IsSharedTextTruncatedRehashDifferent As Boolean = False
+	Dim SharedText As String = MySharedText
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Checking if it's the App's first Share To Intent receipt"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We do this by verifying if our Admin Key text rehash content is Null"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: This cans only happen if this is the first Share To Intent, so if it's not a repeated Android spam Intent"$, Colors.Blue)
+	#End If
+	If SharedTextTruncatedRehash == Null Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text rehash content is Null, definitely a first-time Share To Intent"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We consider that it's just like if the shared Admin Key text rehash is different anyway"$, Colors.Blue)
+		#End If
+		
+		IsSharedTextTruncatedRehashDifferent = True
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text rehash content is not set to Null, definitely not the first Share To Intent"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We need to check more carefully if it's not an Android Share To Intent spamming with the same text again"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Hashing the shared Admin Key text ${SharedTextNumberOfRehashRounds} times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
+		#End If
+		For i = 1 To SharedTextNumberOfRehashRounds
+			SharedText = Cryptography.TextToHash(SharedText&SharedTextRehashSalt, SharedTextRehashAlgorithm)
+		Next
+		
+		'The text hashing function returns empty string on failure
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Checking if the shared Admin Key text hashing operations succeeded"$, Colors.Blue)
+		#End If
+		If SharedText <> "" Then
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text hashing operations succeeded"$, Colors.Blue)
+			#End If
+			
+			'/!\ Note /!\
+			'The RegEx pattern MUST begin with "^" and end with "$"
+			'
+			'Otherwise Basic4Android's RegEx matcher will falsely
+			'return that the pattern doesn't match the text,
+			'which could have dire consequences for the user
+			'
+			'Consequences such as accidentally having their
+			'Admin Key text replaced by a wrong spammed one
+			'from Android itself and blocking their smartcard
+			'
+			'This current pattern has been THOROUGHLY verified
+			'to never give false positives (false non-matching reports)
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Verifying if the shared Admin Key text starts with the same content as our old Admin Key text truncated rehash"$, Colors.Blue)
+			#End If
+			If Regex.IsMatch2("^"&SharedTextTruncatedRehash&".*$", Regex.CASE_INSENSITIVE, SharedText) == False Then
+				'
+				'If the saved truncated hash does NOT match the shared text truncated hash
+				'then you know that they're different (not the same)
+				'
+				'That's why we use a "Regex.IsMatch2() == False" check
+				'
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text is different from the previously shared one"$, Colors.Blue)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: So it's finally not a spam Share To Intent by Android itself on every App resume..."$, Colors.Blue)
+				#End If
+				
+				IsSharedTextTruncatedRehashDifferent = True
+				
+			Else
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text is the same as the previously shared one"$, Colors.Magenta)
+				#End If
+				#If LOGGING
+				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: So yet another Android Share To Intent spam on every App resume..."$, Colors.Magenta)
+				#End If
+				
+			End If
+			
+		Else
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text hashing failed"$, Colors.Red)
+			#End If
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We consider that it's just as if the shared Admin Key text truncated rehash is the same as our old one"$, Colors.Red)
+			#End If
+			
+		End If
+		
+	End If
+	
+	'
+	'Don't do JVM garbage collection here
+	'It's already going to be done on
+	'Application resume if necessary
+	'
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Sub return (returning ${IsSharedTextTruncatedRehashDifferent})"$, Colors.Blue)
+	#End If
+	Return IsSharedTextTruncatedRehashDifferent
+	
 End Sub
 
 #End Region
@@ -1738,20 +2176,21 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 	End If
 	
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Android is sometimes dumb and loses the font properties of EditTexts when toggling the PasswordMode"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Android is sometimes dumb and loses many properties properties of EditTexts when toggling the PasswordMode"$, Colors.Blue)
 	#End If
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: So we have to fix the monospace font of the Admin Key field again on every .Checked change of this checkbox"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: So we have to fix the properties & hardening of the Admin Key field again on every .Checked change of this checkbox"$, Colors.Blue)
 	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fixing the monospace property of the Admin Key field again..."$, Colors.Blue)
-	#End If
-	Common.ForceCorrectMonospaceFont(edtAdminKey)
-	Common.ForceCorrectMonospaceFontDigits(edtAdminKey)
 	
-	'LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fix the Admin Key field to be horizontally scrolled again..."$, Colors.Blue)
-	'LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Because Android probably removed the horizontal scroll too..."$, Colors.Blue)
-	'Common.ForceAllowHorizontalScroll(edtAdminKey)
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fixing the hardening of the Admin Key field again..."$, Colors.Blue)
+	#End If
+	HardenActivityEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fixing the font properties of the Admin Key field again..."$, Colors.Blue)
+	#End If
+	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
 	
 	'Allow preserving the selection state when toggling password modes
 	#If LOGGING

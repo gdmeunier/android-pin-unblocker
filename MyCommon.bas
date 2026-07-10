@@ -61,7 +61,7 @@ public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 }
 #End If
 
-'
+'Currently not being used at all:
 'For allowing horinzontal scrolling on EditTexts
 '
 'Public Sub ForceAllowHorizontalScroll(MyEditText As EditText)
