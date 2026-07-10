@@ -1,5 +1,5 @@
 ﻿Build1=FLAG_SECURE,net.gdmeunier.pinunblocker
-Build2=FLAG_SECURE_WITH_LOGGING,net.gdmeunier.pinunblocker,FLAG_SECURE,LOGGING
+Build2=FLAG_SECURE_WITH_LOGGING,net.gdmeunier.pinunblocker,LOGGING
 Build3=NO_FLAG_SECURE,net.gdmeunier.pinunblocker,NO_FLAG_SECURE
 Build4=NO_FLAG_SECURE_WITH_LOGGING,net.gdmeunier.pinunblocker,NO_FLAG_SECURE,LOGGING
 File1=About.png
