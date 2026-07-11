@@ -132,7 +132,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 				// However the user does deserve to be warned
 				// about this issue to avoid any potential trouble
 				//
-				if ( !jToastMessageShow(ctx, "Failed to disable Recent Apps thumbnail", TOAST_DURATION_SHORT) )
+				if ( !jToastMessageShow(ctx, "Failed to disable the Recent Apps thumbnail", TOAST_DURATION_SHORT) )
 				{
 					jBetterActivityFinish(ctx);
 					mycommon.jTrueApplicationExit();
@@ -148,7 +148,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 					@Override
 					public void onFinish()
 					{
-						if ( !jToastMessageShow(ctx, "Admin keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
+						if ( !jToastMessageShow(ctx, "Admin keys might leak in the thumbnails", TOAST_DURATION_LONG) )
 						{
 							jBetterActivityFinish(ctx);
 							mycommon.jTrueApplicationExit();
@@ -210,7 +210,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 			 * Activity's Recent Apps thumbnail could not be
 			 * censored or disabled
 			 */
-			if ( !jToastMessageShow(ctx, "Failed to add FLAG_SECURE", TOAST_DURATION_SHORT) )
+			if ( !jToastMessageShow(ctx, "Failed to add the FLAG_SECURE", TOAST_DURATION_SHORT) )
 			{
 				jBetterActivityFinish(ctx);
 				mycommon.jTrueApplicationExit();

@@ -83,6 +83,7 @@ import android.content.Context;
 import android.app.Activity;
 public boolean jDeviceHasFlashlight()
 {
+	//
 	// Method of providing context to a class
 	// Call its functions with the "this" keyword
 	//

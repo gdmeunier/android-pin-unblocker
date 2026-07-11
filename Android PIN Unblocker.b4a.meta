@@ -19,6 +19,6 @@ ModuleClosedNodes3=
 ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
-NavigationStack=Main,VerifyIfSharedTextTruncatedRehashIsDifferent,1674,3,Main,LockdownAdminKeyField,1744,0,Main,chkHideAdminKey_CheckedChange,2210,6,Main,Activity_Create,725,0,Main,FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue,1071,6,Main,Activity_Resume,1013,6,MyAdvanced,Initialize,176,0,MyAdvanced,Class_Globals,36,0,Main,btnGenerate_Click,2739,0,Main,Process_Globals,294,6
+NavigationStack=Main,CheckIfAdminKeySharedToTheApp,1586,0,Main,VerifyIfSharedTextTruncatedRehashIsDifferent,1737,0,Main,mnuAbout_Click,1885,0,Main,btnGenerate_Click,2817,0,Main,GetSanitizedUserInputs,3051,0,Main,btnShareTo_Click,3216,0,Scan,Globals,161,0,Scan,btnBack_Click,1188,0,Scan,HandleCameraServiceException,779,0,MyConstants,Class_Globals,65,0,MyAdvanced,Initialize,862,0
 SelectedBuild=0
 VisibleModules=6,3,5,2,1,4

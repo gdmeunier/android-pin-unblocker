@@ -7,120 +7,141 @@
 
 A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (preferably [version 12.50](https://web.archive.org/web/20230719022719/https://www.b4x.com/android/files/B4A.exe) with its [older resources](https://web.archive.org/web/20240529212314/https://www.b4x.com/b4a.html) and the [B4X Help Viewer](https://www.b4x.com/android/forum/threads/b4x-help-viewer.46969/)).
 
-Its purpose is to generate **smartcard** unblock codes using your *Admin Key* and your phone instead of requiring a computer.
+Its purpose is to generate **smartcard** unblock codes using your **Admin key** and your phone instead of requiring a computer.
 
 The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.
 
-Real smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, JavacardOS *[...]*.
+Real smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, Javacards *[...]*.
 Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
 # Features
 
-**Android PIN Unblocker** has a very simple set of features, it cans generate the *Response Code*, get the *Request Code* from QR code and hash text using *sha256* or *sha512*.
+**Android PIN Unblocker** has a very simple set of features, it cans generate the **Response code**, get the **Request code** from a QR code as well as hashing text using **SHA-256** or **SHA-512**.
 
-## Generate the Unblock Code
+<div style="page-break-after: always;"></div>
+
+## Generate the Unblock code
 
 ![Main application screen.](/Screenshots/1-main-app-screen.png) ![Generating the smartcard response code.](/Screenshots/3-generated-response-code.png)
 
-Here you can type the *Request Code* and also choose to hide the *Admin Key* with the checkbox below it.
+Here you can type the **Request code** and also choose to hide the **Admin key** with the checkbox below it.
 
-The supported algorithms for unblock code generation are 3DES, 2DES, AES-128 & AES-256.
+The supported algorithms for unblock code generation are **3DES**, **2DES**, **AES-128** and **AES-256**.
 
-The algorithm to be used is automatically determined by the Application based on your Admin key and Challenge code.
+The algorithm to use is automatically determined by the application based on your *Admin key* and *Request code*.
 
-## Hide & reveal the Admin Key
+<div style="page-break-after: always;"></div>
 
-![Main App screen with visible Admin Key.](/Screenshots/1-main-app-screen.png) ![Hiding the previously entered Admin Key.](/Screenshots/2-admin-key-hide.png)
+## Hide & reveal the Admin key
+
+![Main application screen with a visible Admin key.](/Screenshots/1-main-app-screen.png) ![Hiding the previously entered Admin key.](/Screenshots/2-admin-key-hide.png)
 
 This application has been intended for situations where you're entering unblock codes for employees or people who stand-by next to you.
 
-You can thus now easily type your *Admin Key* once, then hide it with the appropriate checkbox below it.
+You can thus now easily type your **Admin key** once, then hide it with the appropriate checkbox below it.
 
-This way nobody accidentally grabs a picture of your *Admin Key* while unblocking your employees' smartcards.
+This way nobody accidentally grabs a picture of your *Admin key* while unblocking your employees' smartcards.
 
-## Scan QR Code for Request Code
+<div style="page-break-after: always;"></div>
+
+## Scan QR code for Request code
 
 I added the ability to scan QR codes in **Android PIN Unblocker** using the below Basic4Android library:
 - [NewQRCodeReaderView](https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/post-523013)
 
-![You can click the QR code button to scan the Request Code.](/Screenshots/4-scan-qr-request-code.png)
+![You can click on the QR code button to scan a Request code.](/Screenshots/4-scan-qr-request-code.png)
 
 It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the card unblocking more efficiently.
 
-The *Request Code* then automatically gets input in the appropriate field once detected.
+The **Request code** then gets automatically input in the appropriate field once detected.
 
-## Generate Admin Key text hashes
+<div style="page-break-after: always;"></div>
 
-![Generating the Admin Key hash from text is possible inside the App.](/Screenshots/5-builtin-hashing-facility.png) ![Generated Admin Key hash inside the App.](/Screenshots/6-generated-admin-key-hash.png)
+## Generate Admin key text hashes
 
-It's possible with **Android PIN Unblocker** (starting with version 3) to directly generate hashes within the App instead of having to write it in other ones.
+![Generating the Admin key hash from text is possible inside this app.](/Screenshots/5-builtin-hashing-facility.png) ![Generated Admin key hash inside this app.](/Screenshots/6-generated-admin-key-hash.png)
 
-The possible choices are currently *sha256* and *sha512* only.
+It's possible with **Android PIN Unblocker** (starting with version 3) to directly generate text hashes within the app instead of having to generate it from other ones.
 
-The generated hash will automatically replace the previous *Admin Key* text.
+The possible choices are currently **SHA-256** and **SHA-512** only.
 
-## Share the Response Code
+The generated hash will automatically replace the previous **Admin key** text.
 
-![Sharing the Response Code with the native Android Intent chooser.](/Screenshots/7-share-response-code.png)
+<div style="page-break-after: always;"></div>
 
-You can see on the previous screenshots a Share To button next to the generated *Response Code*, which will pop the native Android Intent chooser.
+## Share the Response code
 
-From there you can share the *Response Code* over to Telegram, Signal, WhatsApp, SMS, and so on.
+![Sharing the Response code with the native Android Intent chooser.](/Screenshots/7-share-response-code.png)
 
-Otherwise you could type the *Response Code* automatically on e.g. employees' computers with an agent program, using the Android *Share To* functionality.
+You can see on the previous screenshots a **Share To** button next to the generated **Response code**, which will pop the Android native Intent chooser.
 
-*You can also generally type passwords & sensitive input material using your phone and an [USB InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well. It has a KeePass2Android plugin, for example.*
+From there you can share the *Response code* over to Telegram, Signal, WhatsApp, by SMS, and so on.
 
-## Share Admin Key to the App
+Otherwise you could *e.g.* type the *Response code* automatically on employees' computers with an agent program, using the Android *Share To* functionality.
 
-![Sharing an Admin Key text to the App (Android PIN Unblocker).](/Screenshots/8-share-admin-key-to-app.png) ![Shared Admin Key is now unrevealable in the App.](/Screenshots/9-shared-admin-key-unrevealable.png)
+> [!TIP]
+> You can also generally type passwords & sensitive input material using your phone and the USB [InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well.
+> It also has a KeePass2Android plugin, for example.
 
-Here you can see that it's possible to write your *Admin Key* on a native Android note-taking application then select the text, which you can directly share to **Android PIN Unblocker**.
+<div style="page-break-after: always;"></div>
 
-That's also where you can generate *Admin Key* hashes yourself with a different Android app then share the generated hash to **Android PIN Unblocker**.
+## Share Admin keys to the App
 
-The App automatically verifies whether the shared text is a valid *32*, *48* or *64* digits string and is made of *0-9 A-F* characters only (*hex chars*).
-The App discards shared texts that are invalid *Admin Keys* and will simply behave as if you launched it yourself.
+![Sharing an Admin key text to the app.](/Screenshots/8-share-admin-key-to-app.png) ![The shared Admin key text is now unrevealable in the app.](/Screenshots/9-shared-admin-key-unrevealable.png)
 
-*I decided to allow 32- & 64-digits Admin Keys since that's what some smartcard manufacturers actually use (AES challenge/response instead of 3DES).*
+Here you can see that it's possible to write your **Admin key** in any third-party Android note-taking application then select the text, then directly share it to **Android PIN Unblocker**.
 
-## Prevent disclosing Admin Keys
+That's also how you can generate *Admin key* hashes yourself with a different app then share the generated hashes to **Android PIN Unblocker**.
 
-![Admin Keys shared to the App cannot be unhidden.](/Screenshots/9-shared-admin-key-unrevealable.png) ![Admin Keys hashed by long-pressing the hashing buttons are unrevealable as well.](/Screenshots/10-unrevealable-hash-on-long-press.png)
+The app automatically verifies whether the shared text is a valid *Hexadecimal* string with an *even* length of atleast **32** characters (*Hex* strings only contain the characters *0-9* and *A-F*).
+The app discards shared texts that are invalid *Admin keys* and will simply behave as if you launched it yourself.
 
-Whenever you share an Admin Key to the app instead of copy-pasting it yourself, the *Hide Admin Key* checkbox becomes disabled and you cannot unhide it.
+*There is no maximum length limit to the shared Admin key texts, but it must be atleast **32** characters long, be Hexadecimal and have an even length.\
+You may later trim the length of the text as desired from within the app, so you can share entire-length hashes to it if you wish.*
 
-This feature prevents accidental disclosure of your *Admin Key* while unblocking cards on your employees' computers.
+<div style="page-break-after: always;"></div>
+
+## Prevent disclosing Admin keys
+
+![Admin key texts shared to the app cannot be unhidden.](/Screenshots/9-shared-admin-key-unrevealable.png) ![Admin key texts hashed by long-pressing the hashing buttons are cannot be unhidden as well.](/Screenshots/10-unrevealable-hash-on-long-press.png)
+
+Whenever you share an **Admin key** to the app instead of copy-pasting it yourself, the *Hide Admin Key* checkbox becomes disabled and you cannot unhide it.
+
+This feature prevents accidental disclosure of your *Admin key* while *e.g.* unblocking cards on your employees' computers.
 
 > [!CAUTION]
-> Make sure to verify that your Android ROM doesn't have a clipboard history feature prior to copy-pasting Admin Keys, Samsung & Huawei ROMs have one.
+> Make sure to verify that your Android ROM doesn't have a **clipboard history** feature prior to copy-pasting *Admin keys*, Samsung & Huawei ROMs have one.
 >
-> If clipboard history cannot be disabled on your phone then don't use the clipboard at all, or use a password manager with a built-in secure Keyboard (e.g. [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version 3.2.0 for older devices).
+> If clipboard history cannot be disabled on your phone then *don't use the clipboard at all*, or use a password manager with a built-in secure keyboard (*e.g.* [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version **3.2.0** for older devices).
 
-You can also type your original text in the Admin Key field and directly generate a *sha256* or *sha512* hash from within the app, by long-pressing the hashing buttons.
+You can also type your original text in the `Admin Key` field and directly generate a **SHA-256** or **SHA-512** hash of it within this app, by long-pressing the hashing buttons.
 
-Long-pressing the SHA-256 or SHA-512 buttons actually generates the hash but also makes them unrevealable afterwards (single-click generates the hash normally without hiding it).
+Long-pressing the *SHA-256* or *SHA-512* buttons actually generates the hash but also makes the `Admin Key` field unrevealable afterwards (a single-click generates the hash normally without making it unrevealable).
+
+<div style="page-break-after: always;"></div>
 
 # License
 
-Well I don't care about legalese anyway but let's pick **GNU GPLv3 (or later version)** since my friends at the [Free Software Foundation](https://www.gnu.org/proprietary/proprietary.html) recommend it.
+The **Android PIN Unblocker** application is licensed under the copyleft license **GNU GPLv3 (or later version)** since my friends at the [Free Software Foundation](https://www.gnu.org/proprietary/proprietary.html) recommend it.
 
 **Basic4Android** also allows completely free usage of their IDE for both commercial and non-commercial purposes so it should be OK.
 
-And also the additional allowances below for this App which are useful for use in restricted & sensitive environments.
+And also the additional allowances below for this app which are useful for use in restricted or sensitive environments.
 
-Action Type | Status | Reason for Status
+Action | Status | Reason
 -- | :-: | --
-Modify the App's package name | Allowed | Security / Hardening
-Sign the App with a different key | Allowed | Security / Hardening
-Compile the App from source | Allowed | Security / Hardening
+Modify the app's package name | Allowed | Security / Hardening
+Sign the app with a different key | Allowed | Security / Hardening
+Compile the app from source | Allowed | Security / Hardening
+
+<div style="page-break-after: always;"></div>
 
 # Legalese
 
-Perhaps oneday if somebody randomly stumbles upon this App and likes it, they might actually care about legalese before using it.\
-So here's below a list of assets that have previously been, or are currently being used, for this App.
+Maybe oneday if somebody randomly stumbles upon this app and likes it, they might be interested about legalese information for this app.\
+So here's below a list of assets that are currently (or have previously been) used for this app.
 
-Asset Name | Author | License | Commercial Use
+Asset name | Author | License | Commercial use
 -- | :-: | :-: | :-: |
 [Basic4Android](https://www.b4x.com/b4a.html) | Anywhere Software | [Apache 2.0](https://github.com/AnywhereSoftware/B4A/blob/master/LICENSE) | Allowed
 [FontAwesome](https://fontawesome.com/v4/) | Dave Gandy | [SIL OFL 1.1](https://fontawesome.com/v4/license/) | Allowed
@@ -135,3 +156,5 @@ Asset Name | Author | License | Commercial Use
 [Color Quantizer](https://x128.ho.ua/color-quantizer.html) | x128 | [No License](https://choosealicense.com/no-permission/) | Allowed
 [7-Zip](https://www.7-zip.org/) | Igor Pavlov | [LGPL 2.1](https://www.7-zip.org/license.txt) | Allowed
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
+
+

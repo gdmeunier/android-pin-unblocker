@@ -1,19 +1,20 @@
-# Code of Conduct
 
-## My Pledge
+# Code of conduct
 
-I as Human think that we shouldn't have codes of conduct on Github.
+## My pledge
 
-## My Standards
+I think that we shouldn't have codes of conduct on Github.
+
+## My standards
 
 In order to foster a friendly environment, I just use common sense.\
-I think that it's stupid to explicitly write that we shouldn't commit abuse against eachother.
+I think that it's unnecessary to write that we must not commit abuse against eachother.
 
 ## Responsibilities
 
-We are adults and we know what we should not do to eachother.
+We are adults and we know what we must not do to eachother.
 
-1. If anyone gets angry, we try to restore peace through dialogue.
+1. If anyone gets angry, we try to restore peace through talks.
 2. If a problem gets out of hand I just ban the troublemaker.
 
 ## Guidelines
@@ -25,6 +26,6 @@ We are adults and we know what we should not do to eachother.
 ## Enforcement
 
 All problems are resolved on a case-by-case basis at my own discretion.\
-There are no rules, just contribute without thinking about people's gender/nationality/political opinions.
+There are no rules, just contribute without thinking about people's gender, nationality or political opinions.
 
 

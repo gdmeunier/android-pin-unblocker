@@ -28,8 +28,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 52
-	#VersionName: 4.4.0
+	#VersionCode: 53
+	#VersionName: 4.4.1
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -94,6 +94,7 @@ import android.content.Context;
 import android.app.Activity;
 public void jBetterActivityFinish()
 {
+	//
 	// Method of providing context to a class
 	// Call its functions with the "this" keyword
 	//
@@ -251,7 +252,7 @@ public void _onCreate()
 				@Override
 				public void onFinish()
 				{
-					if ( !MainAdvanced.jToastMessageShow(ctx, "This build of the App is insecure", myadvanced.TOAST_DURATION_SHORT) )
+					if ( !MainAdvanced.jToastMessageShow(ctx, "This build of the app is insecure", myadvanced.TOAST_DURATION_SHORT) )
 					{
 						MainAdvanced.jBetterActivityFinish(ctx);
 						mycommon.jTrueApplicationExit();
@@ -1584,7 +1585,7 @@ Private Sub CheckIfAdminKeySharedToTheApp
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the Admin Key field .Text has been set to the shared text we received in a toast notification"$, Colors.Blue)
 		#End If
-		ToastMessageShow("Admin key shared successfully", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow("Admin key text shared successfully", Constants.TOAST_DURATION_SHORT)
 		
 	Else
 		#If LOGGING
@@ -1602,7 +1603,7 @@ Private Sub CheckIfAdminKeySharedToTheApp
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Magenta)
 		#End If
-		ToastMessageShow("Shared Admin key is invalid", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow("Shared Admin key text is invalid", Constants.TOAST_DURATION_SHORT)
 		
 	End If
 	
@@ -1902,7 +1903,7 @@ Private Sub mnuAbout_Click
 	Msgbox2Async($"${Application.LabelName}
 Version ${Application.VersionName}
 
-This App generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken${"."}"$, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, AboutIcon, Constants.MSGBOX_CANCELLABLE)
+This app generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken${"."}"$, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, AboutIcon, Constants.MSGBOX_CANCELLABLE)
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Waiting for the MessageBox to be closed to check its return result"$, Colors.Blue)
@@ -3058,7 +3059,7 @@ Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) 
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-128 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
 		#End If
-		Return Array As String(False, "Code needs AES-128 Key")
+		Return Array As String(False, "Code needs AES-128 key")
 		
 	'DES-EDE3 / DES-EDE2
 	Else If	SanitizedChallenge.Length == 16 And _	'DES-EDE2 or DES-EDE3 challenge
@@ -3067,7 +3068,7 @@ Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) 
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs a 2DES or 3DES Admin Key but the provided one is neither, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
 		#End If
-		Return Array As String(False, "Code needs 2/3DES Key")
+		Return Array As String(False, "Code needs 2/3DES key")
 		
 	'AES-256
 	Else If	SanitizedChallenge.Length == 64 And _	'AES-256 challenge
@@ -3075,7 +3076,7 @@ Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) 
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-256 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
 		#End If
-		Return Array As String(False, "Code needs AES-256 Key")
+		Return Array As String(False, "Code needs AES-256 key")
 		
 	End If
 	
@@ -3239,7 +3240,7 @@ Private Sub btnShareTo_Click
 	ShareIntent.SetType("text/plain")
 	ShareIntent.PutExtra("android.intent.extra.TEXT", edtResponse.Text)
 	
-	ShareIntent.WrapAsIntentChooser("Share The Response Code")
+	ShareIntent.WrapAsIntentChooser("Share the Response code")
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] btnShareTo_Click: Starting the previously prepared Share To Intent to share the Response code"$, Colors.Blue)
