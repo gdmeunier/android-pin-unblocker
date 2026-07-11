@@ -18,19 +18,18 @@ Module1=MyAdvanced
 Module2=MyCommon
 Module3=MyConstants
 Module4=MyCryptography
-Module5=MyGlobals
-Module6=MySecurity
-Module7=Scan
+Module5=MySecurity
+Module6=Scan
 NumberOfFiles=3
 NumberOfLibraries=4
-NumberOfModules=7
+NumberOfModules=6
 Version=12.5
 @EndOfDesignText@
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 51
-	#VersionName: 4.3.0
+	#VersionCode: 52
+	#VersionName: 4.4.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -107,6 +106,32 @@ public void jOpenBrowserUrl(String browserUrl)
 {
 	MainAdvanced.jOpenBrowserUrl(this, browserUrl);
 }
+//
+// Undocumented hack to know if it's the
+// FirstTime Activity launch from Basic code
+// using a joMain.GetField call to this function
+//
+// Because the "isFirst" field is not public
+// so we have to create a different public one
+// for Basic code to acquire it
+//
+// Also only Activity._onCreate should ever fill
+// this variable later on
+//
+// Make sure not to just return 'isFirst' because
+// Basic4Android will set it to true after onCreate's
+// before calling the Activity onResume event
+//
+// Then your Activity_Resume code will think
+// that it's never the FirstTime launch even
+// in the case where it is
+//
+public boolean isFirstActivityLaunch = isFirst;
+
+public boolean jIsFirstActivityLaunch()
+{
+	return isFirstActivityLaunch;
+}
 #End If
 
 #If Java
@@ -166,7 +191,7 @@ public void _onCreate()
 	// Check if the App was compiled without FLAG_SECURE
 	// and if this is the first-time Activity launch
 	//
-	if ( myadvanced.NO_FLAG_SECURE && _myglobals.Main_IsFirstLaunch )
+	if ( myadvanced.NO_FLAG_SECURE && isFirst ) // Undocumented Basic4Android variable
 	{
 		/* Warn about the risks of using the NO_FLAG_SECURE build
 		 * on Android versions where it's a security risks
@@ -191,14 +216,22 @@ public void _onCreate()
 			// If user cannot be warned then exit the App
 			// Better to be safe than sorry
 			//
-			if ( !MainAdvanced.jToastMessageShow(this, "This build of the App is insecure", myadvanced.TOAST_DURATION_SHORT) )
-			{
-				MainAdvanced.jBetterActivityFinish(this);
-				mycommon.jTrueApplicationExit();
-			}
-			//
-			// Wait until the first toast disappears
-			// before showing another one
+			
+			/* Do note that we wait a bit before showing the first
+			 * toast notification, that's because if the user
+			 * shares an invalid Admin key text to the App then
+			 * the function responsible for handling it will also
+			 * show a toast notification:
+			 * 
+			 * Then both toasts show at the same time but most
+			 * of the time it's the "Shared Admin key is invalid"
+			 * toast notification that wins and shows ontop of
+			 * this more important one
+			 *
+			 * So we wait until any potential Basic-code startup
+			 * toast notification has shown before showing the
+			 * first security-related one
+			 */
 			//
 			// Transfer current context for onFinish function
 			//
@@ -207,6 +240,9 @@ public void _onCreate()
 			//
 			Activity ctx = this;
 			
+			// Using 500ms as the tick rate because
+			// the durations for toasts are 2000ms & 3500ms
+			// so that neatly aligns with both durations
 			new CountDownTimer(myadvanced.TOAST_SHORT_DELAY, 500)
 			{
 				@Override
@@ -215,7 +251,36 @@ public void _onCreate()
 				@Override
 				public void onFinish()
 				{
-					if ( !MainAdvanced.jToastMessageShow(ctx, "Admin Keys might leak in this build", myadvanced.TOAST_DURATION_LONG) )
+					if ( !MainAdvanced.jToastMessageShow(ctx, "This build of the App is insecure", myadvanced.TOAST_DURATION_SHORT) )
+					{
+						MainAdvanced.jBetterActivityFinish(ctx);
+						mycommon.jTrueApplicationExit();
+					}
+				}
+			}.start();
+			
+			//
+			// Wait until the first toast disappears
+			// before showing another one
+			//
+			/* Notice how we wait two times the short toast duration
+			 * That's because we actually wait for both a potential
+			 * Basic-code toast to finish showing but also the first
+			 * security-related one above
+			 *
+			 * Basic-code toast notifications never use the long
+			 * toast duration, so we can use the short duration
+			 * constant multiplied by 2 without worries
+			 */
+			new CountDownTimer(myadvanced.TOAST_SHORT_DELAY * 2, 500)
+			{
+				@Override
+				public void onTick(long millisUntilFinished) { }
+				
+				@Override
+				public void onFinish()
+				{
+					if ( !MainAdvanced.jToastMessageShow(ctx, "Admin keys might leak in this build", myadvanced.TOAST_DURATION_LONG) )
 					{
 						MainAdvanced.jBetterActivityFinish(ctx);
 						mycommon.jTrueApplicationExit();
@@ -224,28 +289,26 @@ public void _onCreate()
 			}.start();
 		}
 	}
-	
+	//
 	// Make this App Activity secure
 	//
-	MainAdvanced.jSecureActivityOnCreate(this, _myglobals.Main_IsFirstLaunch);
+	MainAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 	
-	/* Check if it's the first-time Activity launch
-	 * in this Activity's lifecycle
-	 * 
-	 * This part is done at the end of the onCreate event
-	 */
-	if ( _myglobals.Main_IsFirstLaunch )
-	{
-		// Mark that the next Activity onCreate events
-		// will no longer be the first-time Activity launch
-		//
-		_myglobals.Main_IsFirstLaunch = false;
-	}
+	//
+	// Let Basic code know if it's the FirstTime Activity launch
+	// Without having to create a Process_Globals variable
+	//
+	isFirstActivityLaunch = isFirst; // Undocumented Basic4Android variable
 }
 #End If
 '------------------------------------------------------------------
 
 Sub Process_Globals
+	'These constants exist to save space in the source code
+	'So that we don't write the entire texts multiple times
+	Private Const DEFAULT_ZEROES_ADMIN_KEY  As String = "000000000000000000000000000000000000000000000000"
+	Private Const DEFAULT_BULLETS_ADMIN_KEY As String = "••••••••••••••••••••••••••••••••••••••••••••••••" 'U+2022
+	
 	'ViewState registers for restoring the App state
 	'on Activity destruction & re-creation
 	Private ViewState_LastFocusedElement As String
@@ -334,13 +397,16 @@ Sub Process_Globals
 	'
 	'That's why you must never use CRC here,
 	'you must use something with "0.00000000% hashing collisions"
-	Private SharedTextRehashAlgorithm      As String = "SHA-512"
-	Private SharedTextNumberOfRehashRounds As Int    = 3
-	Private SharedTextRehashSalt           As String = Rnd(1000000000, 2147483646).As(String)
 	
-	'For always hiding the Admin Key on App switch
-	'except on the first Activity launch
-	Private IsFirstActivityLaunch As Boolean = True 'Must have a default value here
+	'Make sure that there are no hash collisions
+	'(don't use CRC)
+	Private SharedTextRehashAlgorithm      As String = "SHA-512"
+	'Make sure that trying to crack the truncated hashes is even harder
+	'Incase of memory dump analysis of a phone's live RAM
+	Private SharedTextNumberOfRehashRounds As Int    = Rnd(3, 10)
+	'Make sure that hashes cannot be the same across two App lifecycles
+	'Makes sure it's not possible to easily find what the hashes will be
+	Private SharedTextRehashSalt           As String = Rnd(1000000000, 2147483646).As(String)
 	
 End Sub
 
@@ -394,16 +460,16 @@ Private Sub ResetViewState
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] ResetViewState: Setting initial values for text fields"$, Colors.Blue)
 	#End If
-	Private ViewState_edtChallenge_Text As String = ""
-	Private ViewState_edtAdminKey_Text  As String = "000000000000000000000000000000000000000000000000"
-	Private ViewState_edtResponse_Text  As String = ""
+	ViewState_edtChallenge_Text = ""
+	ViewState_edtAdminKey_Text  = DEFAULT_ZEROES_ADMIN_KEY
+	ViewState_edtResponse_Text  = ""
 	
 	'The Admin Key label is always dynamically re-generated anyway
 	'No need to save and restore it
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] ResetViewState: Setting initial values for text labels"$, Colors.Blue)
 	#End If
-	Private ViewState_lblResponse_Text As String = "Response:"
+	ViewState_lblResponse_Text = "Response:"
 	
 	'The layout file for Main has the Admin Key field
 	'in PasswordMode and the Hide Admin Key checkbox
@@ -411,8 +477,8 @@ Private Sub ResetViewState
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] ResetViewState: Setting initial states for checkboxes & menu buttons"$, Colors.Blue)
 	#End If
-	Private ViewState_chkHideAdminKey_Checked As Boolean = True
-	Private ViewState_btnHashMenu_Checked     As Boolean = False
+	ViewState_chkHideAdminKey_Checked = True
+	ViewState_btnHashMenu_Checked     = False
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] ResetViewState: Sub return"$, Colors.Blue)
@@ -441,6 +507,7 @@ Private Sub SaveViewState()
 	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Admin Key field .Text"$, Colors.Blue)
 	#End If
 	ViewState_edtAdminKey_Text = edtAdminKey.Text
+	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] SaveViewState: Saving Admin Key field .Selection state"$, Colors.Blue)
 	#End If
@@ -651,7 +718,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'Use ViewState registers here instead of calling elements' .RequestFocus
 		'The restore of the ViewState will be done in the Activity_Resume
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Create: Alter the ViewState to display the Admin Key by default because it's the FirstTime Activity launch"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Create: Alter the ViewState to display the Admin Key field .Text by default because it's the FirstTime Activity launch"$, Colors.Blue)
 		#End If
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Create: Set the ViewState .Checked state of chkHideAdminKey to False"$, Colors.Blue)
@@ -1022,7 +1089,7 @@ Sub Activity_Resume
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Checking if this is the first Activity launch in this App lifecycle"$, Colors.Blue)
 	#End If
-	If Not(IsFirstActivityLaunch) Then
+	If Not(joMain.GetField("isFirstActivityLaunch")) Then 'Hackish method but more efficient
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Resume: It's not the first-time Activity launch for this App lifecycle"$, Colors.Blue)
 		#End If
@@ -1043,18 +1110,102 @@ Sub Activity_Resume
 		LogColor($"[Main-${LogContextId}] Activity_Resume: We don't need to specifically hide the Admin Key field"$, Colors.Blue)
 		#End If
 		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Resume: Now setting the IsFirstActivityLaunch process variable to False"$, Colors.Blue)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Resume: This will report to the next Activity resume calls that it's not the first Activity launch anymore"$, Colors.Blue)
-		#End If
-		IsFirstActivityLaunch = False
-		
 	End If
+	
+	'This only needs to be done once per Activity resume
+	'And only at the end of the Activity resume event
+	'
+	'No need to do this on Activity create because the
+	'Activity resume event always follows the create one
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Calling the Hotfix function FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue as a Hotfix for our needed use-cases"$, Colors.Blue)
+	#End If
+	FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
+	#End If
+End Sub
+
+'We implemented this Hotfix to correct a normal
+'Android behavior of not re-calling checkboxes
+'CheckedChange events if the new .Checked value
+'is the same as the old one
+'
+'This behavior is actually correct but unfortunately
+'prevents us from using checkboxes CheckedChange events
+'to properly change the Admin Key field's .Hint value
+'from within its own ChangedChange event,
+'yet this should always be done even if the
+'new .Checked value is the same as the old one
+Sub FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: Sub entry"$, Colors.Blue)
+	#End If
+	
+	'Because Android is will not fire the
+	'CheckedChange events of Checkable
+	'UI elements when the new .Checked value
+	'is the same as the current one
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: ----- ----- ----- ----- -----"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: Android doesn't fire CheckedChange events when the new .Checked value of Checkable UI elements is the same as the current one"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: So we explicitly fire the CheckedChange events ourselves"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue:"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: The actual problem is not that it never fires CheckedChange events, it does actually"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: But it only fires the CheckedChange event if the .Checked value is *different* from the previous one"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue:"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: Interestingly enough, this problem only affects CheckBoxes here, not other kinds of Checkable UI elements"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: ----- ----- ----- ----- -----"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	'
+	'Only add the specific CheckBoxes for which Android's
+	'duplicate CheckedChange call avoidance is a problem
+	'
+	'Don't just add all of an Activity's CheckBoxes here
+	'Unless strictly necessary
+	'
+	'Let Android avoid the CheckedChange event calls
+	'for CheckBoxes that don't particularly need their
+	'CheckedChange event to always be fired no matter
+	'whether the new .Checked value is redundant
+	'
+	'See chkHideAdminKey_CheckedChange for a reference
+	'on how to implement this Hotfix in your CheckBoxes
+	'CheckedChange event handlers
+	'
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: Telling chkHideAdminKey_CheckedChange that the next call is from this Hotfix function"$, Colors.Blue)
+	#End If
+	chkHideAdminKey.Tag = chkHideAdminKey.Tag.As(String)&"[CHECKEDCHANGE_FROM_HOTFIX]"
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: Manually firing chkHideAdminKey_CheckedChange(chkHideAdminKey.Checked) (with its own current Checked value)"$, Colors.Blue)
+	#End If
+	chkHideAdminKey_CheckedChange(chkHideAdminKey.Checked)
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue: Sub return"$, Colors.Blue)
 	#End If
 End Sub
 
@@ -1430,21 +1581,26 @@ Private Sub CheckIfAdminKeySharedToTheApp
 		#End If
 		edtAdminKey.Text = ReceivedText
 		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the Admin Key field .Text has been set to the shared text we received in a toast notification"$, Colors.Blue)
+		#End If
+		ToastMessageShow("Admin key shared successfully", Constants.TOAST_DURATION_SHORT)
+		
 	Else
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is invalid"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is invalid"$, Colors.Magenta)
 		#End If
 		
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can't accept setting the Admin Key field .Text to an invalid value"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can't accept setting the Admin Key field .Text to an invalid value"$, Colors.Magenta)
 		#End If
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Magenta)
 		#End If
 		edtAdminKey.Text = ""
 		
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Magenta)
 		#End If
 		ToastMessageShow("Shared Admin key is invalid", Constants.TOAST_DURATION_SHORT)
 		
@@ -1478,7 +1634,7 @@ Sub StoreSharedTextTruncatedRehash(MySharedText As String) As Boolean
 	Dim SharedText As String = MySharedText
 	
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Hashing the shared Admin Key text ${SharedTextNumberOfRehashRounds} times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Hashing the shared Admin Key text [a specific sensitive value] times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
 	#End If
 	For i = 1 To SharedTextNumberOfRehashRounds
 		SharedText = Cryptography.TextToHash(SharedText&SharedTextRehashSalt, SharedTextRehashAlgorithm)
@@ -1575,7 +1731,7 @@ Sub VerifyIfSharedTextTruncatedRehashIsDifferent(MySharedText As String) As Bool
 		#End If
 		
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Hashing the shared Admin Key text ${SharedTextNumberOfRehashRounds} times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Hashing the shared Admin Key text [a specific sensitive value] times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
 		#End If
 		For i = 1 To SharedTextNumberOfRehashRounds
 			SharedText = Cryptography.TextToHash(SharedText&SharedTextRehashSalt, SharedTextRehashAlgorithm)
@@ -1603,6 +1759,9 @@ Sub VerifyIfSharedTextTruncatedRehashIsDifferent(MySharedText As String) As Bool
 			'
 			'This current pattern has been THOROUGHLY verified
 			'to never give false positives (false non-matching reports)
+			'
+			'Only Basic4Android's RegEx Replace methods support
+			'partial RegEx patterns, not the IsMatch ones
 			#If LOGGING
 			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Verifying if the shared Admin Key text starts with the same content as our old Admin Key text truncated rehash"$, Colors.Blue)
 			#End If
@@ -2122,8 +2281,60 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Sub entry (Checked = ${Checked})"$, Colors.Blue)
 	#End If
 	
+	'Start of part that must always be done ----- ----- ----- ----- -----
+	'
+	'This part needs to always be done even if the Checked value is
+	'the same as the current one
+	'
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Verifying if the Admin Key was not made unrevealable before and the requested .Checked state is False"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Doing the CheckedChange event part that must always be done"$, Colors.Blue)
+	#End If
+	If Checked Then
+		'The Hide Admin Key Checkbox is checked
+		'Its .Hint should also display bullet dots too
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Set the Admin Key field .Hint (not .Text) to show bullets characters because Checked is True"$, Colors.Blue)
+		#End If
+		edtAdminKey.Hint = DEFAULT_BULLETS_ADMIN_KEY
+		
+	Else
+		'The Hide Admin Key Checkbox is unchecked
+		'Its .Hint cans now display the default Admin Key zeroes
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Set the Admin Key field .Hint (not .Text) to show zeroes characters because Checked if False"$, Colors.Blue)
+		#End If
+		edtAdminKey.Hint = DEFAULT_ZEROES_ADMIN_KEY
+		
+	End If
+	
+	'Don't continue if the call comes from
+	'the CheckedChange Hotfix function
+	'
+	'It tells us when it's the caller
+	'by adding "[CHECKEDCHANGE_FROM_HOTFIX]"
+	'to this CheckBox's Tag value
+	'
+	If chkHideAdminKey.Tag.As(String).Contains("[CHECKEDCHANGE_FROM_HOTFIX]") Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Now since the caller is the CheckedChange Hotfix function, we don't need to proceed further"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Just clearing the [CHECKEDCHANGE_FROM_HOTFIX] flag from this CheckBox's Tag"$, Colors.Blue)
+		#End If
+		chkHideAdminKey.Tag = chkHideAdminKey.Tag.As(String).Replace("[CHECKEDCHANGE_FROM_HOTFIX]", "")
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Sub return"$, Colors.Blue)
+		#End If
+		Return
+		
+	End If
+	'
+	'End of part that must always be done ----- ----- ----- ----- -----
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Verifying if the Admin Key was made unrevealable before and the requested .Checked state is False"$, Colors.Blue)
 	#End If
 	If Not(ViewState_chkHideAdminKey_Enabled) And Not(Checked) Then
 		#If LOGGING
@@ -2148,6 +2359,13 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 		
 	End If
 	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: All good, the caller isn't trying to reveal an unrevealable Admin key"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: The requested Checked value is ${Checked}"$, Colors.Blue)
+	#End If
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Set ViewState of this checkbox checked state to ${Checked}"$, Colors.Blue)
 	#End If

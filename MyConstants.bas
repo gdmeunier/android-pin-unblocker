@@ -75,6 +75,9 @@ Sub Class_Globals
 	Public Const EDITTEXT_SPECIFIC_ONE    As Boolean  = True
 	Public Const EDITTEXT_NO_SPECIFIC_ONE As Boolean  = False
 	
+	'For special Hotfix logging purposes
+	Public Const COLORS_ORANGE As Int = Colors.RGB(0xFF, 0x66, 0x00) 'Web-safe 256-indexed color
+	
 End Sub
 
 Public Sub Initialize

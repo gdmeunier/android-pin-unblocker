@@ -169,21 +169,10 @@ public void _onCreate()
 	//
 	ScanAdvanced.jDisableAndroidAutofillService(this);
 	
+	//
 	// Make this App Activity secure
 	//
-	ScanAdvanced.jSecureActivityOnCreate(this, _myglobals.Scan_IsFirstLaunch);
-	
-	/* Check if it's the first-time Activity launch
-	 * in this Activity's lifecycle
-	 * 
-	 * This part is done at the end of the onCreate event
-	 */
-	if ( _myglobals.Scan_IsFirstLaunch )
-	{
-		// Mark that the next Activity onCreate events
-		// will no longer be the first-time Activity launch
-		_myglobals.Scan_IsFirstLaunch = false;
-	}
+	ScanAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 }
 #End If
 

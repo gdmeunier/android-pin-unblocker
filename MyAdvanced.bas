@@ -148,7 +148,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 					@Override
 					public void onFinish()
 					{
-						if ( !jToastMessageShow(ctx, "Admin Keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
+						if ( !jToastMessageShow(ctx, "Admin keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
 						{
 							jBetterActivityFinish(ctx);
 							mycommon.jTrueApplicationExit();
@@ -226,7 +226,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 				@Override
 				public void onFinish()
 				{
-					if ( !jToastMessageShow(ctx, "Admin Keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
+					if ( !jToastMessageShow(ctx, "Admin keys might leak in Recent Apps thumbnails", TOAST_DURATION_LONG) )
 					{
 						jBetterActivityFinish(ctx);
 						mycommon.jTrueApplicationExit();
@@ -248,14 +248,6 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
  * 
  * Officially deprecated notice since Android 9 (API level 28)
  */
-//
-// Avoid re-drawing thumbnails all the time
-//
-/* ----- ----- Not used ----- ----- **
-private Bitmap cachedDrawableCensorThumbnail = null;
-** ----- ----- Not used ----- ----- */
-private Bitmap cachedDynamicCensorThumbnail  = null;
-
 import android.content.Context;
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -271,6 +263,14 @@ import android.content.res.Resources.Theme;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.BitmapFactory;
+//
+// Avoid re-drawing thumbnails all the time
+//
+/* ----- ----- Not used ----- ----- **
+private Bitmap cachedDrawableCensorThumbnail = null;
+** ----- ----- Not used ----- ----- */
+private Bitmap cachedDynamicCensorThumbnail  = null;
+
 public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas canvas)
 {
 	//
@@ -965,6 +965,12 @@ public boolean jDeviceHasNavBar(Context ctx)
 import android.content.Context;
 import android.os.Build;
 import android.content.pm.PackageManager;
+//
+// Avoid re-acquiring a new ApplicationContext
+// and PackageManager all the time
+//
+private PackageManager cachedPackageManagerHandle = null;
+
 public boolean jDeviceHasFlashlight(Context ctx)
 {
 	boolean hasFlashlight = false;
@@ -980,7 +986,19 @@ public boolean jDeviceHasFlashlight(Context ctx)
 		/* Android 2.1+ */
 		try
 		{
-			hasFlashlight = ctx.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
+			PackageManager pkgMgr;
+			
+			if ( cachedPackageManagerHandle != null )
+			{
+				pkgMgr = cachedPackageManagerHandle;
+			}
+			else
+			{
+				pkgMgr = ctx.getApplicationContext().getPackageManager();
+				cachedPackageManagerHandle = pkgMgr;
+			}
+			
+			hasFlashlight = pkgMgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
 		}
 		catch (Exception e)
 		{
