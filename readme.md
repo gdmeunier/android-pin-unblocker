@@ -80,7 +80,7 @@ From there you can share the *Response code* over to Telegram, Signal, WhatsApp,
 Otherwise you could *e.g.* type the *Response code* automatically on employees' computers with an agent program, using the Android *Share To* functionality.
 
 > [!TIP]
-> You can also generally type passwords & sensitive input material using your phone and the USB [InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well.
+> You can also generally type passwords & sensitive input material using your phone and the USB [InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well.\
 > It also has a KeePass2Android plugin, for example.
 
 <div style="page-break-after: always;"></div>
@@ -93,7 +93,7 @@ Here you can see that it's possible to write your **Admin key** in any third-par
 
 That's also how you can generate *Admin key* hashes yourself with a different app then share the generated hashes to **Android PIN Unblocker**.
 
-The app automatically verifies whether the shared text is a valid *Hexadecimal* string with an *even* length of atleast **32** characters (*Hex* strings only contain the characters *0-9* and *A-F*).
+The app automatically verifies whether the shared text is a valid *Hexadecimal* string with an *even* length of atleast **32** characters (*Hex* strings only contain the characters *0-9* and *A-F*).\
 The app discards shared texts that are invalid *Admin keys* and will simply behave as if you launched it yourself.
 
 *There is no maximum length limit to the shared Admin key texts, but it must be atleast **32** characters long, be Hexadecimal and have an even length.\
