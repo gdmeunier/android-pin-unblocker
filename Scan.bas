@@ -14,53 +14,6 @@ Version=12.5
 	#IncludeTitle: True
 #End Region
 
-Sub Process_Globals
-	'ViewState registers for restoring the App state
-	'on Activity destruction & re-creation
-	Private ViewState_qrvQRCodeReaderView_PreviewCameraId As Int
-	
-	'We currently don't restore the TorchEnabled state,
-	'but this variable will be used elsewhere in the code
-	'instead of being used by ViewState Save & Restore functions
-	Private ViewState_qrvQRCodeReaderView_TorchEnabled As Boolean
-	
-	'The Toggle Flash button will always by dynamically
-	'set to the correct .Text content on App pause & resume,
-	'including on Camera preview side switch
-	
-	'Convenience constants stored inside this class
-	Private Constants As MyConstants
-	
-	'For getting Phone library functions without
-	'bundling the big Phone library
-	Private Common As MyCommon
-	
-	'For safely discarding any leftover Camera preview buffer(s)
-	Private Security As MySecurity
-	
-	'For advanced Java functions that require context
-	Private joScan As JavaObject
-	
-End Sub
-
-Sub Globals
-	'The below declarations are needed for fixing
-	'the Camera preview to be neatly square on
-	'devices without a software NavBar
-	Private lblQRCodeReaderBg   As Label  'It's a label used as a background
-	Private btnToggleFlash      As Button
-	Private btnSwitchCamera     As Button
-	Private btnBack             As Button
-	
-	'In a try-catch block because we want to avoid
-	'any potential Camera service connection error
-	'that could cause a disgraceful App crash
-	Try
-		Private qrvQRCodeReaderView As NewQRCodeReaderView
-	Catch
-		HandleCameraServiceException
-	End Try
-End Sub
 
 '
 'Java functions ------------------------------------------------
@@ -110,13 +63,6 @@ public int jGetDeviceOrientation()
 {
 	return ScanAdvanced.jGetDeviceOrientation(this);
 }
-
-import android.content.Context;
-import android.app.Activity;
-public void jBetterActivityFinish()
-{
-	ScanAdvanced.jBetterActivityFinish(this);
-}
 #End If
 
 #If Java
@@ -154,6 +100,138 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 	return ScanAdvanced.jCensorActivityThumbnail(this, outBitmap, canvas);
 }
 #End If
+'
+'Add the ability to detect screen rotation
+'on supported Android versions
+'
+'Only Android versions 3.0+ (API levels 11+)
+'are supported, for older versions we always
+'consider that the Activity destroy was not
+'because of a screen rotation
+'
+'It's an added benefit for Android 3.0+
+'devices but we won't be able to provide
+'this benefit to older versions
+'
+#If Java
+import android.content.Context;
+import android.app.Activity;
+import android.os.Build;
+public void _onDestroy()
+{
+	//
+	// Undocumented hacky methods
+	//
+	// Basic4Android devs might yell about it
+	// if you ask them for support later
+	//
+	
+	BA.LogInfo("** Activity (scan) Destroy **");
+	
+	boolean isFinishing              = isFinishing();
+	boolean isChangingConfigurations = false;
+	
+	//
+	// isChangingConfigurations() only available
+	// on API levels 11+ (Android 3.0+)
+	//
+	if ( Build.VERSION.SDK_INT >= 11 )
+	{
+		isChangingConfigurations = isChangingConfigurations();
+	}
+	
+	try
+	{
+		_activity_destroy(isFinishing, isChangingConfigurations);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+@Override
+public void onRestart()
+{
+	//
+	// Undocumented hacky methods
+	//
+	// Basic4Android devs might yell about it
+	// if you ask them for support later
+	//
+	
+	// Call parent function (super)
+	super.onRestart();
+	
+	BA.LogInfo("** Activity (scan) Restart **");
+	processBA.runHook("onrestart", this, null);
+}
+public void _onRestart()
+{
+	//
+	// Undocumented hacky methods
+	//
+	// Basic4Android devs might yell about it
+	// if you ask them for support later
+	//
+	
+	try
+	{
+		_activity_restart();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+//
+// Sometimes onRestart gets wrongly ignored
+// by Android even when it should run,
+// and since it should theorically run
+// after onStop, well then we force it
+// always correctly run when needed
+//
+public void _onStop()
+{
+	//
+	// Undocumented hacky methods
+	//
+	// Basic4Android devs might yell about it
+	// if you ask them for support later
+	//
+	
+	// Call parent function (super)
+	super.onRestart();
+	BA.LogInfo("** Activity (scan) Stop **");
+	
+	boolean isFinishing              = isFinishing();
+	boolean isChangingConfigurations = false;
+	
+	//
+	// isChangingConfigurations() only available
+	// on API levels 11+ (Android 3.0+)
+	//
+	if ( Build.VERSION.SDK_INT >= 11 )
+	{
+		isChangingConfigurations = isChangingConfigurations();
+	}
+	
+	// Checking if we need to force a call to _onRestart
+	if ( !isFinishing && !isChangingConfigurations )
+	{
+		// Forcing a call to _onRestart
+		// because the app stop is NOT due to screen rotation
+		// and somtimes Android refuses to fire _onRestart
+		// even when it absolutely should
+		processBA.runHook("onrestart", this, null);
+	}
+	else if ( isChangingConfigurations )
+	{
+		// No need to force a call to _onRestart
+		// because the app stop is due to screen rotation
+	}
+}
+#End If
 
 #If Java
 import android.content.Context;
@@ -178,8 +256,196 @@ public void _onCreate()
 #End If
 
 '
+'Internal Basic4Android hacks to finally be able to do
+'what I want with the device screen rotation detection
+'
+
+'Will be called "_activity_destroy" in Java code
+Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	'We currently don't have any code that runs for
+	'devices older than Android 3.0 (API level 11)
+	'
+	'Perhaps in the future we might have some code
+	'for these devices
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Checking the Android API level (only for API levels 11+ aka. Android 3.0+)"$, Constants.COLORS_ORANGE)
+	#End If
+	If Common.GetAndroidSdkVersion < 11 Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: The Android API level of this device is too old (API level ${Common.GetAndroidSdkVersion})"$, Constants.COLORS_ORANGE)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Cannot determine whether the device screen rotation events are foreground or not"$, Constants.COLORS_ORANGE)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
+		#End If
+		Return
+	End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: The Android API level of this device is OK (API level ${Common.GetAndroidSdkVersion})"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Setting the initial value of IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
+	#End If
+	IsDeviceRotationChange = False
+	
+	'Notice the added check to ignore device rotations
+	'made while the app is not in the foreground
+	'
+	'This value is initially False, to allow the first
+	'device rotation to work
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Now trying to determine whether the device screen rotation events are foreground or not"$, Constants.COLORS_ORANGE)
+	#End If
+	If Not(IsFinishing) And IsChangingConfigurations And Not(IsBackgroundDeviceRotation) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: We confirmed that it's a foreground rotation event"$, Constants.COLORS_ORANGE)
+		#End If
+		
+		'We know that it cans only be a screen rotation
+		'since we opted out of all other configuration
+		'change events in the application manifest
+		'using the "android:configChanges" Activity attribute
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Telling Activity_Resume about it by setting IsDeviceRotationChange to True"$, Constants.COLORS_ORANGE)
+		#End If
+		IsDeviceRotationChange = True
+		
+	Else
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: This is either not a screen rotation event, not a foreground one or the Activity is just finishing anyway"$, Constants.COLORS_ORANGE)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Definitely not a foreground screen rotation is such cases"$, Constants.COLORS_ORANGE)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: The IsDeviceRotationChange value stays False for Activity_Resume"$, Constants.COLORS_ORANGE)
+		#End If
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+
+'Will be called "_activity_restart" in Java code
+Sub Activity_Restart()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	'If this event was fired, then any device
+	'screen rotation event is not a foreground one
+	'
+	'Then it's guaranteed to be one from app pause & resume
+	
+	'We currently don't have any code that runs for
+	'devices older than Android 3.0 (API level 11)
+	'
+	'Perhaps in the future we might have some code
+	'for these devices
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: This function was fired, this is definitely an app pause & resume"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: So it cannot be a screen rotation while the app is running, it would never call Activity_Restart otherwise"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	'Warn Activity_Destroy that it will be a wrong
+	'(background) device rotation event
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Warning Activity_Destroy about it by setting IsBackgroundDeviceRotation to True"$, Constants.COLORS_ORANGE)
+	#End If
+	IsBackgroundDeviceRotation = True
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+
+'
 '------------------------------------------------------------------
 '
+Sub Process_Globals
+	
+	'ViewState registers for restoring the App state
+	'on Activity destruction & re-creation
+	Private ViewState_qrvQRCodeReaderView_PreviewCameraId As Int
+	
+	'We currently don't restore the TorchEnabled state,
+	'but this variable will be used elsewhere in the code
+	'instead of being used by ViewState Save & Restore functions
+	Private ViewState_qrvQRCodeReaderView_TorchEnabled As Boolean
+	
+	'The Toggle Flash button will always by dynamically
+	'set to the correct .Text content on App pause & resume,
+	'including on Camera preview side switch
+	
+	'Convenience constants stored inside this class
+	Private Constants As MyConstants
+	
+	'For getting Phone library functions without
+	'bundling the big Phone library
+	Private Common As MyCommon
+	
+	'For safely discarding any leftover Camera preview buffer(s)
+	Private Security As MySecurity
+	
+	'For advanced Java functions that require context
+	Private joScan As JavaObject
+	
+	'Adding this Process_Globals variable so that
+	'the ToggleFlashlight function knows whether
+	'we are currently under Activity_Resume or
+	'Activity_Pause contexts
+	'
+	'So that it doesn't alter the ViewState of the
+	'Flashlight state if we are under any of these
+	'Activity contexts
+	Private IsActivityPauseOrResume As Boolean = False 'Must be False by default
+	
+	'For detecting background device rotation
+	'Makes the difference between foreground
+	'and background ones (while outside the app)
+	Private IsDeviceRotationChange     As Boolean = False
+	Private IsBackgroundDeviceRotation As Boolean = False
+	
+End Sub
+
+Sub Globals
+	'The below declarations are needed for fixing
+	'the Camera preview to be neatly square on
+	'devices without a software NavBar
+	Private lblQRCodeReaderBg   As Label  'It's a label used as a background
+	Private btnToggleFlash      As Button
+	Private btnSwitchCamera     As Button
+	Private btnBack             As Button
+	
+	'In a try-catch block because we want to avoid
+	'any potential Camera service connection error
+	'that could cause a disgraceful App crash
+	Try
+		Private qrvQRCodeReaderView As NewQRCodeReaderView
+	Catch
+		HandleCameraServiceException
+	End Try
+End Sub
 
 #Region ViewState functions
 
@@ -235,12 +501,61 @@ Private Sub RestoreViewState()
 	LogColor($"[Scan-${LogContextId}] RestoreViewState: Sub entry"$, Colors.Blue)
 	#End If
 	
-	'We currently don't restore the TorchEnabled state
-	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] RestoreViewState: Restoring the QR code reader view's previous Camera preview ID ${ViewState_qrvQRCodeReaderView_PreviewCameraId}"$, Colors.Blue)
 	#End If
 	SwitchCamera(Constants.CAMERA_SPECIFIC_ONE, ViewState_qrvQRCodeReaderView_PreviewCameraId)
+	
+	'
+	'We can now restore the TorchEnabled state too
+	'because we have a method of knowing exactly
+	'when the device screen orientation changed
+	'while the app is running, so no risk of
+	'accidentally blinding the user anymore
+	'
+	'Note 1: we only restore it if it was due to
+	'        a device screen orientation change
+	'        that the Activity had to resume and
+	'        call this RestoreViewState function
+	'
+	'Note 2: you have to do it after switching the
+	'        Camera preview IDs
+	'
+	'        Some front Cameras have a flashlight, so we
+	'        want to wait for the correct one (front or rear)
+	'        to be switched to and only then restore the
+	'        previous Flashlight state
+	'
+	'        This way it's the state of the specific
+	'        last selected Camera side's Flashlight
+	'        that gets restored, not always the rear one's
+	'
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] RestoreViewState: Verify if the Activity resume was because of screen rotation"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] RestoreViewState: We don't restore the previous Flashlight state (let it off) unless it's because of a foreground screen rotation only"$, Colors.Blue)
+	#End If
+	If IsDeviceRotationChange And Not(IsBackgroundDeviceRotation) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] RestoreViewState: The Activity resume was because of foreground screen rotation"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] RestoreViewState: Restoring the QR code reader view's previous ${ViewState_qrvQRCodeReaderView_TorchEnabled} Flashlight state"$, Colors.Blue)
+		#End If
+		ToggleFlashlight(Constants.FLASH_SPECIFIC_STATE, ViewState_qrvQRCodeReaderView_TorchEnabled)
+		
+	Else
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] RestoreViewState: The Activity resume was because of a normal app pause, not screen rotation"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] RestoreViewState: We don't restore the QR code reader view's previous Flashlight state, we let it stay off instead"$, Colors.Blue)
+		#End If
+		
+	End If
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] RestoreViewState: Sub return"$, Colors.Blue)
@@ -338,6 +653,20 @@ Sub Activity_Create(FirstTime As Boolean)
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Fixing the Camera preview to be neatly square if needed (on devices without a software NavBar)"$, Colors.Blue)
 	#End If
 	FixSquareCameraPreviewIfNeeded
+	
+	'
+	'Background rotation detection:
+	'Now we can reset the warning here
+	'
+	'This warning will get reinstated again
+	'by our onRestart function incase of
+	'future background rotations that we
+	'don't want to consider as real ones
+	'
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Create: Resetting the background-rotation warnings by setting IsBackgroundDeviceRotation to False"$, Constants.COLORS_ORANGE)
+	#End If
+	IsBackgroundDeviceRotation = False
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
@@ -470,12 +799,22 @@ Sub Activity_Resume
 	LogColor($"[Scan-${LogContextId}] Activity_Resume: Sub entry"$, Colors.Blue)
 	#End If
 	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: Marking that we are in the Activity_Resume context by setting IsActivityPauseOrResume to True (all subsequently called functions will know about it)"$, Colors.Blue)
+	#End If
+	IsActivityPauseOrResume = True
+	
 	'Restoring the ViewState also calls SwitchCamera
 	'SwitchCamera already handles restarting the Camera preview
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
 	#End If
 	RestoreViewState
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: Marking that we are no longer under the Activity_Resume context by setting IsActivityPauseOrResume to False (we finished our resume job)"$, Colors.Blue)
+	#End If
+	IsActivityPauseOrResume = False
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
@@ -494,11 +833,38 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[Scan-${LogContextId}] Activity_Pause: Sub entry (UserClosed = ${UserClosed})"$, Colors.Blue)
 	#End If
 	
+	'
+	' Clear the device-rotation-changed flag
+	' on Activity pause, it will be re-filled
+	' properly by _onDestroy if there's really
+	' a device screen rotation event anyway
+	'
+	' If it's just an app pause, then the
+	' _onDestroy event never gets fired,
+	' but then this variable will stay false
+	'
+	' This is as intended to truly distinguish
+	' App pause by the user from a live device
+	' screen orientation change while the App
+	' is actually running
+	'
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: Resetting the device-rotation changed flag for next use by setting IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
+	#End If
+	IsDeviceRotationChange = False
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: Marking that we are in the Activity_Pause context by setting IsActivityPauseOrResume to True (all subsequently called functions will know about it)"$, Colors.Blue)
+	#End If
+	IsActivityPauseOrResume = True
+	
 	If Not(UserClosed) Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] Activity_Pause: Activity is not UserClosed"$, Colors.Blue)
 		#End If
 		
+		'SaveViewState always saves the ViewState even if
+		'we are in Activity_Pause context (especially if so)
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] Activity_Pause: Save ViewState"$, Colors.Blue)
 		#End If
@@ -528,6 +894,11 @@ Sub Activity_Pause(UserClosed As Boolean)
 		ActivityExit
 		
 	End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: Marking that we are no longer under the Activity_Pause context by setting IsActivityPauseOrResume to False (we finished our pause job)"$, Colors.Blue)
+	#End If
+	IsActivityPauseOrResume = False
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Pause: Sub return"$, Colors.Blue)
@@ -913,6 +1284,34 @@ Private Sub ToggleFlashlight(WantsSpecificState As Boolean, WhichOneIfYes As Boo
 	LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Sub entry (WantsSpecificState = ${WantsSpecificState}, WhichOneIfYes = ${WhichOneIfYes})"$, Colors.Blue)
 	#End If
 	
+	'Avoid altering the ViewState of the Flashlight just yet
+	'Because the flow of restoring the ViewState is like this:
+	'
+	'Activity_Resume
+	' -> RestoreViewState
+	'     -> SwitchCamera(specific, last selected one)
+	'         -> StopCameraPreview
+	'         *** -> ToggleFlashlight(specific, off state) ***
+	'         -> Set specific camera (last selected one)
+	'         -> StartCameraPreview
+	'     [If device rotation only]
+	' *** -> ToggleFlashlight(specific, last selected one) ***
+	'
+	'For the flow of saving the ViewState too, it goes like this:
+	'
+	'Activity_Pause
+	' -> SaveViewState
+	' -> StopCameraPreview
+	' *** -> ToggleFlashlight(specific, off state) ***
+	'
+	'So you can guess that modifying its ViewState right now
+	'is a problem, we will only do it in the end after we
+	'confirm that we are not under either the Activity
+	'pause or resume contexts
+	'
+	'We know it thanks to the IsActivityPauseOrResume process global
+	Dim FlashlightState As Boolean = ViewState_qrvQRCodeReaderView_TorchEnabled
+	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Checking if a specific Flashlight state was requested by the caller"$, Colors.Blue)
 	#End If
@@ -921,26 +1320,39 @@ Private Sub ToggleFlashlight(WantsSpecificState As Boolean, WhichOneIfYes As Boo
 		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: The caller didn't request any specific Flashlight state"$, Colors.Blue)
 		#End If
 		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Switch the Flashlight state to the opposite one (current: ${ViewState_qrvQRCodeReaderView_TorchEnabled} -> ${Not(ViewState_qrvQRCodeReaderView_TorchEnabled)})"$, Colors.Blue)
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Switch the Flashlight state to the opposite one (current: ${FlashlightState} -> ${Not(FlashlightState)})"$, Colors.Blue)
 		#End If
-		ViewState_qrvQRCodeReaderView_TorchEnabled = Not(ViewState_qrvQRCodeReaderView_TorchEnabled)
+		FlashlightState = Not(FlashlightState)
 		
 	Else
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: The caller requested a specific Flashlight state (${WhichOneIfYes})"$, Colors.Blue)
 		#End If
 		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Setting the ViewState for the Flashlight state to ${WhichOneIfYes}"$, Colors.Blue)
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Setting the Flashlight state to ${WhichOneIfYes}"$, Colors.Blue)
 		#End If
-		ViewState_qrvQRCodeReaderView_TorchEnabled = WhichOneIfYes
+		FlashlightState = WhichOneIfYes
 		
 	End If
 	
 	Try
 		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Applying the new Flashlight ViewState to the QR code reader view (setting it to ${ViewState_qrvQRCodeReaderView_TorchEnabled})"$, Colors.Blue)
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Applying the new Flashlight state to the QR code reader view (setting it to ${FlashlightState})"$, Colors.Blue)
 		#End If
-		qrvQRCodeReaderView.TorchEnabled = ViewState_qrvQRCodeReaderView_TorchEnabled
+		'
+		'Somehow on Activity resume, it's not possible
+		'to re-enable the Flashlight if we try to do it
+		'too quickly, we have to wait a little bit of time
+		'before trying to enable it
+		'
+		'Otherwise I guess that the Camera service
+		'didn't even finish initializing our preview
+		'
+		'So don't remove this small delay (telling just incase)
+		'
+		Sleep(100)
+		qrvQRCodeReaderView.TorchEnabled = FlashlightState
+		
 	Catch
 		'Don't exit here because not being able to
 		'toggle the Flashlight state is not critical
@@ -957,22 +1369,22 @@ Private Sub ToggleFlashlight(WantsSpecificState As Boolean, WhichOneIfYes As Boo
 		'(if no specific one was actually requested)
 		If Not(WantsSpecificState) Then
 			#If LOGGING
-			LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Because no specific Flashlight state was requested, restore the prior value in the ViewState"$, Colors.Red)
+			LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Because no specific Flashlight state was requested, restore the prior value"$, Colors.Red)
 			#End If
 			#If LOGGING
 			LogColor($"[Scan-${LogContextId}] ToggleFlashlight: This helps avoid having an inconsistent state since the state wasn't actually in effect (failed to apply)"$, Colors.Red)
 			#End If
 			
 			#If LOGGING
-			LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Restoring the new Flashlight state value ${ViewState_qrvQRCodeReaderView_TorchEnabled} back to the previous one ${Not(ViewState_qrvQRCodeReaderView_TorchEnabled)}"$, Colors.Red)
+			LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Restoring the new Flashlight state value ${FlashlightState} back to the previous one ${Not(FlashlightState)}"$, Colors.Red)
 			#End If
-			ViewState_qrvQRCodeReaderView_TorchEnabled = Not(ViewState_qrvQRCodeReaderView_TorchEnabled)
+			FlashlightState = Not(FlashlightState)
 			
 		End If
 	End Try
 	
 	'Dynamic Torch on / off icon
-	If ViewState_qrvQRCodeReaderView_TorchEnabled Then
+	If FlashlightState == Constants.FLASH_ON Then
 		'If the Flashlight is on then show the
 		'icon for turning it off
 		#If LOGGING
@@ -988,6 +1400,32 @@ Private Sub ToggleFlashlight(WantsSpecificState As Boolean, WhichOneIfYes As Boo
 		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Set the Toggle Flash button .Text to the Flash On icon since the Flashlight is off"$, Colors.Blue)
 		#End If
 		btnToggleFlash.Text = Constants.FLASH_ICON_ON
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Verify if we were under Activity_Resume or Activity_Pause contexts"$, Colors.Blue)
+	#End If
+	If IsActivityPauseOrResume Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: We are under either the Activity_Resume or Activity_Pause context"$, Colors.Magenta)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: We don't write the new Flashlight state to the ViewState in this case"$, Colors.Magenta)
+		#End If
+		
+	Else
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: We are not under any of either the Activity_Resume or Activity_Pause contexts"$, Colors.Green)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: We can write the new Flashlight state to the ViewState in such cases"$, Colors.Green)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] ToggleFlashlight: Writing the new Flashlight state to the Flashlight ViewState..."$, Colors.Green)
+		#End If
+		ViewState_qrvQRCodeReaderView_TorchEnabled = FlashlightState
 		
 	End If
 	

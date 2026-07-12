@@ -19,6 +19,6 @@ ModuleClosedNodes3=
 ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
-NavigationStack=Scan,HandleCameraServiceException,779,0,MyConstants,Class_Globals,65,0,Main,Process_Globals,341,0,Main,CheckIfAdminKeySharedToTheApp,1643,0,Scan,Process_Globals,25,0,Visual Designer,Main.bal,-100,2,Main,edtResponse_FocusChanged,3253,0,MyAdvanced,Initialize,83,0,Scan,Globals,149,0,Main,btnShareTo_Click,3257,3
+NavigationStack=Main,Activity_Restart,568,0,Scan,InitializeQRCodeReaderView,995,0,Scan,Activity_Destroy,263,0,Scan,Globals,439,0,Scan,RestoreViewState,550,0,Main,HardenActivityEditTexts,1217,0,Main,Activity_Create,1182,0,Main,SaveViewState,813,0,Main,Process_Globals,718,0,Main,Activity_Destroy,537,6
 SelectedBuild=0
 VisibleModules=6,3,5,2,1,4

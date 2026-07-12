@@ -55,6 +55,7 @@ Sub Class_Globals
 	public static final boolean NO_FLAG_SECURE = false;
 	#End If
 	#End If
+	
 End Sub
 
 Public Sub Initialize
