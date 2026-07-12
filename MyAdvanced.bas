@@ -66,6 +66,30 @@ End Sub
 'onCreate events easier to read
 '
 
+'
+'Implement caching of various context-dependent objects
+'
+#If Java
+/* ----- ----- Not used ----- ----- **
+private Bitmap            cachedDrawableCensorThumbnail  = null;
+** ----- ----- Not used ----- ----- */
+private Bitmap            cachedDynamicCensorThumbnail   = null;
+
+private Resources         cachedContextResources         = null;
+private Resources         cachedSystemResources          = null;
+
+private int               cachedThumbnailHeightResId     = -0xF; // alternative to null
+private int               cachedThumbnailWidthResId      = -0xF; // alternative to null
+
+private WindowManager     cachedSystemWindowService      = null;
+
+private int               cachedShowNavigationBarResId   = -0xF; // alternative to null
+private ViewConfiguration cachedContextViewConfiguration = null;
+
+private Context           cachedApplicationContext       = null;
+private PackageManager    cachedPackageManager           = null;
+#End If
+
 #If Java
 import android.content.Context;
 import android.app.Activity;
@@ -263,14 +287,6 @@ import android.content.res.Resources.Theme;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.BitmapFactory;
-//
-// Avoid re-drawing thumbnails all the time
-//
-/* ----- ----- Not used ----- ----- **
-private Bitmap cachedDrawableCensorThumbnail = null;
-** ----- ----- Not used ----- ----- */
-private Bitmap cachedDynamicCensorThumbnail  = null;
-
 public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas canvas)
 {
 	//
@@ -293,7 +309,6 @@ public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas c
 	try
 	{
 		Bitmap censorThumbnail;
-		
 		if ( cachedDynamicCensorThumbnail != null )
 		{
 			censorThumbnail = cachedDynamicCensorThumbnail;
@@ -316,46 +331,93 @@ public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas c
 			 * instead of using hardcoded values
 			 */
 			
-			Resources res = ctx.getResources();
+			Resources res;
+			if ( cachedContextResources != null )
+			{
+				res = cachedContextResources;
+			}
+			else
+			{
+				res = ctx.getResources();
+				cachedContextResources = res;
+			}
 			
+			Resources systemRes;
+			if ( cachedSystemResources != null )
+			{
+				systemRes = cachedSystemResources;
+			}
+			else
+			{
+				systemRes = res.getSystem();
+				cachedSystemResources = systemRes;
+			}
+			
+			//
 			// com.android.internal.R.dimen.thumbnail_height
 			//
-			int heightResId = res.getSystem().getIdentifier("thumbnail_height", "dimen", "android");
+			int heightResId;
+			if ( cachedThumbnailHeightResId != -0xF )
+			{
+				heightResId = cachedThumbnailHeightResId;
+			}
+			else
+			{
+				heightResId = systemRes.getIdentifier("thumbnail_height", "dimen", "android");
+				cachedThumbnailHeightResId = heightResId;
+			}
 			
+			//
 			// com.android.internal.R.dimen.thumbnail_width
 			//
-			int widthResId  = res.getSystem().getIdentifier("thumbnail_width", "dimen", "android");
+			int widthResId;
+			if ( cachedThumbnailWidthResId != -0xF )
+			{
+				widthResId = cachedThumbnailWidthResId;
+			}
+			else
+			{
+				widthResId = systemRes.getIdentifier("thumbnail_width", "dimen", "android");
+				cachedThumbnailWidthResId = widthResId;
+			}
 			
 			if ( heightResId > 0 && widthResId > 0 )
 			{
+				//
+				// Don't cache this information
+				//
 				h = res.getDimensionPixelSize(heightResId);
 				w = res.getDimensionPixelSize(widthResId);
 			}
 			
+			//
 			// Android actually uses RGB_565 for thumbnail previews
 			//
 			censorThumbnail = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565);
-			
+			//
 			// Default color for censoring the preview thumbnail
 			//
 			int censorColor = Color.BLACK; // Or Color.DKGRAY
-			
+			//
 			// Get Activity's windowBackground color
 			//
 			try
 			{
+				//
 				// Use Reflection to get it 5x faster
 				//
 				Class colorClass = R.color.class;
 				Field colorField = colorClass.getField("windowBackground");
 				int   colorResId = colorField.getInt(null);
-				
+				//
+				// Don't cache this information
+				//
 				if ( colorResId > 0 )
 				{
 					if ( Build.VERSION.SDK_INT < 23 )
 					{
 						/* Android 5.1.1- */
-						
+						//
 						// Deprecated on API level 23+ (Android 6+)
 						//
 						censorColor = res.getColor(colorResId);
@@ -363,7 +425,7 @@ public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas c
 					else
 					{
 						/* Android 6+ */
-						
+						//
 						// Only available on API level 23+ (Android 6+)
 						// Using null to avoid requesting any specific Resources.Theme
 						//
@@ -413,14 +475,24 @@ public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas c
 		// Example: "myCensorThumbnail.bmp" in your App's "res/drawable" folder
 		//
 		Bitmap censorThumbnail;
-		
 		if ( cachedDrawableCensorThumbnail != null )
 		{
 			censorThumbnail = cachedDrawableCensorThumbnail;
 		}
 		else
 		{
-			censorThumbnail = BitmapFactory.decodeResource(ctx.getResources(), R.drawable.myCensorThumbnail);
+			Resources res;
+			if ( cachedContextResources != null )
+			{
+				res = cachedContextResources;
+			}
+			else
+			{
+				res = ctx.getResources();
+				cachedContextResources = res;
+			}
+			
+			censorThumbnail = BitmapFactory.decodeResource(res, R.drawable.myCensorThumbnail);
 		}
 		
 		//
@@ -510,6 +582,9 @@ public void jDisableAndroidAutofillService(Activity ctx)
 	{
 		try
 		{
+			//
+			// Don't cache this information
+			//
 			ctx.getWindow().getDecorView().setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS);
 		}
 		catch (Exception e)
@@ -579,6 +654,9 @@ public boolean jEnableActivityFlagSecure(Activity ctx)
 	{
 		try
 		{
+			//
+			// Don't cache this information
+			//
 			ctx.getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
 		}
 		catch (Exception e)
@@ -753,13 +831,29 @@ public float jGetDeviceScale(Context ctx)
 		/* Android 11+ */
 		if ( Build.VERSION.SDK_INT >= 31 )
 		{
+			//
+			// Don't cache this information
+			//
 			Configuration cfg = new Configuration();
 			devScale = (float)cfg.densityDpi; // int -> float
 		}
 		/* Android 4.2+ */
 		else if ( Build.VERSION.SDK_INT >= 17 )
 		{
-			WindowManager wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
+			
+			WindowManager wm;
+			if ( cachedSystemWindowService != null )
+			{
+				wm = cachedSystemWindowService;
+			}
+			else
+			{
+				wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
+				cachedSystemWindowService = wm;
+			}
+			//
+			// Don't cache this information
+			//
 			Display  display = wm.getDefaultDisplay();
 			
 			DisplayMetrics dm = new DisplayMetrics();
@@ -770,7 +864,20 @@ public float jGetDeviceScale(Context ctx)
 		/* Android 4.1- */
 		else
 		{
-			devScale = Resources.getSystem().getDisplayMetrics().density; // Already float
+			Resources systemRes;
+			if ( cachedSystemResources != null )
+			{
+				systemRes = cachedSystemResources;
+			}
+			else
+			{
+				systemRes = Resources.getSystem();
+				cachedSystemResources = systemRes;
+			}
+			//
+			// Don't cache this information
+			//
+			devScale = systemRes.getDisplayMetrics().density; // Already float
 		}
 	}
 	catch (Exception e)
@@ -825,6 +932,9 @@ public int jGetDeviceOrientation(Context ctx)
 		/* Android 11+ */
 		if ( Build.VERSION.SDK_INT >= 31 )
 		{
+			//
+			// Don't cache this information
+			//
 			Configuration cfg = new Configuration();
 			int   orientation = cfg.orientation;
 			
@@ -845,7 +955,19 @@ public int jGetDeviceOrientation(Context ctx)
 		/* Android 4.2+ */
 		else if ( Build.VERSION.SDK_INT >= 17 )
 		{
-			WindowManager wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
+			WindowManager wm;
+			if ( cachedSystemWindowService != null )
+			{
+				wm = cachedSystemWindowService;
+			}
+			else
+			{
+				wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
+				cachedSystemWindowService = wm;
+			}
+			//
+			// Don't cache this information
+			//
 			Display  display = wm.getDefaultDisplay();
 			int  orientation = display.getOrientation();
 			
@@ -874,7 +996,20 @@ public int jGetDeviceOrientation(Context ctx)
 		/* Android 4.1- */
 		else
 		{
-			int orientation = Resources.getSystem().getConfiguration().orientation;
+			Resources systemRes;
+			if ( cachedSystemResources != null )
+			{
+				systemRes = cachedSystemResources;
+			}
+			else
+			{
+				systemRes = Resources.getSystem();
+				cachedSystemResources = systemRes;
+			}
+			//
+			// Don't cache this information
+			//
+			int orientation = systemRes.getConfiguration().orientation;
 			
 			switch(orientation)
 			{
@@ -927,17 +1062,51 @@ public boolean jDeviceHasNavBar(Context ctx)
 	{
 		try
 		{
-			Resources rsrc = ctx.getResources();
-			int       id   = rsrc.getIdentifier("config_showNavigationBar", "bool", "android");
-			
-			if ( id > 0 )
+			Resources res;
+			if ( cachedContextResources != null )
 			{
-				hasNavBar = rsrc.getBoolean(id);
+				res = cachedContextResources;
+			}
+			else
+			{
+				res = ctx.getResources();
+				cachedContextResources = res;
+			}
+			
+			int resId;
+			if ( cachedShowNavigationBarResId != -0xF )
+			{
+				resId = cachedShowNavigationBarResId;
+			}
+			else
+			{
+				resId = res.getIdentifier("config_showNavigationBar", "bool", "android");
+				cachedShowNavigationBarResId = resId;
+			}
+			//
+			// Don't cache this information
+			//
+			if ( resId > 0 )
+			{
+				hasNavBar = res.getBoolean(resId);
 			}
 			else
 			{
 				// Check for keys
-				boolean hasMenuKey = ViewConfiguration.get(ctx).hasPermanentMenuKey();
+				ViewConfiguration viewCfg;
+				if ( cachedContextViewConfiguration != null )
+				{
+					viewCfg = cachedContextViewConfiguration;
+				}
+				else
+				{
+					viewCfg = ViewConfiguration.get(ctx);
+					cachedContextViewConfiguration = viewCfg;
+				}
+				//
+				// Don't cache this information
+				//
+				boolean hasMenuKey = viewCfg.hasPermanentMenuKey();
 				boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
 				
 				hasNavBar = !hasMenuKey && !hasBackKey;
@@ -965,12 +1134,6 @@ public boolean jDeviceHasNavBar(Context ctx)
 import android.content.Context;
 import android.os.Build;
 import android.content.pm.PackageManager;
-//
-// Avoid re-acquiring a new ApplicationContext
-// and PackageManager all the time
-//
-private PackageManager cachedPackageManagerHandle = null;
-
 public boolean jDeviceHasFlashlight(Context ctx)
 {
 	boolean hasFlashlight = false;
@@ -987,15 +1150,25 @@ public boolean jDeviceHasFlashlight(Context ctx)
 		try
 		{
 			PackageManager pkgMgr;
-			
-			if ( cachedPackageManagerHandle != null )
+			if ( cachedPackageManager != null )
 			{
-				pkgMgr = cachedPackageManagerHandle;
+				pkgMgr = cachedPackageManager;
 			}
 			else
 			{
-				pkgMgr = ctx.getApplicationContext().getPackageManager();
-				cachedPackageManagerHandle = pkgMgr;
+				Context appCtx;
+				if ( cachedApplicationContext != null )
+				{
+					appCtx = cachedApplicationContext;
+				}
+				else
+				{
+					appCtx = ctx.getApplicationContext();
+					cachedApplicationContext = appCtx;
+				}
+				
+				pkgMgr = appCtx.getPackageManager();
+				cachedPackageManager = pkgMgr;
 			}
 			
 			hasFlashlight = pkgMgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);

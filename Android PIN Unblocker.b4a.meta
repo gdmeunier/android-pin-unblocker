@@ -19,6 +19,6 @@ ModuleClosedNodes3=
 ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
-NavigationStack=Main,CheckIfAdminKeySharedToTheApp,1586,0,Main,VerifyIfSharedTextTruncatedRehashIsDifferent,1737,0,Main,mnuAbout_Click,1885,0,Main,btnGenerate_Click,2817,0,Main,GetSanitizedUserInputs,3051,0,Main,btnShareTo_Click,3216,0,Scan,Globals,161,0,Scan,btnBack_Click,1188,0,Scan,HandleCameraServiceException,779,0,MyConstants,Class_Globals,65,0,MyAdvanced,Initialize,862,0
+NavigationStack=Scan,HandleCameraServiceException,779,0,MyConstants,Class_Globals,65,0,Main,Process_Globals,341,0,Main,CheckIfAdminKeySharedToTheApp,1643,0,Scan,Process_Globals,25,0,Visual Designer,Main.bal,-100,2,Main,edtResponse_FocusChanged,3253,0,MyAdvanced,Initialize,83,0,Scan,Globals,149,0,Main,btnShareTo_Click,3257,3
 SelectedBuild=0
 VisibleModules=6,3,5,2,1,4

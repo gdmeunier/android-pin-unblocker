@@ -28,8 +28,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 53
-	#VersionName: 4.4.1
+	#VersionCode: 54
+	#VersionName: 4.5.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -176,6 +176,8 @@ import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
 import android.os.CountDownTimer;
+import android.os.Bundle;
+import android.content.Intent;
 public void _onCreate()
 {
 	//
@@ -187,6 +189,47 @@ public void _onCreate()
 	// Disable the Android 8.0+ Autofill service (for security reasons)
 	//
 	MainAdvanced.jDisableAndroidAutofillService(this);
+	
+	//
+	// Check if the App is started from a Share To Intent
+	// This checks if an Admin key was shared to the App
+	//
+	boolean isStartedFromShareToIntent = false;
+	
+	//
+	// We currently only use the isStartedFromShareToIntent flag
+	// for displaying security toast notifications in the
+	// NO_FLAG_SECURE build, so no need to run any of this code
+	// below if the App is compiled with FLAG_SECURE
+	//
+	// FLAG_SECURE is the default build configuration and also
+	// the configuration used for all compiled APK files
+	// on Github release pages
+	//
+	// And also because the security toast notifications that
+	// we use this Share To Intent dection for only runs on
+	// the first-time App launch, no need to run it more than
+	// once per App launch / App lifecycle either
+	//
+	if ( myadvanced.NO_FLAG_SECURE && isFirst ) // Undocumented Basic4Android variable
+	{
+		try
+		{
+			Intent  launchIntent = this.getIntent();
+			String  launchAction = launchIntent.getAction();
+			boolean hasTextExtra = launchIntent.hasExtra(Intent.EXTRA_TEXT);
+			
+			if ( launchAction == Intent.ACTION_SEND && hasTextExtra )
+			{
+				isStartedFromShareToIntent = true;
+			}
+		}
+		catch (Exception e)
+		{
+			// Incase we have a botched value
+			isStartedFromShareToIntent = false;
+		}
+	}
 	
 	//
 	// Check if the App was compiled without FLAG_SECURE
@@ -218,6 +261,12 @@ public void _onCreate()
 			// Better to be safe than sorry
 			//
 			
+			/* By default no wait time for the first toast notification
+			 * And only a short toast delay wait time for the second one
+			 */
+			int waitTimeForFirstToast  = 0;
+			int waitTimeForSecondToast = myadvanced.TOAST_SHORT_DELAY;
+			
 			/* Do note that we wait a bit before showing the first
 			 * toast notification, that's because if the user
 			 * shares an invalid Admin key text to the App then
@@ -233,6 +282,22 @@ public void _onCreate()
 			 * toast notification has shown before showing the
 			 * first security-related one
 			 */
+			if ( isStartedFromShareToIntent )
+			{
+				//
+				// If started from a Share To Intent with
+				// a shared Admin key text inside, then
+				// the wait times are not the same now
+				//
+				// Now the first toast notification needs to wait
+				// for any Basic-code toast to finish showing first
+				//
+				waitTimeForFirstToast  = waitTimeForFirstToast + myadvanced.TOAST_SHORT_DELAY;
+				//
+				// And the second toast notification waits 2x more
+				//
+				waitTimeForSecondToast = waitTimeForSecondToast + myadvanced.TOAST_SHORT_DELAY;
+			}
 			//
 			// Transfer current context for onFinish function
 			//
@@ -240,11 +305,12 @@ public void _onCreate()
 			// will just be the context of the onFinish function
 			//
 			Activity ctx = this;
-			
+			//
 			// Using 500ms as the tick rate because
 			// the durations for toasts are 2000ms & 3500ms
 			// so that neatly aligns with both durations
-			new CountDownTimer(myadvanced.TOAST_SHORT_DELAY, 500)
+			//
+			new CountDownTimer(waitTimeForFirstToast, 500)
 			{
 				@Override
 				public void onTick(long millisUntilFinished) { }
@@ -264,16 +330,7 @@ public void _onCreate()
 			// Wait until the first toast disappears
 			// before showing another one
 			//
-			/* Notice how we wait two times the short toast duration
-			 * That's because we actually wait for both a potential
-			 * Basic-code toast to finish showing but also the first
-			 * security-related one above
-			 *
-			 * Basic-code toast notifications never use the long
-			 * toast duration, so we can use the short duration
-			 * constant multiplied by 2 without worries
-			 */
-			new CountDownTimer(myadvanced.TOAST_SHORT_DELAY * 2, 500)
+			new CountDownTimer(waitTimeForSecondToast, 500)
 			{
 				@Override
 				public void onTick(long millisUntilFinished) { }
