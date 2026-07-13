@@ -2,10 +2,29 @@
 1. Copy libraries to your Basic4Android install
 ===============================================
 
-Copy all provided library files (JAR & XML) to this folder:
+Copy the below library files (JAR & XML) to this folder:
 C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 
+- NewQRCodeReaderView.jar
+- NewQRCodeReaderView.xml
+- ZXing-2.3.0-QR-scan-only.jar
+
  [i] Create this folder structure if it doesn't already exist.
+
+Now copy the below core library mods to this folder:
+C:\Program Files\Anywhere Software\B4A\Libraries
+
+- B4AShared.jar
+
+ [i] You need to replace your current files with
+     the provided modified ones
+
+ [i] You can make a backup of your current ones
+     before replacing them if you wish
+
+ [!] The project will fail to compile without
+     the specifically modified versions of
+     the Basic4Android core libraries
 
 2. Configure the Additional Libraries path
 ==========================================
