@@ -14,11 +14,6 @@ Sub Class_Globals
 	'the source code easier to read
 	Public Const INTENT_NO_SPECIFIC_TARGET As String = ""
 	
-	'Add missing KeyCode Constants in Basic4Android
-	'to the project source code directly
-	Public Const KEYCODE_LOCK        As Int = 324
-	Public Const KEYCODE_RECENT_APPS As Int = 312
-	
 	'Application source / origin
 	Public Const APPLICATION_HOMEPAGE_NAME As String = "GitHub Homepage"
 	Public Const APPLICATION_HOMEPAGE_URL  As String = "https://github.com/gdmeunier/android-pin-unblocker"
@@ -61,12 +56,11 @@ Sub Class_Globals
 	Public Const FLASH_ICON_ON  As String = ""
 	Public Const FLASH_ICON_OFF As String = ""
 	
-	'These constants are custom
-	'There's a copy of each one of these in MyAdvanced class
+	'These constants match Android's own ones
 	'
 	'This copy of the constants here is for
 	'convenience purposes and Basic code access
-	Public Const ORIENTATION_UNKNOWN   As Int = 0x0
+	Public Const ORIENTATION_UNKNOWN   As Int = 0x0 'Android calls it 'UNDEFINED' though
 	Public Const ORIENTATION_PORTRAIT  As Int = 0x1
 	Public Const ORIENTATION_LANDSCAPE As Int = 0x2
 	

@@ -13,7 +13,7 @@ Library1=core
 Library2=javaobject
 Library3=runtimepermissions
 Library4=newqrcodereaderview
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3 & later (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Supported device screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true" ~\n~                  android:normalScreens="true" ~\n~                  android:largeScreens="true" ~\n~                  android:anyDensity="true" />)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26">~\n~	</style>~\n~</resources>)~\n~'Android 6+~\n~CreateResource(values-v23, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23">~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11">~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5">~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3">~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific themes~\n~'Theme / Theme.Holo / Theme.Material / Theme.DeviceDefault~\n~'~\n~~\n~'Android 8.0+ theme -> switch to DeviceDefault parent~\n~CreateResource(values-v26, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 6+ theme~\n~CreateResource(values-v23, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+ theme -> switch to Material parent~\n~CreateResource(values-v21, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV21</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 3.0+ theme -> switch to Holo parent~\n~CreateResource(values-v11, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+ theme~\n~CreateResource(values-v10, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV10</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.0+ theme~\n~CreateResource(values-v5, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+ theme~\n~CreateResource(values-v3, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+ theme~\n~CreateResource(values, themes.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyle</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific EditText styles~\n~'~\n~'Harden EditText fields as much as possible~\n~'using XML attributes too when available~\n~'~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~'Android 6.0+~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV21">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV21" parent="@style/MyEditTextStyleV11">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV10">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV10" parent="@style/MyEditTextStyleV5">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV3" parent="@style/MyEditTextStyle">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyle" parent="@android:style/Widget.EditText">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Default Activity & Application colors~\n~'~\n~~\n~'Android 1.0+~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~'Cans be set for <activity /> or <application />~\n~'~\n~'Setting it in application covers the entire App~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~'~\n~'Also disclose that it makes use of the Flashlight~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"   android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash" android:required="false" />)~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Make the QR scanner Activity non-exportable (private)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Add a Share To functionality for receiving Admin keys~\n~'~\n~'This allows other Android applications to send text to~\n~'this App, and if they're valid Hex strings then it gets~\n~'used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and~\n~'forward this Hash to Android PIN Unblocker~\n~'~\n~' - "android:autoVerify" introduced in API level 23 (Android 6.0):~\n~'   It's some useless thing that's used for verifying~\n~'   Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order"      introduced in API level 28 (Android 9):~\n~'   This is the priority order of an Intent filter~\n~'   The higher the number, the higher the priority~\n~'~\n~'   It only manages the priority order of this App's~\n~'   own Intent filters, I don't want to use the~\n~'   "android:priority" attribute since it would~\n~'   interfere with other Apps, by taking priority~\n~'   over their Intent filters when you want to~\n~'   share text to a different App~\n~'~\n~'   Out of courtesy for other Apps, we only use the~\n~'   "android:order" Intent filter attribute~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key" ~\n~               android:autoVerify="false" ~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Intercept mundane device orientation changes~\n~'We opt-out of the below useless events:~\n~' - colorMode~\n~' - grammaticalGender [API level 34+ | Android 14+]~\n~' - keyboard~\n~' - keyboardHidden~\n~' - locale~\n~' - mcc~\n~' - mnc~\n~' - navigation~\n~' - touchscreen~\n~'~\n~'More info:~\n~' - https://developer.android.com/guide/topics/manifest/activity-element?hl=en#config~\n~' - https://stackoverflow.com/questions/9566633/how-to-use-onconfigurationchanged-and-newconfig-orientation-configuration-o~\n~'~\n~'We tell Android that we're going to handle these~\n~'configuration change events but we will actually~\n~'simply ignore them, so that Android doesn't~\n~'destroy then recreate this App's Activities for~\n~'mundane device configuration changes that are~\n~'not even related to the device display or orientation~\n~'~\n~'For example, device orientation events are:~\n~' - orientation~\n~' - screenSize~\n~'~\n~'So we will hook the useless ones to ignore them~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'Opt-out of predictive animations because we don't~\n~'use animations in this App for performance reasons~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'The maximum display aspect ratio that this App~\n~'is optimized for and supports is 16:9 (1.77)~\n~'~\n~'If the device has a much higher aspect ratio~\n~'then tell Android to letterbox the Activity view~\n~'~\n~'Letterboxing means scaling the Activity view~\n~'while preserving a 16:9 aspect ratio in this case~\n~'~\n~'Note: using a target SDK version of 36 or higher~\n~'      causes Android to ignore this attribute~\n~'~\n~'      API level 36 is Android 16~\n~'~\n~SetActivityAttribute(Main, "android:maxAspectRatio", "1.77")~\n~SetActivityAttribute(Scan, "android:maxAspectRatio", "1.77")~\n~~\n~'Don't let Android persist this App's state across~\n~'device reboots and on shutdowns~\n~'~\n~'We don't want the user having a leftover of this~\n~'App's old Activity states after the device restarts~\n~'~\n~'Introduced in API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'Enforce stricter Intent matching rules for sharing~\n~'Intents to this App, by requiring that:~\n~' - Explicit Intents must match this App's component name~\n~' - Intents without any ACTION type don't match this App~\n~'~\n~'Set it for Activities that can receive Intents in this App~\n~'~\n~'Introduced in API level 36 (Android 16)~\n~'This attribute is also available for the <application /> field~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Ask the connected display not to perform too much~\n~'graphical post-processing for this App~\n~'(minimal post-processing)~\n~'~\n~'Some new-technology displays might try to improve~\n~'the graphics, colors, etc of an App but we don't~\n~'need any such graphical enhancements~\n~'~\n~'Introduced in API level 30 (Android 11)~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'This App doesn't support multi-window mode~\n~'~\n~'Tell Android that this App hasn't been optimized~\n~'for multi-window mode, since otherwise the layouts~\n~'will just look wrong anyway~\n~'~\n~'This preference is ignored for Apps targeting~\n~'API level 36 or higher (Android 16+)~\n~'~\n~'We can set it on either <activity /> or <application />~\n~SetApplicationAttribute("android:resizeableActivity", "false")~\n~~\n~'We don't want to let one original Android user~\n~'launch this App's Activities, then have other~\n~'Android users on the same device being able to~\n~'see the original user's Activity~\n~'(for security reasons)~\n~'~\n~'Each Android user account on a device should~\n~'launch their own Activity if they want to see it~\n~'~\n~'Introduced in API level 23 (Android 6.0+)~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'We don't care about Picture-in-Picture display mode~\n~'and we don't want to support it for security reasons~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Turns out there's an Activity attribute for~\n~'automatically hiding the App's Activities~\n~'from the Recent Apps panel when they're closed~\n~'~\n~'They only stay visible in the Recent Apps panel~\n~'as long as the user doesn't exit the App~\n~'~\n~'It's unclear at which API level this was introduced~\n~'~\n~'The Scan Activity is already excluded from the Recent Apps panel~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3 & later (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Supported device screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true" ~\n~                  android:normalScreens="true" ~\n~                  android:largeScreens="true" ~\n~                  android:anyDensity="true" />)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26">~\n~	</style>~\n~</resources>)~\n~'Android 6+~\n~CreateResource(values-v23, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23">~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11">~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5">~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3">~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific themes~\n~'Theme / Theme.Holo / Theme.Material / Theme.DeviceDefault~\n~'~\n~~\n~'Android 8.0+ theme -> switch to DeviceDefault parent~\n~CreateResource(values-v26, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 6+ theme~\n~CreateResource(values-v23, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+ theme -> switch to Material parent~\n~CreateResource(values-v21, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV21</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 3.0+ theme -> switch to Holo parent~\n~CreateResource(values-v11, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+ theme~\n~CreateResource(values-v10, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV10</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.0+ theme~\n~CreateResource(values-v5, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+ theme~\n~CreateResource(values-v3, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+ theme~\n~CreateResource(values, themes.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyle</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific EditText styles~\n~'~\n~'Harden EditText fields as much as possible~\n~'using XML attributes too when available~\n~'~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~'Android 6.0+~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV21">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV21" parent="@style/MyEditTextStyleV11">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV10">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV10" parent="@style/MyEditTextStyleV5">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV3" parent="@style/MyEditTextStyle">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyle" parent="@android:style/Widget.EditText">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Default Activity & Application colors~\n~'~\n~~\n~'Android 1.0+~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~'Cans be set for <activity /> or <application />~\n~'~\n~'Setting it in application covers the entire App~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~'~\n~'Also disclose that it makes use of the Flashlight~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"   android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash" android:required="false" />)~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Make the QR scanner Activity non-exportable (private)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Add a Share To functionality for receiving Admin keys~\n~'~\n~'This allows other Android applications to send text to~\n~'this App, and if they're valid Hex strings then it gets~\n~'used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and~\n~'forward this Hash to Android PIN Unblocker~\n~'~\n~' - "android:autoVerify" introduced in API level 23 (Android 6.0):~\n~'   It's some useless thing that's used for verifying~\n~'   Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order"      introduced in API level 28 (Android 9):~\n~'   This is the priority order of an Intent filter~\n~'   The higher the number, the higher the priority~\n~'~\n~'   It only manages the priority order of this App's~\n~'   own Intent filters, I don't want to use the~\n~'   "android:priority" attribute since it would~\n~'   interfere with other Apps, by taking priority~\n~'   over their Intent filters when you want to~\n~'   share text to a different App~\n~'~\n~'   Out of courtesy for other Apps, we only use the~\n~'   "android:order" Intent filter attribute~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key" ~\n~               android:autoVerify="false" ~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Already set to singleTop by default by Basic4Android,~\n~'but we explicitly set it to singleTop anyway~\n~'~\n~'Atleast a singleTop or singleTask (worse one)~\n~'launch mode is required to receive onNewIntent~\n~'Activity event callbacks~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~'The Scan Activity doesn't need to receive new Intents anyway~\n~~\n~'----- ----- ----- ----- ----- vv <Not used right now> vv ----- ----- ----- ----- -----~\n~'Intercept device rotation change events~\n~'It's the only way of reliably knowing~\n~'when a device rotation happened in the~\n~'foreground instead of in the background~\n~'~\n~'The device orientation events are:~\n~' - orientation~\n~' - screenSize~\n~'~\n~'On tablets, it's screenSize that gets sent~\n~'On phones, it's orientation instead that does~\n~'SetActivityAttribute(Main, "android:configChanges", "orientation|screenSize")~\n~'SetActivityAttribute(Scan, "android:configChanges", "orientation|screenSize")~\n~'----- ----- ----- ----- ----- ^^ <Not used right now> ^^ ----- ----- ----- ----- -----~\n~~\n~~\n~'Opt-out of predictive animations because we don't~\n~'use animations in this App for performance reasons~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'The maximum display aspect ratio that this App~\n~'is optimized for and supports is 16:9 (1.77)~\n~'~\n~'If the device has a much higher aspect ratio~\n~'then tell Android to letterbox the Activity view~\n~'~\n~'Letterboxing means scaling the Activity view~\n~'while preserving a 16:9 aspect ratio in this case~\n~'~\n~'Note: using a target SDK version of 36 or higher~\n~'      causes Android to ignore this attribute~\n~'~\n~'      API level 36 is Android 16~\n~'~\n~SetActivityAttribute(Main, "android:maxAspectRatio", "1.77")~\n~SetActivityAttribute(Scan, "android:maxAspectRatio", "1.77")~\n~~\n~'Don't let Android persist this App's state across~\n~'device reboots and on shutdowns~\n~'~\n~'We don't want the user having a leftover of this~\n~'App's old Activity states after the device restarts~\n~'~\n~'Introduced in API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'Enforce stricter Intent matching rules for sharing~\n~'Intents to this App, by requiring that:~\n~' - Explicit Intents must match this App's component name~\n~' - Intents without any ACTION type don't match this App~\n~'~\n~'Set it for Activities that can receive Intents in this App~\n~'~\n~'Introduced in API level 36 (Android 16)~\n~'This attribute is also available for the <application /> field~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Ask the connected display not to perform too much~\n~'graphical post-processing for this App~\n~'(minimal post-processing)~\n~'~\n~'Some new-technology displays might try to improve~\n~'the graphics, colors, etc of an App but we don't~\n~'need any such graphical enhancements~\n~'~\n~'Introduced in API level 30 (Android 11)~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'This App doesn't support multi-window mode~\n~'~\n~'Tell Android that this App hasn't been optimized~\n~'for multi-window mode, since otherwise the layouts~\n~'will just look wrong anyway~\n~'~\n~'This preference is ignored for Apps targeting~\n~'API level 36 or higher (Android 16+)~\n~'~\n~'We can set it on either <activity /> or <application />~\n~SetApplicationAttribute("android:resizeableActivity", "false")~\n~~\n~'We don't want to let one original Android user~\n~'launch this App's Activities, then have other~\n~'Android users on the same device being able to~\n~'see the original user's Activity~\n~'(for security reasons)~\n~'~\n~'Each Android user account on a device should~\n~'launch their own Activity if they want to see it~\n~'~\n~'Introduced in API level 23 (Android 6.0+)~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'We don't care about Picture-in-Picture display mode~\n~'and we don't want to support it for security reasons~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Turns out there's an Activity attribute for~\n~'automatically hiding the App's Activities~\n~'from the Recent Apps panel when they're closed~\n~'~\n~'They only stay visible in the Recent Apps panel~\n~'as long as the user doesn't exit the App~\n~'~\n~'It's unclear at which API level this was introduced~\n~'~\n~'The Scan Activity is already excluded from the Recent Apps panel~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
 Module1=MyAdvanced
 Module2=MyCommon
 Module3=MyConstants
@@ -28,8 +28,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 55
-	#VersionName: 4.6.0
+	#VersionCode: 56
+	#VersionName: 4.7.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -108,22 +108,9 @@ public void jOpenBrowserUrl(String browserUrl)
 	MainAdvanced.jOpenBrowserUrl(this, browserUrl);
 }
 #End If
-
-#If Java
-//
-// Intercept mundane configuration change events to
-// ignore them instead of recreating this App's Activities
-//
-// This is what we've set in the App's manifest file
-//
-import android.content.res.Configuration;
-@Override
-public void onConfigurationChanged(Configuration newConfig)
-{
-	super.onConfigurationChanged(newConfig);
-}
-#End If
-
+'
+'Censor Recent Apps thumbnails for legacy devices
+'
 #If Java
 //
 // Censor Recent Apps thumbnails on supported
@@ -145,63 +132,16 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 }
 #End If
 '
-'Add the ability to detect screen rotation
-'on supported Android versions
-'
-'Only Android versions 3.0+ (API levels 11+)
-'are supported, for older versions we always
-'consider that the Activity destroy was not
-'because of a screen rotation
-'
-'It's an added benefit for Android 3.0+
-'devices but we won't be able to provide
-'this benefit to older versions
+'Bonus events incase I need them later
 '
 #If Java
-//
-// What happens when the user pauses the app,
-// rotates their screen *outside* the app,
-// then resumes this app (background rotation)
-//
-// Basically what we want to filter & ignore
-//
-/* [First launch]
- * onCreate()            <-- Reset the background rotation warning
- * onStart()
- * onResume()
- * 
- * [App pause]
- * onPause()             <-- Reset the device rotated flag ***
- * onStop()
- * onSaveInstanceState()
- * 
- * [App resume]
- * onRestart()           >>> Add the warning (trap function)     <<< if Android please calls it...
- * onStart()             ^^^ Never called on foreground rotation ^^^
- * onResume()
- * 
- * [Screen rotation]
- * onPause()             <-- Reset the device rotated flag ***
- * onStop()
- * onSaveInstanceState()
- * onDestroy()           <-- Verify the warning
- * onCreate(Bundle)      <-- Reset the background rotation warning
- * onStart()
- * onRestoreInstanceState()
- * onResume()
- */
+import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
 public void _onDestroy()
 {
-	//
-	// Undocumented hacky methods
-	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
-	
+	// Just so we know when the Activity destroys
 	BA.LogInfo("** Activity (main) Destroy **");
 	
 	boolean isFinishing              = isFinishing();
@@ -225,59 +165,51 @@ public void _onDestroy()
 		// Nothing to do here
 	}
 }
-//
-// Now there's a little problem that appeared:
-// - If the user pauses the app, then rotates
-//   their device while outside the app,
-//   the _onDestroy event actually gets fired
-//   and it's indeed a configuration change too!
-//
-// Because Android resumed the Activity normally,
-// but then had to immediately set the rotation
-// for our Activity to the new one
-//
-// But this fires the _onDestroy event because
-// Android has to destroy-then-recreate the
-// Activity to change the rotation again:
-// - And this will be a configuration change
-//
-// So how can we distinguish this event too?
-// Turns out there's a solution!
-//
-// Thanks to:
-//  - https://basaransuleyman.medium.com/android-activity-lifecycle-and-fragment-lifecycle-states-and-method-descriptions-136efc3c2ff3
-//
-// I checked what the exact Activity event cycle
-// is for a screen rotation and app resume from a pause
-//
-// I found there's there's one event that will
-// never be called on screen rotation,
-// but will always be called before resume,
-// and therefore before another _onDestroy event:
-// - The onRestart() Activity event
-//
-// So we can use that to mark whether it's a
-// foreground device rotation that happened
-// or one from an app pause then resume
-//
-@Override
-public void onRestart()
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onStop()
 {
-	//
-	// Undocumented hacky methods
-	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
+	// Just so we know when the Activity stops
+	BA.LogInfo("** Activity (main) Stop **");
 	
-	// Call parent function (super)
-	super.onRestart();
-	
-	BA.LogInfo("** Activity (main) Restart **");
-	processBA.runHook("onrestart", this, null);
+	try
+	{
+		_activity_stop();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
 }
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onStart()
+{
+	// Just so we know when the Activity starts
+	BA.LogInfo("** Activity (main) Start **");
+	
+	try
+	{
+		_activity_start();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
 public void _onRestart()
 {
+	// Just so we know when the Activity restarts
+	BA.LogInfo("** Activity (main) Restart **");
+	
 	try
 	{
 		_activity_restart();
@@ -287,61 +219,103 @@ public void _onRestart()
 		// Nothing to do here
 	}
 }
-//
-// Sometimes onRestart gets wrongly ignored
-// by Android even when it should run,
-// and since it should theorically run
-// after onStop, well then we force it
-// always correctly run when needed
-//
-public void _onStop()
+#End If
+'
+'Add missing Basic4Android Activity event runHooks
+'
+#If Java
+import android.content.res.Configuration;
+import android.content.Context;
+import android.app.Activity;
+import anywheresoftware.b4a.BA;
+@Override
+public void onConfigurationChanged(Configuration newConfig)
 {
+	// Call Android's super implementation (mandatory)
+	super.onConfigurationChanged(newConfig);
 	//
-	// Undocumented hacky methods
+	// Mimick Basic4Android's builtin runHook ability
 	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
-	
-	// Call parent function (super)
-	super.onRestart();
-	BA.LogInfo("** Activity (main) Stop **");
-	
-	boolean isFinishing              = isFinishing();
-	boolean isChangingConfigurations = false;
-	
-	//
-	// isChangingConfigurations() only available
-	// on API levels 11+ (Android 3.0+)
-	//
-	if ( Build.VERSION.SDK_INT >= 11 )
+	try
 	{
-		isChangingConfigurations = isChangingConfigurations();
+		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
 	}
-	
-	// Checking if we need to force a call to _onRestart
-	if ( !isFinishing && !isChangingConfigurations )
+	catch (Exception e)
 	{
-		// Forcing a call to _onRestart
-		// because the app stop is NOT due to screen rotation
-		// and somtimes Android refuses to fire _onRestart
-		// even when it absolutely should
-		processBA.runHook("onrestart", this, null);
-	}
-	else if ( isChangingConfigurations )
-	{
-		// No need to force a call to _onRestart
-		// because the app stop is due to screen rotation
+		// Nothing to do here
 	}
 }
 #End If
-
+'
+'Maybe oneday we will be able to properly use it
+'
+'It's currently unused, since detecting rotation
+'without wrecking the Activity layout is impossible
+'
+#If Java
+import android.content.res.Configuration;
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onConfigurationChanged(Configuration newCfg)
+{
+	BA.LogInfo("** Activity (main) ConfigurationChanged **");
+	
+	try
+	{
+		// Activity_ConfigurationChanged will
+		// only receive the device orientation
+		_activity_configurationchanged(newCfg.orientation);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
+'
+'Better method of checking for Admin keys shared to the App
+'
+#If Java
+import android.content.Intent;
+import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.objects.IntentWrapper;
+import android.content.Context;
+import android.app.Activity;
+public void _onNewIntent(Intent newIntent)
+{
+	BA.LogInfo("** Activity (main) NewIntent **");
+	
+	try
+	{
+		// The Basic-code function "Activity_NewIntent(NewIntent As Intent)"
+		// actually takes an IntentWrapper object, not an Intent one
+		//
+		// And this is how Basic4Android's core library creates
+		// an IntentWrapper object when you make one in Basic-code
+		IntentWrapper wrappedNewIntent = new IntentWrapper();
+		wrappedNewIntent.setObject(newIntent);
+		
+		//
+		// Now we can send this wrapped Intent
+		// to our Activity_NewIntent function
+		//
+		_activity_newintent(wrappedNewIntent);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
+'
+'Common type of _onCreate Java inline code
+'
 #If Java
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
 import android.os.CountDownTimer;
-import android.os.Bundle;
 import android.content.Intent;
 public void _onCreate()
 {
@@ -518,13 +492,29 @@ public void _onCreate()
 	MainAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 }
 #End If
-
 '
-'Internal Basic4Android hacks to finally be able to do
-'what I want with the device screen rotation detection
+'Just a bonus incase I need it in the future
 '
+Sub Activity_Stop()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
 
-'Will be called "_activity_destroy" in Java code
 Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -533,79 +523,38 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
 	#End If
 	
-	'We currently don't have any code that runs for
-	'devices older than Android 3.0 (API level 11)
-	'
-	'Perhaps in the future we might have some code
-	'for these devices
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: Checking the Android API level (only for API levels 11+ aka. Android 3.0+)"$, Constants.COLORS_ORANGE)
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
 	#End If
-	If Common.GetAndroidSdkVersion < 11 Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: The Android API level of this device is too old (API level ${Common.GetAndroidSdkVersion})"$, Constants.COLORS_ORANGE)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: Cannot determine whether the device screen rotation events are foreground or not"$, Constants.COLORS_ORANGE)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
-		#End If
-		Return
-	End If
-	
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: The Android API level of this device is OK (API level ${Common.GetAndroidSdkVersion})"$, Constants.COLORS_ORANGE)
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
 	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: Setting the initial value of IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
-	#End If
-	IsDeviceRotationChange = False
-	
-	'Notice the added check to ignore device rotations
-	'made while the app is not in the foreground
-	'
-	'This value is initially False, to allow the first
-	'device rotation to work
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: Now trying to determine whether the device screen rotation events are foreground or not"$, Constants.COLORS_ORANGE)
-	#End If
-	If Not(IsFinishing) And IsChangingConfigurations And Not(IsBackgroundDeviceRotation) Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: We confirmed that it's a foreground rotation event"$, Constants.COLORS_ORANGE)
-		#End If
-		
-		'We know that it cans only be a screen rotation
-		'since we opted out of all other configuration
-		'change events in the application manifest
-		'using the "android:configChanges" Activity attribute
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: Telling Activity_Resume about it by setting IsDeviceRotationChange to True"$, Constants.COLORS_ORANGE)
-		#End If
-		IsDeviceRotationChange = True
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: This is either not a screen rotation event, not a foreground one or the Activity is just finishing anyway"$, Constants.COLORS_ORANGE)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: Definitely not a foreground screen rotation is such cases"$, Constants.COLORS_ORANGE)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Destroy: The IsDeviceRotationChange value stays False for Activity_Resume"$, Constants.COLORS_ORANGE)
-		#End If
-		
-	End If
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
 	#End If
 End Sub
 
-'Will be called "_activity_restart" in Java code
+Sub Activity_Start()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Sub entry"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+
 Sub Activity_Restart()
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -614,32 +563,226 @@ Sub Activity_Restart()
 	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
 	#End If
 	
-	'If this event was fired, then any device
-	'screen rotation event is not a foreground one
-	'
-	'Then it's guaranteed to be one from app pause & resume
-	
-	'We currently don't have any code that runs for
-	'devices older than Android 3.0 (API level 11)
-	'
-	'Perhaps in the future we might have some code
-	'for these devices
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: This function was fired, this is definitely an app pause & resume"$, Constants.COLORS_ORANGE)
+	LogColor($"[Main-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
 	#End If
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: So it cannot be a screen rotation while the app is running, it would never call Activity_Restart otherwise"$, Constants.COLORS_ORANGE)
+	LogColor($"[Main-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
 	#End If
-	
-	'Warn Activity_Destroy that it will be a wrong
-	'(background) device rotation event
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: Warning Activity_Destroy about it by setting IsBackgroundDeviceRotation to True"$, Constants.COLORS_ORANGE)
-	#End If
-	IsBackgroundDeviceRotation = True
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+'
+'Maybe oneday we will be able to properly use it
+'
+'It's currently unused, since detecting rotation
+'without wrecking the Activity layout is impossible
+'
+Sub Activity_ConfigurationChanged(NewOrientation As Int)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+'
+'This one is also important, we now use it instead of
+'Activity_Resume to check for any shared Admin key texts
+'
+Sub Activity_NewIntent(NewIntent As Intent)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_NewIntent: Sub entry (NewIntent = {Action: "${NewIntent.Action}", HasTextExtra: ${NewIntent.HasExtra("android.intent.extra.TEXT")}})"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_NewIntent: Sub entry (Text ExtraData will never be shown in logs, as it's considered sensitive information)"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_NewIntent: Checking if any Admin Key was shared to this App"$, Constants.COLORS_ORANGE)
+	#End If
+	CheckIfAdminKeySharedToTheApp(NewIntent)
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_NewIntent: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+
+Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub entry"$, Colors.Blue)
+	#End If
+	
+	'This variable will receive the Share To
+	'Intents TEXT extra data if applicable
+	Dim ReceivedText As String
+	
+	'Add ability to receive Admin Key with Android's Share To
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking what the starting Intent is"$, Colors.Blue)
+	#End If
+	If  ReceivedIntent.Action == ReceivedIntent.ACTION_SEND  _
+	And ReceivedIntent.HasExtra("android.intent.extra.TEXT") Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is ACTION_SEND and it contains a TEXT extra"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Fetching the shared Admin Key text from the Share To Intent's TEXT extra"$, Colors.Blue)
+		#End If
+		ReceivedText = ReceivedIntent.GetExtra("android.intent.extra.TEXT")
+		
+		'Return: ReturnValue(0) = whether it's a different truncated rehash (True / False)
+		'        ReturnValue(1) = the truncated rehash, empty if verification
+		'                         returns a False status
+		'
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Generating a truncated text rehash of the currently shared Admin Key text and verifying if it's different from our previous one"$, Colors.Blue)
+		#End If
+		Dim TruncatedHashDifferentStatusAndNewHash() As String = Security.GetTruncatedHashDifferentStatusAndGetNewHash(ReceivedText, PreviouslySharedTextTruncatedRehash)
+		
+		'Check if the truncated text rehash is different
+		'from the previously shared one (False = same one)
+		If TruncatedHashDifferentStatusAndNewHash(0) == False Then
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text is the same as the previous one"$, Colors.Magenta)
+			#End If
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Ignoring Android's Share To Intent spam on every App resume..."$, Colors.Magenta)
+			#End If
+			
+			#If LOGGING
+			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
+			#End If
+			Return
+			
+		End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text is different from the previous one"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So it was not an Android Share To Intent spam afterall..."$, Colors.Blue)
+		#End If
+		
+		'Return: ReturnValue(0) = whether it's a different truncated rehash (True / False)
+		'        ReturnValue(1) = the truncated rehash, empty if verification
+		'                         returns a False status
+		'
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Remembering this Admin Key text (in truncated rehash form) for future Intent spam identification purposes"$, Colors.Blue)
+		#End If
+		PreviouslySharedTextTruncatedRehash = TruncatedHashDifferentStatusAndNewHash(1)
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is not something we specifically care about"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It's something other than an ACTION_SEND with a TEXT extra, so ignoring it"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
+		#End If
+		Return
+		
+	End If
+	
+	'
+	'This part of the function cans only be reached
+	'if the Share To Intent has ACTION_SEND and has
+	'a TEXT extra inside
+	'
+	
+	'Admin Keys can be 64-digits, 48-digits or 32-digits (Hex string)
+	'64 = AES-256
+	'48 = 3DES (DES-EDE3)
+	'32 = AES-128 / 2DES (DES-EDE2)
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking whether the shared Admin Key text (or hash) is valid"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It must be a string representing Hex bytes and be atleast 32 chars"$, Colors.Blue)
+	#End If
+	If Cryptography.VerifyIfTextIsHexBytes(ReceivedText) And ReceivedText.Length >= 32 Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is actually valid"$, Colors.Blue)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Locking down the Admin Key field to password mode"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: When a valid Admin Key or hash is shared to the App, it's always made unrevealable"$, Colors.Blue)
+		#End If
+		LockdownAdminKeyField
+		
+		'Only put the Admin Key text in the Admin Key field
+		'After it has been locked down and made unrevealable
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key field .Text to the text that we received"$, Colors.Blue)
+		#End If
+		edtAdminKey.Text = ReceivedText
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the Admin Key field .Text has been set to the shared text we received in a toast notification"$, Colors.Blue)
+		#End If
+		ToastMessageShow("Admin key text shared successfully", Constants.TOAST_DURATION_SHORT)
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is invalid"$, Colors.Magenta)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can't accept setting the Admin Key field .Text to an invalid value"$, Colors.Magenta)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Magenta)
+		#End If
+		edtAdminKey.Text = ""
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Magenta)
+		#End If
+		ToastMessageShow("Shared Admin key text is invalid", Constants.TOAST_DURATION_SHORT)
+		
+	End If
+	
+	'Clear the contents of the receivedText variable once it's
+	'no longer needed for the next part of the App lifecycle.
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Clearing the temporary variable containing the shared Admin Key (or hash) text"$, Colors.Blue)
+	#End If
+	ReceivedText = ""
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the received Admin Key text variable as soon as possible"$, Colors.Blue)
+	#End If
+	Security.TriggerJvmGarbageCollection
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
 	#End If
 End Sub
 '
@@ -704,62 +847,36 @@ Sub Process_Globals
 	
 	'For sharing Admin Keys to the App
 	'Don't allow Android to repeatedly re-send its Share To Intents
-	Private AdminKeyAlreadySharedToTheAppOnce As Boolean = False 'Must have a default value here
-	
-	'Better method of checking whether Android's
-	'Share To Intents for sharing Admin keys to
-	'this App are repeated attempts or not
-	Private SharedTextTruncatedRehash      As String = Null      'Must have a Null value here
-	
-	'The below configuration is enough for our purposes
-	'
-	'Remember that we don't store anything at all,
-	'We just want to make any potential local device
-	'memory forensics harder incase anyone tries to
-	'extract the shared Admin keys from the phone's
-	'live memory (in RAM)
-	'
-	'Not only there's a salt that changes on every
-	'lifecycle run of this App,
-	'but also the shared texts are stored as
-	'truncated hashes (missing half of the hash)
-	'
-	'Additionally, using more than one hashing round
-	'and never storing the truncated hashes at all
-	'looks like a good & secure solution for me
-	'
-	'There's no password protection use-case here,
-	'think of it as some kind of CRC-check but
-	'without potential false positives (hash collisions)
-	'
-	'Remember that we ourselves need to be *sure*
-	'that the truncated hashes are not the same,
-	'all while making it impossible to crack the
-	'truncated hashes if they were extracted from
-	'an unwillingly acquired memory dump of a phone
-	'
-	'That's why you must never use CRC here,
-	'you must use something with "0.00000000% hashing collisions"
-	
-	'Make sure that there are no hash collisions
-	'(don't use CRC)
-	Private SharedTextRehashAlgorithm      As String = "SHA-512"
-	'Make sure that trying to crack the truncated hashes is even harder
-	'Incase of memory dump analysis of a phone's live RAM
-	Private SharedTextNumberOfRehashRounds As Int    = Rnd(3, 10)
-	'Make sure that hashes cannot be the same across two App lifecycles
-	'Makes sure it's not possible to easily find what the hashes will be
-	Private SharedTextRehashSalt           As String = Rnd(1000000000, 2147483646).As(String)
+	Private PreviouslySharedTextTruncatedRehash As String = Null 'Must be Null by default
 	
 	'Turns out using a Process_Globals variable
 	'is the proper solution in our use-case...
-	Private IsFirstActivityResume As Boolean = True
+	'
+	'We use this process variable to know whether
+	'it's really the first App resume event in
+	'this App's lifecycle when the user launches it
+	'
+	'Note that we don't reset this flag when the
+	'Activity is destroyed and recreated,
+	'since it's still not the first-time App launch
+	'in the App's lifecycle in such cases
+	'
+	'It will only be reset if the user truly
+	'exits the App then launches it again
+	'just like a reboot but for Apps instead
+	Private IsFirstApplicationResume As Boolean = True 'True by default
 	
-	'For detecting background device rotation
-	'Makes the difference between foreground
-	'and background ones (while outside the app)
-	Private IsDeviceRotationChange     As Boolean = False
-	Private IsBackgroundDeviceRotation As Boolean = False
+	'For detecting device rotation
+	'
+	'Currently not used at all, it's always False
+	'Detecting device rotations was making the
+	'application codebase difficult to maintain
+	'
+	'Android configuration changes are difficult
+	'to detect without badly wrecking the Activity
+	'layout and having e.g. the portrait layout
+	'show up in landscape mode
+	Private IsDeviceRotationChange As Boolean = False 'Always False for now
 	
 End Sub
 
@@ -1026,21 +1143,16 @@ Sub Activity_Create(FirstTime As Boolean)
 	LogColor($"[Main-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
 	#End If
 	
-	'----------------------------------------------
+	'---------------------------------------------'
 	' Disabling the Activity TitleBar & ActionBar '
 	' must be done before adding content to the   '
 	' Activity, so before loading the layout file '
-	'----------------------------------------------
+	'---------------------------------------------'
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Load Main layout"$, Colors.Blue)
 	#End If
 	Activity.LoadLayout("Main")
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Set Activity title"$, Colors.Blue)
-	#End If
-	Activity.Title = Application.LabelName
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Check if it's the FirstTime Activity launch"$, Colors.Blue)
@@ -1049,7 +1161,6 @@ Sub Activity_Create(FirstTime As Boolean)
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Create: It's the FirstTime Activity launch"$, Colors.Blue)
 		#End If
-		
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Create: Disable the Admin Key selection timer so that it doesn't tick upon initialization"$, Colors.Blue)
 		#End If
@@ -1123,20 +1234,6 @@ Sub Activity_Create(FirstTime As Boolean)
 	joMain.InitializeContext
 	
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Harden this Activity's EditTexts to prevent Android from leaking sensitive information"$, Colors.Blue)
-	#End If
-	HardenActivityEditTexts(Constants.EDITTEXT_NO_SPECIFIC_ONE, Null)
-	
-	'Currently only the Admin Key field has a monospace font
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Fix this Activity's EditTexts that have a monospace font to stay monospace on older Android versions"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Otherwise some older Android devices see these EditTexts as not being monospace"$, Colors.Blue)
-	#End If
-	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
-	
-	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the Android version is 3.0 or newer"$, Colors.Blue)
 	#End If
 	#If LOGGING
@@ -1164,53 +1261,67 @@ Sub Activity_Create(FirstTime As Boolean)
 		
 	End If
 	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Dynamically correcting the padding of the text hashing options menu's info-text"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: It's needed to correct it to match the Challenge label"$, Colors.Blue)
-	#End If
-	btnHashMenuBg.Padding = Array As Int( lblChallenge.Left, _ 'Left   = [0]
-	                                      lblChallenge.Top,  _ 'Top    = [1]
-	                                      lblChallenge.Left, _ 'Right  = [2]
-	                                      lblChallenge.Top   _ 'Bottom = [3]
-										)
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Check if the Android version is older than 3.0"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Some small Hash Text button text color tweak has to be done on such older versions on Android"$, Colors.Blue)
-	#End If
-	If Common.GetAndroidSdkVersion < 11 Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Create: Device is older than Android 3.0, apply the Text Hash button text color fix"$, Colors.Blue)
-		#End If
-		btnHashMenu.TextColor = Colors.Black
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Create: Device is either Android 3.0 or newer, no need for the Text Hash button text color fix"$, Colors.Blue)
-		#End If
-		
-	End If
-	
 	'
-	'Background rotation detection:
-	'Now we can reset the warning here
-	'
-	'This warning will get reinstated again
-	'by our onRestart function incase of
-	'future background rotations that we
-	'don't want to consider as real ones
+	'The UI controls that don't depend on a ViewState
+	'to be restored (their styling properties etc)
+	'can just be restored in a shared function for
+	'both Activity_Create and Activity_Resume
 	'
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Create: Resetting the background-rotation warnings by setting IsBackgroundDeviceRotation to False"$, Constants.COLORS_ORANGE)
+	LogColor($"[Main-${LogContextId}] Activity_Create: Calling InitializeActivityLayout to initialize the loaded layout..."$, Colors.Blue)
 	#End If
-	IsBackgroundDeviceRotation = False
+	InitializeActivityLayout
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
+	#End If
+End Sub
+
+Sub InitializeActivityLayout
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Sub entry"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Set the Activity layout title to the App name"$, Colors.Blue)
+	#End If
+	Activity.Title = Application.LabelName
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Harden this Activity's EditTexts to prevent Android from leaking sensitive information"$, Colors.Blue)
+	#End If
+	HardenActivityEditTexts(Constants.EDITTEXT_NO_SPECIFIC_ONE, Null)
+	
+	'Currently only the Admin Key field has a monospace font
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Fix this Activity's EditTexts that have a monospace font to stay monospace on older Android versions"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Otherwise some older Android devices see these EditTexts as not being monospace"$, Colors.Blue)
+	#End If
+	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Calling FixHashMenuBackgroundTextPadding to fix the padding of the white text on the Hash Text menu background..."$, Colors.Blue)
+	#End If
+	FixHashMenuBackgroundTextPadding
+	
+	'
+	'Initially always False on Activity_Create
+	'
+	'It will be set to the proper value later
+	'by Activity_Resume when it calls RestoreViewState
+	'
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Calling FixHashMenuButtonTextColorIfNeeded(False) to fix the Hash Text button's text color if needed..."$, Colors.Blue)
+	#End If
+	FixHashMenuButtonTextColorIfNeeded(False)
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Sub return"$, Colors.Blue)
 	#End If
 End Sub
 
@@ -1398,6 +1509,67 @@ Sub FixMonospaceEditTexts(WantsToFixASpecificOne As Boolean, WhichOneIfYes As Ed
 	#End If
 End Sub
 
+Sub FixHashMenuBackgroundTextPadding
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuBackgroundTextPadding: Sub entry"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuBackgroundTextPadding: Dynamically correcting the padding of the text hashing options menu's info-text"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuBackgroundTextPadding: It's needed to correct it to match the Challenge label"$, Colors.Blue)
+	#End If
+	btnHashMenuBg.Padding = Array As Int( lblChallenge.Left, _ 'Left   = [0]
+	                                      lblChallenge.Top,  _ 'Top    = [1]
+	                                      lblChallenge.Left, _ 'Right  = [2]
+	                                      lblChallenge.Top   _ 'Bottom = [3]
+										)
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuBackgroundTextPadding: Sub return"$, Colors.Blue)
+	#End If
+End Sub
+
+Sub FixHashMenuButtonTextColorIfNeeded(Checked As Boolean)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuButtonTextColorIfNeeded: Sub entry (Checked = ${Checked})"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuButtonTextColorIfNeeded: Check if the Android version is older than 3.0"$, Colors.Blue)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuButtonTextColorIfNeeded: Some small Hash Text button text color tweak has to be done on such older versions on Android"$, Colors.Blue)
+	#End If
+	If Common.GetAndroidSdkVersion < 11 Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixHashMenuButtonTextColorIfNeeded: Device is older than Android 3.0, apply the Text Hash button text color fix for Checked = ${Checked}"$, Colors.Blue)
+		#End If
+		If Checked Then
+			btnHashMenu.TextColor = Colors.Red
+		Else
+			btnHashMenu.TextColor = Colors.Black
+		End If
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] FixHashMenuButtonTextColorIfNeeded: Device is either Android 3.0 or newer, no need for the Text Hash button text color fix"$, Colors.Blue)
+		#End If
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] FixHashMenuButtonTextColorIfNeeded: Sub return"$, Colors.Blue)
+	#End If
+End Sub
+
 Sub Activity_Resume
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -1439,35 +1611,20 @@ Sub Activity_Resume
 		
 	End If
 	
-	'Always do this one as the last action
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Resume: Checking if any Admin Key was shared to this App"$, Colors.Blue)
-	#End If
-	CheckIfAdminKeySharedToTheApp
-	
 	'For Always hiding the Admin Key when switching Apps
 	'such as pausing this App to use another one,
 	'then coming back to this App
 	'
 	'This prevents accidental showing of Admin Key texts
 	'incase the user forgot that the Admin Key text was
-	'not hidden when they paused the App a few minutes prior
-	'(for example)
-	'
-	'Note: now that we can clearly identity screen rotation
-	'      changes vs. normal app pause, we only hide the
-	'      Admin key field if it's not a screen rotation
-	'      change event (since the app was then never
-	'      actually put in the background then back to
-	'      the foreground)
-	'
+	'not hidden when they paused the App prior
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Checking if this is not the first Activity resume in this App lifecycle"$, Colors.Blue)
 	#End If
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Also checking if this Activity resume was not just a screen rotation"$, Colors.Blue)
 	#End If
-	If Not(IsFirstActivityResume) And (Not(IsDeviceRotationChange) Or IsBackgroundDeviceRotation) Then
+	If Not(IsFirstApplicationResume) And Not(IsDeviceRotationChange) Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Resume: It's not the first-time Activity resume for this App lifecycle"$, Colors.Blue)
 		#End If
@@ -1506,10 +1663,29 @@ Sub Activity_Resume
 	#End If
 	FixAndroidCheckedChangeEventIgnoresIfSameCheckedValue
 	
+	'Android will not fire Activity_NewIntent somehow
+	'even when it needds to fire it,
+	'because Android refuses to do the right thing
+	'we have to do it manually ourselves
 	'
-	'This part as the very alst one
+	'Atleast it's pleased enough to please fire the
+	'Activity_Resume event though, fortunately...
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: We need to manually fire Activity_NewIntent because Android won't do it"$, Colors.Magenta)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Check the source-code comments of this function for more information"$, Colors.Magenta)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Manually firing Activity_NewIntent with the current Android Intent object"$, Colors.Magenta)
+	#End If
+	Activity_NewIntent(Activity.GetStartingIntent)
+	
 	'
-	If IsFirstActivityResume Then
+	'This part as the very last one
+	'
+	If IsFirstApplicationResume Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
 		#End If
@@ -1517,7 +1693,7 @@ Sub Activity_Resume
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
 		#End If
-		IsFirstActivityResume = False
+		IsFirstApplicationResume = False
 		
 	End If
 	
@@ -1616,21 +1792,21 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Sub entry (UserClosed = ${UserClosed})"$, Colors.Blue)
 	#End If
 	
+	'Clear the device-rotation-changed flag
+	'on Activity pause, it will be re-filled
+	'properly by Activity_ConfigurationChanged
+	'if there's really a device screen rotation
+	'event later on anyway
 	'
-	' Clear the device-rotation-changed flag
-	' on Activity pause, it will be re-filled
-	' properly by _onDestroy if there's really
-	' a device screen rotation event anyway
+	'If it's just an app pause and resume,
+	'then this value will stay False because
+	'because Activity_ConfigurationChanged will
+	'not fire again
 	'
-	' If it's just an app pause, then the
-	' _onDestroy event never gets fired,
-	' but then this variable will stay false
-	'
-	' This is as intended to truly distinguish
-	' App pause by the user from a live device
-	' screen orientation change while the App
-	' is actually running
-	'
+	'This is as intended to truly distinguish
+	'App pause by the user from a live device
+	'screen orientation change while the App
+	'is actually running
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Resetting the device-rotation changed flag for next use by setting IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
 	#End If
@@ -1728,15 +1904,15 @@ Private Sub Activity_KeyPress(KeyCode As Int) As Boolean
 			#End If
 			Return True
 			
-		Case KeyCodes.KEYCODE_HOME, Constants.KEYCODE_LOCK, Constants.KEYCODE_RECENT_APPS
+		Case KeyCodes.KEYCODE_HOME
 			'This code branch might go too fast for
 			'the Basic4Android BridgeLogger to log
 			#If LOGGING
-			LogColor($"[Main-${LogContextId}] Activity_KeyPress: The KeyCode is KEYCODE_HOME / KEYCODE_LOCK / KEYCODE_RECENT_APPS"$, Colors.Blue)
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: The KeyCode is KEYCODE_HOME"$, Colors.Blue)
 			#End If
 			
 			#If LOGGING
-			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Hiding the Admin Key field on App switching, device locking & Recent Apps panel opening events"$, Colors.Blue)
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Hiding the Admin Key field on App switching events (Home button press)"$, Colors.Blue)
 			#End If
 			chkHideAdminKey.Checked = True
 			
@@ -1801,441 +1977,6 @@ Private Sub ActivityExit
 	LogColor($"[Main-${LogContextId}] ActivityExit: Sub return"$, Colors.Red)
 	#End If
 End Sub
-
-Private Sub CheckIfAdminKeySharedToTheApp
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub entry"$, Colors.Blue)
-	#End If
-	
-	'Add ability to receive Admin Key with Android's Share To
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking what the starting Intent is"$, Colors.Blue)
-	#End If
-	Dim ReceivedIntent As Intent = Activity.GetStartingIntent
-	
-	'This variable will receive the Share To
-	'Intents TEXT extra data if applicable
-	Dim ReceivedText As String
-	
-	If  ReceivedIntent.Action == ReceivedIntent.ACTION_SEND  _
-	And ReceivedIntent.HasExtra("android.intent.extra.TEXT") Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is ACTION_SEND and it contains a TEXT extra"$, Colors.Blue)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Fetching the shared Admin Key text from the Share To Intent's TEXT extra"$, Colors.Blue)
-		#End If
-		ReceivedText = ReceivedIntent.GetExtra("android.intent.extra.TEXT")
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Verifying if this App lifecycle didn't already get shared an Admin Key before"$, Colors.Blue)
-		#End If
-		If AdminKeyAlreadySharedToTheAppOnce Then
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: An Admin Key was already shared prior in this App's current lifecycle"$, Colors.Magenta)
-			#End If
-			
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Verify whether it's just Android repeatedly re-sending it on every Activity resume"$, Colors.Magenta)
-			#End If
-			If Not(VerifyIfSharedTextTruncatedRehashIsDifferent(ReceivedText)) Then
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text is the same as the previous one"$, Colors.Magenta)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Ignoring Android's Share To Intent spam on every App resume..."$, Colors.Magenta)
-				#End If
-				
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the shared Admin Key text as soon as possible"$, Colors.Magenta)
-				#End If
-				Security.TriggerJvmGarbageCollection
-				
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
-				#End If
-				Return
-				
-			Else
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text is different from the previous one"$, Colors.Green)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So it was not an Android Share To Intent spam afterall..."$, Colors.Green)
-				#End If
-				
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Storing a truncated rehash of this shared text for future Intent spam identification purposes"$, Colors.Green)
-				#End If
-				If Not(StoreSharedTextTruncatedRehash(ReceivedText)) Then
-					#If LOGGING
-					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Failed to store a truncated rehash of the currently shared text"$, Colors.Red)
-					#End If
-					#If LOGGING
-					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: If storing it fails then it will not allow identifying future Android spam Intents"$, Colors.Red)
-					#End If
-					#If LOGGING
-					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It also means that if storing the truncated rehash of the shared text fails, then it will fail everytime anyway"$, Colors.Red)
-					#End If
-					#If LOGGING
-					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So we just simply disallow proceeding further and consider that the shared Admin Key txt is the same as the old one"$, Colors.Red)
-					#End If
-					
-					#If LOGGING
-					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the shared Admin Key text as soon as possible"$, Colors.Red)
-					#End If
-					Security.TriggerJvmGarbageCollection
-					
-					#If LOGGING
-					LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Red)
-					#End If
-					Return
-					
-				End If
-				
-			End If
-			
-		Else
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: There was not any Admin Key already shared prior in this App's current lifecycle"$, Colors.Blue)
-			#End If
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Now we can proceed further and check what was received"$, Colors.Blue)
-			#End If
-			
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Just one thing before we proceed further, remembering a truncated rehash of the shared text"$, Colors.Blue)
-			#End If
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Storing a truncated rehash of this shared text for future Intent spam identification purposes"$, Colors.Blue)
-			#End If
-			If Not(StoreSharedTextTruncatedRehash(ReceivedText)) Then
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Failed to store a truncated rehash of the currently shared text"$, Colors.Red)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: If storing it fails then it will not allow identifying future Android spam Intents"$, Colors.Red)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It also means that if storing the truncated rehash of the shared text fails, then it will fail everytime anyway"$, Colors.Red)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: So we just simply disallow proceeding further and consider that the shared Admin Key txt is the same as the old one"$, Colors.Red)
-				#End If
-				
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the shared Admin Key text as soon as possible"$, Colors.Red)
-				#End If
-				Security.TriggerJvmGarbageCollection
-				
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Red)
-				#End If
-				Return
-				
-			End If
-			
-		End If
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The starting Intent is not something we specifically care about"$, Colors.Blue)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It's something other than an ACTION_SEND with a TEXT extra, so ignoring it"$, Colors.Blue)
-		#End If
-		
-		'
-		'No JVM garbage collection because no Share To
-		'Intent with a TEXT extra was shared,
-		'so there's nothing sensitive to discard
-		'
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
-		#End If
-		Return
-		
-	End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the process variable AdminKeyAlreadySharedToTheAppOnce to True"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: This will prevent Android from spamming its Share To Intent repeatedly later"$, Colors.Blue)
-	#End If
-	AdminKeyAlreadySharedToTheAppOnce = True
-	
-	'Admin Keys can be 64-digits, 48-digits or 32-digits (Hex string)
-	'64 = AES-256
-	'48 = 3DES (DES-EDE3)
-	'32 = AES-128 / 2DES (DES-EDE2)
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking whether the shared Admin Key text (or hash) is valid"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: It must be a string representing Hex bytes and be atleast 32 chars"$, Colors.Blue)
-	#End If
-	If Cryptography.VerifyIfTextIsHexBytes(ReceivedText) And ReceivedText.Length >= 32 Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is actually valid"$, Colors.Blue)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Locking down the Admin Key field to password mode"$, Colors.Blue)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: When a valid Admin Key or hash is shared to the App, it's always made unrevealable"$, Colors.Blue)
-		#End If
-		LockdownAdminKeyField
-		
-		'Only put the Admin Key text in the Admin Key field
-		'After it has been locked down and made unrevealable
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key field .Text to the text that we received"$, Colors.Blue)
-		#End If
-		edtAdminKey.Text = ReceivedText
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the Admin Key field .Text has been set to the shared text we received in a toast notification"$, Colors.Blue)
-		#End If
-		ToastMessageShow("Admin key text shared successfully", Constants.TOAST_DURATION_SHORT)
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is invalid"$, Colors.Magenta)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can't accept setting the Admin Key field .Text to an invalid value"$, Colors.Magenta)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Magenta)
-		#End If
-		edtAdminKey.Text = ""
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Magenta)
-		#End If
-		ToastMessageShow("Shared Admin key text is invalid", Constants.TOAST_DURATION_SHORT)
-		
-	End If
-	
-	'Clear the contents of the receivedText variable once it's
-	'no longer needed for the next part of the App lifecycle.
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Clearing the temporary variable containing the shared Admin Key (or hash) text"$, Colors.Blue)
-	#End If
-	ReceivedText = ""
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Requesting a JVM garbage collection to discard the received Admin Key text variable as soon as possible"$, Colors.Blue)
-	#End If
-	Security.TriggerJvmGarbageCollection
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Blue)
-	#End If
-End Sub
-
-Sub StoreSharedTextTruncatedRehash(MySharedText As String) As Boolean
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Sub entry (sensitive parameters)"$, Colors.Blue)
-	#End If
-	
-	Dim SharedText As String = MySharedText
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Hashing the shared Admin Key text [a specific sensitive value] times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
-	#End If
-	For i = 1 To SharedTextNumberOfRehashRounds
-		SharedText = Cryptography.TextToHash(SharedText&SharedTextRehashSalt, SharedTextRehashAlgorithm)
-	Next
-	
-	Dim HasStoreOperationSucceeded As Boolean = False
-	
-	'The text hashing function returns empty string on failure
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Checking if the shared Admin Key text hashing operations succeeded"$, Colors.Blue)
-	#End If
-	If SharedText <> "" Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: The shared Admin Key text hashing operations succeeded"$, Colors.Blue)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Truncating the final hash's length in half (from ${SharedText.Length} to ${(SharedText.Length / 2).As(Int)} chars)"$, Colors.Blue)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: This makes it theorically impossible to crack it since there would be so many possible hashing collisions (pigeonhole principle)"$, Colors.Blue)
-		#End If
-		SharedText = SharedText.SubString2(0, (SharedText.Length / 2).As(Int))
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Storing the truncated Admin Key text rehash in the appropriate lifecycle process variable (sensitive value)"$, Colors.Blue)
-		#End If
-		SharedTextTruncatedRehash = SharedText
-		
-		HasStoreOperationSucceeded = True
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: The shared Admin Key text hashing failed"$, Colors.Red)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: We don't update our previous shared text rehash in this case"$, Colors.Red)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: That's because we want to keep our previous value rather than lose it for an empty string"$, Colors.Red)
-		#End If
-		
-	End If
-	
-	'
-	'Don't do JVM garbage collection here
-	'It's already going to be done on
-	'Application resume if necessary
-	'
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] StoreSharedTextTruncatedRehash: Sub return (returning ${HasStoreOperationSucceeded})"$, Colors.Blue)
-	#End If
-	Return HasStoreOperationSucceeded
-	
-End Sub
-
-Sub VerifyIfSharedTextTruncatedRehashIsDifferent(MySharedText As String) As Boolean
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Sub entry (sensitive parameters)"$, Colors.Blue)
-	#End If
-	
-	Dim IsSharedTextTruncatedRehashDifferent As Boolean = False
-	Dim SharedText As String = MySharedText
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Checking if it's the App's first Share To Intent receipt"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We do this by verifying if our Admin Key text rehash content is Null"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: This cans only happen if this is the first Share To Intent, so if it's not a repeated Android spam Intent"$, Colors.Blue)
-	#End If
-	If SharedTextTruncatedRehash == Null Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text rehash content is Null, definitely a first-time Share To Intent"$, Colors.Blue)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We consider that it's just like if the shared Admin Key text rehash is different anyway"$, Colors.Blue)
-		#End If
-		
-		IsSharedTextTruncatedRehashDifferent = True
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text rehash content is not set to Null, definitely not the first Share To Intent"$, Colors.Blue)
-		#End If
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We need to check more carefully if it's not an Android Share To Intent spamming with the same text again"$, Colors.Blue)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Hashing the shared Admin Key text [a specific sensitive value] times using ${SharedTextRehashAlgorithm} (with this App lifecycle's sensitive salt value too)"$, Colors.Blue)
-		#End If
-		For i = 1 To SharedTextNumberOfRehashRounds
-			SharedText = Cryptography.TextToHash(SharedText&SharedTextRehashSalt, SharedTextRehashAlgorithm)
-		Next
-		
-		'The text hashing function returns empty string on failure
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Checking if the shared Admin Key text hashing operations succeeded"$, Colors.Blue)
-		#End If
-		If SharedText <> "" Then
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text hashing operations succeeded"$, Colors.Blue)
-			#End If
-			
-			'/!\ Note /!\
-			'The RegEx pattern MUST begin with "^" and end with "$"
-			'
-			'Otherwise Basic4Android's RegEx matcher will falsely
-			'return that the pattern doesn't match the text,
-			'which could have dire consequences for the user
-			'
-			'Consequences such as accidentally having their
-			'Admin Key text replaced by a wrong spammed one
-			'from Android itself and blocking their smartcard
-			'
-			'This current pattern has been THOROUGHLY verified
-			'to never give false positives (false non-matching reports)
-			'
-			'Only Basic4Android's RegEx Replace methods support
-			'partial RegEx patterns, not the IsMatch ones
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Verifying if the shared Admin Key text starts with the same content as our old Admin Key text truncated rehash"$, Colors.Blue)
-			#End If
-			If Regex.IsMatch2("^"&SharedTextTruncatedRehash&".*$", Regex.CASE_INSENSITIVE, SharedText) == False Then
-				'
-				'If the saved truncated hash does NOT match the shared text truncated hash
-				'then you know that they're different (not the same)
-				'
-				'That's why we use a "Regex.IsMatch2() == False" check
-				'
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text is different from the previously shared one"$, Colors.Blue)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: So it's finally not a spam Share To Intent by Android itself on every App resume..."$, Colors.Blue)
-				#End If
-				
-				IsSharedTextTruncatedRehashDifferent = True
-				
-			Else
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text is the same as the previously shared one"$, Colors.Magenta)
-				#End If
-				#If LOGGING
-				LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: So yet another Android Share To Intent spam on every App resume..."$, Colors.Magenta)
-				#End If
-				
-			End If
-			
-		Else
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: The shared Admin Key text hashing failed"$, Colors.Red)
-			#End If
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: We consider that it's just as if the shared Admin Key text truncated rehash is the same as our old one"$, Colors.Red)
-			#End If
-			
-		End If
-		
-	End If
-	
-	'
-	'Don't do JVM garbage collection here
-	'It's already going to be done on
-	'Application resume if necessary
-	'
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] VerifyIfSharedTextTruncatedRehashIsDifferent: Sub return (returning ${IsSharedTextTruncatedRehashDifferent})"$, Colors.Blue)
-	#End If
-	Return IsSharedTextTruncatedRehashDifferent
-	
-End Sub
-
-#End Region
 
 Private Sub LockdownAdminKeyField
 	#If LOGGING
@@ -2590,7 +2331,13 @@ Private Sub edtAdminKey_TextChanged(Old As String, New As String)
 End Sub
 
 Private Sub SelectionTimer_edtAdminKey_Tick
-	'Don't add logging to avoid log spam
+	'
+	'Don't add logging here to avoid log spam
+	'
+	'Also make sure functions called by this one
+	'don't include logging to avoid flooding
+	'your logcat when you need to do debugging
+	'
 	
 	'If the Admin Key field is unfocused:
 	'Make a call to edtAdminKey_ShowSelectionInfo atleast once
@@ -2615,8 +2362,10 @@ Private Sub SelectionTimer_edtAdminKey_Tick
 End Sub
 
 Private Sub edtAdminKey_ShowSelectionInfo
-	'Don't add logging to avoid log spam
-	
+	'
+	'Don't add logging here to avoid log spam
+	'This function is called by a Timer Sub
+	'
 	Dim TextLength, SelectionStart, SelectionLength As Int
 	TextLength		= edtAdminKey.Text.Length
 	SelectionStart	= edtAdminKey.SelectionStart
@@ -2887,27 +2636,9 @@ Private Sub btnHashMenu_CheckedChange(Checked As Boolean)
 	End If
 	
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Check if the Android version is older than 3.0"$, Colors.Blue)
+	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Calling FixHashMenuButtonTextColorIfNeeded(${Checked}) to fix the Hash Text button's text color if needed..."$, Colors.Blue)
 	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Some small Hash Text button text color tweak has to be done on such older versions on Android"$, Colors.Blue)
-	#End If
-	If Common.GetAndroidSdkVersion < 11 Then
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Device is older than Android 3.0, apply the Text Hash button text color fix"$, Colors.Blue)
-		#End If
-		If Checked Then
-			btnHashMenu.TextColor = Colors.Red
-		Else
-			btnHashMenu.TextColor = Colors.Black
-		End If
-		
-	Else
-		#If LOGGING
-		LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Device is either Android 3.0 or newer, no need for the Text Hash button text color fix"$, Colors.Blue)
-		#End If
-		
-	End If
+	FixHashMenuButtonTextColorIfNeeded(Checked)
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] btnHashMenu_CheckedChange: Sub return"$, Colors.Blue)

@@ -11,18 +11,6 @@ Version=12.5
 
 Sub Class_Globals
 	#If JAVA
-	// Device orientation type constants
-	//
-	// There's a copy of each one of these variables
-	// in the MyConstants class
-	//
-	// This version of the constants is for internal
-	// Advanced class access only
-	public static final int ORIENTATION_UNKNOWN   = 0;
-	public static final int ORIENTATION_PORTRAIT  = 1;
-	public static final int ORIENTATION_LANDSCAPE = 2;
-	
-	// Toast duration length constants
 	//
 	// There's a copy of each one of these variables
 	// in the MyConstants class
@@ -921,7 +909,7 @@ public int jGetDeviceOrientation(Context ctx)
 {
 	// Default value is unknown
 	// Better set initially a safe bet saying that we don't know
-	int devOrientation = ORIENTATION_UNKNOWN;
+	int devOrientation = Configuration.ORIENTATION_UNDEFINED;
 	
 	if ( ctx == null )
 	{
@@ -942,14 +930,18 @@ public int jGetDeviceOrientation(Context ctx)
 			switch(orientation)
 			{
 				case Configuration.ORIENTATION_LANDSCAPE:
-					devOrientation = ORIENTATION_LANDSCAPE;
+					devOrientation = Configuration.ORIENTATION_LANDSCAPE;
 					break;
 					
 				case Configuration.ORIENTATION_PORTRAIT:
-					devOrientation = ORIENTATION_PORTRAIT;
+					devOrientation = Configuration.ORIENTATION_PORTRAIT;
 					break;
 					
 				default:
+					// Ignore any other orientation values
+					//
+					// If any other value then just say that
+					// the device orientation is undefined
 					break;
 			}
 		}
@@ -975,22 +967,26 @@ public int jGetDeviceOrientation(Context ctx)
 			switch (orientation)
 			{
 				case Surface.ROTATION_0:
-					devOrientation = ORIENTATION_PORTRAIT;
+					devOrientation = Configuration.ORIENTATION_PORTRAIT;
 					break;
 					
 				case Surface.ROTATION_90:
-					devOrientation = ORIENTATION_LANDSCAPE;
+					devOrientation = Configuration.ORIENTATION_LANDSCAPE;
 					break;
 					
 				case Surface.ROTATION_180: // Reverse-portrait
-					devOrientation = ORIENTATION_PORTRAIT;
+					devOrientation = Configuration.ORIENTATION_PORTRAIT;
 					break;
 					
 				case Surface.ROTATION_270: // Reverse-landscape
-					devOrientation = ORIENTATION_LANDSCAPE;
+					devOrientation = Configuration.ORIENTATION_LANDSCAPE;
 					break;
 					
 				default:
+					// Ignore any other orientation values
+					//
+					// If any other value then just say that
+					// the device orientation is undefined
 					break;
 			}
 		}
@@ -1015,14 +1011,18 @@ public int jGetDeviceOrientation(Context ctx)
 			switch(orientation)
 			{
 				case Configuration.ORIENTATION_LANDSCAPE:
-					devOrientation = ORIENTATION_LANDSCAPE;
+					devOrientation = Configuration.ORIENTATION_LANDSCAPE;
 					break;
 					
 				case Configuration.ORIENTATION_PORTRAIT:
-					devOrientation = ORIENTATION_PORTRAIT;
+					devOrientation = Configuration.ORIENTATION_PORTRAIT;
 					break;
 					
 				default:
+					// Ignore any other orientation values
+					//
+					// If any other value then just say that
+					// the device orientation is undefined
 					break;
 			}
 		}
@@ -1032,7 +1032,7 @@ public int jGetDeviceOrientation(Context ctx)
 		// If this function fails (very old device?)
 		// then just claim that the device orientation
 		// is actually unknown (the safer option)
-		devOrientation = ORIENTATION_UNKNOWN;
+		devOrientation = Configuration.ORIENTATION_UNDEFINED;
 	}
 	
 	return devOrientation;

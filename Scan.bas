@@ -14,7 +14,6 @@ Version=12.5
 	#IncludeTitle: True
 #End Region
 
-
 '
 'Java functions ------------------------------------------------
 '
@@ -64,22 +63,9 @@ public int jGetDeviceOrientation()
 	return ScanAdvanced.jGetDeviceOrientation(this);
 }
 #End If
-
-#If Java
-//
-// Intercept mundane configuration change events to
-// ignore them instead of recreating this App's Activities
-//
-// This is what we've set in the App's manifest file
-//
-import android.content.res.Configuration;
-@Override
-public void onConfigurationChanged(Configuration newConfig)
-{
-	super.onConfigurationChanged(newConfig);
-}
-#End If
-
+'
+'Censor Recent Apps thumbnails for legacy devices
+'
 #If Java
 //
 // Censor Recent Apps thumbnails on supported
@@ -101,31 +87,16 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 }
 #End If
 '
-'Add the ability to detect screen rotation
-'on supported Android versions
-'
-'Only Android versions 3.0+ (API levels 11+)
-'are supported, for older versions we always
-'consider that the Activity destroy was not
-'because of a screen rotation
-'
-'It's an added benefit for Android 3.0+
-'devices but we won't be able to provide
-'this benefit to older versions
+'Bonus events incase I need them later
 '
 #If Java
+import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
 public void _onDestroy()
 {
-	//
-	// Undocumented hacky methods
-	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
-	
+	// Just so we know when the Activity destroys
 	BA.LogInfo("** Activity (scan) Destroy **");
 	
 	boolean isFinishing              = isFinishing();
@@ -150,30 +121,106 @@ public void _onDestroy()
 	}
 }
 
-@Override
-public void onRestart()
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onStop()
 {
-	//
-	// Undocumented hacky methods
-	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
+	// Just so we know when the Activity stops
+	BA.LogInfo("** Activity (scan) Stop **");
 	
-	// Call parent function (super)
-	super.onRestart();
-	
-	BA.LogInfo("** Activity (scan) Restart **");
-	processBA.runHook("onrestart", this, null);
+	try
+	{
+		_activity_stop();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
 }
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+import java.util.ArrayList;
+public void _onStart()
+{
+	// Just so we know when the Activity starts
+	BA.LogInfo("** Activity (scan) Start **");
+	
+	/* Important note:
+	 * Since the ToggleFlashlight function
+	 * uses a small sleep delay before
+	 * toggling the Flashlight, we might
+	 * end up with Flashlight toggle events
+	 * being sent to Basic4Android's
+	 * Activity-paused messages queue
+	 * 
+	 * Then it will want to re-run these
+	 * Flashlight toggle events on resume,
+	 * after the Activity onStart,
+	 * but this is undesirable for our purposes
+	 * 
+	 * So we must clear the paused messages queue
+	 * of Basic4Android (a bit uncommon to do),
+	 * otherwise we might accidentally restore
+	 * a Flashlight-on state on application resume,
+	 * even if the user thought it should be off
+	 * 
+	 * For example when the user clicks (spams)
+	 * multiple times the Flashlight button and
+	 * pauses the app, we don't want to accidentally
+	 * blind the users with their Flashlight
+	 * 
+	 * Don't remove this part unless you find a way
+	 * to avoid using a sleep call in the
+	 * ToggleFlashlight function
+	 * 
+	 * Because without the sleep timer it won't work,
+	 * as the toggle calls are too fast before the
+	 * Camera service has successfully reinitialized
+	 */
+	//
+	// Check if the processBA and sharedProcessBA
+	// objects are different from null
+	//
+	// [!] This part will only compile with
+	//     the modified B4AShared.jar file,
+	//     which basically just makes the
+	//     messagesDuringPaused field public
+	//
+	//     Otherwise it was not public and
+	//     could not be modified from
+	//     outside its own class instance
+	//
+	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
+	{
+		// Clear the paused messages queue
+		// by replacing it with an empty list
+		this.processBA.sharedProcessBA.messagesDuringPaused = new ArrayList<Runnable>();
+		
+		// Notify in the logging about it always
+		BA.LogInfo("_onStart: Cleared the paused messages queue");
+		BA.LogInfo("_onStart: It must be done for safety reasons");
+	}
+	
+	try
+	{
+		_activity_start();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
 public void _onRestart()
 {
-	//
-	// Undocumented hacky methods
-	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
+	// Just so we know when the Activity restarts
+	BA.LogInfo("** Activity (scan) Restart **");
 	
 	try
 	{
@@ -184,55 +231,63 @@ public void _onRestart()
 		// Nothing to do here
 	}
 }
-//
-// Sometimes onRestart gets wrongly ignored
-// by Android even when it should run,
-// and since it should theorically run
-// after onStop, well then we force it
-// always correctly run when needed
-//
-public void _onStop()
+#End If
+'
+'Add missing Basic4Android Activity event runHooks
+'
+#If Java
+import android.content.res.Configuration;
+import android.content.Context;
+import android.app.Activity;
+import anywheresoftware.b4a.BA;
+@Override
+public void onConfigurationChanged(Configuration newConfig)
 {
+	// Call Android's super implementation (mandatory)
+	super.onConfigurationChanged(newConfig);
 	//
-	// Undocumented hacky methods
+	// Mimick Basic4Android's builtin runHook ability
 	//
-	// Basic4Android devs might yell about it
-	// if you ask them for support later
-	//
-	
-	// Call parent function (super)
-	super.onRestart();
-	BA.LogInfo("** Activity (scan) Stop **");
-	
-	boolean isFinishing              = isFinishing();
-	boolean isChangingConfigurations = false;
-	
-	//
-	// isChangingConfigurations() only available
-	// on API levels 11+ (Android 3.0+)
-	//
-	if ( Build.VERSION.SDK_INT >= 11 )
+	try
 	{
-		isChangingConfigurations = isChangingConfigurations();
+		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
 	}
-	
-	// Checking if we need to force a call to _onRestart
-	if ( !isFinishing && !isChangingConfigurations )
+	catch (Exception e)
 	{
-		// Forcing a call to _onRestart
-		// because the app stop is NOT due to screen rotation
-		// and somtimes Android refuses to fire _onRestart
-		// even when it absolutely should
-		processBA.runHook("onrestart", this, null);
-	}
-	else if ( isChangingConfigurations )
-	{
-		// No need to force a call to _onRestart
-		// because the app stop is due to screen rotation
+		// Nothing to do here
 	}
 }
 #End If
-
+'
+'Maybe oneday we will be able to properly use it
+'
+'It's currently unused, since detecting rotation
+'without wrecking the Activity layout is impossible
+'
+#If Java
+import android.content.res.Configuration;
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onConfigurationChanged(Configuration newCfg)
+{
+	BA.LogInfo("** Activity (scan) ConfigurationChanged **");
+	
+	try
+	{
+		// Activity_ConfigurationChanged will
+		// only receive the device orientation
+		_activity_configurationchanged(newCfg.orientation);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
+'
+'Common type of _onCreate Java inline code
+'
 #If Java
 import android.content.Context;
 import android.app.Activity;
@@ -254,13 +309,29 @@ public void _onCreate()
 	ScanAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 }
 #End If
-
 '
-'Internal Basic4Android hacks to finally be able to do
-'what I want with the device screen rotation detection
+'Just a bonus incase I need it in the future
 '
+Sub Activity_Stop()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
 
-'Will be called "_activity_destroy" in Java code
 Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -269,79 +340,38 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
 	#End If
 	
-	'We currently don't have any code that runs for
-	'devices older than Android 3.0 (API level 11)
-	'
-	'Perhaps in the future we might have some code
-	'for these devices
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Checking the Android API level (only for API levels 11+ aka. Android 3.0+)"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
 	#End If
-	If Common.GetAndroidSdkVersion < 11 Then
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: The Android API level of this device is too old (API level ${Common.GetAndroidSdkVersion})"$, Constants.COLORS_ORANGE)
-		#End If
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Cannot determine whether the device screen rotation events are foreground or not"$, Constants.COLORS_ORANGE)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
-		#End If
-		Return
-	End If
-	
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: The Android API level of this device is OK (API level ${Common.GetAndroidSdkVersion})"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
 	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Setting the initial value of IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
-	#End If
-	IsDeviceRotationChange = False
-	
-	'Notice the added check to ignore device rotations
-	'made while the app is not in the foreground
-	'
-	'This value is initially False, to allow the first
-	'device rotation to work
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Now trying to determine whether the device screen rotation events are foreground or not"$, Constants.COLORS_ORANGE)
-	#End If
-	If Not(IsFinishing) And IsChangingConfigurations And Not(IsBackgroundDeviceRotation) Then
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: We confirmed that it's a foreground rotation event"$, Constants.COLORS_ORANGE)
-		#End If
-		
-		'We know that it cans only be a screen rotation
-		'since we opted out of all other configuration
-		'change events in the application manifest
-		'using the "android:configChanges" Activity attribute
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Telling Activity_Resume about it by setting IsDeviceRotationChange to True"$, Constants.COLORS_ORANGE)
-		#End If
-		IsDeviceRotationChange = True
-		
-	Else
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: This is either not a screen rotation event, not a foreground one or the Activity is just finishing anyway"$, Constants.COLORS_ORANGE)
-		#End If
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Definitely not a foreground screen rotation is such cases"$, Constants.COLORS_ORANGE)
-		#End If
-		
-		#If LOGGING
-		LogColor($"[Scan-${LogContextId}] Activity_Destroy: The IsDeviceRotationChange value stays False for Activity_Resume"$, Constants.COLORS_ORANGE)
-		#End If
-		
-	End If
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
 	#End If
 End Sub
 
-'Will be called "_activity_restart" in Java code
+Sub Activity_Start()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub entry"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
+
 Sub Activity_Restart()
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -350,35 +380,42 @@ Sub Activity_Restart()
 	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
 	#End If
 	
-	'If this event was fired, then any device
-	'screen rotation event is not a foreground one
-	'
-	'Then it's guaranteed to be one from app pause & resume
-	
-	'We currently don't have any code that runs for
-	'devices older than Android 3.0 (API level 11)
-	'
-	'Perhaps in the future we might have some code
-	'for these devices
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: This function was fired, this is definitely an app pause & resume"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
 	#End If
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: So it cannot be a screen rotation while the app is running, it would never call Activity_Restart otherwise"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
 	#End If
-	
-	'Warn Activity_Destroy that it will be a wrong
-	'(background) device rotation event
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: Warning Activity_Destroy about it by setting IsBackgroundDeviceRotation to True"$, Constants.COLORS_ORANGE)
-	#End If
-	IsBackgroundDeviceRotation = True
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
 	#End If
 End Sub
-
+'
+'Maybe oneday we will be able to properly use it
+'
+'It's currently unused, since detecting rotation
+'without wrecking the Activity layout is impossible
+'
+Sub Activity_ConfigurationChanged(NewOrientation As Int)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
+	#End If
+End Sub
 '
 '------------------------------------------------------------------
 '
@@ -420,11 +457,17 @@ Sub Process_Globals
 	'Activity contexts
 	Private IsActivityPauseOrResume As Boolean = False 'Must be False by default
 	
-	'For detecting background device rotation
-	'Makes the difference between foreground
-	'and background ones (while outside the app)
-	Private IsDeviceRotationChange     As Boolean = False
-	Private IsBackgroundDeviceRotation As Boolean = False
+	'For detecting device rotation
+	'
+	'Currently not used at all, it's always False
+	'Detecting device rotations was making the
+	'application codebase difficult to maintain
+	'
+	'Android configuration changes are difficult
+	'to detect without badly wrecking the Activity
+	'layout and having e.g. the portrait layout
+	'show up in landscape mode
+	Private IsDeviceRotationChange As Boolean = False 'Always False for now
 	
 End Sub
 
@@ -445,6 +488,7 @@ Sub Globals
 	Catch
 		HandleCameraServiceException
 	End Try
+	
 End Sub
 
 #Region ViewState functions
@@ -537,7 +581,7 @@ Private Sub RestoreViewState()
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] RestoreViewState: We don't restore the previous Flashlight state (let it off) unless it's because of a foreground screen rotation only"$, Colors.Blue)
 	#End If
-	If IsDeviceRotationChange And Not(IsBackgroundDeviceRotation) Then
+	If IsDeviceRotationChange Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] RestoreViewState: The Activity resume was because of foreground screen rotation"$, Colors.Blue)
 		#End If
@@ -578,21 +622,16 @@ Sub Activity_Create(FirstTime As Boolean)
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
 	#End If
 	
-	'----------------------------------------------
+	'---------------------------------------------'
 	' Disabling the Activity TitleBar & ActionBar '
 	' must be done before adding content to the   '
 	' Activity, so before loading the layout file '
-	'----------------------------------------------
+	'---------------------------------------------'
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Load Scan layout"$, Colors.Blue)
 	#End If
 	Activity.LoadLayout("Scan")
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Set Activity title"$, Colors.Blue)
-	#End If
-	Activity.Title = Application.LabelName
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Check if it's the FirstTime Activity launch"$, Colors.Blue)
@@ -633,7 +672,7 @@ Sub Activity_Create(FirstTime As Boolean)
 	End If
 	
 	'The Activity context must always be fresh,
-	'so always re-initialize the joMain JavaObject
+	'so always re-initialize the joScan JavaObject
 	'on every Activity create (not just on FirstTime)
 	'
 	'This is mandatory for context-dependent functions
@@ -645,31 +684,40 @@ Sub Activity_Create(FirstTime As Boolean)
 	joScan.InitializeContext
 	
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Initialize the QR code reader view"$, Colors.Blue)
+	LogColor($"[Scan-${LogContextId}] Activity_Create: Calling InitializeActivityLayout to initialize the loaded layout..."$, Colors.Blue)
+	#End If
+	InitializeActivityLayout
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
+	#End If
+End Sub
+
+Sub InitializeActivityLayout
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] InitializeActivityLayout: Sub entry"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] InitializeActivityLayout: Set the Activity layout title to the App name"$, Colors.Blue)
+	#End If
+	Activity.Title = Application.LabelName
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] InitializeActivityLayout: Call InitializeQRCodeReaderView to reinitialize the QR code reader view..."$, Colors.Blue)
 	#End If
 	InitializeQRCodeReaderView
 	
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Fixing the Camera preview to be neatly square if needed (on devices without a software NavBar)"$, Colors.Blue)
+	LogColor($"[Scan-${LogContextId}] InitializeActivityLayout: Calling FixSquareCameraPreviewIfNeeded to fix the Camera preview to be neatly square if needed (on devices without a software NavBar)"$, Colors.Blue)
 	#End If
 	FixSquareCameraPreviewIfNeeded
 	
-	'
-	'Background rotation detection:
-	'Now we can reset the warning here
-	'
-	'This warning will get reinstated again
-	'by our onRestart function incase of
-	'future background rotations that we
-	'don't want to consider as real ones
-	'
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Resetting the background-rotation warnings by setting IsBackgroundDeviceRotation to False"$, Constants.COLORS_ORANGE)
-	#End If
-	IsBackgroundDeviceRotation = False
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
+	LogColor($"[Scan-${LogContextId}] InitializeActivityLayout: Sub return"$, Colors.Blue)
 	#End If
 End Sub
 
@@ -833,30 +881,30 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[Scan-${LogContextId}] Activity_Pause: Sub entry (UserClosed = ${UserClosed})"$, Colors.Blue)
 	#End If
 	
-	'
-	' Clear the device-rotation-changed flag
-	' on Activity pause, it will be re-filled
-	' properly by _onDestroy if there's really
-	' a device screen rotation event anyway
-	'
-	' If it's just an app pause, then the
-	' _onDestroy event never gets fired,
-	' but then this variable will stay false
-	'
-	' This is as intended to truly distinguish
-	' App pause by the user from a live device
-	' screen orientation change while the App
-	' is actually running
-	'
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Pause: Resetting the device-rotation changed flag for next use by setting IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
-	#End If
-	IsDeviceRotationChange = False
-	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Pause: Marking that we are in the Activity_Pause context by setting IsActivityPauseOrResume to True (all subsequently called functions will know about it)"$, Colors.Blue)
 	#End If
 	IsActivityPauseOrResume = True
+	
+	'Clear the device-rotation-changed flag
+	'on Activity pause, it will be re-filled
+	'properly by Activity_ConfigurationChanged
+	'if there's really a device screen rotation
+	'event later on anyway
+	'
+	'If it's just an app pause and resume,
+	'then this value will stay False because
+	'because Activity_ConfigurationChanged will
+	'not fire again
+	'
+	'This is as intended to truly distinguish
+	'App pause by the user from a live device
+	'screen orientation change while the App
+	'is actually running
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: Resetting the device-rotation changed flag for next use by setting IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
+	#End If
+	IsDeviceRotationChange = False
 	
 	If Not(UserClosed) Then
 		#If LOGGING
