@@ -1,0 +1,17 @@
+
+----- [ Dex2Jar ] -----
+
+Example usage:
+".\d2j-dex2jar.bat" -f ".\path\to\apk_to_decompile.apk"
+
+The output file will be named "apk_to_decompile-dex2jar.jar"
+
+----- [ Jar2Dex ] -----
+
+
+Example usage:
+".\d2j-jar2dex.bat" -f ".\path\to\apk_to_decompile-dex2jar.jar"
+
+The output file will be named "apk_to_decompile-dex2jar-jar2dex.dex"
+
+
