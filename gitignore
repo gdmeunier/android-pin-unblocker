@@ -11,20 +11,30 @@ Objects/*
 # Don't ignore pre-configured App icon
 !Objects/res/drawable/icon.png
 
-# Releases folder
-Releases/*
-
 # APK files
 *.apk
+
+# Desktop.ini files
+#  - Desktop.ini files in subfolders are
+#    automatically ignored as well
+#  - No need to write "**/desktop.ini"
+desktop.ini
 
 #
 # Specific to Android PIN Unblocker
 #
 
-# MyApkTool Pro program folder
-MyApkTool/*
+# Releases folder
+Releases/*
 
 # Recaf program folder
 Recaf/*
+
+# MyApkTool Pro program folder
+MyApkTool/*
+
+# Don't ignore the MyApkTool EXE file only
+!MyApkTool/MyApkTool.exe
+!MyApkTool/MyApkTool.exe.sha256
 
 
