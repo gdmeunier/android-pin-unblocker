@@ -1,0 +1,14 @@
+
+Trimming resources guide
+------------------------
+
+You can actually delete from your APK file almost all
+the contents of the "res" folder
+
+You can delete all of it except the "drawable" folder,
+which contains the app icon
+
+All the rest is actually unnecessary and never used
+by the application (notification layout XMLs, 9PNG etc)
+
+

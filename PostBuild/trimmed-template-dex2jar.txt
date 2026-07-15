@@ -1,0 +1,24 @@
+
+Dex2Jar trimmed template
+------------------------
+
+When you have your app's JAR file, you can use 7-Zip
+to delete the "androidx" and "anywheresoftware"
+folders from it, then drag-drop this template's own
+folders into your app's JAR file to replace your
+class folders with the template's
+
+This template has as much functionality as possible
+trimmed from it, as long as the Android PIN Unblocker
+application doesn't make use of them
+
+If you want to add new functionalities to the app,
+then you might want to avoid applying this optimization
+because you might add features that require classes
+which were removed from this replacement template
+
+If you just recompile the app because you wanted
+to enable logging or maybe disable FLAG_SECURE,
+then you will be fine with this replacement (no crashes)
+
+
