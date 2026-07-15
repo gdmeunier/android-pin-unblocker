@@ -87,6 +87,10 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 }
 #End If
 '
+'Not used for now
+'
+#If Not(RELEASE)
+'
 'Bonus events incase I need them later
 '
 #If Java
@@ -138,7 +142,12 @@ public void _onStop()
 		// Nothing to do here
 	}
 }
-
+#End If
+#End If
+'
+'This one is actually used now
+'
+#If Java
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
@@ -213,20 +222,25 @@ public void _onStart()
 		// Nothing to do here
 	}
 }
-
+#End If
+'
+'Not used for now
+'
+#If Not(RELEASE)
+#If Java
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
-public void _onRestart()
+Public void _onRestart()
 {
 	// Just so we know when the Activity restarts
 	BA.LogInfo("** Activity (scan) Restart **");
 	
-	try
+	Try
 	{
 		_activity_restart();
 	}
-	catch (Exception e)
+	Catch (Exception e)
 	{
 		// Nothing to do here
 	}
@@ -285,6 +299,7 @@ public void _onConfigurationChanged(Configuration newCfg)
 	}
 }
 #End If
+#End If
 '
 'Common type of _onCreate Java inline code
 '
@@ -309,6 +324,9 @@ public void _onCreate()
 	ScanAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 }
 #End If
+
+'Not used for now
+#If Not(RELEASE)
 '
 'Just a bonus incase I need it in the future
 '
@@ -351,6 +369,7 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
 	#End If
 End Sub
+#End If
 
 Sub Activity_Start()
 	#If LOGGING
@@ -372,6 +391,8 @@ Sub Activity_Start()
 	#End If
 End Sub
 
+'Not used for now
+#If Not(RELEASE)
 Sub Activity_Restart()
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -416,6 +437,7 @@ Sub Activity_ConfigurationChanged(NewOrientation As Int)
 	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
 	#End If
 End Sub
+#End If
 '
 '------------------------------------------------------------------
 '
