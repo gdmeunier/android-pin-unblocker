@@ -23,7 +23,8 @@ Sub Class_Globals
 	'by Android for the same Intent
 	'
 	
-	Private Cryptography As MyCryptography
+	'For running Java native code
+	Private joMyCryptography As JavaObject
 	
 	'We need a safe algorithm that avoids hashing collisions
 	Private REHASH_TRUNCATION_HASHING_ALGORITHM As String = "SHA-512"
@@ -40,8 +41,9 @@ End Sub
 
 Public Sub Initialize
 	
+	'For running Java native code
 	joMySecurity.InitializeStatic(Application.PackageName&".mysecurity")
-	Cryptography.Initialize
+	joMyCryptography.InitializeStatic(Application.PackageName&".mycryptography")
 	
 End Sub
 
@@ -73,7 +75,7 @@ Sub GenerateTextTruncatedRehash(MyText As String) As String
 	Dim TextToGenerateTruncatedRehashFor As String = MyText
 	
 	For i = 1 To REHASH_TRUNCATION_HASHING_ROUNDS
-		TextToGenerateTruncatedRehashFor = Cryptography.TextToHash(TextToGenerateTruncatedRehashFor&REHASH_TRUNCATION_HASHING_SALT, REHASH_TRUNCATION_HASHING_ALGORITHM)
+		TextToGenerateTruncatedRehashFor = joMyCryptography.RunMethod("jTextToHash", Array(TextToGenerateTruncatedRehashFor&REHASH_TRUNCATION_HASHING_SALT, REHASH_TRUNCATION_HASHING_ALGORITHM))
 	Next
 	
 	'The text hashing function returns empty string on failure

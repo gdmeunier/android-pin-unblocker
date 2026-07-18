@@ -231,16 +231,16 @@ public void _onStart()
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
-Public void _onRestart()
+public void _onRestart()
 {
 	// Just so we know when the Activity restarts
 	BA.LogInfo("** Activity (scan) Restart **");
 	
-	Try
+	try
 	{
 		_activity_restart();
 	}
-	Catch (Exception e)
+	catch (Exception e)
 	{
 		// Nothing to do here
 	}
