@@ -28,8 +28,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 58
-	#VersionName: 4.8.1
+	#VersionCode: 59
+	#VersionName: 4.8.2
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -1347,23 +1347,6 @@ Sub InitializeActivityLayout
 	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Set the Activity layout title to the App name"$, Colors.Blue)
 	#End If
 	Activity.Title = Application.LabelName
-	
-	'Do this one first, so that any Android EditText
-	'styling property loss gets fixed by the two next functions
-	'HardenActivityEditTexts & FixMonospaceEditTexts
-	'which are called right next after this code
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Setting advanced PasswordMode properties to this Activity's EditTexts (so that they atleast have atleast a VISIBLE_PASSWORD property)"$, Colors.Blue)
-	#End If
-	Security.SetAdvancedPasswordMode(edtChallenge, Security.PASSWORD_VISIBLE_PASSWORD)
-	'For edtAdminKey it depends on whether
-	'the 'Hide Admin Key' checkbox is checked
-	If ViewState_chkHideAdminKey_Checked Then
-		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_HIDDEN_PASSWORD)
-	Else
-		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_VISIBLE_PASSWORD)
-	End If
-	Security.SetAdvancedPasswordMode(edtResponse, Security.PASSWORD_VISIBLE_PASSWORD)
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] InitializeActivityLayout: Harden this Activity's EditTexts to prevent Android from leaking sensitive information"$, Colors.Blue)
