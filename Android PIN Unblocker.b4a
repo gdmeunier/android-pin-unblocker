@@ -28,8 +28,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 59
-	#VersionName: 4.8.2
+	#VersionCode: 60
+	#VersionName: 4.8.3
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -2632,32 +2632,15 @@ Private Sub chkHideAdminKey_CheckedChange(Checked As Boolean)
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Use the Security class to set the Admin Key password mode to PASSWORD_HIDDEN_PASSWORD"$, Colors.Blue)
 		#End If
-		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_HIDDEN_PASSWORD)
+		Security.SetAdvancedPasswordMode(edtAdminKey, Constants.PASSWORD_HIDDEN_PASSWORD)
 		
 	Else
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Use the Security class to set the Admin Key password mode to PASSWORD_VISIBLE_PASSWORD"$, Colors.Blue)
 		#End If
-		Security.SetAdvancedPasswordMode(edtAdminKey, Security.PASSWORD_VISIBLE_PASSWORD)
+		Security.SetAdvancedPasswordMode(edtAdminKey, Constants.PASSWORD_VISIBLE_PASSWORD)
 		
 	End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Android is sometimes dumb and loses many properties properties of EditTexts when toggling the PasswordMode"$, Colors.Blue)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: So we have to fix the properties & hardening of the Admin Key field again on every .Checked change of this checkbox"$, Colors.Blue)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fixing the hardening of the Admin Key field again..."$, Colors.Blue)
-	#End If
-	HardenActivityEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] chkHideAdminKey_CheckedChange: Fixing the font properties of the Admin Key field again..."$, Colors.Blue)
-	#End If
-	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
 	
 	'Allow preserving the selection state when toggling password modes
 	#If LOGGING

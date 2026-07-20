@@ -10,10 +10,6 @@ Version=12.5
 #End Region
 
 Sub Class_Globals
-	'These constants only exist to make reading
-	'the source code easier to read
-	Public Const PASSWORD_HIDDEN_PASSWORD  As Boolean = False
-	Public Const PASSWORD_VISIBLE_PASSWORD As Boolean = True
 	
 	'For running Java native code
 	Private joMySecurity As JavaObject
@@ -158,32 +154,20 @@ Public Sub SetAdvancedPasswordMode(MyEditText As EditText, VisiblePassword As Bo
 End Sub
 #If Java
 import android.widget.EditText;
-import android.os.Build;
-import android.text.InputType;
+import android.text.method.TransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 public static void jSetAdvancedPasswordMode(EditText myEditText, final boolean visiblePassword)
 {
-	// TYPE_TEXT_VARIATION_PASSWORD         is only available on Android 1.5+ (API level 3+)
-	// TYPE_TEXT_VARIATION_VISIBLE_PASSWORD is only available on Android 1.5+ (API level 3+)
 	//
-	if ( Build.VERSION.SDK_INT >= 3 )
+	// API level 1+
+	//
+	if ( visiblePassword )
 	{
-		/* Android 1.5+ */
-		int inputType = myEditText.getInputType();
-		
-		if (visiblePassword)
-		{
-			// Visible password
-			inputType = inputType & ~InputType.TYPE_TEXT_VARIATION_PASSWORD;
-			inputType = inputType |  InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
-		}
-		else
-		{
-			// Normal password
-			inputType = inputType & ~InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD;
-			inputType = inputType |  InputType.TYPE_TEXT_VARIATION_PASSWORD;
-		}
-		
-		myEditText.setInputType(inputType);
+		myEditText.setTransformationMethod(null); // null = normal default transform
+	}
+	else
+	{
+		myEditText.setTransformationMethod(PasswordTransformationMethod.getInstance());
 	}
 }
 #End If
