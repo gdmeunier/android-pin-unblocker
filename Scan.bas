@@ -88,62 +88,58 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 #End If
 '
 'Not used for now
-'
-#If Not(RELEASE)
-'
 'Bonus events incase I need them later
 '
-#If Java
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-import android.os.Build;
-public void _onDestroy()
-{
-	// Just so we know when the Activity destroys
-	BA.LogInfo("** Activity (scan) Destroy **");
-	
-	boolean isFinishing              = isFinishing();
-	boolean isChangingConfigurations = false;
-	
-	//
-	// isChangingConfigurations() only available
-	// on API levels 11+ (Android 3.0+)
-	//
-	if ( Build.VERSION.SDK_INT >= 11 )
-	{
-		isChangingConfigurations = isChangingConfigurations();
-	}
-	
-	try
-	{
-		_activity_destroy(isFinishing, isChangingConfigurations);
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onStop()
-{
-	// Just so we know when the Activity stops
-	BA.LogInfo("** Activity (scan) Stop **");
-	
-	try
-	{
-		_activity_stop();
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
-#End If
+'#If Java
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'import android.os.Build;
+'public void _onDestroy()
+'{
+'	// Just so we know when the Activity destroys
+'	BA.LogInfo("** Activity (scan) Destroy **");
+'	
+'	boolean isFinishing              = isFinishing();
+'	boolean isChangingConfigurations = false;
+'	
+'	//
+'	// isChangingConfigurations() only available
+'	// on API levels 11+ (Android 3.0+)
+'	//
+'	if ( Build.VERSION.SDK_INT >= 11 )
+'	{
+'		isChangingConfigurations = isChangingConfigurations();
+'	}
+'	
+'	try
+'	{
+'		_activity_destroy(isFinishing, isChangingConfigurations);
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onStop()
+'{
+'	// Just so we know when the Activity stops
+'	BA.LogInfo("** Activity (scan) Stop **");
+'	
+'	try
+'	{
+'		_activity_stop();
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'This one is actually used now
 '
@@ -226,80 +222,78 @@ public void _onStart()
 '
 'Not used for now
 '
-#If Not(RELEASE)
-#If Java
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onRestart()
-{
-	// Just so we know when the Activity restarts
-	BA.LogInfo("** Activity (scan) Restart **");
-	
-	try
-	{
-		_activity_restart();
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
+'#If Java
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onRestart()
+'{
+'	// Just so we know when the Activity restarts
+'	BA.LogInfo("** Activity (scan) Restart **");
+'	
+'	try
+'	{
+'		_activity_restart();
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'Add missing Basic4Android Activity event runHooks
 '
-#If Java
-import android.content.res.Configuration;
-import android.content.Context;
-import android.app.Activity;
-import anywheresoftware.b4a.BA;
-@Override
-public void onConfigurationChanged(Configuration newConfig)
-{
-	// Call Android's super implementation (mandatory)
-	super.onConfigurationChanged(newConfig);
-	//
-	// Mimick Basic4Android's builtin runHook ability
-	//
-	try
-	{
-		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
+'#If Java
+'import android.content.res.Configuration;
+'import android.content.Context;
+'import android.app.Activity;
+'import anywheresoftware.b4a.BA;
+'@Override
+'public void onConfigurationChanged(Configuration newConfig)
+'{
+'	// Call Android's super implementation (mandatory)
+'	super.onConfigurationChanged(newConfig);
+'	//
+'	// Mimick Basic4Android's builtin runHook ability
+'	//
+'	try
+'	{
+'		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'Maybe oneday we will be able to properly use it
 '
 'It's currently unused, since detecting rotation
 'without wrecking the Activity layout is impossible
 '
-#If Java
-import android.content.res.Configuration;
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onConfigurationChanged(Configuration newCfg)
-{
-	BA.LogInfo("** Activity (scan) ConfigurationChanged **");
-	
-	try
-	{
-		// Activity_ConfigurationChanged will
-		// only receive the device orientation
-		_activity_configurationchanged(newCfg.orientation);
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
-#End If
+'#If Java
+'import android.content.res.Configuration;
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onConfigurationChanged(Configuration newCfg)
+'{
+'	BA.LogInfo("** Activity (scan) ConfigurationChanged **");
+'	
+'	try
+'	{
+'		// Activity_ConfigurationChanged will
+'		// only receive the device orientation
+'		_activity_configurationchanged(newCfg.orientation);
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'Common type of _onCreate Java inline code
 '
@@ -324,52 +318,49 @@ public void _onCreate()
 	ScanAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 }
 #End If
-
-'Not used for now
-#If Not(RELEASE)
 '
+'Not used for now
 'Just a bonus incase I need it in the future
 '
-Sub Activity_Stop()
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-
-Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-#End If
+'Sub Activity_Stop()
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
+'
+'Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
 
 Sub Activity_Start()
 	#If LOGGING
@@ -390,54 +381,54 @@ Sub Activity_Start()
 	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
 	#End If
 End Sub
-
+'
 'Not used for now
-#If Not(RELEASE)
-Sub Activity_Restart()
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
+'Just a bonus incase I need it in the future
+'
+'Sub Activity_Restart()
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
 '
 'Maybe oneday we will be able to properly use it
 '
 'It's currently unused, since detecting rotation
 'without wrecking the Activity layout is impossible
 '
-Sub Activity_ConfigurationChanged(NewOrientation As Int)
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-#End If
+'Sub Activity_ConfigurationChanged(NewOrientation As Int)
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
 '
 '------------------------------------------------------------------
 '

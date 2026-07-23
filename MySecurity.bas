@@ -172,37 +172,37 @@ public static void jSetAdvancedPasswordMode(EditText myEditText, final boolean v
 }
 #End If
 
-Public Sub DisableFullscreenKeyboard(MyEditText As EditText)
-	joMySecurity.RunMethod("jDisableFullscreenKeyboard", Array(MyEditText))
-End Sub
-#If Java
-import android.widget.EditText;
-import android.os.Build;
-import android.view.inputmethod.EditorInfo;
-public static void jDisableFullscreenKeyboard(EditText myEditText)
-{
-	// It's a safety measure to avoid showing the Admin keys in clear
-	// when the Fullscreen keyboard appears instead of the normal one
-	//
-	// IME_FLAG_NO_EXTRACT_UI is only available on Android 1.5+ (API level 3+)
-	// IME_FLAG_NO_FULLSCREEN is only available on Android 3.0+ (API level 11+)
-	//
-	if ( Build.VERSION.SDK_INT >= 3 )
-	{
-		/* Android 1.5+ */
-		int imeOptions = myEditText.getImeOptions();
-		    imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_EXTRACT_UI;
-		
-		if ( Build.VERSION.SDK_INT >= 11 )
-		{
-			/* Android 3.0+ */
-			imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_FULLSCREEN;
-		}
-		
-		myEditText.setImeOptions(imeOptions);
-	}
-}
-#End If
+'Public Sub DisableFullscreenKeyboard(MyEditText As EditText)
+'	joMySecurity.RunMethod("jDisableFullscreenKeyboard", Array(MyEditText))
+'End Sub
+'#If Java
+'import android.widget.EditText;
+'import android.os.Build;
+'import android.view.inputmethod.EditorInfo;
+'public static void jDisableFullscreenKeyboard(EditText myEditText)
+'{
+'	// It's a safety measure to avoid showing the Admin keys in clear
+'	// when the Fullscreen keyboard appears instead of the normal one
+'	//
+'	// IME_FLAG_NO_EXTRACT_UI is only available on Android 1.5+ (API level 3+)
+'	// IME_FLAG_NO_FULLSCREEN is only available on Android 3.0+ (API level 11+)
+'	//
+'	if ( Build.VERSION.SDK_INT >= 3 )
+'	{
+'		/* Android 1.5+ */
+'		int imeOptions = myEditText.getImeOptions();
+'		    imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+'		
+'		if ( Build.VERSION.SDK_INT >= 11 )
+'		{
+'			/* Android 3.0+ */
+'			imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_FULLSCREEN;
+'		}
+'		
+'		myEditText.setImeOptions(imeOptions);
+'	}
+'}
+'#End If
 
 Public Sub DisableAutoComplete(MyEditText As EditText)
 	joMySecurity.RunMethod("jDisableAutoComplete", Array(MyEditText))
@@ -248,49 +248,49 @@ public static void jDisableAutoCorrect(EditText myEditText)
 }
 #End If
 
-Public Sub DisableAutoSuggestions(MyEditText As EditText)
-	joMySecurity.RunMethod("jDisableAutoSuggestions", Array(MyEditText))
-End Sub
-#If Java
-import android.widget.EditText;
-import android.os.Build;
-import android.text.InputType;
-public static void jDisableAutoSuggestions(EditText myEditText)
-{
-	// TYPE_TEXT_FLAG_NO_SUGGESTIONS is only available on Android 2.0+ (API level 5+)
-	//
-	if ( Build.VERSION.SDK_INT >= 5 )
-	{
-		/* Android 2.0+ */
-		int inputType = myEditText.getInputType();
-		    inputType = inputType | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
-		
-		myEditText.setInputType(inputType);
-	}
-}
-#End If
+'Public Sub DisableAutoSuggestions(MyEditText As EditText)
+'	joMySecurity.RunMethod("jDisableAutoSuggestions", Array(MyEditText))
+'End Sub
+'#If Java
+'import android.widget.EditText;
+'import android.os.Build;
+'import android.text.InputType;
+'public static void jDisableAutoSuggestions(EditText myEditText)
+'{
+'	// TYPE_TEXT_FLAG_NO_SUGGESTIONS is only available on Android 2.0+ (API level 5+)
+'	//
+'	if ( Build.VERSION.SDK_INT >= 5 )
+'	{
+'		/* Android 2.0+ */
+'		int inputType = myEditText.getInputType();
+'		    inputType = inputType | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+'		
+'		myEditText.setInputType(inputType);
+'	}
+'}
+'#End If
 
-Public Sub DisablePersonalizedLearning(MyEditText As EditText)
-	joMySecurity.RunMethod("jDisablePersonalizedLearning", Array(MyEditText))
-End Sub
-#If Java
-import android.widget.EditText;
-import android.os.Build;
-import android.view.inputmethod.EditorInfo;
-public static void jDisablePersonalizedLearning(EditText myEditText)
-{
-	// IME_FLAG_NO_PERSONALIZED_LEARNING is only available on Android 8.0+ (API level 26+)
-	//
-	if ( Build.VERSION.SDK_INT >= 26 )
-	{
-		/* Android 8.0+ */
-		int imeOptions = myEditText.getImeOptions();
-		    imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
-		
-		myEditText.setImeOptions(imeOptions);
-	}
-}
-#End If
+'Public Sub DisablePersonalizedLearning(MyEditText As EditText)
+'	joMySecurity.RunMethod("jDisablePersonalizedLearning", Array(MyEditText))
+'End Sub
+'#If Java
+'import android.widget.EditText;
+'import android.os.Build;
+'import android.view.inputmethod.EditorInfo;
+'public static void jDisablePersonalizedLearning(EditText myEditText)
+'{
+'	// IME_FLAG_NO_PERSONALIZED_LEARNING is only available on Android 8.0+ (API level 26+)
+'	//
+'	if ( Build.VERSION.SDK_INT >= 26 )
+'	{
+'		/* Android 8.0+ */
+'		int imeOptions = myEditText.getImeOptions();
+'		    imeOptions = imeOptions | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING;
+'		
+'		myEditText.setImeOptions(imeOptions);
+'	}
+'}
+'#End If
 
 Public Sub DisableTextConversionSuggestions(MyEditText As EditText)
 	joMySecurity.RunMethod("jDisableTextConversionSuggestions", Array(MyEditText))

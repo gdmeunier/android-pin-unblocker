@@ -19,6 +19,6 @@ ModuleClosedNodes3=
 ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
-NavigationStack=MyConstants,Class_Globals,64,0,MySecurity,Class_Globals,13,0,MySecurity,DisableFullscreenKeyboard,186,0,MySecurity,DisableAutoComplete,217,0,MySecurity,DisableAutoCorrect,237,0,MySecurity,SetAdvancedPasswordMode,159,0,Main,edtAdminKey_ShowSelectionInfo,2417,0,Main,SelectionTimer_edtAdminKey_Tick,2415,0,Main,edtAdminKey_TextChanged,2363,0,Main,chkHideAdminKey_CheckedChange,2593,3
+NavigationStack=Visual Designer,Scan.bal,-100,1,Visual Designer,Main.bal,-100,2,Main,Process_Globals,797,1,MySecurity,Class_Globals,15,0,MySecurity,DisableAutoComplete,215,0,MySecurity,DisableAutoCorrect,264,0,MySecurity,SetAdvancedPasswordMode,198,0,Scan,Activity_Start,424,0,MySecurity,DisableTextConversionSuggestions,296,0,Main,HardenActivityEditTexts,1417,6,Main,edtAdminKey_ShowSelectionInfo,2424,6
 SelectedBuild=0
 VisibleModules=6,5,1,3,2,4

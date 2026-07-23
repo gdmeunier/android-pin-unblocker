@@ -28,8 +28,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 60
-	#VersionName: 4.8.3
+	#VersionCode: 61
+	#VersionName: 4.9.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -153,151 +153,147 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 #End If
 '
 'Not used for now
-'
-#If Not(RELEASE)
-'
 'Bonus events incase I need them later
 '
-#If Java
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-import android.os.Build;
-public void _onDestroy()
-{
-	// Just so we know when the Activity destroys
-	BA.LogInfo("** Activity (main) Destroy **");
-	
-	boolean isFinishing              = isFinishing();
-	boolean isChangingConfigurations = false;
-	
-	//
-	// isChangingConfigurations() only available
-	// on API levels 11+ (Android 3.0+)
-	//
-	if ( Build.VERSION.SDK_INT >= 11 )
-	{
-		isChangingConfigurations = isChangingConfigurations();
-	}
-	
-	try
-	{
-		_activity_destroy(isFinishing, isChangingConfigurations);
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onStop()
-{
-	// Just so we know when the Activity stops
-	BA.LogInfo("** Activity (main) Stop **");
-	
-	try
-	{
-		_activity_stop();
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onStart()
-{
-	// Just so we know when the Activity starts
-	BA.LogInfo("** Activity (main) Start **");
-	
-	try
-	{
-		_activity_start();
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onRestart()
-{
-	// Just so we know when the Activity restarts
-	BA.LogInfo("** Activity (main) Restart **");
-	
-	try
-	{
-		_activity_restart();
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
+'#If Java
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'import android.os.Build;
+'public void _onDestroy()
+'{
+'	// Just so we know when the Activity destroys
+'	BA.LogInfo("** Activity (main) Destroy **");
+'	
+'	boolean isFinishing              = isFinishing();
+'	boolean isChangingConfigurations = false;
+'	
+'	//
+'	// isChangingConfigurations() only available
+'	// on API levels 11+ (Android 3.0+)
+'	//
+'	if ( Build.VERSION.SDK_INT >= 11 )
+'	{
+'		isChangingConfigurations = isChangingConfigurations();
+'	}
+'	
+'	try
+'	{
+'		_activity_destroy(isFinishing, isChangingConfigurations);
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onStop()
+'{
+'	// Just so we know when the Activity stops
+'	BA.LogInfo("** Activity (main) Stop **");
+'	
+'	try
+'	{
+'		_activity_stop();
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onStart()
+'{
+'	// Just so we know when the Activity starts
+'	BA.LogInfo("** Activity (main) Start **");
+'	
+'	try
+'	{
+'		_activity_start();
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onRestart()
+'{
+'	// Just so we know when the Activity restarts
+'	BA.LogInfo("** Activity (main) Restart **");
+'	
+'	try
+'	{
+'		_activity_restart();
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'Add missing Basic4Android Activity event runHooks
 '
-#If Java
-import android.content.res.Configuration;
-import android.content.Context;
-import android.app.Activity;
-import anywheresoftware.b4a.BA;
-@Override
-public void onConfigurationChanged(Configuration newConfig)
-{
-	// Call Android's super implementation (mandatory)
-	super.onConfigurationChanged(newConfig);
-	//
-	// Mimick Basic4Android's builtin runHook ability
-	//
-	try
-	{
-		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
+'#If Java
+'import android.content.res.Configuration;
+'import android.content.Context;
+'import android.app.Activity;
+'import anywheresoftware.b4a.BA;
+'@Override
+'public void onConfigurationChanged(Configuration newConfig)
+'{
+'	// Call Android's super implementation (mandatory)
+'	super.onConfigurationChanged(newConfig);
+'	//
+'	// Mimick Basic4Android's builtin runHook ability
+'	//
+'	try
+'	{
+'		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'Maybe oneday we will be able to properly use it
 '
 'It's currently unused, since detecting rotation
 'without wrecking the Activity layout is impossible
 '
-#If Java
-import android.content.res.Configuration;
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void _onConfigurationChanged(Configuration newCfg)
-{
-	BA.LogInfo("** Activity (main) ConfigurationChanged **");
-	
-	try
-	{
-		// Activity_ConfigurationChanged will
-		// only receive the device orientation
-		_activity_configurationchanged(newCfg.orientation);
-	}
-	catch (Exception e)
-	{
-		// Nothing to do here
-	}
-}
-#End If
-#End If
+'#If Java
+'import android.content.res.Configuration;
+'import anywheresoftware.b4a.BA;
+'import android.content.Context;
+'import android.app.Activity;
+'public void _onConfigurationChanged(Configuration newCfg)
+'{
+'	BA.LogInfo("** Activity (main) ConfigurationChanged **");
+'	
+'	try
+'	{
+'		// Activity_ConfigurationChanged will
+'		// only receive the device orientation
+'		_activity_configurationchanged(newCfg.orientation);
+'	}
+'	catch (Exception e)
+'	{
+'		// Nothing to do here
+'	}
+'}
+'#End If
 '
 'Better method of checking for Admin keys shared to the App
 '
@@ -517,117 +513,114 @@ public void _onCreate()
 	MainAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
 }
 #End If
-
-'Not used for now
-#If Not(RELEASE)
 '
+'Not used for now
 'Just a bonus incase I need it in the future
 '
-Sub Activity_Stop()
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-
-Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-
-Sub Activity_Start()
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Start: Sub entry"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Start: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Start: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-
-Sub Activity_Restart()
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
+'Sub Activity_Stop()
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
+'
+'Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
+'
+'Sub Activity_Start()
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Start: Sub entry"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Start: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Start: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
+'
+'Sub Activity_Restart()
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
 '
 'Maybe oneday we will be able to properly use it
 '
 'It's currently unused, since detecting rotation
 'without wrecking the Activity layout is impossible
 '
-Sub Activity_ConfigurationChanged(NewOrientation As Int)
-	#If LOGGING
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
-	#End If
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
-	#End If
-End Sub
-#End If
+'Sub Activity_ConfigurationChanged(NewOrientation As Int)
+'	#If LOGGING
+'	Dim LogContextId As Int = Rnd(1000, 9999)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
+'	#End If
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
+'	#End If
+'	
+'	#If LOGGING
+'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
+'	#End If
+'End Sub
 '
 'This one is also important, we now use it instead of
 'Activity_Resume to check for any shared Admin key texts
@@ -1458,11 +1451,16 @@ Sub HardenActivityEditTexts(WantsToHardenASpecificOne As Boolean, WhichOneIfYes 
 	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: This includes disabling autocomplete, autocorrect, fullscreen keyboard etc"$, Colors.Blue)
 	#End If
 	For Each MyEditText As EditText In EditTextsToHarden
-		Security.DisableFullscreenKeyboard(MyEditText)
-		Security.DisablePersonalizedLearning(MyEditText)
+		'Some parts don't need to be done in code
+		'because they are already done in the
+		'application's styles.xml resources,
+		'which cans be seen in the Manifest Editor
+		'
+		'Security.DisableFullscreenKeyboard(MyEditText)		'Redundant
+		'Security.DisablePersonalizedLearning(MyEditText)	'Redundant
 		Security.DisableAutoCorrect(MyEditText)
 		Security.DisableAutoComplete(MyEditText)
-		Security.DisableAutoSuggestions(MyEditText)
+		'Security.DisableAutoSuggestions(MyEditText)		'Redundant
 		Security.DisableTextConversionSuggestions(MyEditText)
 		Security.DisableTextSelectionSuggestions(MyEditText)
 		#If LOGGING
@@ -2447,10 +2445,11 @@ Private Sub edtAdminKey_ShowSelectionInfo
 	'Don't add logging here to avoid log spam
 	'This function is called by a Timer Sub
 	'
-	Dim TextLength, SelectionStart, SelectionLength As Int
+	Dim TextLength, SelectionStart, SelectionLength, SelectionEnd As Int
 	TextLength		= edtAdminKey.Text.Length
 	SelectionStart	= edtAdminKey.SelectionStart
 	SelectionLength	= edtAdminKey.SelectionLength
+	SelectionEnd    = SelectionStart + SelectionLength
 	
 	'Only show selection information if the Admin Key field
 	'is actually focused, otherwise show generic information
@@ -2482,13 +2481,22 @@ Private Sub edtAdminKey_ShowSelectionInfo
 		And SelectionStart > 0 And SelectionStart < TextLength Then
 		'When not selecting any text and just moving
 		'the cursor (caret) around in the Admin key field
-		'---------------|---------
+		'-[-------------|-------]-
 		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Pos: ${SelectionStart}"$
+		
+	Else If IsAdminKeyFocused And TextLength >= 1 And SelectionLength >= 1 _
+		And SelectionStart > 0 And SelectionEnd < TextLength Then
+		'When selecting a part of text in the middle of the text
+		'but not at the start of the text and also NOT all the
+		'text until the end of it
+		'-----xxxxxxxxxxxxxxx-----
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Before: ${SelectionStart} | Sel: ${SelectionLength} | After: ${TextLength - SelectionEnd}"$
 		
 	Else If IsAdminKeyFocused And TextLength >= 1 And SelectionLength >= 1 _
 		And SelectionStart > 0 Then
 		'When selecting a part of text in the middle of the text
-		'but not at the start of the text
+		'but not at the start of the text and also ALL the text
+		'until the end of it
 		'-----xxxxxxxxxxxxxxxxxxxx
 		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Before: ${SelectionStart} | Sel: ${SelectionLength}"$
 		
@@ -2498,7 +2506,7 @@ Private Sub edtAdminKey_ShowSelectionInfo
 		'When selecting text starting at the first character
 		'but not selecting the entire text length
 		'xxxxxxxxxxxxxxxxxxxx-----
-		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Sel: ${SelectionLength} | After: ${TextLength-(SelectionStart+SelectionLength)}"$
+		lblAdminKey.Text = $"Admin Key: (${TextLength} ${chars}) - Sel: ${SelectionLength} | After: ${TextLength - SelectionEnd}"$
 		
 	Else If IsAdminKeyFocused And TextLength >= 1 And SelectionLength >= 1 _
 		And SelectionStart == 0 Then
