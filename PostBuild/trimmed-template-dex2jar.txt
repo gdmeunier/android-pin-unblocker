@@ -3,10 +3,10 @@ Dex2Jar trimmed template
 ------------------------
 
 When you have your app's JAR file, you can use 7-Zip
-to delete the "androidx" and "anywheresoftware"
-folders from it, then drag-drop this template's own
-folders into your app's JAR file to replace your
-class folders with the template's
+to delete the "android", "androidx" folders from it,
+then drag-drop this template's own folders into
+your app's JAR file to replace your class folders with
+the template's own trimmed versions
 
 This template has as much functionality as possible
 trimmed from it, as long as the Android PIN Unblocker
