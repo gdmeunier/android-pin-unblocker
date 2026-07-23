@@ -218,10 +218,13 @@ public static void jDisableAutoComplete(EditText myEditText)
 	if ( Build.VERSION.SDK_INT >= 3 )
 	{
 		/* Android 1.5+ */
-		int inputType = myEditText.getInputType();
-		    inputType = inputType & ~InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
+		int imeOptions = myEditText.getImeOptions(); // Backup imeOptions
+		int inputType  = myEditText.getInputType();
+		
+		    inputType  = inputType & ~InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE;
 		
 		myEditText.setInputType(inputType);
+		myEditText.setImeOptions(imeOptions); // Restore imeOptions
 	}
 }
 #End If
@@ -240,10 +243,13 @@ public static void jDisableAutoCorrect(EditText myEditText)
 	if ( Build.VERSION.SDK_INT >= 3 )
 	{
 		/* Android 1.5+ */
-		int inputType = myEditText.getInputType();
-		    inputType = inputType & ~InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
+		int imeOptions = myEditText.getImeOptions(); // Backup imeOptions
+		int inputType  = myEditText.getInputType();
+		
+		    inputType  = inputType & ~InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
 		
 		myEditText.setInputType(inputType);
+		myEditText.setImeOptions(imeOptions); // Restore imeOptions
 	}
 }
 #End If
@@ -262,10 +268,13 @@ public static void jDisableAutoSuggestions(EditText myEditText)
 	if ( Build.VERSION.SDK_INT >= 5 )
 	{
 		/* Android 2.0+ */
-		int inputType = myEditText.getInputType();
-		    inputType = inputType | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+		int imeOptions = myEditText.getImeOptions(); // Backup imeOptions
+		int inputType  = myEditText.getInputType();
+		
+		    inputType  = inputType | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
 		
 		myEditText.setInputType(inputType);
+		myEditText.setImeOptions(imeOptions); // Restore imeOptions
 	}
 }
 #End If
@@ -306,10 +315,13 @@ public static void jDisableTextConversionSuggestions(EditText myEditText)
 	if ( Build.VERSION.SDK_INT >= 33 )
 	{
 		/* Android 13+ */
-		int inputType = myEditText.getInputType();
-		    inputType = inputType & ~InputType.TYPE_TEXT_FLAG_ENABLE_TEXT_CONVERSION_SUGGESTIONS;
+		int imeOptions = myEditText.getImeOptions(); // Backup imeOptions
+		int inputType  = myEditText.getInputType();
+		
+		    inputType  = inputType & ~InputType.TYPE_TEXT_FLAG_ENABLE_TEXT_CONVERSION_SUGGESTIONS;
 		
 		myEditText.setInputType(inputType);
+		myEditText.setImeOptions(imeOptions); // Restore imeOptions
 	}
 }
 #End If
@@ -328,10 +340,13 @@ public static void jDisableTextSelectionSuggestions(EditText myEditText)
 	if ( Build.VERSION.SDK_INT >= 37 )
 	{
 		/* Android 17+ */
-		int inputType = myEditText.getInputType();
-		    inputType = inputType & ~InputType.TYPE_TEXT_FLAG_ENABLE_TEXT_SUGGESTION_SELECTED;
+		int imeOptions = myEditText.getImeOptions(); // Backup imeOptions
+		int inputType  = myEditText.getInputType();
+		
+		    inputType  = inputType & ~InputType.TYPE_TEXT_FLAG_ENABLE_TEXT_SUGGESTION_SELECTED;
 		
 		myEditText.setInputType(inputType);
+		myEditText.setImeOptions(imeOptions); // Restore imeOptions
 	}
 }
 #End If
