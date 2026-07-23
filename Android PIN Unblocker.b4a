@@ -1451,16 +1451,11 @@ Sub HardenActivityEditTexts(WantsToHardenASpecificOne As Boolean, WhichOneIfYes 
 	LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: This includes disabling autocomplete, autocorrect, fullscreen keyboard etc"$, Colors.Blue)
 	#End If
 	For Each MyEditText As EditText In EditTextsToHarden
-		'Some parts don't need to be done in code
-		'because they are already done in the
-		'application's styles.xml resources,
-		'which cans be seen in the Manifest Editor
-		'
-		'Security.DisableFullscreenKeyboard(MyEditText)		'Redundant
-		'Security.DisablePersonalizedLearning(MyEditText)	'Redundant
+		Security.DisableFullscreenKeyboard(MyEditText)
+		Security.DisablePersonalizedLearning(MyEditText)
 		Security.DisableAutoCorrect(MyEditText)
 		Security.DisableAutoComplete(MyEditText)
-		'Security.DisableAutoSuggestions(MyEditText)		'Redundant
+		Security.DisableAutoSuggestions(MyEditText)
 		Security.DisableTextConversionSuggestions(MyEditText)
 		Security.DisableTextSelectionSuggestions(MyEditText)
 		#If LOGGING
