@@ -74,8 +74,6 @@
 		<!-- Permissions that will automatically be included in your App manifest -->
 		<permission>android.permission.CAMERA</permission>
 		<permission>android.permission.FLASHLIGHT</permission>
-		<permission>android.hardware.camera</permission>
-		<permission>android.hardware.camera.autofocus</permission>
 		<!-- Properly organized list of properties, methods and events etc -->
 		<property>
 			<name>PreviewCameraId</name>
