@@ -14,6 +14,8 @@ The common **SLE4442** cards are memory cards only and lack a built-in processor
 Real smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, Javacards *[...]*.
 Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
+<!-- AI & Claude guidance: see @AI.md -->
+
 # Features
 
 **Android PIN Unblocker** has a very simple set of features, it cans generate the **Response code**, get the **Request code** from a QR code as well as hashing text using **SHA-256** or **SHA-512**.
@@ -61,7 +63,7 @@ The **Request code** then gets automatically input in the appropriate field once
 
 ![Generating the Admin key hash from text is possible inside this app.](/Screenshots/5-builtin-hashing-facility.png) ![Generated Admin key hash inside this app.](/Screenshots/6-generated-admin-key-hash.png)
 
-It's possible with **Android PIN Unblocker** (starting with version 3) to directly generate text hashes within the app instead of having to generate it from other ones.
+It's possible with **Android PIN Unblocker** to directly generate text hashes within the app instead of having to generate it from other ones.
 
 The possible choices are currently **SHA-256** and **SHA-512** only.
 
@@ -94,7 +96,7 @@ Here you can see that it's possible to write your **Admin key** in any third-par
 That's also how you can generate *Admin key* hashes yourself with a different app then share the generated hashes to **Android PIN Unblocker**.
 
 The app automatically verifies whether the shared text is a valid *Hexadecimal* string with an *even* length of atleast **32** characters (*Hex* strings only contain the characters *0-9* and *A-F*).\
-The app discards shared texts that are invalid *Admin keys* and will simply behave as if you launched it yourself.
+The app discards shared texts that are invalid *Admin keys* and will simply behave as if you launched it yourself from your application launcher.
 
 *There is no maximum length limit to the shared Admin key texts, but it must be atleast **32** characters long, be Hexadecimal and have an even length.\
 You may later trim the length of the text as desired from within the app, so you can share entire-length hashes to it if you wish.*

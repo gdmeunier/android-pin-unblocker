@@ -34,11 +34,9 @@ Recaf/*
 MyApkTool/*
 
 # Don't ignore the MyApkTool EXE file only
-!MyApkTool/MyApkTool.exe
-!MyApkTool/MyApkTool.exe.sha256
-# Don't ignore the MyApkTool EXE file only
 !MyApkTool/MyApkTool.7z.001
 !MyApkTool/MyApkTool.7z.002
 !MyApkTool/MyApkTool.7z.003
+!MyApkTool/MyApkTool.exe.sha256
 
 

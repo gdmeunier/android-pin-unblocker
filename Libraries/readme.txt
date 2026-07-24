@@ -35,7 +35,7 @@ the 'Additional Libraries' path to this value:
 
 C:\Program Files\Anywhere Software\B4A\AdditionalLibraries
 
- [i] Basic4Android automatically search subfolders for
+ [i] Basic4Android automatically searches subfolders for
      compatible Basic4Android additional libraries.
 
 3. Example javac.exe and android.jar file paths
