@@ -9,6 +9,9 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 - NewQRCodeReaderView.xml
 - ZXing-2.3.0-QR-scan-only.jar
 
+- Threading.jar
+- Threading.xml
+
  [i] Create this folder structure if it doesn't already exist.
 
 Now copy the below core library mods to this folder:

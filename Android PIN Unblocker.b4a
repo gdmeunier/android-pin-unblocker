@@ -13,23 +13,25 @@ Library1=core
 Library2=javaobject
 Library3=newqrcodereaderview
 Library4=runtimepermissions
-ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3 & later (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Supported device screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true" ~\n~                  android:normalScreens="true" ~\n~                  android:largeScreens="true" ~\n~                  android:xlargeScreens="true" ~\n~                  android:anyDensity="true" />)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26">~\n~	</style>~\n~</resources>)~\n~'Android 6+~\n~CreateResource(values-v23, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23">~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11">~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5">~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3">~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific themes~\n~'Theme / Theme.Holo / Theme.Material / Theme.DeviceDefault~\n~'~\n~~\n~'Android 8.0+ theme -> switch to DeviceDefault parent~\n~CreateResource(values-v26, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 6+ theme~\n~CreateResource(values-v23, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+ theme -> switch to Material parent~\n~CreateResource(values-v21, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV21</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 3.0+ theme -> switch to Holo parent~\n~CreateResource(values-v11, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+ theme~\n~CreateResource(values-v10, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV10</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.0+ theme~\n~CreateResource(values-v5, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+ theme~\n~CreateResource(values-v3, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+ theme~\n~CreateResource(values, themes.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyle</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific EditText styles~\n~'~\n~'Harden EditText fields as much as possible~\n~'using XML attributes too when available~\n~'~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~'Android 6.0+~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV21">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV21" parent="@style/MyEditTextStyleV11">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV10">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV10" parent="@style/MyEditTextStyleV5">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV3" parent="@style/MyEditTextStyle">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyle" parent="@android:style/Widget.EditText">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Default Activity & Application colors~\n~'~\n~~\n~'Android 1.0+~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~'Cans be set for <activity /> or <application />~\n~'~\n~'Setting it in application covers the entire App~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~'~\n~'Also disclose that it makes use of the Flashlight~\n~'Also disclose that it makes use of Autofocus~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Make the QR scanner Activity non-exportable (private)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Add a Share To functionality for receiving Admin keys~\n~'~\n~'This allows other Android applications to send text to~\n~'this App, and if they're valid Hex strings then it gets~\n~'used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and~\n~'forward this Hash to Android PIN Unblocker~\n~'~\n~' - "android:autoVerify" introduced in API level 23 (Android 6.0):~\n~'   It's some useless thing that's used for verifying~\n~'   Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order"      introduced in API level 28 (Android 9):~\n~'   This is the priority order of an Intent filter~\n~'   The higher the number, the higher the priority~\n~'~\n~'   It only manages the priority order of this App's~\n~'   own Intent filters, I don't want to use the~\n~'   "android:priority" attribute since it would~\n~'   interfere with other Apps, by taking priority~\n~'   over their Intent filters when you want to~\n~'   share text to a different App~\n~'~\n~'   Out of courtesy for other Apps, we only use the~\n~'   "android:order" Intent filter attribute~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key" ~\n~               android:autoVerify="false" ~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Already set to singleTop by default by Basic4Android,~\n~'but we explicitly set it to singleTop anyway~\n~'~\n~'Atleast a singleTop or singleTask (worse one)~\n~'launch mode is required to receive onNewIntent~\n~'Activity event callbacks~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~'The Scan Activity doesn't need to receive new Intents anyway~\n~~\n~'----- ----- ----- ----- ----- vv <Not used right now> vv ----- ----- ----- ----- -----~\n~'Intercept device rotation change events~\n~'It's the only way of reliably knowing~\n~'when a device rotation happened in the~\n~'foreground instead of in the background~\n~'~\n~'The device orientation events are:~\n~' - orientation~\n~' - screenSize~\n~'~\n~'On tablets, it's screenSize that gets sent~\n~'On phones, it's orientation instead that does~\n~'SetActivityAttribute(Main, "android:configChanges", "orientation|screenSize")~\n~'SetActivityAttribute(Scan, "android:configChanges", "orientation|screenSize")~\n~'----- ----- ----- ----- ----- ^^ <Not used right now> ^^ ----- ----- ----- ----- -----~\n~~\n~'Opt-out of predictive animations because we don't~\n~'use animations in this App for performance reasons~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'The maximum display aspect ratio that this App~\n~'is optimized for and supports is 16:9 (1.77)~\n~'~\n~'If the device has a much higher aspect ratio~\n~'then tell Android to letterbox the Activity view~\n~'~\n~'Letterboxing means scaling the Activity view~\n~'while preserving a 16:9 aspect ratio in this case~\n~'~\n~'Note: using a target SDK version of 36 or higher~\n~'      causes Android to ignore this attribute~\n~'~\n~'      API level 36 is Android 16~\n~'~\n~SetActivityAttribute(Main, "android:maxAspectRatio", "1.77")~\n~SetActivityAttribute(Scan, "android:maxAspectRatio", "1.77")~\n~~\n~'Don't let Android persist this App's state across~\n~'device reboots and on shutdowns~\n~'~\n~'We don't want the user having a leftover of this~\n~'App's old Activity states after the device restarts~\n~'~\n~'Introduced in API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'Enforce stricter Intent matching rules for sharing~\n~'Intents to this App, by requiring that:~\n~' - Explicit Intents must match this App's component name~\n~' - Intents without any ACTION type don't match this App~\n~'~\n~'Set it for Activities that can receive Intents in this App~\n~'~\n~'Introduced in API level 36 (Android 16)~\n~'This attribute is also available for the <application /> field~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~'The Scan Activity doesn't receive Intents anyway~\n~~\n~'Ask the connected display not to perform too much~\n~'graphical post-processing for this App~\n~'(minimal post-processing)~\n~'~\n~'Some new-technology displays might try to improve~\n~'the graphics, colors, etc of an App but we don't~\n~'need any such graphical enhancements~\n~'~\n~'Introduced in API level 30 (Android 11)~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'This App doesn't support multi-window mode~\n~'~\n~'Tell Android that this App hasn't been optimized~\n~'for multi-window mode, since otherwise the layouts~\n~'will just look wrong anyway~\n~'~\n~'This preference is ignored for Apps targeting~\n~'API level 36 or higher (Android 16+)~\n~'~\n~'We can set it on either <activity /> or <application />~\n~SetApplicationAttribute("android:resizeableActivity", "false")~\n~~\n~'We don't want to let one original Android user~\n~'launch this App's Activities, then have other~\n~'Android users on the same device being able to~\n~'see the original user's Activity~\n~'(for security reasons)~\n~'~\n~'Each Android user account on a device should~\n~'launch their own Activity if they want to see it~\n~'~\n~'Introduced in API level 23 (Android 6.0+)~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'We don't care about Picture-in-Picture display mode~\n~'and we don't want to support it for security reasons~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Turns out there's an Activity attribute for~\n~'automatically hiding the App's Activities~\n~'from the Recent Apps panel when they're closed~\n~'~\n~'They only stay visible in the Recent Apps panel~\n~'as long as the user doesn't exit the App~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'The Scan Activity is already excluded from the Recent Apps panel~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
+Library5=threading
+ManifestCode=~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3 & later (API level 9+)~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Supported device screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true" ~\n~                  android:normalScreens="true" ~\n~                  android:largeScreens="true" ~\n~                  android:xlargeScreens="true" ~\n~                  android:anyDensity="true" />)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26">~\n~	</style>~\n~</resources>)~\n~'Android 6+~\n~CreateResource(values-v23, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23">~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11">~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5">~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3">~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, theme.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific themes~\n~'Theme / Theme.Holo / Theme.Material / Theme.DeviceDefault~\n~'~\n~~\n~'Android 8.0+ theme -> switch to DeviceDefault parent~\n~CreateResource(values-v26, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 6+ theme~\n~CreateResource(values-v23, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+ theme -> switch to Material parent~\n~CreateResource(values-v21, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV21</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 3.0+ theme -> switch to Holo parent~\n~CreateResource(values-v11, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+ theme~\n~CreateResource(values-v10, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV10</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.0+ theme~\n~CreateResource(values-v5, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+ theme~\n~CreateResource(values-v3, themes.xml,~\n~<resources>~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+ theme~\n~CreateResource(values, themes.xml,~\n~<resources>~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyle</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Android version-specific EditText styles~\n~'~\n~'Harden EditText fields as much as possible~\n~'using XML attributes too when available~\n~'~\n~~\n~'Android 8.0+~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~'Android 6.0+~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV21">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~'Android 5.0+~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV21" parent="@style/MyEditTextStyleV11">~\n~	</style>~\n~</resources>)~\n~'Android 3.0+~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV10">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~'Android 2.3.3+~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV10" parent="@style/MyEditTextStyleV5">~\n~	</style>~\n~</resources>)~\n~'Android 2.0+~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.5+~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyleV3" parent="@style/MyEditTextStyle">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~'Android 1.0+~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="MyEditTextStyle" parent="@android:style/Widget.EditText">~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'~\n~'Default Activity & Application colors~\n~'~\n~~\n~'Android 1.0+~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'~\n~'---------------------------------------------------------------------------~\n~'~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~'Cans be set for <activity /> or <application />~\n~'~\n~'Setting it in application covers the entire App~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~'~\n~'Also disclose that it makes use of the Flashlight~\n~'Also disclose that it makes use of Autofocus~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Make the QR scanner Activity non-exportable (private)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Add a Share To functionality for receiving Admin keys~\n~'~\n~'This allows other Android applications to send text to~\n~'this App, and if they're valid Hex strings then it gets~\n~'used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and~\n~'forward this Hash to Android PIN Unblocker~\n~'~\n~' - "android:autoVerify" introduced in API level 23 (Android 6.0):~\n~'   It's some useless thing that's used for verifying~\n~'   Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order"      introduced in API level 28 (Android 9):~\n~'   This is the priority order of an Intent filter~\n~'   The higher the number, the higher the priority~\n~'~\n~'   It only manages the priority order of this App's~\n~'   own Intent filters, I don't want to use the~\n~'   "android:priority" attribute since it would~\n~'   interfere with other Apps, by taking priority~\n~'   over their Intent filters when you want to~\n~'   share text to a different App~\n~'~\n~'   Out of courtesy for other Apps, we only use the~\n~'   "android:order" Intent filter attribute~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key" ~\n~               android:autoVerify="false" ~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Already set to singleTop by default by Basic4Android,~\n~'but we explicitly set it to singleTop anyway~\n~'~\n~'Atleast a singleTop or singleTask (worse one)~\n~'launch mode is required to receive onNewIntent~\n~'Activity event callbacks~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~'The Scan Activity doesn't need to receive new Intents anyway~\n~~\n~'Opt-out of predictive animations because we don't~\n~'use animations in this App for performance reasons~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'The maximum display aspect ratio that this App~\n~'is optimized for and supports is 16:9 (1.77)~\n~'~\n~'If the device has a much higher aspect ratio~\n~'then tell Android to letterbox the Activity view~\n~'~\n~'Letterboxing means scaling the Activity view~\n~'while preserving a 16:9 aspect ratio in this case~\n~'~\n~'Note: using a target SDK version of 36 or higher~\n~'      causes Android to ignore this attribute~\n~'~\n~'      API level 36 is Android 16~\n~'~\n~SetActivityAttribute(Main, "android:maxAspectRatio", "1.77")~\n~SetActivityAttribute(Scan, "android:maxAspectRatio", "1.77")~\n~~\n~'Don't let Android persist this App's state across~\n~'device reboots and on shutdowns~\n~'~\n~'We don't want the user having a leftover of this~\n~'App's old Activity states after the device restarts~\n~'~\n~'Introduced in API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'Enforce stricter Intent matching rules for sharing~\n~'Intents to this App, by requiring that:~\n~' - Explicit Intents must match this App's component name~\n~' - Intents without any ACTION type don't match this App~\n~'~\n~'Set it for Activities that can receive Intents in this App~\n~'~\n~'Introduced in API level 36 (Android 16)~\n~'This attribute is also available for the <application /> field~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~'The Scan Activity doesn't receive Intents anyway~\n~~\n~'Ask the connected display not to perform too much~\n~'graphical post-processing for this App~\n~'(minimal post-processing)~\n~'~\n~'Some new-technology displays might try to improve~\n~'the graphics, colors, etc of an App but we don't~\n~'need any such graphical enhancements~\n~'~\n~'Introduced in API level 30 (Android 11)~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'This App doesn't support multi-window mode~\n~'~\n~'Tell Android that this App hasn't been optimized~\n~'for multi-window mode, since otherwise the layouts~\n~'will just look wrong anyway~\n~'~\n~'This preference is ignored for Apps targeting~\n~'API level 36 or higher (Android 16+)~\n~'~\n~'We can set it on either <activity /> or <application />~\n~SetApplicationAttribute("android:resizeableActivity", "false")~\n~~\n~'We don't want to let one original Android user~\n~'launch this App's Activities, then have other~\n~'Android users on the same device being able to~\n~'see the original user's Activity~\n~'(for security reasons)~\n~'~\n~'Each Android user account on a device should~\n~'launch their own Activity if they want to see it~\n~'~\n~'Introduced in API level 23 (Android 6.0+)~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'We don't care about Picture-in-Picture display mode~\n~'and we don't want to support it for security reasons~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Turns out there's an Activity attribute for~\n~'automatically hiding the App's Activities~\n~'from the Recent Apps panel when they're closed~\n~'~\n~'They only stay visible in the Recent Apps panel~\n~'as long as the user doesn't exit the App~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'The Scan Activity is already excluded from the Recent Apps panel~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Intercept mundane device orientation changes~\n~'~\n~'More info:~\n~' - https://developer.android.com/guide/topics/manifest/activity-element?hl=en#config~\n~' - https://stackoverflow.com/questions/9566633/how-to-use-onconfigurationchanged-and-newconfig-orientation-configuration-o~\n~'~\n~'We tell Android that we're going to handle these~\n~'configuration change events but we will actually~\n~'simply ignore them, so that Android doesn't~\n~'destroy then recreate this App's Activities for~\n~'mundane device configuration changes that are~\n~'not even related to the device display or orientation~\n~'~\n~'For example, device orientation events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we will hook the useless ones to ignore them~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
 Module1=MyAdvanced
 Module2=MyCommon
 Module3=MyConstants
 Module4=MyCryptography
-Module5=MySecurity
-Module6=Scan
+Module5=MyForegroundRotationDetection
+Module6=MySecurity
+Module7=Scan
 NumberOfFiles=3
-NumberOfLibraries=4
-NumberOfModules=6
+NumberOfLibraries=5
+NumberOfModules=7
 Version=12.5
 @EndOfDesignText@
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 62
-	#VersionName: 4.9.1
+	#VersionCode: 63
+	#VersionName: 4.10.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -152,148 +154,152 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 }
 #End If
 '
-'Not used for now
-'Bonus events incase I need them later
+'For detecting foreground device rotation
 '
-'#If Java
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'import android.os.Build;
-'public void _onDestroy()
-'{
-'	// Just so we know when the Activity destroys
-'	BA.LogInfo("** Activity (main) Destroy **");
-'	
-'	boolean isFinishing              = isFinishing();
-'	boolean isChangingConfigurations = false;
-'	
-'	//
-'	// isChangingConfigurations() only available
-'	// on API levels 11+ (Android 3.0+)
-'	//
-'	if ( Build.VERSION.SDK_INT >= 11 )
-'	{
-'		isChangingConfigurations = isChangingConfigurations();
-'	}
-'	
-'	try
-'	{
-'		_activity_destroy(isFinishing, isChangingConfigurations);
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
+#If Java
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onStop()
+{
+	// Just so we know when the Activity stops
+	BA.LogInfo("** Activity (main) Stop **");
+	
+	try
+	{
+		// Custom Activity_Stop event
+		_activity_stop();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+import android.os.Build;
+public void _onDestroy()
+{
+	// Just so we know when the Activity destroys
+	BA.LogInfo("** Activity (main) Destroy **");
+	
+	boolean isFinishing              = isFinishing();
+	boolean isChangingConfigurations = false;
+	
+	// isChangingConfigurations() only available
+	// on API levels 11+ (Android 3.0+)
+	if ( Build.VERSION.SDK_INT >= 11 )
+	{
+		isChangingConfigurations = isChangingConfigurations();
+	}
+	
+	try
+	{
+		// Custom Activity_Destroy event
+		_activity_destroy(isFinishing, isChangingConfigurations);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onRestart()
+{
+	// Just so we know when the Activity restarts
+	BA.LogInfo("** Activity (main) Restart **");
+	
+	try
+	{
+		// Custom Activity_Restart event
+		_activity_restart();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onStart()
+{
+	// Just so we know when the Activity starts
+	BA.LogInfo("** Activity (main) Start **");
+	
+	try
+	{
+		// Custom Activity_Start event
+		_activity_start();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
 '
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onStop()
-'{
-'	// Just so we know when the Activity stops
-'	BA.LogInfo("** Activity (main) Stop **");
-'	
-'	try
-'	{
-'		_activity_stop();
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
+'For detecting foreground device rotation
 '
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onStart()
-'{
-'	// Just so we know when the Activity starts
-'	BA.LogInfo("** Activity (main) Start **");
-'	
-'	try
-'	{
-'		_activity_start();
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
+#If Java
+//
+// Add missing onRestart runHook in Basic4Android
+//
+import android.content.Context;
+import android.app.Activity;
+import anywheresoftware.b4a.BA;
+@Override
+public void onRestart()
+{
+	// Call Android's super implementation (mandatory)
+	super.onRestart();
+	
+	try
+	{
+		// Mimick Basic4Android's builtin runHook ability
+		processBA.runHook("onrestart", this, null);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
 '
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onRestart()
-'{
-'	// Just so we know when the Activity restarts
-'	BA.LogInfo("** Activity (main) Restart **");
-'	
-'	try
-'	{
-'		_activity_restart();
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
+'For detecting foreground device rotation
 '
-'Add missing Basic4Android Activity event runHooks
-'
-'#If Java
-'import android.content.res.Configuration;
-'import android.content.Context;
-'import android.app.Activity;
-'import anywheresoftware.b4a.BA;
-'@Override
-'public void onConfigurationChanged(Configuration newConfig)
-'{
-'	// Call Android's super implementation (mandatory)
-'	super.onConfigurationChanged(newConfig);
-'	//
-'	// Mimick Basic4Android's builtin runHook ability
-'	//
-'	try
-'	{
-'		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
-'
-'Maybe oneday we will be able to properly use it
-'
-'It's currently unused, since detecting rotation
-'without wrecking the Activity layout is impossible
-'
-'#If Java
-'import android.content.res.Configuration;
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onConfigurationChanged(Configuration newCfg)
-'{
-'	BA.LogInfo("** Activity (main) ConfigurationChanged **");
-'	
-'	try
-'	{
-'		// Activity_ConfigurationChanged will
-'		// only receive the device orientation
-'		_activity_configurationchanged(newCfg.orientation);
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
+#If Java
+import android.content.res.Configuration;
+import android.content.Context;
+import android.app.Activity;
+import anywheresoftware.b4a.BA;
+@Override
+public void onConfigurationChanged(Configuration newConfig)
+{
+	// Call Android's super implementation (mandatory)
+	super.onConfigurationChanged(newConfig);
+	
+	// Just so we know when the Activity receives
+	// a mundane configuration changed event
+	BA.LogInfo("** Activity (main) Configuration Changed **");
+	
+	//
+	// We deliberately ignore mundane configuration change
+	// events as set in the app manifest
+	//
+	// This makes sure that we know only device rotations
+	// will destroy-then-recreate our App's Activity
+	//
+	
+	/* Nothing to do here */
+}
+#End If
 '
 'Better method of checking for Admin keys shared to the App
 '
@@ -514,116 +520,213 @@ public void _onCreate()
 }
 #End If
 '
-'Not used for now
-'Just a bonus incase I need it in the future
+'For detecting foreground device rotation
 '
-'Sub Activity_Stop()
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
+Sub Activity_Stop()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Stop: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Stop: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Stop: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Stop
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Stop: Sub return"$, Colors.Black)
+	#End If
+End Sub
+
+Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: Checking if the Activity is finishing for real..."$, Colors.Black)
+	#End If
+	If IsFinishing And Not(IsChangingConfigurations) Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: The Activity is finishing for real, no need to update this Activity's Lifecycle tracking"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+		#End If
+		ForegroundRotationDetection.ActivityLifecycle = ""
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+		#End If
+		
+	Else
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: The Activity is not finishing for real, alright"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+		#End If
+		ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Destroy
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+		#End If
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Black)
+	#End If
+End Sub
+
+Sub Activity_Restart()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Restart: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Restart: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Restart: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Restart
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub return"$, Colors.Black)
+	#End If
+End Sub
+
+Sub Activity_Start()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Start: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Start: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Start: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Start
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Start: Sub return"$, Colors.Black)
+	#End If
+End Sub
 '
-'Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'Sub Activity_Start()
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Start: Sub entry"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Start: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Start: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'Sub Activity_Restart()
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'Maybe oneday we will be able to properly use it
-'
-'It's currently unused, since detecting rotation
-'without wrecking the Activity layout is impossible
-'
-'Sub Activity_ConfigurationChanged(NewOrientation As Int)
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Main-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'This one is also important, we now use it instead of
-'Activity_Resume to check for any shared Admin key texts
+'This function is important, we now use it instead of Activity_Resume
+'when we want to check for any shared Admin key texts
 '
 Sub Activity_NewIntent(NewIntent As Intent)
 	#If LOGGING
@@ -892,17 +995,8 @@ Sub Process_Globals
 	'just like a reboot but for Apps instead
 	Private IsFirstApplicationResume As Boolean = True 'True by default
 	
-	'For detecting device rotation
-	'
-	'Currently not used at all, it's always False
-	'Detecting device rotations was making the
-	'application codebase difficult to maintain
-	'
-	'Android configuration changes are difficult
-	'to detect without badly wrecking the Activity
-	'layout and having e.g. the portrait layout
-	'show up in landscape mode
-	Private IsDeviceRotationChange As Boolean = False 'Always False for now
+	'For foreground device rotation detection
+	Private ForegroundRotationDetection As MyForegroundRotationDetection
 	
 End Sub
 
@@ -1189,6 +1283,21 @@ Sub Activity_Create(FirstTime As Boolean)
 	#End If
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Create: Initializing this Activity's Lifecycle tracking if needed..."$, Constants.COLORS_ORANGE)
+	#End If
+	If FirstTime Then
+		ForegroundRotationDetection.Initialize
+	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Create: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Create
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Create: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
 	#End If
 	
 	'---------------------------------------------'
@@ -1638,6 +1747,19 @@ Sub Activity_Resume
 	#End If
 	
 	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Stopping this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycleTimer_Stop
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Resume
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
 	#End If
 	RestoreViewState
@@ -1683,7 +1805,7 @@ Sub Activity_Resume
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Also checking if this Activity resume was not just a screen rotation"$, Colors.Blue)
 	#End If
-	If Not(IsFirstApplicationResume) And Not(IsDeviceRotationChange) Then
+	If Not(IsFirstApplicationResume) And Not(ForegroundRotationDetection.CheckIfForegroundRotation(ForegroundRotationDetection.ActivityLifecycle)) Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Resume: It's not the first-time Activity resume for this App lifecycle"$, Colors.Blue)
 		#End If
@@ -1755,6 +1877,14 @@ Sub Activity_Resume
 		IsFirstApplicationResume = False
 		
 	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ""
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
+	#End If
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
@@ -1851,25 +1981,13 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Sub entry (UserClosed = ${UserClosed})"$, Colors.Blue)
 	#End If
 	
-	'Clear the device-rotation-changed flag
-	'on Activity pause, it will be re-filled
-	'properly by Activity_ConfigurationChanged
-	'if there's really a device screen rotation
-	'event later on anyway
-	'
-	'If it's just an app pause and resume,
-	'then this value will stay False because
-	'because Activity_ConfigurationChanged will
-	'not fire again
-	'
-	'This is as intended to truly distinguish
-	'App pause by the user from a live device
-	'screen orientation change while the App
-	'is actually running
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Pause: Resetting the device-rotation changed flag for next use by setting IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
+	LogColor($"[Main-${LogContextId}] Activity_Pause: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
 	#End If
-	IsDeviceRotationChange = False
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Pause
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Pause: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
+	#End If
 	
 	If Not(UserClosed) Then
 		#If LOGGING
@@ -1903,6 +2021,11 @@ Sub Activity_Pause(UserClosed As Boolean)
 		Return
 		
 	End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Pause: Starting this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycleTimer_Start
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Sub return"$, Colors.Blue)
@@ -1999,6 +2122,11 @@ Private Sub ActivityExit
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] ActivityExit: Sub entry"$, Colors.Blue)
 	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] ActivityExit: Stopping this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycleTimer_Stop
 	
 	'This function already stops any running selection timer
 	#If LOGGING

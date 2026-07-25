@@ -87,61 +87,8 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 }
 #End If
 '
-'Not used for now
-'Bonus events incase I need them later
-'
-'#If Java
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'import android.os.Build;
-'public void _onDestroy()
-'{
-'	// Just so we know when the Activity destroys
-'	BA.LogInfo("** Activity (scan) Destroy **");
-'	
-'	boolean isFinishing              = isFinishing();
-'	boolean isChangingConfigurations = false;
-'	
-'	//
-'	// isChangingConfigurations() only available
-'	// on API levels 11+ (Android 3.0+)
-'	//
-'	if ( Build.VERSION.SDK_INT >= 11 )
-'	{
-'		isChangingConfigurations = isChangingConfigurations();
-'	}
-'	
-'	try
-'	{
-'		_activity_destroy(isFinishing, isChangingConfigurations);
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onStop()
-'{
-'	// Just so we know when the Activity stops
-'	BA.LogInfo("** Activity (scan) Stop **");
-'	
-'	try
-'	{
-'		_activity_stop();
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
-'
-'This one is actually used now
+'For detecting foreground device rotation
+'This one is also used for safety reasons
 '
 #If Java
 import anywheresoftware.b4a.BA;
@@ -154,48 +101,34 @@ public void _onStart()
 	BA.LogInfo("** Activity (scan) Start **");
 	
 	/* Important note:
-	 * Since the ToggleFlashlight function
-	 * uses a small sleep delay before
-	 * toggling the Flashlight, we might
-	 * end up with Flashlight toggle events
-	 * being sent to Basic4Android's
-	 * Activity-paused messages queue
+	 * Since the ToggleFlashlight function uses a small sleep delay before
+	 * toggling the Flashlight, we might end up with Flashlight toggle events
+	 * being sent to Basic4Android's Activity-paused messages queue
 	 * 
-	 * Then it will want to re-run these
-	 * Flashlight toggle events on resume,
-	 * after the Activity onStart,
-	 * but this is undesirable for our purposes
+	 * Then it will want to re-run these Flashlight toggle events on resume,
+	 * after the Activity onStart, but this is undesirable for our purposes
 	 * 
-	 * So we must clear the paused messages queue
-	 * of Basic4Android (a bit uncommon to do),
-	 * otherwise we might accidentally restore
-	 * a Flashlight-on state on application resume,
+	 * So we must clear the paused messages queue of Basic4Android (a bit uncommon to do),
+	 * otherwise we might accidentally restore a Flashlight-on state on application resume,
 	 * even if the user thought it should be off
 	 * 
-	 * For example when the user clicks (spams)
-	 * multiple times the Flashlight button and
-	 * pauses the app, we don't want to accidentally
-	 * blind the users with their Flashlight
+	 * For example when the user clicks (spams) multiple times the Flashlight button and
+	 * pauses the app, we don't want to accidentally blind the users with their Flashlight
 	 * 
-	 * Don't remove this part unless you find a way
-	 * to avoid using a sleep call in the
-	 * ToggleFlashlight function
+	 * Don't remove this part unless you find a way to avoid using a sleep call
+	 * in the ToggleFlashlight function
 	 * 
-	 * Because without the sleep timer it won't work,
-	 * as the toggle calls are too fast before the
-	 * Camera service has successfully reinitialized
+	 * Because without the sleep timer it won't work, as the toggle calls are too fast
+	 * before the Camera service has successfully reinitialized
 	 */
-	//
+	
 	// Check if the processBA and sharedProcessBA
 	// objects are different from null
 	//
-	// [!] This part will only compile with
-	//     the modified B4AShared.jar file,
-	//     which basically just makes the
-	//     messagesDuringPaused field public
+	// [!] This part will only compile with the modified B4AShared.jar file,
+	//     which basically just makes the messagesDuringPaused field public
 	//
-	//     Otherwise it was not public and
-	//     could not be modified from
+	//     Otherwise it was not public and could not be modified from
 	//     outside its own class instance
 	//
 	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
@@ -205,12 +138,13 @@ public void _onStart()
 		this.processBA.sharedProcessBA.messagesDuringPaused = new ArrayList<Runnable>();
 		
 		// Notify in the logging about it always
-		BA.LogInfo("_onStart: Cleared the paused messages queue");
-		BA.LogInfo("_onStart: It must be done for safety reasons");
+		BA.LogInfo("[Scan] _onStart: Cleared the paused messages queue");
+		BA.LogInfo("[Scan] _onStart: It must be done for safety reasons");
 	}
 	
 	try
 	{
+		// Custom Activity_Start event
 		_activity_start();
 	}
 	catch (Exception e)
@@ -220,80 +154,133 @@ public void _onStart()
 }
 #End If
 '
-'Not used for now
+'For detecting foreground device rotation
 '
-'#If Java
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onRestart()
-'{
-'	// Just so we know when the Activity restarts
-'	BA.LogInfo("** Activity (scan) Restart **");
-'	
-'	try
-'	{
-'		_activity_restart();
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
+#If Java
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onStop()
+{
+	// Just so we know when the Activity stops
+	BA.LogInfo("** Activity (scan) Stop **");
+	
+	try
+	{
+		// Custom Activity_Stop event
+		_activity_stop();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+import android.os.Build;
+public void _onDestroy()
+{
+	// Just so we know when the Activity destroys
+	BA.LogInfo("** Activity (scan) Destroy **");
+	
+	boolean isFinishing              = isFinishing();
+	boolean isChangingConfigurations = false;
+	
+	// isChangingConfigurations() only available
+	// on API levels 11+ (Android 3.0+)
+	if ( Build.VERSION.SDK_INT >= 11 )
+	{
+		isChangingConfigurations = isChangingConfigurations();
+	}
+	
+	try
+	{
+		// Custom Activity_Destroy event
+		_activity_destroy(isFinishing, isChangingConfigurations);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+
+import anywheresoftware.b4a.BA;
+import android.content.Context;
+import android.app.Activity;
+public void _onRestart()
+{
+	// Just so we know when the Activity restarts
+	BA.LogInfo("** Activity (scan) Restart **");
+	
+	try
+	{
+		// Custom Activity_Restart event
+		_activity_restart();
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
 '
-'Add missing Basic4Android Activity event runHooks
+'For detecting foreground device rotation
 '
-'#If Java
-'import android.content.res.Configuration;
-'import android.content.Context;
-'import android.app.Activity;
-'import anywheresoftware.b4a.BA;
-'@Override
-'public void onConfigurationChanged(Configuration newConfig)
-'{
-'	// Call Android's super implementation (mandatory)
-'	super.onConfigurationChanged(newConfig);
-'	//
-'	// Mimick Basic4Android's builtin runHook ability
-'	//
-'	try
-'	{
-'		processBA.runHook("onconfigurationchanged", this, new Object[] {newConfig});
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
+#If Java
+//
+// Add missing onRestart runHook in Basic4Android
+//
+import android.content.Context;
+import android.app.Activity;
+import anywheresoftware.b4a.BA;
+@Override
+public void onRestart()
+{
+	// Call Android's super implementation (mandatory)
+	super.onRestart();
+	
+	try
+	{
+		// Mimick Basic4Android's builtin runHook ability
+		processBA.runHook("onrestart", this, null);
+	}
+	catch (Exception e)
+	{
+		// Nothing to do here
+	}
+}
+#End If
 '
-'Maybe oneday we will be able to properly use it
+'For detecting foreground device rotation
 '
-'It's currently unused, since detecting rotation
-'without wrecking the Activity layout is impossible
-'
-'#If Java
-'import android.content.res.Configuration;
-'import anywheresoftware.b4a.BA;
-'import android.content.Context;
-'import android.app.Activity;
-'public void _onConfigurationChanged(Configuration newCfg)
-'{
-'	BA.LogInfo("** Activity (scan) ConfigurationChanged **");
-'	
-'	try
-'	{
-'		// Activity_ConfigurationChanged will
-'		// only receive the device orientation
-'		_activity_configurationchanged(newCfg.orientation);
-'	}
-'	catch (Exception e)
-'	{
-'		// Nothing to do here
-'	}
-'}
-'#End If
+#If Java
+import android.content.res.Configuration;
+import android.content.Context;
+import android.app.Activity;
+import anywheresoftware.b4a.BA;
+@Override
+public void onConfigurationChanged(Configuration newConfig)
+{
+	// Call Android's super implementation (mandatory)
+	super.onConfigurationChanged(newConfig);
+	
+	// Just so we know when the Activity receives
+	// a mundane configuration changed event
+	BA.LogInfo("** Activity (scan) Configuration Changed **");
+	
+	//
+	// We deliberately ignore mundane configuration change
+	// events as set in the app manifest
+	//
+	// This makes sure that we know only device rotations
+	// will destroy-then-recreate our App's Activity
+	//
+	
+	/* Nothing to do here */
+}
+#End If
 '
 'Common type of _onCreate Java inline code
 '
@@ -319,119 +306,211 @@ public void _onCreate()
 }
 #End If
 '
-'Not used for now
-'Just a bonus incase I need it in the future
+'For detecting foreground device rotation
 '
-'Sub Activity_Stop()
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub entry"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Stop: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Stop: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
+Sub Activity_Stop()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Stop: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Stop: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Stop
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Stop: Sub return"$, Colors.Black)
+	#End If
+End Sub
+
+Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean)
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub entry (IsFinishing = ${IsFinishing}, IsChangingConfigurations = ${IsChangingConfigurations})"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Checking if the Activity is finishing for real..."$, Colors.Black)
+	#End If
+	If IsFinishing And Not(IsChangingConfigurations) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: The Activity is finishing for real, no need to update this Activity's Lifecycle tracking"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+		#End If
+		ForegroundRotationDetection.ActivityLifecycle = ""
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+		#End If
+		
+	Else
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: The Activity is not finishing for real, alright"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+		#End If
+		ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Destroy
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Destroy: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+		#End If
+		
+	End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Black)
+	#End If
+End Sub
+
+Sub Activity_Restart()
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Restart: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Restart: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Now we can proceed further"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Restart
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Colors.Black)
+	#End If
+End Sub
 
 Sub Activity_Start()
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	#End If
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub entry"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub entry"$, Colors.Black)
 	#End If
 	
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Start: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
+	#End If
+	If Not(ForegroundRotationDetection.IsInitialized) Then
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Start: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Start: No need to proceed further"$, Colors.Black)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Scan-${LogContextId}] Activity_Start: Sub return"$, Colors.Black)
+		#End If
+		Return
+		
+	End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: This Activity's Lifecycle tracking is initialized, alright"$, Colors.Black)
 	#End If
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Start: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Now we can proceed further"$, Colors.Black)
 	#End If
 	
 	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub return"$, Constants.COLORS_ORANGE)
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Black)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Start
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Start: Sub return"$, Colors.Black)
 	#End If
 End Sub
-'
-'Not used for now
-'Just a bonus incase I need it in the future
-'
-'Sub Activity_Restart()
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub entry"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Restart: This function is just a bonus event incase I need it later"$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Restart: It currently does nothing, it will just return without doing anything"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_Restart: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'Maybe oneday we will be able to properly use it
-'
-'It's currently unused, since detecting rotation
-'without wrecking the Activity layout is impossible
-'
-'Sub Activity_ConfigurationChanged(NewOrientation As Int)
-'	#If LOGGING
-'	Dim LogContextId As Int = Rnd(1000, 9999)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub entry (NewOrientation = ${NewOrientation})"$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: This function is currently unused, because Android is being Android..."$, Constants.COLORS_ORANGE)
-'	#End If
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Why does Android have to make foreground rotation detection a pain..."$, Constants.COLORS_ORANGE)
-'	#End If
-'	
-'	#If LOGGING
-'	LogColor($"[Scan-${LogContextId}] Activity_ConfigurationChanged: Sub return"$, Constants.COLORS_ORANGE)
-'	#End If
-'End Sub
-'
-'------------------------------------------------------------------
-'
+
 Sub Process_Globals
 	
 	'ViewState registers for restoring the App state
@@ -470,17 +549,8 @@ Sub Process_Globals
 	'Activity contexts
 	Private IsActivityPauseOrResume As Boolean = False 'Must be False by default
 	
-	'For detecting device rotation
-	'
-	'Currently not used at all, it's always False
-	'Detecting device rotations was making the
-	'application codebase difficult to maintain
-	'
-	'Android configuration changes are difficult
-	'to detect without badly wrecking the Activity
-	'layout and having e.g. the portrait layout
-	'show up in landscape mode
-	Private IsDeviceRotationChange As Boolean = False 'Always False for now
+	'For foreground device rotation detection
+	Private ForegroundRotationDetection As MyForegroundRotationDetection
 	
 End Sub
 
@@ -563,7 +633,6 @@ Private Sub RestoreViewState()
 	#End If
 	SwitchCamera(Constants.CAMERA_SPECIFIC_ONE, ViewState_qrvQRCodeReaderView_PreviewCameraId)
 	
-	'
 	'We can now restore the TorchEnabled state too
 	'because we have a method of knowing exactly
 	'when the device screen orientation changed
@@ -587,14 +656,13 @@ Private Sub RestoreViewState()
 	'        last selected Camera side's Flashlight
 	'        that gets restored, not always the rear one's
 	'
-	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] RestoreViewState: Verify if the Activity resume was because of screen rotation"$, Colors.Blue)
 	#End If
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] RestoreViewState: We don't restore the previous Flashlight state (let it off) unless it's because of a foreground screen rotation only"$, Colors.Blue)
 	#End If
-	If IsDeviceRotationChange Then
+	If ForegroundRotationDetection.CheckIfForegroundRotation(ForegroundRotationDetection.ActivityLifecycle) Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] RestoreViewState: The Activity resume was because of foreground screen rotation"$, Colors.Blue)
 		#End If
@@ -633,6 +701,21 @@ Sub Activity_Create(FirstTime As Boolean)
 	#End If
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Create: Sub entry (FirstTime = ${FirstTime})"$, Colors.Blue)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Create: Initializing this Activity's Lifecycle tracking if needed..."$, Constants.COLORS_ORANGE)
+	#End If
+	If FirstTime Then
+		ForegroundRotationDetection.Initialize
+	End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Create: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Create
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Create: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
 	#End If
 	
 	'---------------------------------------------'
@@ -861,6 +944,19 @@ Sub Activity_Resume
 	#End If
 	
 	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: Stopping this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycleTimer_Stop
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Resume
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Resume: Marking that we are in the Activity_Resume context by setting IsActivityPauseOrResume to True (all subsequently called functions will know about it)"$, Colors.Blue)
 	#End If
 	IsActivityPauseOrResume = True
@@ -876,6 +972,14 @@ Sub Activity_Resume
 	LogColor($"[Scan-${LogContextId}] Activity_Resume: Marking that we are no longer under the Activity_Resume context by setting IsActivityPauseOrResume to False (we finished our resume job)"$, Colors.Blue)
 	#End If
 	IsActivityPauseOrResume = False
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ""
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
+	#End If
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
@@ -895,29 +999,17 @@ Sub Activity_Pause(UserClosed As Boolean)
 	#End If
 	
 	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycle = ForegroundRotationDetection.ActivityLifecycle & ForegroundRotationDetection.Pause
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
+	#End If
+	
+	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Pause: Marking that we are in the Activity_Pause context by setting IsActivityPauseOrResume to True (all subsequently called functions will know about it)"$, Colors.Blue)
 	#End If
 	IsActivityPauseOrResume = True
-	
-	'Clear the device-rotation-changed flag
-	'on Activity pause, it will be re-filled
-	'properly by Activity_ConfigurationChanged
-	'if there's really a device screen rotation
-	'event later on anyway
-	'
-	'If it's just an app pause and resume,
-	'then this value will stay False because
-	'because Activity_ConfigurationChanged will
-	'not fire again
-	'
-	'This is as intended to truly distinguish
-	'App pause by the user from a live device
-	'screen orientation change while the App
-	'is actually running
-	#If LOGGING
-	LogColor($"[Scan-${LogContextId}] Activity_Pause: Resetting the device-rotation changed flag for next use by setting IsDeviceRotationChange to False"$, Constants.COLORS_ORANGE)
-	#End If
-	IsDeviceRotationChange = False
 	
 	If Not(UserClosed) Then
 		#If LOGGING
@@ -962,6 +1054,11 @@ Sub Activity_Pause(UserClosed As Boolean)
 	IsActivityPauseOrResume = False
 	
 	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Pause: Starting this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycleTimer_Start
+	
+	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Pause: Sub return"$, Colors.Blue)
 	#End If
 End Sub
@@ -975,6 +1072,11 @@ Private Sub ActivityExit
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] ActivityExit: Sub entry"$, Colors.Blue)
 	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] ActivityExit: Stopping this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
+	#End If
+	ForegroundRotationDetection.ActivityLifecycleTimer_Stop
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] ActivityExit: Resetting the ViewState to clear all the last selected Camera preview ID etc"$, Colors.Blue)
