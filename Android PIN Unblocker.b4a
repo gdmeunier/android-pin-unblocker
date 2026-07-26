@@ -30,8 +30,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 67
-	#VersionName: 4.13.1
+	#VersionCode: 68
+	#VersionName: 4.14.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False

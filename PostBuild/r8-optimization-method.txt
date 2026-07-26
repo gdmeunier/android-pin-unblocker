@@ -19,4 +19,8 @@ R8 optimization method
 
 10. You can delete your old APK file and use the re-aligned + re-signed version
 
+11. You can delete the temporary files:
+     - "<apkfilename>_aligned.apk"
+     - "<apkfilename>_aligned.apk.idsig"
+
 

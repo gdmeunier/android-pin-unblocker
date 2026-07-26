@@ -161,5 +161,6 @@ Asset name | Author | License | Commercial use
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
 [dex2jar ~~& jar2dex~~](https://github.com/pxb1988/dex2jar) | pxb1988 | [Apache 2.0](https://github.com/pxb1988/dex2jar/blob/2.x/LICENSE.txt) | Allowed
 [Google R8](https://r8.googlesource.com/r8/+/refs/heads/main/README.md) | The Android Open Source Project | [Eclipse Distribution License 1.0](https://maven.google.com/web/index.html#com.android.tools:r8:9.1.31) | Allowed
+[ProGuard](https://github.com/Guardsquare/proguard) | Guardsquare | [GPL 2.0](https://github.com/Guardsquare/proguard/blob/master/LICENSE) | Allowed
 
 

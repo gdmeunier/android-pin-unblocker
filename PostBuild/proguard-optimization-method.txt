@@ -1,0 +1,31 @@
+
+ProGuard optimization method
+----------------------------
+
+ 1. Drop your APK file into the dex2jar batch file
+ 2. Drop your APK file into the proguard batch file
+
+ 3. Delete "<apkfilename>-dex2jar.jar"
+ 4. Rename "<apkfilename>-dex2jar-proguard.jar" to "<apkfilename>-dex2jar.jar"
+
+ 5. Drop your APK file into the r8 batch file
+
+ 6. Using 7-Zip put the "classes.dex" file in your APK
+     [i] "classes.dex" is the output of the R8 optimizer
+
+ 7. Delete "classes.dex" and "<apkfilename>-dex2jar.jar"
+
+ 8. Uncompress your APK file using 7-Zip to a folder
+ 9. Remove the META-INF folder from your extracted folder
+10. Recompress using the maximum compression settings
+
+11. Re-align & re-sign the APK in V1 & V2 schemes with MyApkTool Pro
+12. Your completed file is now named "<apkfilename>_aligned_signed.apk"
+
+13. You can delete your old APK file and use the re-aligned + re-signed version
+
+14. You can delete the temporary files:
+     - "<apkfilename>_aligned.apk"
+     - "<apkfilename>_aligned.apk.idsig"
+
+
