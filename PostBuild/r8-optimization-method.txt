@@ -1,0 +1,22 @@
+
+R8 optimization method
+----------------------
+
+ 1. Drop your APK file into the dex2jar batch file
+ 2. Drop your APK file into the r8 batch file
+
+ 3. Using 7-Zip put the "classes.dex" file in your APK
+     [i] "classes.dex" is the output of the R8 optimizer
+
+ 4. Delete "classes.dex" and "<apkfilename>-dex2jar.jar"
+
+ 5. Uncompress your APK file using 7-Zip to a folder
+ 6. Remove the META-INF folder from your extracted folder
+ 7. Recompress using the maximum compression settings
+
+ 8. Re-align & re-sign the APK in V1 & V2 schemes with MyApkTool Pro
+ 9. Your completed file is now named "<apkfilename>_aligned_signed.apk"
+
+10. You can delete your old APK file and use the re-aligned + re-signed version
+
+

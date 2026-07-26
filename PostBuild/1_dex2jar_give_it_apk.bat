@@ -1,6 +1,10 @@
 
 @echo off
 
+rem Enabled delayed expansion
+rem Needed to trim filenames
+setlocal EnableDelayedExpansion
+
 rem Give this script the APK file, not the DEX
 rem
 rem This script takes take of creating the JAR file for you
@@ -8,9 +12,8 @@ rem from the APK file itself
 rem
 rem You can also drag-drop the APK file to this script
 
-rem Enabled delayed expansion
-rem Needed to trim filenames
-setlocal EnableDelayedExpansion
+rem Initial empty first line
+echo.
 
 rem These are the current options for Android PIN Unblocker
 rem And also set to the paths of my local machine
@@ -27,9 +30,6 @@ rem
 rem '%~f1' means no surrounding quotes around the path
 rem Otherwise it would be '%1'
 set APK=%~f1
-
-rem Initial empty first line
-echo.
 
 echo Running Dex2Jar on the provided APK file...
 echo.
