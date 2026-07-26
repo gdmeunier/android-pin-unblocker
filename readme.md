@@ -144,7 +144,7 @@ Maybe oneday if somebody randomly stumbles upon this app and likes it, they migh
 So here's below a list of assets that are currently (or have previously been) used for this app.
 
 Asset name | Author | License | Commercial use
--- | :-: | :-: | :-: |
+-- | :-: | :-: | :-:
 [Basic4Android](https://www.b4x.com/b4a.html) | Anywhere Software | [Apache 2.0](https://github.com/AnywhereSoftware/B4A/blob/master/LICENSE) | Allowed
 [FontAwesome](https://fontawesome.com/v4/) | Dave Gandy | [SIL OFL 1.1](https://fontawesome.com/v4/license/) | Allowed
 [Material Icons](https://github.com/google/material-design-icons) | Google | [Apache 2.0](https://github.com/google/material-design-icons/blob/master/LICENSE) | Allowed
