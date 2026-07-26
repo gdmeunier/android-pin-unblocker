@@ -780,7 +780,7 @@ public void jOpenBrowserUrl(Activity ctx, String browserUrl)
 	
 	if ( !browserUrl.startsWith("https://") && !browserUrl.startsWith("http://") )
 	{
-		browserUrl = "http://" + browserUrl;
+		browserUrl = "https://" + browserUrl;
 	}
 	
 	try

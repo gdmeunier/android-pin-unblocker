@@ -22,6 +22,6 @@ ModuleClosedNodes4=
 ModuleClosedNodes5=
 ModuleClosedNodes6=
 ModuleClosedNodes7=
-NavigationStack=Main,Activity_Stop,505,0,Main,Activity_NewIntent,707,0,Main,Activity_Start,689,0,Main,Activity_KeyPress,2074,1,Main,ActivityExit,2151,6,Main,mnuAbout_Click,2314,6,Main,Activity_Pause,2021,6,MyConstants,Class_Globals,44,5,Main,btnScanQR_Click,2470,0,Main,Activity_Destroy,599,6
+NavigationStack=Main,Activity_NewIntent,707,0,Main,Activity_Start,689,0,Main,Activity_KeyPress,2074,1,Main,ActivityExit,2151,6,Main,mnuAbout_Click,2314,6,Main,Activity_Pause,2021,6,MyConstants,Class_Globals,44,5,Main,btnScanQR_Click,2470,0,Main,Activity_Destroy,599,6,MyAdvanced,Class_Globals,6,0,MyAdvanced,Initialize,769,0
 SelectedBuild=0
 VisibleModules=7,5,3,6,1,2,4
