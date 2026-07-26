@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+	<doclet-version-NOT-library-version>1.07</doclet-version-NOT-library-version>
+	<class>
+		<!-- Keep the class & shortname the same values as original -->
+		<!-- It's perfectly possible to have one library name then different class names
+		     
+		     You can for example have this library named "LightRuntimePermissions"
+		     then it still provides a "RuntimePermissions" Object anyway
+		-->
+		<name>anywheresoftware.b4a.objects.RuntimePermissions</name>
+		<shortname>RuntimePermissions</shortname>
+		<owner>process</owner>
+		<method>
+			<name>GetSafeDirDefaultExternal</name>
+			<comment>Returns the path to the app's default folder on the secondary storage device.
+The path to File.DirInternal will be returned if there is no secondary storage available.
+It is a better alternative to File.DirDefaultExternal. On Android 4.4+ no permission is required to access this folder.
+You should add this code to the manifest editor to add the permission on older versions of Android:
+&lt;code&gt;AddManifestText(&lt;uses-permission
+android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+android:maxSdkVersion="18" /&gt;
+)&lt;/code&gt;
+SubFolder - A sub folder that will be created for your app. Pass an empty string if not needed.</comment>
+			<returntype>java.lang.String</returntype>
+			<parameter>
+				<name>SubFolder</name>
+				<type>java.lang.String</type>
+			</parameter>
+		</method>
+		<method>
+			<name>GetAllSafeDirsExternal</name>
+			<comment>Returns an array with all the external folders available to your app. 
+The first element will be the same as the value returned from GetSafeDirDefaultExternal.
+On Android 4.4+ no permission is required to access these folders.
+On older versions only one folder will be returned. You should add the permission as explained in GetSafeDirDefaultExternal documentation.
+SubFolder - A sub folder that will be created for your app. Pass an empty string if not needed.</comment>
+			<returntype>java.lang.String[]</returntype>
+			<parameter>
+				<name>SubFolder</name>
+				<type>java.lang.String</type>
+			</parameter>
+		</method>
+		<method>
+			<name>Check</name>
+			<comment>Checks whether the application has been granted the specified permission.
+This method can be called from a Service.</comment>
+			<returntype>boolean</returntype>
+			<parameter>
+				<name>Permission</name>
+				<type>java.lang.String</type>
+			</parameter>
+		</method>
+		<method>
+			<name>CheckAndRequest</name>
+			<comment>Checks whether the application has been granted the specified permission. If not then the user will be shown a dialog asking for permission.
+The Activity_PermissionResult will be raised with the result (in all cases).
+This method can only be called from an Activity.</comment>
+			<returntype>void</returntype>
+			<parameter>
+				<name>ba</name>
+				<type>anywheresoftware.b4a.BA</type>
+			</parameter>
+			<parameter>
+				<name>Permission</name>
+				<type>java.lang.String</type>
+			</parameter>
+		</method>
+		<field>
+			<name>PERMISSION_CALL_PHONE</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_READ_CALENDAR</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_ADD_VOICEMAIL</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_ACCESS_COARSE_LOCATION</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_READ_CONTACTS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_READ_PHONE_STATE</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_SEND_SMS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_BODY_SENSORS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_READ_SMS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_POST_NOTIFICATIONS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_READ_EXTERNAL_STORAGE</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_RECORD_AUDIO</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_READ_CALL_LOG</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_WRITE_EXTERNAL_STORAGE</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_ACCESS_FINE_LOCATION</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_ACCESS_CHECKIN_PROPERTIES</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_WRITE_CONTACTS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_GET_ACCOUNTS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_PROCESS_OUTGOING_CALLS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_CAMERA</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_WRITE_CALL_LOG</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_USE_SIP</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_RECEIVE_WAP_PUSH</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_RECEIVE_MMS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_WRITE_CALENDAR</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+		<field>
+			<name>PERMISSION_RECEIVE_SMS</name>
+			<comment></comment>
+			<returntype>java.lang.String</returntype>
+		</field>
+	</class>
+	<!-- Increase the version number by one major version -->
+	<version>2.0</version>
+	<!-- Depends on my custom trimmed AndroidX library
+	     
+	     It's a specially crafted & debloated AAR library
+	     file of AndroidX, with all unnecessary resources,
+	     R attributes, and so on contents removed from it
+	-->
+	<dependsOn>LightRuntimePermissions-AndroidX.aar</dependsOn>
+</root>

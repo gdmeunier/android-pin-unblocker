@@ -12,6 +12,10 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 - Threading.jar
 - Threading.xml
 
+- LightRuntimePermissions.jar
+- LightRuntimePermissions.xml
+- LightRuntimePermissions-AndroidX.aar
+
  [i] Create this folder structure if it doesn't already exist.
 
 Now copy the below core library mods to this folder:
