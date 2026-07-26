@@ -17,6 +17,7 @@ Sub Class_Globals
 	'Application source / origin
 	Public Const APPLICATION_HOMEPAGE_NAME As String = "GitHub Homepage"
 	Public Const APPLICATION_HOMEPAGE_URL  As String = "https://github.com/gdmeunier/android-pin-unblocker"
+	Public Const APPLICATION_LICENSE       As String = "GNU GPL 3.0+"
 	
 	'These constants only exist to make reading
 	'the source code easier to read
@@ -47,14 +48,21 @@ Sub Class_Globals
 	Public Const FLASH_NO_SPECIFIC_STATE As Boolean = False
 	Public Const FLASH_SPECIFIC_STATE    As Boolean = True
 	
+	'Copyright status icons (raw glyph from an icon font)
+	'These ones are actually important
+	'
+	'These belong to the MaterialIcons font
+	'Use these Constants instead of directly using the glyphs
+	Public Const COPYLEFT_ICON  As String = Chr(0xEB4D)  'Custom glyph addition (unofficial)
+	'Public Const COPYRIGHT_ICON As String = Chr(0xE90C) 'Currently unused, for reference purposes only
+	
 	'Flashlight state icons (raw glyph from an icon font)
 	'These ones are actually important
 	'
-	'It's normal that you don't see them in the
-	'Basic4Android IDE, just use these Constants
-	'instead of directly using the glyphs
-	Public Const FLASH_ICON_ON  As String = ""
-	Public Const FLASH_ICON_OFF As String = ""
+	'These belong to the MaterialIcons font
+	'Use these Constants instead of directly using the glyphs
+	Public Const FLASH_ICON_ON  As String = Chr(0xE3E7)
+	Public Const FLASH_ICON_OFF As String = Chr(0xE3E6)
 	
 	'These constants match Android's own ones
 	'

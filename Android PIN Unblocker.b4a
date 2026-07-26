@@ -30,8 +30,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 63
-	#VersionName: 4.10.0
+	#VersionCode: 64
+	#VersionName: 4.11.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -168,7 +168,8 @@ public void _onStop()
 	try
 	{
 		// Custom Activity_Stop event
-		_activity_stop();
+		/*                    Activity,       DontIgnoreIfPaused, EventName,       ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_stop", false,                  null);
 	}
 	catch (Exception e)
 	{
@@ -198,7 +199,8 @@ public void _onDestroy()
 	try
 	{
 		// Custom Activity_Destroy event
-		_activity_destroy(isFinishing, isChangingConfigurations);
+		/*                    Activity,       DontIgnoreIfPaused, EventName,          ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_destroy", false,                  new Object[]{isFinishing, isChangingConfigurations});
 	}
 	catch (Exception e)
 	{
@@ -217,7 +219,8 @@ public void _onRestart()
 	try
 	{
 		// Custom Activity_Restart event
-		_activity_restart();
+		/*                    Activity,       DontIgnoreIfPaused, EventName,          ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_restart", false,                  null);
 	}
 	catch (Exception e)
 	{
@@ -236,7 +239,8 @@ public void _onStart()
 	try
 	{
 		// Custom Activity_Start event
-		_activity_start();
+		/*                    Activity,       DontIgnoreIfPaused, EventName,        ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_start", false,                  null);
 	}
 	catch (Exception e)
 	{
@@ -327,7 +331,8 @@ public void _onNewIntent(Intent newIntent)
 		// Now we can send this wrapped Intent
 		// to our Activity_NewIntent function
 		//
-		_activity_newintent(wrappedNewIntent);
+		/*                    Activity,       DontIgnoreIfPaused, EventName,            ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_newintent", false,                  new Object[]{wrappedNewIntent});
 	}
 	catch (Exception e)
 	{
@@ -533,7 +538,7 @@ Sub Activity_Stop()
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Stop: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Stop: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -578,7 +583,7 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Destroy: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Destroy: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -615,6 +620,34 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 		LogColor($"[Main-${LogContextId}] Activity_Destroy: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Colors.Black)
 		#End If
 		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: The Activity is to say it again finishing for real and it's not a configuration change"$, Colors.Black)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: So we can just properly and fully kill this application's running process now"$, Colors.Black)
+		#End If
+		
+		'This method of exiting the App is so fast that
+		'the Basic4Android BridgeLogger doesn't have
+		'enough time to display the App exit-related
+		'logging lines, probably only logcat-based logging
+		'over USB with ADB cans be fast enough to show them
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: True exit of the App using the TrueApplicationExit method from the MyCommon class"$, Colors.Black)
+		#End If
+		'The Common object is necessarily initialized if
+		'Activity_Destroy cans be called to begin with
+		Common.TrueApplicationExit
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: This code here and below should never be reached if TrueApplicationExit is fast enough and instant"$, Colors.Red)
+		#End If
+		
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Red)
+		#End If
+		Return
+		
 	Else
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Destroy: The Activity is not finishing for real, alright"$, Colors.Black)
@@ -646,7 +679,7 @@ Sub Activity_Restart()
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Restart: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Restart: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -691,7 +724,7 @@ Sub Activity_Start()
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Start: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Start: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -2005,16 +2038,48 @@ Sub Activity_Pause(UserClosed As Boolean)
 		#End If
 		
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Pause: Calling ActivityExit"$, Colors.Blue)
+		LogColor($"[Main-${LogContextId}] Activity_Pause: No need to save the ViewState in this case"$, Colors.Blue)
 		#End If
-		ActivityExit
 		
-		'ActivityExit in the Main module calls TrueApplicationExit
-		'That means the next code below should never be reached
+		'No need to call ActivityExit here anymore
+		'ActivityExit already calls Activity.finish()
+		'
+		'It will then already call this Activity_Pause Sub,
+		'followed by Activity_Stop and Activity_Destroy if
+		'the app is lingering in the background as idle process
+		'
+		'However we can indeed directly call TrueApplicationExit
+		'without calling ActivityExit to avoid recusion
+		'
+		'This is incase Android doesn't respect our app manifest where
+		'it says that we don't want to stay running in the background
+		'
+		'Then when the user closes the app (finishes the Activity for real)
+		'the UserClosed variable will be True, so it's here that we can do
+		'the true application exit procedure
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Pause: The UserClosed parameter is True, so Android actually called this Activity_Pause function because it wants to keep this app's process running in the background"$, Colors.Blue)
+		#End If
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Pause: But we don't want that, we want the app to truly exit (its process too) when the user exits it"$, Colors.Blue)
+		#End If
+		
+		'This method of exiting the App is so fast that
+		'the Basic4Android BridgeLogger doesn't have
+		'enough time to display the App exit-related
+		'logging lines, probably only logcat-based logging
+		'over USB with ADB cans be fast enough to show them
+		#If LOGGING
+		LogColor($"[Main-${LogContextId}] Activity_Pause: True exit of the App using the TrueApplicationExit method from the MyCommon class"$, Colors.Black)
+		#End If
+		'The Common object is necessarily initialized if
+		'Activity_Pause cans be called to begin with
+		Common.TrueApplicationExit
 		
 		#If LOGGING
-		LogColor($"[Main-${LogContextId}] Activity_Pause: This code branch should not be reachable if the App has exited correctly"$, Colors.Red)
+		LogColor($"[Main-${LogContextId}] Activity_Pause: This code here and below should never be reached if TrueApplicationExit is fast enough and instant"$, Colors.Red)
 		#End If
+		
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Pause: Sub return"$, Colors.Red)
 		#End If
@@ -2079,10 +2144,7 @@ Private Sub Activity_KeyPress(KeyCode As Int) As Boolean
 			ActivityExit
 			
 			#If LOGGING
-			LogColor($"[Main-${LogContextId}] Activity_KeyPress: This code should never be reachable if the Activity exits correctly"$, Colors.Red)
-			#End If
-			#If LOGGING
-			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Sub return (returning True)"$, Colors.Red)
+			LogColor($"[Main-${LogContextId}] Activity_KeyPress: Sub return (returning True)"$, Colors.Blue)
 			#End If
 			Return True
 			
@@ -2147,21 +2209,8 @@ Private Sub ActivityExit
 	#End If
 	joMain.RunMethod("jBetterActivityFinish", Null)
 	
-	'This method of exiting the App is so fast that
-	'the Basic4Android BridgeLogger doesn't have
-	'enough time to display the App exit-related
-	'logging lines, probably only logcat-based logging
-	'over USB with ADB cans be fast enough to show them
 	#If LOGGING
-	LogColor($"[Main-${LogContextId}] ActivityExit: True exit of the App using the TrueApplicationExit method from the MyCommon class"$, Colors.Blue)
-	#End If
-	Common.TrueApplicationExit
-	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] ActivityExit: This code should never be reachable if the App has exited correctly"$, Colors.Red)
-	#End If
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] ActivityExit: Sub return"$, Colors.Red)
+	LogColor($"[Main-${LogContextId}] ActivityExit: Sub return"$, Colors.Blue)
 	#End If
 End Sub
 
@@ -2244,15 +2293,81 @@ Private Sub mnuAbout_Click
 		
 	End If
 	
-	'Positive button is 'Homepage'
-	'Cancel   button is 'Dismiss'
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] mnuAbout_Click: Displaying the About MessageBox with the proper App icon and button options"$, Colors.Blue)
 	#End If
-	Msgbox2Async($"${Application.LabelName}
-Version ${Application.VersionName}
-
-This app generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken${"."}"$, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, AboutIcon, Constants.MSGBOX_CANCELLABLE)
+	
+	'CSBuilder (CharSequenceBuilder) allows building CharSequence-based strings
+	'Such char sequences can contain better formatting options for strings
+	'
+	'More info:
+	' - https://www.b4x.com/android/forum/threads/charsequence-csbuilder-tutorial.76226/
+	'
+	'About Pop & PopAll:
+	' - "Calling Pop ends the last span that was added (and not ended yet).
+	'    Calling PopAll ends all open spans.
+	'    It's convenient to always call PopAll at the end to ensure that all spans are closed."
+	'
+	Dim AboutInfoText As CSBuilder
+	AboutInfoText.Initialize
+	
+	'Make the app name bold
+	AboutInfoText.Bold
+	'Basic4Android's CRLF is actually a LF char
+	'In its source code, CRLF resolves to "\n"
+	AboutInfoText.Append(Application.LabelName&CRLF) 'App name + newline
+	'Pop only the last app name span attribute (Bold)
+	AboutInfoText.Pop
+	'Make this app version text 10% smaller
+	AboutInfoText.RelativeSize(0.9) '10% is 0.10, so decrease its size by 0.10 (1.00 -> 0.90)
+	AboutInfoText.Append("Version "&Application.VersionName&CRLF) 'App version + newline
+	
+	'End the App name & version span
+	AboutInfoText.PopAll
+	
+	'Make sure to leave one empty line between
+	'the app name / version info and the description
+	'
+	'Adding it as its own span (Append CRLF then PopAll)
+	AboutInfoText.Append(CRLF)
+	AboutInfoText.PopAll
+	
+	'App description now
+	AboutInfoText.Append("This app generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken."&CRLF)
+	AboutInfoText.PopAll
+	
+	'Make sure to leave one empty line between
+	'the app description and the copyleft notice
+	'
+	'Adding it as its own span (Append CRLF then PopAll)
+	AboutInfoText.Append(CRLF)
+	AboutInfoText.PopAll
+	
+	'Copyleft notice (bonus)
+	'
+	'Yes, the Alignment constant is passed as a String
+	'
+	'Basic4Android then resolves the layout alignment constant
+	'automatically without having to create any Alignment Object
+	AboutInfoText.Alignment("ALIGN_CENTER")
+	'Make this copyleft notice 10% smaller
+	AboutInfoText.RelativeSize(0.9) '10% is 0.10, so decrease its size by 0.10 (1.00 -> 0.90)
+	AboutInfoText.Append("Copyleft ")
+		'Copyleft icon (custom addition to MaterialIcons)
+		AboutInfoText.VerticalAlign(2dip) 'Push the copyleft icon 2dip further below (calibrated value)
+		AboutInfoText.Typeface(Typeface.MATERIALICONS)
+		AboutInfoText.Append(Constants.COPYLEFT_ICON)
+		'Pop only the last copyleft icon span attributes (VerticalAlign & Typeface)
+		AboutInfoText.Pop 'Pop Typeface
+		AboutInfoText.Pop 'Pop VerticalAlign
+	'No CRLF needed for the last line
+	AboutInfoText.Append(" "&Constants.APPLICATION_LICENSE) 'No CRLF for the last text line
+	'End the last span too always
+	AboutInfoText.PopAll
+	
+	'Positive button is 'Homepage'
+	'Cancel   button is 'Dismiss'
+	Msgbox2Async(AboutInfoText, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, AboutIcon, Constants.MSGBOX_CANCELLABLE)
 	
 	'The ViewState visibility status of
 	'the About window is to be saved here

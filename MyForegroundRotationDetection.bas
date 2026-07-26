@@ -49,12 +49,69 @@ End Sub
 
 '
 'Pause, Stop, Destroy,          Start, Create, Resume = Foreground rotation
-'Pause, Stop,          Restart, Start,         Resume = App pause & resume
+'Pause, Stop,          Restart, Start,         Resume = App pause to background & resume to foreground
 '             Destroy,          Start, Create, Resume = Background rotation (outside of the app)
+'
+'Note:
+' - We actually allow considering as 'foreground rotation'
+'   the *foreground*-only app pause & resumes
+'
+' - Foreground app pause & resume is when the app's
+'   Activity loses focus then regains it,
+'   but the app was always visible in the foreground
+'
+'In the ideal cases the Activity lifecycle looks like this:
+'Pause,                                        Resume = App pause & resume while always in foreground
+'
+'But it's also possible that the Activity lifecycle tracking was
+'cleared by the Activity lifecycle tracking thread,
+'which is started by the Activities' App_Pause Subs
+'
+'This actually will very likely happen in most cases because
+'the Activity lifecycle tracking thread has a short enough delay
+'of 2 secondds (2000ms) delay before clearing it after Activity pause
+'
+'In these likely cases the Activity lifecycle looks like this:
+'                                              Resume = App pause & resume while always in foreground
+'
+'Notice how the Activity lifecycle will then just be
+'[Resume] without the prior [Pause]
+'
+'If the app is truly paused (screen turned off of app put in background)
+'then Android fires another Pause followed by a Stop event
+'
+'[Pause][Pause][Stop]
+'^Prior foreground Pause
+'       ^Pause because of app being put in the background
+'              ^The app is now in the background
+'
+'And this of course leads to later firing the Restart & Start Lifecycles
+'before reaching a Resume one
+'
+'[Restart][Start][Resume]
+'
+'So it's very easy to distinguish app pauses & resumes made
+'while in the foreground only vs. those made with the app in background
+'
+'So to conclude, a foreground-only app pause & resume is either one of:
+'Pause,                                        Resume = App pause & resume while always in foreground
+'                                              Resume = App pause & resume while always in foreground
 '
 Sub CheckIfForegroundRotation(MyActivityLifecycle As String) As Boolean
 	
+	'Foreground device rotation lifecycle
 	If MyActivityLifecycle == Pause & Stop & Destroy & Start & Create & Resume Then
+		Return True
+	End If
+	
+	'App pauses & resumes made all while the app is
+	'in the foreground only (always visible)
+	'
+	'Such Activity Lifecycles are whitelisted and
+	'considered as foreground device rotation for
+	'the callers of this CheckIfForegroundRotation Sub
+	If MyActivityLifecycle == Pause & Resume _
+	Or MyActivityLifecycle ==         Resume Then
 		Return True
 	End If
 	

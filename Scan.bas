@@ -145,7 +145,8 @@ public void _onStart()
 	try
 	{
 		// Custom Activity_Start event
-		_activity_start();
+		/*                    Activity,       DontIgnoreIfPaused, EventName,        ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_start", false,                  null);
 	}
 	catch (Exception e)
 	{
@@ -168,7 +169,8 @@ public void _onStop()
 	try
 	{
 		// Custom Activity_Stop event
-		_activity_stop();
+		/*                    Activity,       DontIgnoreIfPaused, EventName,       ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_stop", false,                  null);
 	}
 	catch (Exception e)
 	{
@@ -198,7 +200,8 @@ public void _onDestroy()
 	try
 	{
 		// Custom Activity_Destroy event
-		_activity_destroy(isFinishing, isChangingConfigurations);
+		/*                    Activity,       DontIgnoreIfPaused, EventName,          ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_destroy", false,                  new Object[]{isFinishing, isChangingConfigurations});
 	}
 	catch (Exception e)
 	{
@@ -217,7 +220,8 @@ public void _onRestart()
 	try
 	{
 		// Custom Activity_Restart event
-		_activity_restart();
+		/*                    Activity,       DontIgnoreIfPaused, EventName,          ThrowErrorIfMissingSub, ParametersObjectArray */
+		processBA.raiseEvent2(this._activity, true,               "activity_restart", false,                  null);
 	}
 	catch (Exception e)
 	{
@@ -319,7 +323,7 @@ Sub Activity_Stop()
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Stop: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] Activity_Stop: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -364,7 +368,7 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Destroy: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] Activity_Destroy: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -432,7 +436,7 @@ Sub Activity_Restart()
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Restart: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] Activity_Restart: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
@@ -477,7 +481,7 @@ Sub Activity_Start()
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] Activity_Start: Checking if this Activity's Lifecycle tracking is initialized..."$, Colors.Black)
 	#End If
-	If Not(ForegroundRotationDetection.IsInitialized) Then
+	If ForegroundRotationDetection == Null Or Not(ForegroundRotationDetection.IsInitialized) Then
 		#If LOGGING
 		LogColor($"[Scan-${LogContextId}] Activity_Start: This Activity's Lifecycle tracking is NOT initialized"$, Colors.Black)
 		#End If
