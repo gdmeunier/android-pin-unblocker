@@ -112,7 +112,66 @@ Sub CheckIfForegroundRotation(MyActivityLifecycle As String) As Boolean
 	'the callers of this CheckIfForegroundRotation Sub
 	If MyActivityLifecycle == Pause & Resume _
 	Or MyActivityLifecycle ==         Resume Then
+		'
+		'The MyActivityLifecycle == Resume check might
+		'so-calledly 'accidentally mistake' as
+		'a foreground app pause & resume the cases where
+		'the user clicks on one of this app's UI buttons,
+		'then this button runs a function that starts
+		'another Activity:
+		' - For example clicking on Scan QR code in the
+		'   Main module, taking a while to scan a QR code
+		'   then coming back to the Main module
+		'
+		'In such cases for example, the Admin key field
+		'is not hidden when you come back from scanning
+		'a QR code in the QR scanner module
+		'
+		'However this is not a bug, it's as intended:
+		' - The app was always in the foreground,
+		'   not put in the background
+		'
+		'So e.g. preventing the Admin key from being
+		'shown when you come back to the Main module
+		'from the QR scanner one is a responsibility
+		'that falls on the Main module itself:
+		' - This is its own responsibility and it has
+		'   to hide its Admin key itself before running
+		'   another Activity, it's not the job of
+		'   this function to accomodate such scenarios
+		'   when the app was always in the foreground
+		'
+		'TLDR: This check will also give a positive
+		'      'foreground device rotation' result
+		'      even when you weren't in the target
+		'      Activity for a while then come back
+		'      to it from another one
+		'
+		'      The Activities themselves have responsible
+		'      for hiding their sensitive information
+		'      before launching other ones
+		'
+		'The QR scanner module for example doesn't need
+		'to explicitly clear any sensitive state data
+		'such as the Flashlight on state,
+		'because it finishes itself (calls Activity.Finish)
+		'right after re-launching the Main Activity
+		'
+		'So this function code is correct, it doesn't have
+		'any 'failure to detect app pause' bug:
+		' - Not all app pauses & resumes are made
+		'   with the app being put into the background
+		'
+		'Foreground-only app pause & resume is whitelisted
+		'and deliberately allowed, because there's no risk
+		'of you forgetting whether you for example hid the
+		'Admin Key field in the Main module unless you
+		'put it into the background then come a while later:
+		' - The Activity was always visible to remind you
+		'   of it to begin with, it was not actually hidden
+		'
 		Return True
+		
 	End If
 	
 	Return False

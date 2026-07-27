@@ -28,4 +28,18 @@ ProGuard optimization method
      - "<apkfilename>_aligned.apk"
      - "<apkfilename>_aligned.apk.idsig"
 
+ [i] There's also another program (proprietary)
+     named WinMount which includes a file archiver
+
+     I tried it and it does create pretty small
+     ZIP files similar to 7-Zip's method of doing it
+
+     Also many times the ZIP files created with
+     WinMount were a few KBs smaller than the
+     ones created with 7-Zip
+
+     So if you're interested in using a proprietary
+     program to create smaller ZIP archives,
+     you might be interested to checkout WinMount
+
 

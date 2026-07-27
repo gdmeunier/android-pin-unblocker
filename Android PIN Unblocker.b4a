@@ -14,7 +14,7 @@ Library2=javaobject
 Library3=newqrcodereaderview
 Library4=threading
 Library5=lightruntimepermissions
-ManifestCode=~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3.0 & later (API level 9+)~\n~'~\n~'Target API level 33 (Android 13)~\n~'It's also the minimum compile SDK version for AndroidX~\n~'~\n~'Avoid targeting API level 36+ (Android 16+)~\n~'~\n~'Otherwise some manifest attributes get ignored,~\n~'here "android:maxAspectRatio" & "android:resizeableActivity"~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'Supported device screen sizes & densities (all of them)~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Permissions are automatically added by Basic4Android~\n~'because they are declared in the NewQRCodeReaderView library~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~'We do this by clearing its task affinity (setting it to "")~\n~'~\n~'Cans be set for <activity /> or <application />~\n~'Setting it in application covers the entire App~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~'We just do it for the entire application because why not~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'This App doesn't support multi-window mode~\n~'~\n~'Tell Android that this App hasn't been optimized for multi-window mode,~\n~'since otherwise the layouts will just look wrong anyway~\n~'~\n~'This preference is ignored for Apps targeting API level 36 or higher (Android 16+)~\n~'We can set it in either <activity /> or <application />~\n~SetApplicationAttribute("android:resizeableActivity", "false")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'Don't let Android persist this App's state across~\n~'device reboots and on shutdowns~\n~'~\n~'We don't want the user having a leftover of this app's~\n~'old Activity states after the device restarts~\n~'~\n~'Introduced in API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'We don't want to let one original Android user launch this App's Activities,~\n~'then have other Android users on the same device being able to see the~\n~'original user's Activity in any task history (for security reasons)~\n~'~\n~'Each Android user account on a device should launch their own Activity if~\n~'they want to see it in their task histories~\n~'~\n~'Introduced in API level 23 (Android 6)~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'Make the QR scanner Activity non-exported (private)~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Turns out there's an Activity attribute for automatically~\n~'hiding the App's Activities from the Recent Apps panel~\n~'when they are closed (Activity finish)~\n~'~\n~'They only stay visible in the Recent Apps panel~\n~'as long as the user doesn't exit the App~\n~'~\n~'Introduced starting with API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~' - The Scan Activity is already excluded from the Recent Apps panel~\n~~\n~'Already set to singleTop by default by Basic4Android,~\n~'but we explicitly set it to singleTop anyway~\n~'~\n~'Atleast a singleTop or singleTask (worse one) launch mode~\n~'is required to receive onNewIntent Activity callbacks~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~' - The Scan Activity doesn't need to receive Intents~\n~~\n~'Enforce stricter Intent matching rules for sharing~\n~'Intents to this app, by requiring that:~\n~' - Explicit Intents must match this app's component name~\n~' - Intents without any ACTION type don't match this app~\n~'~\n~'Set it for Activities that can receive Intents in this App~\n~'~\n~'Introduced in API level 36 (Android 16)~\n~'This attribute is also available for the <application /> field~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~' - The Scan Activity doesn't receive Intents~\n~~\n~'Add a Share To functionality for receiving Admin key texts~\n~'~\n~'This allows other Android applications to send text to this App,~\n~'and if they are valid Hex strings they get used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and forward~\n~'the generated hash to Android PIN Unblocker~\n~'~\n~' - "android:autoVerify"~\n~'   Introduced in API level 23 (Android 6)~\n~'~\n~'   It's some useless thing that's used for verifying~\n~'   Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":~\n~'   Introduced in API level 28 (Android 9)~\n~'~\n~'   This is the priority order of an Intent filter~\n~'   The higher the number, the higher the priority~\n~'~\n~'   It only manages the priority order of this App's own~\n~'   Intent filters, I don't want to use the "android:priority"~\n~'   Intent filter attribute since it would interfere with~\n~'   other apps' Intent filter offers,~\n~'   by taking priority over their own offers when you want to~\n~'   share text to a different application than this one~\n~'~\n~'   So out of courtesy for other apps, we only use~\n~'   the "android:order" Intent filter attribute~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'We don't care about Picture-in-Picture display mode~\n~'and we don't want to support it for security reasons~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform too much graphical~\n~'post-processing for this app (minimal post-processing)~\n~'~\n~'Some new-technology displays might try to improve the graphics,~\n~'colors, etc of an App but we don't need any such graphical enhancements~\n~'~\n~'Introduced in API level 30 (Android 11)~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations because we don't use~\n~'any animations in this app for performance reasons~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'The maximum display aspect ratio that this app is~\n~'optimized for and supports is 16:9 (1.77)~\n~'~\n~'If the device has a much higher aspect ratio then~\n~'tell Android to letterbox the Activity View~\n~'~\n~'Letterboxing means scaling the Activity view while~\n~'preserving a 16:9 aspect ratio in this case~\n~'~\n~'Note: using a target SDK version of 36 or higher~\n~'      causes Android to ignore this attribute~\n~'~\n~' - API level 36 is Android 16~\n~SetActivityAttribute(Main, "android:maxAspectRatio", "1.77")~\n~SetActivityAttribute(Scan, "android:maxAspectRatio", "1.77")~\n~~\n~'Intercept mundane device configuration change events to~\n~'deliberately ignore them when they come to this app~\n~'~\n~'More info:~\n~' - https://developer.android.com/guide/topics/manifest/activity-element?hl=en#config~\n~' - https://stackoverflow.com/questions/9566633/how-to-use-onconfigurationchanged-and-newconfig-orientation-configuration-o~\n~'~\n~'Tell Android that we're going to handle these configuration change events~\n~'but we will actually simply ignore them, so that Android doesn't destroy~\n~'then recreate this app's Activities for mundane device configuration changes~\n~'that are not even related to the device display or its orientation~\n~'~\n~'For example, device orientation events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we will hook all the other (useless) ones to ignore them~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'Also harden EditText fields with XML attributes when possible~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'Default Activity & application colors~\n~'~\n~~\n~'Android version doesn't matter (generic)~\n~'All versions need to pick the same color~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
+ManifestCode=~\n~'Minimum required Android version & target SDK~\n~'Support Android 2.3.0 & later (API level 9+)~\n~'~\n~'Target API level 33 (Android 13)~\n~'It's also the minimum compile SDK version for AndroidX~\n~'~\n~'Avoid targeting API level 36+ (Android 16+)~\n~'~\n~'Otherwise some manifest attributes get ignored,~\n~'here "android:maxAspectRatio" & "android:resizeableActivity"~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'Dislose that our App actually features functionality~\n~'that makes use of Camera hardware, but tell Android~\n~'that the Camera hardware isn't required for running~\n~'this application (QR code scanning is optional)~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'Supported device screen sizes & densities (all of them)~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'Opening browser URLs via Intents now requires more~\n~'Manifest declarations on Android 11 and later (API level 30+)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'Permissions are automatically added by Basic4Android~\n~'because they are declared in the NewQRCodeReaderView library~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'Application identity~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~SetApplicationAttribute(android:icon,  "@drawable/icon")~\n~~\n~'Application theme~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Always detach this App's Activities from the task stack of other Apps~\n~'We do this by clearing its task affinity (setting it to "")~\n~'~\n~'Cans be set for <activity /> or <application />~\n~'Setting it in application covers the entire App~\n~'~\n~'This is done for security reasons, so that other apps~\n~'cannot do 'task reparenting' (StrandHogg) attacks on it~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'Performance optimization for Camera preview (QR code scanning)~\n~'We just do it for the entire application because why not~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'This App doesn't support multi-window mode~\n~'~\n~'Tell Android that this App hasn't been optimized for multi-window mode,~\n~'since otherwise the layouts will just look wrong anyway~\n~'~\n~'This preference is ignored for Apps targeting API level 36 or higher (Android 16+)~\n~'We can set it in either <activity /> or <application />~\n~SetApplicationAttribute("android:resizeableActivity", "false")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'Don't let Android persist this App's state across~\n~'device reboots and on shutdowns~\n~'~\n~'We don't want the user having a leftover of this app's~\n~'old Activity states after the device restarts~\n~'~\n~'Introduced in API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'We don't want to let one original Android user launch this App's Activities,~\n~'then have other Android users on the same device being able to see the~\n~'original user's Activity in any task history (for security reasons)~\n~'~\n~'Each Android user account on a device should launch their own Activity if~\n~'they want to see it in their task histories~\n~'~\n~'Introduced in API level 23 (Android 6)~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'Make the Main Activity exported (public)~\n~'~\n~'Android 12+ (API level 32+) requires that Activities~\n~'with <intent-filters /> must explicitly be marked as~\n~'exported Activities, for security reasons~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Make the QR scanner Activity non-exported (private)~\n~'It should only be callable by this app, not other ones~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the QR scanner Activity from the Recent Apps panel~\n~'Only the Main Activity should be visible in the Recent Apps list~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Turns out there's an Activity attribute for automatically~\n~'hiding the App's Activities from the Recent Apps panel~\n~'when they are closed (Activity finish)~\n~'~\n~'They only stay visible in the Recent Apps panel~\n~'as long as the user doesn't exit the App~\n~'~\n~'Introduced starting with API level 21 (Android 5.0)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~' - The Scan Activity is already excluded from the Recent Apps panel~\n~~\n~'Already set to singleTop by default by Basic4Android,~\n~'but we explicitly set it to singleTop anyway~\n~'~\n~'Atleast a singleTop or singleTask (worse one) launch mode~\n~'is required to receive onNewIntent Activity callbacks~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~' - The Scan Activity doesn't need to receive Intents~\n~~\n~'Enforce stricter Intent matching rules for sharing~\n~'Intents to this app, by requiring that:~\n~' - Explicit Intents must match this app's component name~\n~' - Intents without any ACTION type don't match this app~\n~'~\n~'Set it for Activities that can receive Intents in this App~\n~'~\n~'Introduced in API level 36 (Android 16)~\n~'This attribute is also available for the <application /> field~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~' - The Scan Activity doesn't receive Intents~\n~~\n~'Add a Share To functionality for receiving Admin key texts~\n~'~\n~'This allows other Android applications to send text to this App,~\n~'and if they are valid Hex strings they get used as Admin key input~\n~'~\n~'For example, you can generate an Hash in another App and forward~\n~'the generated hash to Android PIN Unblocker~\n~'~\n~' - "android:autoVerify"~\n~'   Introduced in API level 23 (Android 6)~\n~'~\n~'   It's some useless thing that's used for verifying~\n~'   Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":~\n~'   Introduced in API level 28 (Android 9)~\n~'~\n~'   This is the priority order of an Intent filter~\n~'   The higher the number, the higher the priority~\n~'~\n~'   It only manages the priority order of this App's own~\n~'   Intent filters, I don't want to use the "android:priority"~\n~'   Intent filter attribute since it would interfere with~\n~'   other apps' Intent filter offers,~\n~'   by taking priority over their own offers when you want to~\n~'   share text to a different application than this one~\n~'~\n~'   So out of courtesy for other apps, we only use~\n~'   the "android:order" Intent filter attribute~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'We don't care about Picture-in-Picture display mode~\n~'and we don't want to support it for security reasons~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform too much graphical~\n~'post-processing for this app (minimal post-processing)~\n~'~\n~'Some new-technology displays might try to improve the graphics,~\n~'colors, etc of an App but we don't need any such graphical enhancements~\n~'~\n~'Introduced in API level 30 (Android 11)~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations because we don't use~\n~'any animations in this app for performance reasons~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'The maximum display aspect ratio that this app is~\n~'optimized for and supports is 16:9 (1.77)~\n~'~\n~'If the device has a much higher aspect ratio then~\n~'tell Android to letterbox the Activity View~\n~'~\n~'Letterboxing means scaling the Activity view while~\n~'preserving a 16:9 aspect ratio in this case~\n~'~\n~'Note: using a target SDK version of 36 or higher~\n~'      causes Android to ignore this attribute~\n~'~\n~' - API level 36 is Android 16~\n~SetActivityAttribute(Main, "android:maxAspectRatio", "1.77")~\n~SetActivityAttribute(Scan, "android:maxAspectRatio", "1.77")~\n~~\n~'Intercept mundane device configuration change events to~\n~'deliberately ignore them when they come to this app~\n~'~\n~'More info:~\n~' - https://developer.android.com/guide/topics/manifest/activity-element?hl=en#config~\n~' - https://stackoverflow.com/questions/9566633/how-to-use-onconfigurationchanged-and-newconfig-orientation-configuration-o~\n~'~\n~'Tell Android that we're going to handle these configuration change events~\n~'but we will actually simply ignore them, so that Android doesn't destroy~\n~'then recreate this app's Activities for mundane device configuration changes~\n~'that are not even related to the device display or its orientation~\n~'~\n~'For example, device orientation events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we will hook all the other (useless) ones to ignore them~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'Also harden EditText fields with XML attributes when possible~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~'Default Activity & application colors~\n~'~\n~~\n~'Android version doesn't matter (generic)~\n~'All versions need to pick the same color~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'This App doesn't have any background Service so we remove~\n~'the automatically added permission from the Manifest file~\n~'~\n~'This is always done as the last Manifest Editor action~\n~RemovePermission(android.permission.FOREGROUND_SERVICE)~\n~~\n~~\n~
 Module1=MyAdvanced
 Module2=MyCommon
 Module3=MyConstants
@@ -30,8 +30,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 68
-	#VersionName: 4.14.0
+	#VersionCode: 69
+	#VersionName: 4.15.0
 	
 	#SupportedOrientations: unspecified
 	#CanInstallToExternalStorage: False
@@ -164,6 +164,7 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onStop()
 {
 	// Just so we know when the Activity stops
@@ -185,10 +186,54 @@ import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
+import anywheresoftware.b4a.objects.ActivityWrapper;
+//
+// Below is for detecting device idle state
+// When the display is no longer 'interactive'
+//
+// Display off, screen locked, screensaver, inactivity [...]
+//
+import android.content.BroadcastReceiver;
 public void _onDestroy()
 {
 	// Just so we know when the Activity destroys
 	BA.LogInfo("** Activity (main) Destroy **");
+	
+	// Unregister device idle detection receiver on destroy
+	try
+	{
+		this.unregisterReceiver(DeviceIdleDetectionReceiver);
+	}
+	catch (Exception e)
+	{
+		//
+		// It's possible that the following happens:
+		//  - The user shares an Admin key text to the app while the app is running
+		//  - The Android system kills the previous Main module Activity instance
+		//
+		//  - Now the killing of the previous Activity instance already cleared
+		//    the prior DeviceIdleDetectionReceiver registration
+		//
+		//  - But because the next onDestroy call that follows will be part of
+		//    the previous instance being destroyed,
+		//    and because the DeviceIdleDetectionReceiver field got refreshed
+		//    with a new one that this function does not have at this moment,
+		//    it's perfectly possible for _onDestroy to try unregistering
+		//    a BroadcastReceiver that is already unregistered
+		//
+		// In such cases, an exception will be thrown and if not handled,
+		// this will crash the app even if it's not an important exception
+		//
+		// So we always try unregistering the BroadcastReceiver in _onDestroy,
+		// because most of the time this is fine and it's the proper way to do it,
+		// but if this call does fail then we don't actually care about it:
+		//  - The app should just ignore the exception and continue living on
+		//
+		
+		//
+		// Nothing to do here
+		//
+	}
 	
 	boolean isFinishing              = isFinishing();
 	boolean isChangingConfigurations = false;
@@ -215,6 +260,7 @@ public void _onDestroy()
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onRestart()
 {
 	// Just so we know when the Activity restarts
@@ -235,6 +281,7 @@ public void _onRestart()
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onStart()
 {
 	// Just so we know when the Activity starts
@@ -317,6 +364,7 @@ import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.objects.IntentWrapper;
 import android.content.Context;
 import android.app.Activity;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onNewIntent(Intent newIntent)
 {
 	BA.LogInfo("** Activity (main) NewIntent **");
@@ -350,9 +398,29 @@ public void _onNewIntent(Intent newIntent)
 #If Java
 import android.content.Context;
 import android.app.Activity;
+#End If
+#If NO_FLAG_SECURE
+'Hackish method for conditional compile-time Java code
+#If Java
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.content.Intent;
+#End If
+#End If
+#If Java
+//
+// Below is for detecting device idle state
+// When the display is no longer 'interactive'
+//
+// Display off, screen locked, screensaver, inactivity [...]
+//
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+import anywheresoftware.b4a.objects.ActivityWrapper;
+import android.content.IntentFilter;
+
+private static BroadcastReceiver DeviceIdleDetectionReceiver;
+
 public void _onCreate()
 {
 	//
@@ -364,14 +432,15 @@ public void _onCreate()
 	// Disable the Android 8.0+ Autofill service (for security reasons)
 	//
 	MainAdvanced.jDisableAndroidAutofillService(this);
-	
-	//
+#End If
+#If NO_FLAG_SECURE
+#If Java
 	// Check if the App is started from a Share To Intent
 	// This checks if an Admin key was shared to the App
 	//
+	// It's currently only used in NO_FLAG_SECURE builds
 	boolean isStartedFromShareToIntent = false;
 	
-	//
 	// We currently only use the isStartedFromShareToIntent flag
 	// for displaying security toast notifications in the
 	// NO_FLAG_SECURE build, so no need to run any of this code
@@ -385,8 +454,7 @@ public void _onCreate()
 	// we use this Share To Intent dection for only runs on
 	// the first-time App launch, no need to run it more than
 	// once per App launch / App lifecycle either
-	//
-	if ( myadvanced.NO_FLAG_SECURE && isFirst ) // Undocumented Basic4Android variable
+	if ( isFirst ) // Undocumented Basic4Android variable
 	{
 		try
 		{
@@ -410,7 +478,7 @@ public void _onCreate()
 	// Check if the App was compiled without FLAG_SECURE
 	// and if this is the first-time Activity launch
 	//
-	if ( myadvanced.NO_FLAG_SECURE && isFirst ) // Undocumented Basic4Android variable
+	if ( isFirst ) // Undocumented Basic4Android variable
 	{
 		/* Warn about the risks of using the NO_FLAG_SECURE build
 		 * on Android versions where it's a security risks
@@ -522,12 +590,84 @@ public void _onCreate()
 			}.start();
 		}
 	}
+#End If
+#End If
+#If Java
 	//
 	// Make this App Activity secure
 	//
 	MainAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
+	
+	// Below is for detecting device idle state
+	// When the display is no longer 'interactive'
+	//
+	// Display off, screen locked, screensaver, inactivity [...]
+	//
+	// "_activity" (ActivityWrapper) is not a public field so we have to
+	// explicitly give an handle to it for the IdleDeviceReceiver class
+	this.DeviceIdleDetectionReceiver = new myadvanced.IdleDeviceReceiver(this.processBA, this._activity);
+	this.registerReceiver(DeviceIdleDetectionReceiver, myadvanced.jGetIdleDeviceIntentFilter());
 }
 #End If
+'
+'For detecting screen off / screen locked / sleep mode
+'
+'On legacy devices such as those running Android 2.3,
+'the app's Activity is not paused on screen lock,
+'so it doesn't fire a resume event either
+'
+'On such old legacy devices, this function is considered
+'as very important before it's their only way of breaking
+'the Activity Lifecycle tracking and hiding the Admin key
+'on device screen off then unlock
+'
+Sub Activity_Idle
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Idle: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Idle: This event was fired, so the device is idle (non-interactive UI state)"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Idle: Setting the Hide Admin Key checkbox's ViewState to Checked and resetting the Activity Lifecycle tracking"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Idle: This will make it even quicker to securely hide the Admin Key on slow devices during application resume"$, Colors.Black)
+	#End If
+	
+	'Update the ViewState of the Hide Admin Key checkbox
+	'for the next Activity resume, because receivers are
+	'only called after Activity events
+	'
+	'That means our SaveViewState function actually ran
+	'before this one, so we have to catch up on it
+	'
+	'Also it's not possible to directly update chkHideAdminKey
+	'because when the activity is stopped (unlike paused)
+	'the Activity's UI elements are inaccessible (they are Null)
+	ViewState_chkHideAdminKey_Checked = True
+	
+	'Clear Activity Lifecycle tracking
+	'
+	'We clear the ActivityLifecycle tracking
+	'because we want to prevent any possibility
+	'for the app to potentially mistake the next
+	'application resume as from a foreground
+	'device rotation event
+	'
+	'Clearing the Activity Lifecycle tracking
+	'is therefore a bonus safety precaution
+	ForegroundRotationDetection.ActivityLifecycle = ""
+	
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Idle: Sub return"$, Colors.Black)
+	#End If
+End Sub
 '
 'For detecting foreground device rotation
 '
@@ -1043,6 +1183,10 @@ Sub Globals
 	
 	Private lblAdminKey As Label
 	Private edtAdminKey As EditText
+	
+	'For hiding the Admin key field with explanations
+	'about why it's hidden during app pause events
+	Private edtDecoyKey As EditText 'It's always visible by default
 	
 	Private chkHideAdminKey As CheckBox
 	Private btnHashMenu     As ToggleButton
@@ -1583,7 +1727,12 @@ Sub HardenActivityEditTexts(WantsToHardenASpecificOne As Boolean, WhichOneIfYes 
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] HardenActivityEditTexts: Adding all this Activity's EditTexts to our list"$, Colors.Blue)
 		#End If
-		EditTextsToHarden = Array As EditText(edtChallenge, edtAdminKey, edtResponse)
+		
+		'Even the decoy Admin key field too
+		'
+		'For hiding the Admin key field with explanations
+		'about why it's hidden during app pause events
+		EditTextsToHarden = Array As EditText(edtChallenge, edtAdminKey, edtDecoyKey, edtResponse)
 		
 	End If
 	
@@ -1685,7 +1834,9 @@ Sub FixMonospaceEditTexts(WantsToFixASpecificOne As Boolean, WhichOneIfYes As Ed
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] FixMonospaceEditTexts: Adding all this Activity's EditTexts to our list"$, Colors.Blue)
 		#End If
-		EditTextsToFix = Array As EditText(edtChallenge, edtAdminKey, edtResponse)
+		
+		'edtDecoyKey is also included if we need to fix *all* the EditTexts
+		EditTextsToFix = Array As EditText(edtChallenge, edtAdminKey, edtDecoyKey, edtResponse)
 		
 	End If
 	
@@ -1793,10 +1944,9 @@ Sub Activity_Resume
 	LogColor($"[Main-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&ForegroundRotationDetection.ActivityLifecycle, Constants.COLORS_ORANGE)
 	#End If
 	
-	#If LOGGING
-	LogColor($"[Main-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
-	#End If
-	RestoreViewState
+	'
+	'Moved RestoreViewState further down for security reasons
+	'
 	
 	If Shared_DetectedQRCodeContents <> "" Or Shared_AllowEmptyQRCodeContent Then
 		#If LOGGING
@@ -1807,6 +1957,19 @@ Sub Activity_Resume
 		LogColor($"[Main-${LogContextId}] Activity_Resume: Setting the Challenge code field .Text to the QR code content (sensitive value)"$, Colors.Blue)
 		#End If
 		edtChallenge.Text = Shared_DetectedQRCodeContents
+		
+		'Before we restore the ViewState later, you have to first
+		'alter it so that edtChallenge's text gets correctly
+		'restored incase since received QR code contents
+		'before the ViewState will actually get restored
+		'
+		'This is because this Activity's EditTexts don't have
+		'a realtime ViewState saving on every text change,
+		'as this would be unnecessarily performance-heavy
+		'
+		'Their last-focused-element ViewState though is indeed
+		'saved in realtime whenever it changes (no need to alter it)
+		ViewState_edtChallenge_Text = edtChallenge.Text
 		
 		'Clear the variable after use to prevent
 		'repeated setting on the QR code content
@@ -1850,10 +2013,61 @@ Sub Activity_Resume
 		LogColor($"[Main-${LogContextId}] Activity_Resume: So we want to hide the Admin Key field always to prevent accidental exposure in sensitive environments"$, Colors.Blue)
 		#End If
 		
+		'
+		'We have to forcibly call the CheckedChange event
+		'for the Hide Admin key checkbox instead of
+		'setting chkHideAdminKey.Checked to True
+		'
+		'This is because when the Activity is destroyed
+		'then recreated, it load the layout, but the
+		'Hide Admin Key checkbox is already enabled
+		'by default inside the layout configuration
+		'
+		'Therefore if you try setting chkHideAdminKey.Checked
+		'to True, it's trying to set it to the same value
+		'and Android ignores the event if it considers it "redundant"
+		'
+		'Previously it worked with chkHideAdminKey.Checked = True
+		'because we restored the ViewState first, then set the
+		'Checkbox .Checked state to True
+		'
+		'So we were restoring the previous state, which was
+		'potentially True **or False** then hid it again later
+		'
+		'But now that we restore the ViewState later only
+		'for security reasons, remember that the Checked
+		'state will always be by default True already
+		'because it's set to Checked = True in the layout file
+		'
+		'That's why we must manually force the event to fire
+		'by calling chkHideAdminKey_CheckedChange(True)
+		'
+		'We also don't mark the call as "called from Hotfix"
+		'because we want the full function to run,
+		'not just updating the Admin key field's .Hint value
+		'with bullet chars or zero digits
+		'
+		'TLDR: Don't use chkHideAdminKey.Checked = True
+		'
+		'      You must manually fire the event with:
+		'       - chkHideAdminKey_CheckedChange(True)
+		'
+		
+		'
+		'Additional note:
+		' - chkHideAdminKey_CheckedChange will already update
+		'   the checkbox's ViewState .Checked status with
+		'   the provided Checked parameter
+		'
+		' - You don't need to manually alter this ViewState
+		'   register before the Activity resume's call to
+		'   the RestoreViewState function
+		'
+		
 		#If LOGGING
 		LogColor($"[Main-${LogContextId}] Activity_Resume: Setting the Hide Admin Key field's .Checked state to True"$, Colors.Blue)
 		#End If
-		chkHideAdminKey.Checked = True
+		chkHideAdminKey_CheckedChange(True) 'It must be forcibly called
 		
 	Else
 		#If LOGGING
@@ -1867,6 +2081,49 @@ Sub Activity_Resume
 		#End If
 		
 	End If
+	
+	'Restore the ViewState only after having first set the
+	'Hide Admin Key checkbox to Checked if needed
+	'
+	'This prevents potential milliseconds-leaks of the
+	'Admin key texts in app background pause & resume scenarios
+	#If LOGGING
+	LogColor($"[Main-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
+	#End If
+	RestoreViewState
+	
+	'Something to do on app resume (only after restoring ViewState):
+	'Show the Admin key text (using the Visible property)
+	'
+	'This is how preventing potential milliseconds-leaks works
+	'in this application, to avoid having the key seen until
+	'we confirm that it's allowed to be visible
+	'
+	'It's allowed to be visible only once we have properly
+	'restored its PasswordMode property (incase it was hidden),
+	'and after we confirmed that we did the forced
+	'Admin key hiding in cases of application background-pause & resume
+	'
+	'It was set to invisible by Activity_Pause as a security precaution
+	'against short milliseconds-wise Admin key leaks (visual leaks)
+	If Not(IsFirstApplicationResume) Then
+		'No need to wait if it's the first app launch (first resume)
+		'
+		'If it's the first app launch, then there's no sensitive
+		'Admin key material shown anyway (just a 48-zeroes default key)
+		'
+		'Otherwise add a small 5ms delay for good measure
+		'Any delay value higher than 1ms will do fine
+		Sleep(5)
+		
+	End If
+	edtAdminKey.Visible = True
+	
+	'Hide the decoy Admin key field after it's safe to hide it
+	'
+	'It's used for hiding the Admin key field with
+	'explanations about why it's hidden (during app pauses)
+	edtDecoyKey.Visible = False
 	
 	'This only needs to be done once per Activity resume
 	'And only at the end of the Activity resume event
@@ -2015,6 +2272,15 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Sub entry (UserClosed = ${UserClosed})"$, Colors.Blue)
 	#End If
 	
+	'Something to do first on app pause events:
+	'Hide the Admin key text (using the Visible property)
+	'
+	'This prevents potential milliseconds-leaks of the
+	'Admin key texts in app background pause & resume scenarios
+	'
+	'It will be set to visible again anyway on app resume
+	edtAdminKey.Visible = False
+	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Updating this Activity's Lifecycle tracking for foreground rotation detection"$, Constants.COLORS_ORANGE)
 	#End If
@@ -2087,6 +2353,21 @@ Sub Activity_Pause(UserClosed As Boolean)
 		Return
 		
 	End If
+	
+	'
+	'Do the decoy Admin key display here
+	'after we make sure that the app's
+	'pause event is not UserClosed == True
+	'
+	'Otherwise why bother showing it
+	'if the app will fully exit anyway
+	'
+	
+	'Show the decoy Admin key field during application pauses
+	'
+	'It's used for hiding the Admin key field with explanations
+	'about why it's hidden, so that users know it's not a bug
+	edtDecoyKey.Visible = True
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] Activity_Pause: Starting this Activity's Lifecycle reset Timer for foreground rotation detection"$, Constants.COLORS_ORANGE)
@@ -2249,6 +2530,55 @@ End Sub
 
 #Region Activity menu event handlers
 
+'Currently only used in NO_FLAG_SECURE and LOGGING
+'build configurations, so no need to include it
+'in the FLAG_SECURE builds (e.g. GitHub releases)
+'
+'We do however also want to include this function
+'in any obfuscated build, no matter what configuration
+'the application uses (build type =/= build configuration)
+'
+'The OBFUSCATED conditional symbol is a valid one
+'but will not be highlighted in the Basic4Android IDE,
+'it's only set at compile time but it does work
+#If NO_FLAG_SECURE OR LOGGING OR OBFUSCATED
+'Helper function to add more than
+'one version label without writing
+'the same code twice (no redundancy)
+Private Sub mnuAbout_AddVersionLabel(AboutVersionText As CSBuilder, LabelText As String, LabelColor As Int, LabelBackgroundColor As Int)
+	'You don't need to add logging in a simple
+	'very small helper function like this one
+	'Set yellow color for the warning label background
+	
+	'Set the background color for the version label
+	AboutVersionText.BackgroundColor(LabelBackgroundColor)
+	
+	'Set the text color for the version label text
+	AboutVersionText.Color(LabelColor)
+	
+	'25% smaller than the previous text
+	AboutVersionText.RelativeSize(0.75)
+	
+	'Vertically align the version label text
+	'by adjusting the offset, to be more
+	'visually pleasing aka. better-aligned
+	'for the Human eye when the user sees it
+	AboutVersionText.VerticalAlign(-1dip) '1dip higher (negative value - calibrated value)
+	
+	'Append the version label
+	'
+	'Notice the spaces before & after in order to
+	'have left & right padding in the warning label
+	AboutVersionText.Append(" "&LabelText&" ")
+	
+	AboutVersionText.Pop 'Pop the -1dip VerticalAlign span
+	AboutVersionText.Pop 'Pop the 25% (plus 10%) smaller RelativeSize span
+	AboutVersionText.Pop 'Pop the text color span
+	AboutVersionText.Pop 'Pop the background color span
+	
+End Sub
+#End If
+
 Private Sub mnuAbout_Click
 	#If LOGGING
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -2321,7 +2651,69 @@ Private Sub mnuAbout_Click
 	AboutInfoText.Pop
 	'Make this app version text 10% smaller
 	AboutInfoText.RelativeSize(0.9) '10% is 0.10, so decrease its size by 0.10 (1.00 -> 0.90)
-	AboutInfoText.Append("Version "&Application.VersionName&CRLF) 'App version + newline
+	'Different version text between the
+	'FLAG_SECURE and NO_FLAG_SECURE builds
+	AboutInfoText.Append("Version "&Application.VersionName) 'App version (no CRLF char)
+	#If OBFUSCATED
+		'If it's obfuscated, then add a friendly warning
+		'to highlight that the app should not be obfuscated
+		'
+		'The OBFUSCATED conditional symbol is a valid one
+		'but will not be highlighted in the Basic4Android IDE,
+		'it's only set at compile time but it does work
+		
+		'Add a space to the app version text
+		AboutInfoText.Append(" ")
+		
+		'Set the caution label text to "OBFUSCATED"
+		'Set a white color for the warning label text
+		'Set a red color for the warning label background
+		mnuAbout_AddVersionLabel(AboutInfoText, "OBFUSCATED", Colors.White, Colors.Red)
+	#End If
+	#If NO_FLAG_SECURE
+		'Inform the user if they use an insecure build
+		'
+		'Insecure builds don't always warn the user
+		'on startup with a toast notification,
+		'as long as blocking the Recent Apps thumbnails
+		'without using FLAG_SECURE is possible
+		'
+		'Nonetheless, it's nice to know which build you have
+		'incase you're curious, rather than having to use an
+		'older device to get the warning toast notifications
+		'
+		' - (Android 12 & earlier, API levels 32 and below)
+		'
+		'Even the very legacy devices up to 4.0.2 will not
+		'show warning notifications on startup because
+		'it's possible to block Recent Apps thumbnails
+		'on these older Android versions without FLAG_SECURE
+		
+		'Add a space to the app version text
+		AboutInfoText.Append(" ")
+		
+		'Set the warning label text to "INSECURE"
+		'Set a black color for the warning label text
+		'Set a yellow color for the warning label background
+		mnuAbout_AddVersionLabel(AboutInfoText, "INSECURE", Colors.Black, Colors.Yellow)
+	#End If
+	#If LOGGING
+		'Inform the user if they use a logging-enabled build
+		'
+		'Logging-enabled builds require Internet access for
+		'the BridgeLogger to work, so this will reassure
+		'users on why the app somehow requests the Internet
+		'application permission, when they on the About menu
+		
+		'Add a space to the app version text
+		AboutInfoText.Append(" ")
+		
+		'Set the info label text to "LOGGING"
+		'Set a black color for the warning label text
+		'Set a cyan color for the warning label background
+		mnuAbout_AddVersionLabel(AboutInfoText, "LOGGING", Colors.Black, Colors.Cyan)
+	#End If
+	AboutInfoText.Append(CRLF) 'Now we can add the CRLF char
 	
 	'End the App name & version span
 	AboutInfoText.PopAll
@@ -2564,6 +2956,33 @@ Private Sub btnScanQR_Click
 		#End If
 		
 	End If
+	
+	'Hide the Admin Key field when the user wants to scan a QR code,
+	'because they might stay a little while on scanning the QR code,
+	'then forget that they didn't hide it when they come back
+	'to the Main module:
+	' - And if there's somebody else next to them, they might
+	'   accidentally see their Admin key before the user
+	'   quickly hides it back
+	'
+	'This is the responsility of this Main module to do this task
+	'before calling other Activities,
+	'see the MyForegroundRotationDetection's CheckIfForegroundRotation
+	'function code for more explanations about how this is not a bug,
+	'and why it's not the job of CheckIfForegroundRotation to detect
+	'Activity switching while the app is always in the foreground
+	'
+	'Also do this before starting another Activity,
+	'otherwise Activity_Pause will immediately run
+	'and pause this Activity before you can hide it
+	chkHideAdminKey.Checked = True
+	
+	'
+	'When you start another Activity, this one's Activity_Pause
+	'automatically gets fired and handles the rest for you
+	'
+	'You don't have anything else in particular to do now
+	'
 	
 	#If LOGGING
 	LogColor($"[Main-${LogContextId}] btnScanQR_Click: Launching the QR scanner module Activity"$, Colors.Blue)

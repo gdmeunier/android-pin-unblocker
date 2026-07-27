@@ -95,6 +95,7 @@ import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
 import java.util.ArrayList;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onStart()
 {
 	// Just so we know when the Activity starts
@@ -161,6 +162,7 @@ public void _onStart()
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onStop()
 {
 	// Just so we know when the Activity stops
@@ -182,10 +184,54 @@ import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
+import anywheresoftware.b4a.objects.ActivityWrapper;
+//
+// Below is for detecting device idle state
+// When the display is no longer 'interactive'
+//
+// Display off, screen locked, screensaver, inactivity [...]
+//
+import android.content.BroadcastReceiver;
 public void _onDestroy()
 {
 	// Just so we know when the Activity destroys
 	BA.LogInfo("** Activity (scan) Destroy **");
+	
+	// Unregister device idle detection receiver on destroy
+	try
+	{
+		this.unregisterReceiver(DeviceIdleDetectionReceiver);
+	}
+	catch (Exception e)
+	{
+		//
+		// It's possible that the following happens:
+		//  - The user shares an Admin key text to the app while the app is running
+		//  - The Android system kills the previous Main module Activity instance
+		//
+		//  - Now the killing of the previous Activity instance already cleared
+		//    the prior DeviceIdleDetectionReceiver registration
+		//
+		//  - But because the next onDestroy call that follows will be part of
+		//    the previous instance being destroyed,
+		//    and because the DeviceIdleDetectionReceiver field got refreshed
+		//    with a new one that this function does not have at this moment,
+		//    it's perfectly possible for _onDestroy to try unregistering
+		//    a BroadcastReceiver that is already unregistered
+		//
+		// In such cases, an exception will be thrown and if not handled,
+		// this will crash the app even if it's not an important exception
+		//
+		// So we always try unregistering the BroadcastReceiver in _onDestroy,
+		// because most of the time this is fine and it's the proper way to do it,
+		// but if this call does fail then we don't actually care about it:
+		//  - The app should just ignore the exception and continue living on
+		//
+		
+		//
+		// Nothing to do here
+		//
+	}
 	
 	boolean isFinishing              = isFinishing();
 	boolean isChangingConfigurations = false;
@@ -212,6 +258,7 @@ public void _onDestroy()
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
+import anywheresoftware.b4a.objects.ActivityWrapper;
 public void _onRestart()
 {
 	// Just so we know when the Activity restarts
@@ -291,6 +338,19 @@ public void onConfigurationChanged(Configuration newConfig)
 #If Java
 import android.content.Context;
 import android.app.Activity;
+//
+// Below is for detecting device idle state
+// When the display is no longer 'interactive'
+//
+// Display off, screen locked, screensaver, inactivity [...]
+//
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+import anywheresoftware.b4a.objects.ActivityWrapper;
+import android.content.IntentFilter;
+
+private static BroadcastReceiver DeviceIdleDetectionReceiver;
+
 public void _onCreate()
 {
 	//
@@ -307,8 +367,77 @@ public void _onCreate()
 	// Make this App Activity secure
 	//
 	ScanAdvanced.jSecureActivityOnCreate(this, isFirst); // Undocumented Basic4Android variable
+	
+	// Below is for detecting device idle state
+	// When the display is no longer 'interactive'
+	//
+	// Display off, screen locked, screensaver, inactivity [...]
+	//
+	// "_activity" (ActivityWrapper) is not a public field so we have to
+	// explicitly give an handle to it for the IdleDeviceReceiver class
+	this.DeviceIdleDetectionReceiver = new myadvanced.IdleDeviceReceiver(this.processBA, this._activity);
+	this.registerReceiver(DeviceIdleDetectionReceiver, myadvanced.jGetIdleDeviceIntentFilter());
 }
 #End If
+'
+'For detecting screen off / screen locked / sleep mode
+'
+'On legacy devices such as those running Android 2.3,
+'the app's Activity is not paused on screen lock,
+'so it doesn't fire a resume event either
+'
+'On such old legacy devices, this function is considered
+'as very important before it's their only way of breaking
+'the Activity Lifecycle tracking and hiding the Admin key
+'on device screen off then unlock
+'
+Sub Activity_Idle
+	#If LOGGING
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Idle: Sub entry"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Idle: This event was fired, so the device is idle (non-interactive UI state)"$, Colors.Black)
+	#End If
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Idle: Setting the Flashlight ViewState status to Off and resetting the Activity Lifecycle tracking"$, Colors.Black)
+	#End If
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Idle: This will make it even quicker to turn the Flashlight off during application resume"$, Colors.Black)
+	#End If
+	
+	'Update the ViewState of the TorchEnabled toggle for
+	'the next Activity resume, because receivers are
+	'only called after Activity events
+	'
+	'That means our SaveViewState function actually ran
+	'before this one, so we have to catch up on it
+	'
+	'Also it's not possible to directly update the UI elements
+	'because when the activity is stopped (unlike paused)
+	'the Activity's UI elements are inaccessible (they are Null)
+	ViewState_qrvQRCodeReaderView_TorchEnabled = False
+	
+	'Clear Activity Lifecycle tracking
+	'
+	'We clear the ActivityLifecycle tracking
+	'because we want to prevent any possibility
+	'for the app to potentially mistake the next
+	'application resume as from a foreground
+	'device rotation event
+	'
+	'Clearing the Activity Lifecycle tracking
+	'is therefore a bonus safety precaution
+	ForegroundRotationDetection.ActivityLifecycle = ""
+	
+	#If LOGGING
+	LogColor($"[Scan-${LogContextId}] Activity_Idle: Sub return"$, Colors.Black)
+	#End If
+End Sub
 '
 'For detecting foreground device rotation
 '
@@ -1103,7 +1232,7 @@ Private Sub ActivityExit
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] ActivityExit: Finishing this Scan Activity"$, Colors.Blue)
 	#End If
-	Activity.Finish()
+	Activity.Finish
 	
 	#If LOGGING
 	LogColor($"[Scan-${LogContextId}] ActivityExit: Sub return"$, Colors.Blue)

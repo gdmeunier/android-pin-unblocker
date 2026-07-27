@@ -35,19 +35,47 @@
 
 # ----- Keep Options (Shrinking / Optimization)
 
--keeppackagenames net.gdmeunier.pinunblocker
-
+#
+# If you want to keep all classes & members
+#
 # Add the "allowobfuscation" if you want
 # to use obfuscation for whatever reason
+#-keep,allowoptimization,includedescriptorclasses,includecode class **
+#-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class * {
+#    *;
+#}
 #
-# Choose either of these two modifier combos:
-#  - allowoptimization,includedescriptorclasses,includecode
-#  - allowshrinking,includedescriptorclasses,includecode
+
+# Must have the application's entry point kept
 #
-# Hint: "allowoptimization" is better than "allowshrinking"
+# Otherwise ProGuard doesn't know if there's
+# even an entry point in the JAR, which is
+# actually an Android app without "MANIFEST.MF"
 #
--keep,allowoptimization,includedescriptorclasses,includecode class **
--keepclassmembers,allowoptimization,includedescriptorclasses,includecode class * {
+# In such cases it avoids ProGuard removing
+# everything because it would think all cans
+# be removed then throw a warning about it
+#
+# Also don't shrink it (no allowshrinking here)
+# However it cans be optimized though
+-keep,allowoptimization,includedescriptorclasses,includecode class net.gdmeunier.pinunblocker.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class net.gdmeunier.pinunblocker.** {
+    *;
+}
+
+# This one also must not be shrunk at all
+# But it cans be optimized
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.** {
+    *;
+}
+
+# This one is referred to in BAL layout files
+# It must never be removed, but may be optimized
+#
+# It also must not be subject to shrinking
+-keep,allowoptimization,includedescriptorclasses,includecode class newqrcodereaderviewwrapper.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class newqrcodereaderviewwrapper.** {
     *;
 }
 
@@ -62,6 +90,11 @@
 # 4 passes because it's the 4th pass that is
 # the last useful one (proper value)
 -optimizationpasses 4
+
+# This is one of the very few (manually-tweaked)
+# optimization configurations that work with
+# Basic4Android apps, other ones usually crash
+# B4X applications (B4A, B4I, B4J etc)
 -optimizations library/*,!class/*,!field/*,!method/*,!code/merging,code/simplification/variable,!code/simplification/arithmetic,code/simplification/cast,code/simplification/field,code/simplification/branch,code/simplification/string,!code/simplification/math,code/simplification/advanced,code/removal/advanced,code/removal/simple,!code/removal/variable,code/removal/exception,code/allocation/*
 
 # Specifies that the access modifiers of classes and class members may be broadened during optimization
@@ -69,7 +102,31 @@
 
 # ----- Obfuscation Options
 
--keeppackagenames **
+# If you want to just keep all package names anyway
+#-keeppackagenames **
+
+# This app's package name + designer scripts
+# Designer scripts are for the BAL layout files
+-keeppackagenames net.gdmeunier.pinunblocker
+-keeppackagenames net.gdmeunier.pinunblocker.designerscripts
+
+# Basic4Android itself's package names
+-keeppackagenames anywheresoftware.b4a
+-keeppackagenames anywheresoftware.b4a.keywords
+-keeppackagenames anywheresoftware.b4a.keywords.constants
+-keeppackagenames anywheresoftware.b4a.objects
+-keeppackagenames anywheresoftware.b4a.objects.collections
+-keeppackagenames anywheresoftware.b4a.objects.drawable
+-keeppackagenames anywheresoftware.b4a.objects.streams
+-keeppackagenames anywheresoftware.b4j.object
+
+# The Threading library too
+-keeppackagenames anywheresoftware.b4a.agraham.threading
+
+# Layout BAL files refer to the exact class names
+# And the NewQRCodeReaderView must keep its names
+-keeppackagenames newqrcodereaderviewwrapper
+
 -keepattributes *
 -keepparameternames
 

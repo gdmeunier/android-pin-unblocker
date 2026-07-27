@@ -31,24 +31,356 @@ Sub Class_Globals
 	public static final int TOAST_LONG_DELAY  = 3500; // 3.5 seconds
 	public static final int TOAST_SHORT_DELAY = 2000; // 2 seconds
 	#End If
-	
-	'For letting the Java native code know whether
-	'the App was compiled without FLAG_SECURE
-	#If NO_FLAG_SECURE
-	#If Java
-	public static final boolean NO_FLAG_SECURE = true;
-	#End If
-	#Else
-	#If Java
-	public static final boolean NO_FLAG_SECURE = false;
-	#End If
-	#End If
-	
 End Sub
 
 Public Sub Initialize
 	
 End Sub
+
+'
+'For detecting screen off / screen locked / sleep mode ----------------
+'
+'On legacy devices such as those running Android 2.3,
+'the app's Activity is not paused on screen lock,
+'so it doesn't fire a resume event either
+'
+'On such old legacy devices, this function is considered
+'as very important before it's their only way of breaking
+'the Activity Lifecycle tracking and hiding the Admin key
+'on device screen off then unlock
+'
+#If Java
+/* In Android versions up to 2.3.7 (API level 10),
+ * the Android Activity lifecycle was so strict that
+ * Android frequently killed apps that were
+ * in the background to save memory,
+ * as the devices back two decandes ago (~2010) had
+ * very low amounts of RAM (most of them had 512MB)
+ * 
+ * So up to Android 2.3.7 (API level 10) an app's
+ * Activities were considered as killable to save
+ * the device's RAM resources which were low at the time
+ * 
+ * As such, that means these legacy Android version also
+ * actually *avoid* pausing applications when the screen
+ * is turned off, because it might kill its process
+ * 
+ * These older Android versions even allowed only one
+ * foreground Activity to stay active and just shortly killed
+ * those that were put in the background after a short while,
+ * without even calling pausing or stopping them first
+ * 
+ * It's only starting with Android 3.0 (API level 11)
+ * that this Activity lifecycle system was revamped,
+ * with Android no longer considering Activities as
+ * killable but instead having a more graceful behavior
+ * towards them, and started to pause Activities when
+ * non-interactive events happen (e.g. screen off)
+ * 
+ * So long story short, when the screen is turned off
+ * older legacy devices Android 2.3.7- will not pause
+ * this application's Activities, so they also won't
+ * resume them either; in these cases we have no other
+ * way to handle pause & resume on screen off than
+ * intercepting both screen-on & screen-off events,
+ * and we simulate the newer Activity lifecycle of
+ * Android 3.0+ (API level 11+) by ourselves calling
+ * our Activity_Pause & Activity_Resume functions
+ * 
+ * I actually verified that this is actually what
+ * really happens on my Android 2.3.6 device,
+ * and I confirmed that it's indeed what happens:
+ *  - The Activities don't pause & resume on
+ *    device screen-off then screen-on events
+ * 
+ * So to better support these legacy devices
+ * we register for both "Intent.ACTION_SCREEN_OFF"
+ * and "Intent.ACTION_SCREEN_ON" events
+ */
+
+/*
+ * - "Read the doc carefully!
+ *    This answer actually tells you if the device is "interactive".
+ *    If the screen is locked, the device is not interactive."
+ */
+
+/* This one is static because we don't need a running
+ * instance of this class just for device idle detection,
+ * which cans run independently of the other MyAdvanced code
+ */
+import android.content.IntentFilter;
+import android.content.Intent;
+public static IntentFilter jGetIdleDeviceIntentFilter()
+{
+	IntentFilter IdleDeviceIntentFilter = new IntentFilter();
+	
+	IdleDeviceIntentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+    IdleDeviceIntentFilter.addAction(Intent.ACTION_SCREEN_ON);
+	
+	return IdleDeviceIntentFilter;
+}
+
+/* Classes are not functions, so they should not
+ * start with j[...] here unlike function names
+ * 
+ * This one is static because we don't need a running
+ * instance of this class just for device idle detection,
+ * which cans run independently of the other MyAdvanced code
+ */
+import android.content.BroadcastReceiver;
+import anywheresoftware.b4a.BA;
+import anywheresoftware.b4a.objects.ActivityWrapper;
+import android.content.Intent;
+import android.os.Build;
+public static class IdleDeviceReceiver extends BroadcastReceiver
+{
+	//
+	// For storing the Activity handle of the caller's Activity
+	//
+	
+	BA callerProcessBA;
+	ActivityWrapper callerWrappedActivity;
+	
+	//
+	// For calling this class with:
+	//  - new myadvanced.IdleDeviceReceiver(BA processBA, ActivityWrapper _activity);
+	//
+	
+	/* Constructor method */
+	public IdleDeviceReceiver(BA processBA, ActivityWrapper _activity)
+	{
+		callerProcessBA        = processBA;
+		callerWrappedActivity  = _activity;
+		
+		/* Always save the current instance because
+		 * the getInstance function might be called
+		 * later even if the caller shouldn't do it
+		 * after using the new-constructor method.
+		 */
+		sInstance = this;
+		
+		//
+		// Constructors cannot have a return value
+		//
+	}
+	
+	//
+	// The IdleDeviceReceiver class code
+	//
+	
+	@Override
+	public void onReceive(Context ctx, Intent receivedIntent)
+	{
+		// Don't include "callerWrappedActivity"
+		// "callerWrappedActivity" cans legitimately be null
+		if ( receivedIntent == null || callerProcessBA == null )
+		{
+			return;
+		}
+		
+		// Using the undocumented "className" public field
+		// of the caller's "processBA" object
+		//
+		// Otherwise it would be e.g. "net.gdmeunier.pinublocker.main"
+		// Here it will instead become e.g. "main", "scan" etc
+		//
+		// Also in Java you have to escape the "\" character
+		// since it's literally in itself the escape operator
+		// and we use a RegEx string that the literal "\"
+		String callerClassName = callerProcessBA.className.replaceAll("^.+\\.([^\\.]+?)$", "$1");
+		
+		// Just so we know when the Activity receives
+		// a device idle broadcast
+		//
+		// We say "Received System Broadcast" because otherwise
+		// you would receive other non-system ones via your own
+		// Receiver-type modules, and declare them in your app manifest
+		//
+		// Here this class receives System broadcasts, those that can
+		// only be received by asking for them using Java code
+		//
+		// So we know that we're not going to receive non-System ones
+		BA.LogInfo("** Activity ("+callerClassName+") Received System Broadcast **");
+		
+		String receivedIntentAction = receivedIntent.getAction();
+		
+		if ( receivedIntentAction == null )
+		{
+			return;
+		}
+		
+		if ( receivedIntentAction.equals(Intent.ACTION_SCREEN_OFF) )
+		{
+			//
+			// Device idle state detected
+			//
+			BA.LogInfo("** Activity ("+callerClassName+") Screen Off System Broadcast **");
+			
+			// Check if we have an Android 2.3.7 or older device
+			// Android 2.3.7 is API level 10
+			if ( Build.VERSION.SDK_INT <= 10 )
+			{
+				/* Android 2.3.7 or older */
+				//
+				// Simulate the Android 3.0+ Activity lifecycle ourselves
+				// (Android 3.0+ is API level 11)
+				//
+				// We do it before Activity_Idle because that's how
+				// newer Android versions also do it,
+				// System broadcast receivers are send after the
+				// Activity's own builtin lifecycle events
+				//
+				// If the app is already paused, no need to fire this event
+				//
+				// Remember also that this will not actually pause the Activity,
+				// it will only run the Activity_Pause function
+				//
+				// Only Android itself cans pause Activities via ActivityManager
+				//
+				try
+				{
+					/* Fire the caller's Activity_Pause event handler
+					 *                          Activity,               DontIgnoreIfPaused, EventName,            ThrowErrorIfMissingSub, ParametersObjectArray */
+					callerProcessBA.raiseEvent2(callerWrappedActivity,  false,              "activity_pause",     false,                  new Object[]{false}); // UserClosed = False
+				}
+				catch (Exception e)
+				{
+					// Nothing to do here
+				}
+			}
+			
+			try
+			{
+				/* Fire the caller's Activity_Idle event handler
+				 * 
+				 * Sub signature:
+				 *  - Sub Activity_Idle
+				 *        'Do idle-related tasks here
+				 *    End Sub
+				 * 
+				 *                          Activity,               DontIgnoreIfPaused, EventName,            ThrowErrorIfMissingSub, ParametersObjectArray */
+				callerProcessBA.raiseEvent2(callerWrappedActivity,  true,               "activity_idle",      false,                  null);
+			}
+			catch (Exception e)
+			{
+				// Nothing to do here
+			}
+		}
+		else if ( receivedIntentAction.equals(Intent.ACTION_SCREEN_ON) )
+		{
+			//
+			// Device screen on event detected
+			//
+			BA.LogInfo("** Activity ("+callerClassName+") Screen On System Broadcast **");
+			
+			// Check if we have an Android 2.3.7 or older device
+			// Android 2.3.7 is API level 10
+			if ( Build.VERSION.SDK_INT <= 10 )
+			{
+				/* Android 2.3.7 or older */
+				
+				// Simulate the Android 3.0+ Activity lifecycle ourselves
+				// (Android 3.0+ is API level 11)
+				try
+				{
+					/* Fire the caller's Activity_Resume event handler
+					 * 
+					 * We don't actually need to fire this event always
+					 * even if the application was paused,
+					 * because we never actually truly paused the app
+					 * 
+					 * The app was never paused to begin with,
+					 * we only manually prior our Activity_Pause function
+					 * but the app's Activity was not paused at all
+					 * 
+					 * This is just a way for us to better hide the
+					 * Admin key field when the screen is turned off
+					 * then turned back on
+					 * 
+					 * And if you want to fire Activity_Resume for this,
+					 * then you must first have a ViewState to restore
+					 * so that's why we fired Activity_Pause prior
+					 * 
+					 * Because Activity_Pause saves the ViewState,
+					 * then this Activity_Resume call cans restore it
+					 * instead of restoring wrong prior ViewStates
+					 * 
+					 * TLDR: Activity_Resume will do a ViewState restore,
+					 *       but if you don't refresh it then it will
+					 *       restore an outdated wrong one
+					 *       
+					 *       So to satisfy the needs of Activity_Resume,
+					 *       we produced a fresh ViewState by calling
+					 *       Activity_Pause prior when the screen was off
+					 * 
+					 *                          Activity,               DontIgnoreIfPaused, EventName,            ThrowErrorIfMissingSub, ParametersObjectArray */
+					callerProcessBA.raiseEvent2(callerWrappedActivity,  false,              "activity_resume",    false,                  null);
+					//
+					// This will actually fire when the screen is turned on,
+					// even when it's just on the lockscreen without being
+					// back to the app's Activity yet
+					//
+					// So the Activity_Resume will fire while the keyguard
+					// is being shown, incase there's a lockscreen enabled
+					// (even the unsecured 'swipe to unlock' one)
+					//
+					// However this is not a problem for us, because we fired
+					// Activity_Pause first and deliberately prevented any
+					// accidental 'positive' ViewState register restore such as
+					// the Flashlight 'on' and Hide Admin Key 'unchecked' states
+					//
+					// That means that for example the Flashlight and Admin key field
+					// will be restored on legacy Android 2.3.7- devices early-on
+					// even while on the lockscreen, but they will be restored
+					// to safe values always:
+					//  - Flashlight state always restored to Off
+					//  - Hide Admin Key state restored to Hidden
+					//
+					// This is what Activity_Idle event Subs did for us when
+					// the screen was turned off:
+					//  - Deliberately preventing any potential inconvenience
+					//    (Flashlight state) or potential leak (Admin Key field)
+					//
+					// So yes it fires immediately when the screen is on,
+					// but in our case it's even better for us, and remember that
+					// this always happens on legacy devices only:
+					//
+					// Those that won't already fire Activity_Pause or Activite_Resume
+					// lifecycle events on their own when the screen is turned on/off
+					//
+					// So we won't run into a problem such as firing
+					// these events twice as the new devices that do
+					// run these events themselves are excluded from
+					// this fallback functionality (API level <= 10 checks)
+					//
+				}
+				catch (Exception e)
+				{
+					// Nothing to do here
+				}
+			}
+		}
+	}
+	
+	//
+	// For convenience purposes
+	// For calling it with:
+	//  - myadvanced.IdleDeviceReceiver.getInstance(BA processBA, ActivityWrapper _activity);
+	//
+	
+	private static IdleDeviceReceiver sInstance;
+	
+	public static IdleDeviceReceiver getInstance(BA processBA, ActivityWrapper _activity)
+	{
+		if (sInstance == null)
+		{
+			sInstance = new IdleDeviceReceiver(processBA, _activity);
+		}
+		
+		return sInstance;
+	}
+}
+#End If
 
 '
 'Java-only functions for making the Activity --------------------------
@@ -118,7 +450,16 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 	
 	if ( Build.VERSION.SDK_INT >= 33 )
 	{
-		if ( !jDisableRecentAppsThumbnails(ctx) )
+		if ( jDisableRecentAppsThumbnails(ctx) )
+		{
+			// Recent Apps thumbnail disabled
+			// No problem here
+			thumbnailDisabledSuccessfully = true;
+		}
+#End If
+#If NO_FLAG_SECURE
+#If Java
+		else
 		{
 			/* If the user is running the FLAG_SECURE build
 			 * then it's not really a problem because
@@ -137,7 +478,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 			 * 
 			 * Note: warn only on first Activity launch
 			 */
-			if ( NO_FLAG_SECURE && firstTimeLaunch )
+			if ( firstTimeLaunch )
 			{
 				// User runs the NO_FLAG_SECURE build of this App
 				// Don't try adding FLAG_SECURE as a fallback
@@ -170,12 +511,9 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 				}.start();
 			}
 		}
-		else
-		{
-			// Recent Apps thumbnail disabled
-			// No problem here
-			thumbnailDisabledSuccessfully = true;
-		}
+#End If
+#End If
+#If Java
 	}
 	
 	/* Legacy versions of Android allow us to properly
@@ -193,7 +531,9 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 	{
 		thumbnailDisabledSuccessfully = true;
 	}
-	
+#End If
+#If Not(NO_FLAG_SECURE)
+#If Java
 	/* Important reminder:
 	 * We don't actually want to always add FLAG_SECURE
 	 * even when the FLAG_SECURE build is used
@@ -210,7 +550,7 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 	 * and decides to use NO_FLAG_SECURE, then they
 	 * have been warned already and are on their own
 	 */
-	if ( !thumbnailDisabledSuccessfully && !NO_FLAG_SECURE )
+	if ( !thumbnailDisabledSuccessfully ) // Only for FLAG_SECURE builds
 	{
 		// Returns true if the device is too old
 		// and FLAG_SECURE did not exit in their
@@ -248,6 +588,9 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 			}.start();
 		}
 	}
+#End If
+#End If
+#If Java
 }
 #End If
 

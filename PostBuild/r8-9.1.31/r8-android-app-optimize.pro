@@ -37,13 +37,6 @@
 
 # Add the "allowobfuscation" if you want
 # to use obfuscation for whatever reason
-#
-# Choose either of these two modifier combos:
-#  - allowoptimization,includedescriptorclasses
-#  - allowshrinking,includedescriptorclasses
-#
-# Hint: "allowoptimization" is better than "allowshrinking"
-#
 -keep,allowoptimization,includedescriptorclasses class **
 -keepclassmembers,allowoptimization,includedescriptorclasses class * {
     *;
