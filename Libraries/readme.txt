@@ -16,7 +16,7 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 - LightRuntimePermissions.xml
 - LightRuntimePermissions-AndroidX.aar
 
- [i] Create this folder structure if it doesn't already exist.
+ [i] Create this folder structure if it doesn't already exist
 
 Now copy the below core library mods to this folder:
 C:\Program Files\Anywhere Software\B4A\Libraries
@@ -43,7 +43,7 @@ the 'Additional Libraries' path to this value:
 C:\Program Files\Anywhere Software\B4A\AdditionalLibraries
 
  [i] Basic4Android automatically searches subfolders for
-     compatible Basic4Android additional libraries.
+     compatible Basic4Android additional libraries
 
 3. Example javac.exe and android.jar file paths
 ===============================================
@@ -52,7 +52,7 @@ javac.exe:   C:\java\jdk-14.0.1\bin\javac.exe
 android.jar: C:\Android\platforms\android-37.0\android.jar
 
  [i] You can change the paths to your own if you installed
-     the Java JDK and Android SDK elsewhere on your system.
+     the Java JDK and Android SDK elsewhere on your system
 
 4. Clear the Basic4Android library cache
 ========================================
@@ -63,11 +63,9 @@ you can delete all the files & folders located at:
 C:\Android\extras\b4a_local
 
 Finally inside this project's "Objects" folder delete
-all the contents except this file which must exist:
-
-Objects\res\drawable\icon.png
+all the contents inside it (everything)
 
  [i] Doing the above step will force refreshing
-     the library cache with the updated libraries.
+     the library cache with the updated libraries
 
 

@@ -5,30 +5,168 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
-#Region Module File Attributes
-	
-#End Region
+'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+'
+'Important notice:
+'
+'We want each class in this application to be standalone, so that they don't
+'rely on other ones and create dependencies with eachother:
+' - So don't hesitate do write two or more times the same function
+'   across many classes that need it
+'
+'I want that people be able to easily extract specific classes from
+'this application and reuse them in their own
+'
+'So all classes should have self-contained functions (not depending on eachother)
+'
+'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
+'
+'This class uses a mix of Java native and Basic-code
+'
+'Also notice that all its Java functions are "public" here:
+' - Because this is required for accessing them via a JavaObject,
+'   since we're initializing a 'new instance' of it:
+'
+'   And this is exactly as if we were not part of this class itself,
+'   so we cannot access private functions via a JavaObject
+'
+'    Only this class's Java native functions themselves can do this
+'
 
 Sub Class_Globals
 	
 	'For running Java native code
-	Private joMyCommon As JavaObject
+	Private joClass As JavaObject
+	
+	'To ensure correct running functions order'
+	'
+	'Using SynchronousSleep2 as the name because
+	'Basic4Android doesn't allow the SynchronousSleep name
+	'to be the same as the SynchronousSleep2 Sub's name
+	'
+	' - (Variable SynchronousSleep2 cannot have the same name
+	'    as the SynchronousSleep Sub)
+	'
+	Private SynchronousSleep2 As MySynchronousSleep
 	
 End Sub
 
+'Initializes the object
+'You can add parameters to this method if needed
 Public Sub Initialize
 	
-	'For running Java native code
-	joMyCommon.InitializeStatic(Application.PackageName&".mycommon")
+	'For running Java native code:
+	' - Self-initialization as a JavaObject with its current instance
+	joClass = Me.As(JavaObject)
+	
+	'To ensure correct running functions order
+	SynchronousSleep2.Initialize
 	
 End Sub
 
-'For correcting the flawed monospace font
-'implementation of Android which doesn't
-'correctly make EditTexts monospace on
-'some older devices
+Public Sub SynchronousSleep(Milliseconds As Int, OriginActivityCaller As Object, SubName As String)
+	
+	SynchronousSleep2.SynchronousSleep_Start(Milliseconds, Me, "SynchronousSleep")
+	Wait For SynchronousSleep_SynchronousSleep_Completed
+	
+	CallSubDelayed(OriginActivityCaller, "SynchronousSleep_"&SubName&"_Completed")
+	
+End Sub
+
+Public Sub GetAndroidApiLevel As Int
+	Return joClass.RunMethod("jGetAndroidApiLevel", Null)
+End Sub
+#If Java
+import android.os.Build;
+public static int jGetAndroidApiLevel()
+{
+	return Build.VERSION.SDK_INT;
+}
+#End If
+
+Public Sub GetDeviceCamerasCount As Int
+	Return joClass.RunMethod("jGetDeviceCamerasCount", Null)
+End Sub
+#If Java
+import android.os.Build;
+import android.hardware.Camera;
+public static int jGetDeviceCamerasCount()
+{
+	int camerasCount = 0;
+	
+	// Android Android 2.3.2 or higher only (API level 9+)
+	// We use APIs that require atleast this version
+	//
+	if ( Build.VERSION.SDK_INT < 9 )
+	{
+		return camerasCount;
+	}
+	
+	try
+	{
+		camerasCount = Camera.getNumberOfCameras();
+	}
+	catch (Exception e)
+	{
+		/* Consider that there's no device Camera if this function fails
+		 */
+		camerasCount = 0;
+	}
+	
+	return camerasCount;
+}
+#End If
+
+Public Sub GetSquareIconSizeForDisplayScale As Int
+	'
+	'Get better-adapted icons according to device's display scale
+	'
+	Dim DisplayScale   As Float = GetDeviceLayoutValues.Scale
+	Dim SquareIconSize As Int   = Application.Icon.Height
+	
+	If DisplayScale < 1.0 Then
+		'If the display scale is 0.75 (120dpi / ldpi) etc
+		SquareIconSize = 36 'Or 32
+		
+	Else If DisplayScale < 1.5 Then
+		'If the display scale is 1.0 (160dpi / mdpi) etc
+		SquareIconSize = 48
+		
+	Else If DisplayScale < 2.0 Then
+		'If the display scale is 1.5 (240dpi / hdpi) etc
+		SquareIconSize = 72 'or 64
+		
+	Else If DisplayScale < 3.0 Then
+		'If the display scale is 2.0 (320dpi / xhdpi) etc
+		SquareIconSize = 96
+		
+	Else If DisplayScale < 4.0 Then
+		'If the display scale is 3.0 (480dpi / xxhdpi) etc
+		SquareIconSize = 144
+		
+	Else If DisplayScale < 5.0 Then
+		'If the display scale is 4.0 (640dpi / xxxhdpi) etc
+		SquareIconSize = 192
+		
+	End If
+	
+	'If device scale is 5.0 or higher?
+	'
+	'Who knows, perhaps mobile devices in 2030 will have insane
+	'display scales like that, but then you probably want to atleast
+	'have the actual icon size as the recommended square icon for your display
+	'
+	'Let's hope that theapplication's current 256px size is enough
+	'for your future 8K mobile phone displays I guess
+	Return SquareIconSize
+	
+End Sub
+
+'For correcting the flawed monospace font implementation of Android which
+'does not correctly make the EditTexts monospace on some older devices
 Public Sub ForceCorrectMonospaceFont(MyEditText As EditText)
-	joMyCommon.RunMethod("jForceCorrectMonospaceFont", Array(MyEditText))
+	joClass.RunMethod("jForceCorrectMonospaceFont", Array(MyEditText))
 End Sub
 #If Java
 import android.widget.EditText;
@@ -36,14 +174,16 @@ import android.widget.TextView;
 import android.graphics.Typeface;
 public static void jForceCorrectMonospaceFont(EditText myEditText)
 {
-	// Two functions exist with different parameters
+	// Two functions actually exist with different parameters
+	// We just call both of them for extra-just-in-case reasons
+	//
 	myEditText.setTypeface(Typeface.MONOSPACE);
 	myEditText.setTypeface(Typeface.MONOSPACE, Typeface.NORMAL);
 }
 #End If
 
 Public Sub ForceCorrectMonospaceFontDigits(MyEditText As EditText)
-	joMyCommon.RunMethod("jForceCorrectMonospaceFontDigits", Array(MyEditText))
+	joClass.RunMethod("jForceCorrectMonospaceFontDigits", Array(MyEditText))
 End Sub
 #If Java
 import android.widget.EditText;
@@ -51,138 +191,66 @@ import android.os.Build;
 import android.widget.TextView;
 public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 {
-	// Check Android SDK version
-	// Android API level 21+ 
-	if ( Build.VERSION.SDK_INT >= 21 )
+	// Android 5.0 or higher only (API level 21+)
+	// This function didn't exist on older verions
+	//
+	if ( Build.VERSION.SDK_INT >= 21 ) /* Android 5.0+ */
 	{
-		/* Android 5.0+ */
 		myEditText.setFontFeatureSettings("tnum");
 	}
 }
 #End If
 
-'Currently not being used at all:
-'For allowing horinzontal scrolling on EditTexts
+'For knowing how many lines a text will take if it's wrapped,
+'then determining how many pixels it will be in height:
+' - This does look a bit like Magick indeed
 '
-'Public Sub ForceAllowHorizontalScroll(MyEditText As EditText)
-'	joMyCommon.RunMethod("jForceAllowHorizontalScroll", Array(MyEditText))
-'End Sub
-'#If Java
-'import android.widget.EditText;
-'import android.widget.TextView;
-'public static void jForceAllowHorizontalScroll(EditText myEditText)
-'{
-'	// Added in API level 1
-'	myEditText.setHorizontallyScrolling(true);
-'}
-'#End If
-
-'For getting the Android SDK version without
-'bundling the big Phone library
-Public Sub GetAndroidSdkVersion As Int
-	Return joMyCommon.RunMethod("jGetAndroidSdkVersion", Null)
-End Sub
-#If Java
-import android.os.Build;
-public static int jGetAndroidSdkVersion() {
-	return Build.VERSION.SDK_INT;
-}
-#End If
-
-'For getting the number of device Cameras without
-'bundling the big Phone library
-Public Sub GetNumberOfDeviceCameras As Int
-	Return joMyCommon.RunMethod("jGetNumberOfDeviceCameras", Null)
-End Sub
-#If Java
-import android.os.Build;
-import android.hardware.Camera;
-public static int jGetNumberOfDeviceCameras()
-{
-	int numCameras;
+Public Sub GetTextDisplayHeight(Text As String, TextSize As Int, MaxContainerWidth As Int, SoftwareNavBarWidth As Int, DisplayScale As Float) As Int
+	'
+	' - SoftwareNavBarWidth is directly provided in actual pixels value
+	'
+	' - MaxContainerWidth is also a raw pixels value but it includes the
+	'   the software NavBar as 'available width' despite this being false
+	'
+	'   That's why we correct this in our own copy of it named "MaxWidth"
+	'
 	
-	// Check if Android API level 9+ (Android 2.3+)
-	if ( Build.VERSION.SDK_INT >= 9 )
-	{
-		/* Android 2.3+ */
-		try
-		{
-			numCameras = Camera.getNumberOfCameras();
-		}
-		catch (Exception e)
-		{
-			// Consider that there's no device Camera
-			// if this function fails
-			numCameras = 0;
-		}
-	}
-	else
-	{
-		// Consider that there's no device Camera
-		// on devices that are too old for getting
-		// the number of device Cameras via API
-		numCameras = 0;
-	}
+	'We consider that the text size is also its height
+	Dim TextHeight As Int = TextSize
 	
-	return numCameras;
-}
-#End If
-
-'For truly exiting the App
-Public Sub TrueApplicationExit
-	joMyCommon.RunMethod("jTrueApplicationExit", Null)
-End Sub
-#If Java
-public static void jTrueApplicationExit() {
-	System.exit(0);
-}
-#End If
-
-Public Sub GetSquareIconSizeForDeviceScale As Int
+	'We consider that the text height is equal to its width,
+	'as if all characters were square-sized
+	'
+	'Basic4Android layouts scale at 0.3 so multiply the final value by 1.3
+	Dim TextWidth  As Int = (TextHeight * Text.Length) * 1.3
+	Dim MaxWidth   As Int = MaxContainerWidth - SoftwareNavBarWidth
 	
-	'Get better-adapted icons according to screen DPI & scale
-	Dim DeviceScale    As Float = GetDeviceLayoutValues.Scale
-	Dim SquareIconSize As Int   = Application.Icon.Height
+	'
+	'The text width shouldn't be converted to raw pixels yet
+	'
 	
-	If DeviceScale < 1.0 Then
-		'If the device scale is 0.75 (120dpi / ldpi) etc
-		SquareIconSize = 36 'Or 32
+	'Check if the text will be wrapped in line breaks
+	If TextWidth > MaxWidth Then
 		
-	Else If DeviceScale < 1.5 Then
-		'If the device scale is 1.0 (160dpi / mdpi) etc
-		SquareIconSize = 48
+		Dim TextLinesCount As Int = 1 'Always start with 1 as the lines count (not 0)
 		
-	Else If DeviceScale < 2.0 Then
-		'If the device scale is 1.5 (240dpi / hdpi) etc
-		SquareIconSize = 72 'or 64
+		Do Until TextWidth <= MaxWidth
+			TextWidth      = TextWidth - MaxWidth
+			TextLinesCount = TextLinesCount + 1
+		Loop
 		
-	Else If DeviceScale < 3.0 Then
-		'If the device scale is 2.0 (320dpi / xhdpi) etc
-		SquareIconSize = 96
-		
-	Else If DeviceScale < 4.0 Then
-		'If the device scale is 3.0 (480dpi / xxhdpi) etc
-		SquareIconSize = 144
-		
-	Else If DeviceScale < 5.0 Then
-		'If the device scale is 4.0 (640dpi / xxxhdpi) etc
-		SquareIconSize = 192
+		TextHeight = TextHeight * TextLinesCount 'Now the height is (height) * (lines count)
 		
 	End If
 	
-	'If device scale is 5.0 or higher?
+	'Finally we need to return a raw pixel value (not a dip value):
+	' - Because the text size was given to us in dip units
 	'
-	'Who knows, perhaps mobile devices in 2030
-	'will have insane device scales like that,
-	'but then you probably want atleast the
-	'actual icon size as the recommended
-	'square icon size for your device
+	'So our final text height is otherwise in dip units too
 	'
-	'Let's hope that the current App icon's
-	'256px square size is enough for your
-	'future 8K resolution mobile phone then!
-	
-	Return SquareIconSize
+	'Text sizes such as 14, 16, and so on are obviously not raw pixel units,
+	'since otherwise it would be impossible to see the text on high-density displays
+	Return TextHeight * DisplayScale
 	
 End Sub
 
