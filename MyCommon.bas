@@ -205,7 +205,7 @@ public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 'then determining how many pixels it will be in height:
 ' - This does look a bit like Magick indeed
 '
-Public Sub GetTextDisplayHeight(Text As String, TextSize As Int, MaxContainerWidth As Int, SoftwareNavBarWidth As Int, DisplayScale As Float) As Int
+Public Sub GetTextDisplayHeight(Text As String, TextSize As Int, MaxContainerWidth As Int, SoftwareNavBarWidth As Int, UserFontScale As Float) As Int
 	'
 	' - SoftwareNavBarWidth is directly provided in actual pixels value
 	'
@@ -214,20 +214,12 @@ Public Sub GetTextDisplayHeight(Text As String, TextSize As Int, MaxContainerWid
 	'
 	'   That's why we correct this in our own copy of it named "MaxWidth"
 	'
-	
-	'We consider that the text size is also its height
-	Dim TextHeight As Int = TextSize
+	Dim TextHeight As Int = TextSize * GetDeviceLayoutValues.Scale * UserFontScale
 	
 	'We consider that the text height is equal to its width,
 	'as if all characters were square-sized
-	'
-	'Basic4Android layouts scale at 0.3 so multiply the final value by 1.3
-	Dim TextWidth  As Int = (TextHeight * Text.Length) * 1.3
+	Dim TextWidth  As Int = TextHeight * Text.Length
 	Dim MaxWidth   As Int = MaxContainerWidth - SoftwareNavBarWidth
-	
-	'
-	'The text width shouldn't be converted to raw pixels yet
-	'
 	
 	'Check if the text will be wrapped in line breaks
 	If TextWidth > MaxWidth Then
@@ -243,15 +235,39 @@ Public Sub GetTextDisplayHeight(Text As String, TextSize As Int, MaxContainerWid
 		
 	End If
 	
-	'Finally we need to return a raw pixel value (not a dip value):
-	' - Because the text size was given to us in dip units
-	'
-	'So our final text height is otherwise in dip units too
-	'
-	'Text sizes such as 14, 16, and so on are obviously not raw pixel units,
-	'since otherwise it would be impossible to see the text on high-density displays
-	Return TextHeight * DisplayScale
+	Return TextHeight
 	
 End Sub
+#If Java
+//
+// For caching purposes
+// Their respective imports are located at the top their method
+//
+private Resources cachedContextResources = null;
+
+import android.content.Context;
+import android.app.Activity;
+import android.content.res.Resources;
+import android.content.res.Configuration;
+public float jGetUserFontScale(Context ctx)
+{
+	Resources ctxRes;
+	
+	if ( cachedContextResources != null )
+	{
+		ctxRes = cachedContextResources;
+	}
+	else
+	{
+		ctxRes = ctx.getResources();
+		cachedContextResources = ctxRes;
+	}
+	//
+	// Don't cache this information
+	//
+	Configuration cfg = ctxRes.getConfiguration();
+	return cfg.fontScale;
+}
+#End If
 
 

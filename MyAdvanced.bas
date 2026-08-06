@@ -1279,6 +1279,7 @@ public static int jGetDeviceCamerasCount()
 	return camerasCount;
 }
 
+/*
 import android.os.Build;
 import android.content.res.Configuration;
 import android.content.Context;
@@ -1289,18 +1290,18 @@ import android.content.res.Resources;
 import android.view.Surface;
 public int jGetDisplayOrientation(Context ctx)
 {
-	/* Configuration - API level 1+:
-	 *  - ORIENTATION_UNDEFINED = 0 (0x00000000)
-	 *  - ORIENTATION_PORTRAIT  = 1 (0x00000001)
-	 *  - ORIENTATION_LANDSCAPE = 2 (0x00000002)
-	 *  - ORIENTATION_SQUARE    = 3 (0x00000003) /!\ deprecated since API level 16
-	 *
-	 * WindowManager - API level 1+:
-	 *  - Surface.ROTATION_0   = 0 (portrait)
-	 *  - Surface.ROTATION_90  = 1 (landscape)
-	 *  - Surface.ROTATION_180 = 2 (reverse portrait)
-	 *  - Surface.ROTATION_270 = 3 (reverse landscape)
-	 */
+	// Configuration - API level 1+:
+	//  - ORIENTATION_UNDEFINED = 0 (0x00000000)
+	//  - ORIENTATION_PORTRAIT  = 1 (0x00000001)
+	//  - ORIENTATION_LANDSCAPE = 2 (0x00000002)
+	//  - ORIENTATION_SQUARE    = 3 (0x00000003) /!\ deprecated since API level 16
+	//
+	// WindowManager - API level 1+:
+	//  - Surface.ROTATION_0   = 0 (portrait)
+	//  - Surface.ROTATION_90  = 1 (landscape)
+	//  - Surface.ROTATION_180 = 2 (reverse portrait)
+	//  - Surface.ROTATION_270 = 3 (reverse landscape)
+	//
 	
 	// Default value is unknown
 	// Better initially set a safe bet by saying that we don't know
@@ -1314,7 +1315,7 @@ public int jGetDisplayOrientation(Context ctx)
 	
 	try
 	{
-		if ( Build.VERSION.SDK_INT  >= 31) /* Android 11+ */
+		if ( Build.VERSION.SDK_INT  >= 31) // Android 11+
 		{
 			//
 			// Don't cache this information
@@ -1339,7 +1340,7 @@ public int jGetDisplayOrientation(Context ctx)
 					break;
 			}
 		}
-		else if ( Build.VERSION.SDK_INT >= 17 ) /* Android 4.2+ */
+		else if ( Build.VERSION.SDK_INT >= 17 ) // Android 4.2+
 		{
 			WindowManager wm;
 			
@@ -1368,11 +1369,11 @@ public int jGetDisplayOrientation(Context ctx)
 					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
 					break;
 					
-				case Surface.ROTATION_180: /* Reverse-portrait */
+				case Surface.ROTATION_180: // Reverse-portrait
 					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
 					break;
 					
-				case Surface.ROTATION_270: /* Reverse-landscape */
+				case Surface.ROTATION_270: // Reverse-landscape
 					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
 					break;
 					
@@ -1383,7 +1384,7 @@ public int jGetDisplayOrientation(Context ctx)
 					break;
 			}
 		}
-		else /* Android 4.1- */
+		else // Android 4.1-
 		{
 			Resources sysRes;
 			
@@ -1421,14 +1422,15 @@ public int jGetDisplayOrientation(Context ctx)
 	}
 	catch (Exception e)
 	{
-		/* If this function fails (very old device?) then just claim that
-		 * the display orientation is actually unknown (the safer option)
-		 */
+		// If this function fails (very old device?) then just claim that
+		// the display orientation is actually unknown (the safer option)
+		//
 		displayOrientation = Configuration.ORIENTATION_UNDEFINED;
 	}
 	
 	return displayOrientation;
 }
+*/
 
 import android.os.Build;
 import android.content.res.Configuration;

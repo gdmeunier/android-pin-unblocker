@@ -41,7 +41,7 @@ Sub Class_Globals
 	'Use these constants instead of directly writing using raw glyphs in
 	'your code, which might accidentally be lost due to text encoding [...]
 	Public Const COPYLEFT_ICON  As String = Chr(0xEB4D) 'Custom glyph addition (unofficial)
-	Public Const COPYRIGHT_ICON As String = Chr(0xE90C) 'Currently unused, for reference purposes only
+	'Public Const COPYRIGHT_ICON As String = Chr(0xE90C) 'Currently unused, for reference purposes only
 	
 	'Flashlight state icons (raw glyph from an icon font):
 	' - These are actually important
@@ -51,14 +51,6 @@ Sub Class_Globals
 	'your code, which might accidentally be lost due to text encoding [...]
 	Public Const FLASH_ICON_ON  As String = Chr(0xE3E7)
 	Public Const FLASH_ICON_OFF As String = Chr(0xE3E6)
-	
-	'These orientation constants match Android's own builtin ones
-	'
-	'These copies of the constants are here for convenience purposes and
-	'Basic-code access only
-	Public Const ORIENTATION_UNDEFINED As Int = 0x0
-	Public Const ORIENTATION_PORTRAIT  As Int = 0x1
-	Public Const ORIENTATION_LANDSCAPE As Int = 0x2
 	
 	'For special Hotfix logging purposes
 	Public Const COLORS_ORANGE As Int = Colors.RGB(0xFF, 0x66, 0x00) 'Web-safe 256-indexed color
@@ -81,9 +73,6 @@ Sub Class_Globals
 	Public Const TOAST_DURATION_SHORT As Boolean = False
 	Public Const TOAST_DURATION_LONG  As Boolean = True
 	
-	Public Const TOAST_SHORT_DELAY As Int = 2000 '2000ms = 2s
-	Public Const TOAST_LONG_DELAY  As Int = 3500 '3500ms = 3.5s
-	
 	Public Const CAMERA_ANY   As Int = 0x0
 	Public Const CAMERA_REAR  As Int = 0x0
 	Public Const CAMERA_FRONT As Int = 0x1
@@ -100,9 +89,6 @@ Sub Class_Globals
 	
 	Public Const EDITTEXT_SPECIFIC_ONE    As Boolean  = True
 	Public Const EDITTEXT_NO_SPECIFIC_ONE As Boolean  = False
-	
-	Public Const PASSWORD_HIDDEN_PASSWORD  As Boolean = False
-	Public Const PASSWORD_VISIBLE_PASSWORD As Boolean = True
 	
 End Sub
 

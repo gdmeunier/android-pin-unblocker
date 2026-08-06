@@ -138,8 +138,18 @@ Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
 	Select DoWhat
 		Case DO_CCID_DIAGNOSTICS, SEND_APDU
 			Try
-				Dim ServiceReply() As Object = joService.RunMethod("jService_Message", Array(DoWhat, Parameters))
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				Dim ServiceReply() As Object  = joService.RunMethod("jService_Message", Array(DoWhat, Parameters))
+				Dim IsSuccessful   As Boolean = True
+				
+				'The MySmartcardReader class automatically handles APDU
+				'request chaining transparently, so we can just simply
+				'check for a 90 00 status code
+				If DoWhat == SEND_APDU And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+					IsSuccessful = False
+				End If
+				
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
+				
 			Catch
 				Log(LastException)
 				

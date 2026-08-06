@@ -1,4 +1,4 @@
-﻿ModuleBookmarks0=2594,1265,1274
+﻿ModuleBookmarks0=
 ModuleBookmarks1=
 ModuleBookmarks10=
 ModuleBookmarks11=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Main,mnuDirectUnblock_Click,2590,2,Main,Activity_Create,1270,0,MyCCID,Initialize,262,0,MySmartcardReader,Initialize,242,0,Smartcard,Service_Message,132,6,Smartcard,Application_Error,498,0,Smartcard,Service_Start,113,2,Smartcard,Service_TaskRemoved,305,0,MyAdvanced,Initialize,296,0,Main,mnuTestSmartcardService_Click,1286,6
+NavigationStack=Main,btnGenerate_Click,3518,0,Smartcard,Application_Error,634,0,MySmartcardReader,Class_Globals,27,0,Main,RestoreViewState,1895,0,Main,mnuAbout_Click,3081,0,MySmartcardReader,Initialize,178,0,Smartcard,Service_Message,134,6,Main,Activity_Create,1178,0,Main,mnuDirectUnblock_Click,2549,6,Main,SaveViewState,2400,0
 SelectedBuild=0
-VisibleModules=10,11,8,2
+VisibleModules=10,11,8

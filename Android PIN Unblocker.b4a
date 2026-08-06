@@ -36,8 +36,8 @@ Version=12.5
 
 #Region Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 70
-	#VersionName: 5.0.0
+	#VersionCode: 71
+	#VersionName: 5.1.0
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -141,6 +141,7 @@ Version=12.5
 private String activityName = "main";
 
 private myadvanced myadvancedInstance = new myadvanced();
+private mycommon   mycommonInstance   = new mycommon();
 
 private BroadcastReceiver DeviceIdleDetectionReceiver;
 
@@ -163,9 +164,6 @@ import android.content.Context;
 import android.app.Activity;
 public float jGetDisplayScale()
 {
-	//
-	// This function is also used by LoadActivityLayout
-	//
 	return myadvancedInstance.jGetDisplayScale(this);
 }
 
@@ -177,9 +175,17 @@ public void jOpenBrowserUrl(String browserUrl)
 }
 
 import android.content.Context;
+import android.app.Activity;
 public boolean jDeviceHasUsbOtgSupport()
 {
 	return myadvancedInstance.jDeviceHasUsbOtgSupport(this);
+}
+
+import android.content.Context;
+import android.app.Activity;
+public float jGetUserFontScale()
+{
+	return mycommonInstance.jGetUserFontScale(this);
 }
 #End If
 
@@ -1297,77 +1303,10 @@ Sub Activity_Create(FirstTime As Boolean)
 		
 	End If
 	
-	'TEST
-	Activity.AddMenuItem("Test Smartcard Service", "mnuTestSmartcardService")
-	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Calling InitializeActivityLayout to initialize the loaded layout..."$, Colors.Blue)
 	InitializeActivityLayout
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
-End Sub
-
-Private Sub mnuTestSmartcardService_Click
-	
-	If Not(joActivity.RunMethod("jDeviceHasUsbOtgSupport", Null)) Then
-		Msgbox2Async($"Your phone does not have USB-OTG support:
-Not possible to proceed further without USB host-mode / OTG support on your phone"$, "Test Smartcard Service", "", "Cancel", "", Application.Icon, True)
-		Return
-		
-	End If
-	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	Dim CallerBundle() As Object = Array As Object( _
-		Me, _
-		"mnuTestSmartcardService", _
-		Array As Object() _
-	)
-	
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.DO_CCID_DIAGNOSTICS, CallerBundle)
-	Wait For Smartcard_mnuTestSmartcardService_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	Msgbox2Async($"Here's what I received about CCID diagnostics from the Smartcard Service:
------ Reply success status is: -----
-${IsSucessful}
-
------ Response data is: -----
-${ResponseBundle(0)}"$, "Test Smartcard Service", "Try Sending APDU", "Cancel", "", Application.Icon, True)
-	Wait For Msgbox_Result(Result As Int)
-	
-	If Result <> DialogResponse.POSITIVE Then
-		Return
-	End If
-	
-	'
-	'Now try sending an APDU to the card
-	'
-	
-	'Test applet selection APDU just to see if sending APDUs works
-	CallerBundle = Array As Object( _
-		Me, _
-		"mnuTestSmartcardService", _
-		Array As Object( _
-			"00 A4 04 00 07 A0 00 00 00 03 00 00 00" _
-		) _
-	)
-	
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuTestSmartcardService_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	Msgbox2Async($"Here's what I received about sending an APDU from the Smartcard Service:
------ APDU I sent to the card: -----
-00 A4 04 00 07 A0 00 00 00 03 00 00 00
-
------ Reply success status is: -----
-${IsSucessful}
-
------ Response data is: -----
-${ResponseBundle(0)}"$, "Test Smartcard Service", "Close", "", "", Application.Icon, True)
-	Wait For Msgbox_Result(Result As Int)
-	
-	StopService(Smartcard)
-	
 End Sub
 
 Private Sub LoadActivityLayout
@@ -1475,11 +1414,6 @@ Private Sub LoadActivityLayout
 		
 	End If
 	
-	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Adding some neat borders to the EditText fields"$, Colors.Blue)
-	For Each MyEditText As EditText In Array As EditText(edtChallenge, edtAdminKey, edtDecoyKey, edtResponse)
-		AddBordersToEditText(MyEditText, False) 'HasFocus = False
-	Next
-	
 	'Add the ScrollView itself to the Activity View (must be done explicitly)
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Adding the ScrollView's View to the Activity (must be done explicitly in code)"$, Colors.Blue)
 	Activity.AddView(scvActivity, 0, 0, scvActivity.Width, scvActivity.Height)
@@ -1505,9 +1439,9 @@ Private Sub FixVariantSpecificLayouts(ActivityMargins() As Int, BottomMostElemen
 	'
 	'This function directly returns the raw
 	'pixels count (not a dip-pixel value)
-	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Getting software navbar visibility status and device display scale..."$, Colors.Blue)
+	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Getting software navbar visibility status & width if any..."$, Colors.Blue)
 	Dim SoftwareNavBarWidth As Int   = TempJavaObject.RunMethod("jGetSoftwareNavBarWidth", Null)
-	Dim DisplayScale        As Float = TempJavaObject.RunMethod("jGetDisplayScale", Null)
+	Dim UserFontScale       As Float = TempJavaObject.RunMethod("jGetUserFontScale", Null)
 	
 	'Correct the ScrollView inner panel's height to add
 	'the layout's variant-specific bottom margin
@@ -1555,14 +1489,14 @@ Private Sub FixVariantSpecificLayouts(ActivityMargins() As Int, BottomMostElemen
 	Dim MaxPanelNetWidth  As Int = scvActivity.Panel.Width - (ActivityMargins(0) + ActivityMargins(2))
 	
 	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Computing the net visual height taken by the Hash Text menu background's info text"$, Colors.Blue)
-	Dim TextDisplayHeight As Int = TempCommon.GetTextDisplayHeight(btnHashMenuBg.Text, btnHashMenuBg.TextSize, MaxPanelNetWidth, SoftwareNavBarWidth, DisplayScale)
+	Dim TextDisplayHeight As Int = TempCommon.GetTextDisplayHeight(btnHashMenuBg.Text, btnHashMenuBg.TextSize, MaxPanelNetWidth, SoftwareNavBarWidth, UserFontScale)
 	
 	'We have to also account for the vertical text size and when
 	'the text is long such that it gets wrapped in line breaks
 	'
 	'[0] Left, [1] Top, [2] Right, [3] Bottom
-	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Pushing the Hash Text menu background's info text so that it's exactly ${(ActivityMargins(3) / 1dip).As(Int)}dip (the bottom margin) above the Hash Text menu button when also including with the text visual height"$, Colors.Blue)
-	Dim HashMenuBgTopMargin As Int = btnHashMenu.Top - ActivityMargins(3) - TextDisplayHeight
+	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Pushing the Hash Text menu background's info text so that it's exactly ${((16dip * LoadedLayout.Scale) / 1dip).As(Int)}dip (the common layouts' margin) above the Hash Text menu button when also including with the text visual height"$, Colors.Blue)
+	Dim HashMenuBgTopMargin As Int = btnHashMenu.Top - (16dip * LoadedLayout.Scale) - TextDisplayHeight
 	btnHashMenuBg.Padding = Array As Int( _
 		ActivityMargins(0),  _ '[0] Left,
 		HashMenuBgTopMargin, _ '[1] Top,
@@ -1571,28 +1505,6 @@ Private Sub FixVariantSpecificLayouts(ActivityMargins() As Int, BottomMostElemen
 	)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Sub return"$, Colors.Blue)
-End Sub
-
-Private Sub AddBordersToEditText(EditText As EditText, HasFocus As Boolean)
-	'
-	'Add some neat borders to the EditTExt fields
-	'
-	
-	'Unfocused state (default)
-	Dim BackgroundColor As Int = Colors.ARGB((20 * 255) / 100, 0x87, 0x87, 0x87) 'Using a transparency percentage
-	
-	If HasFocus Then
-		'If the focused-state version is needed,
-		'then change the color to cyan borders
-		BackgroundColor = Colors.ARGB((50 * 255) / 100, 0x00, 0xCC, 0xFF) 'Using a transparency percentage
-		
-	End If
-	
-	Dim BackgroundDrawable As ColorDrawable
-	BackgroundDrawable.Initialize2(Colors.Transparent, 2dip, 2dip, BackgroundColor)
-	
-	EditText.Background = BackgroundDrawable
-	
 End Sub
 
 Private Sub ResetViewState
@@ -2606,11 +2518,9 @@ Private Sub mnuDirectUnblock_Click
 	ViewState_mnuDirectUnblock_Visible = False
 	
 	If Result <> DialogResponse.POSITIVE And DeviceHasUsbOtg Then
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox return result is not positive, cannot proceed further"$, Colors.Magenta)
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox return result is not positive, cannot proceed further"$, Colors.Blue)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Showing a toast notification about the cancellation of the operation"$, Colors.Magenta)
-		ToastMessageShow("Direct unlock operation cancelled", Constants.TOAST_DURATION_SHORT)
-		
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
 		Return
 		
 	End If
@@ -2626,7 +2536,444 @@ Private Sub mnuDirectUnblock_Click
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The dialog result is positive and the device supports USB-OTG"$, Colors.Blue)
 	
-	ToastMessageShow("TODO: Add SmartcardService", Constants.TOAST_DURATION_SHORT)
+	'
+	'Unlogged code because it's temporarily considered experimental
+	'
+	
+	Msgbox2Async($"This functionality is currently in pre-release state.
+It has been tested as working on my own PKI smartcards though.
+
+In order to use it; enter a dummy challenge code that must match the challenge code length for your card in the challenge code field.
+
+- For example type FFFF FFFF FFFF FFFF (8 bytes so 16 characters) in the challenge code field if your smartcard uses DES-EDE2 or DES-EDE3 (2DES / 3DES).
+- If your smartcard uses AES-128 Or AES-256 then input a dummy challenge code such as FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF (16 bytes so 32 characters).
+
+Then write your Admin key into the Admin key field: and the direct unblock process will try unblocking your Primary PIN code (User PIN).
+
+If it fails in any way: well not the end of the world then but avoid trying to unblock your smartcard with this application again (atleast for now).
+
+If any failure happened while trying to unblock it: then use a computer program such as Gemalto MiniDriver Manager to unblock your smartcard or vSEC_TOOL_K"$, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+	Wait For Msgbox_Result(Result As Int)
+	
+	If Result <> DialogResponse.POSITIVE Then
+		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
+		Return
+	End If
+	
+	
+	Dim SanitizedUserInputs() As String = GetSanitizedUserInputs(edtChallenge.Text, edtAdminKey.Text)
+	If SanitizedUserInputs(0) == False Then
+		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow("Your inputs are invalid (verify again)", Constants.TOAST_DURATION_SHORT)
+		Return
+	End If
+	
+	Dim SanitizedChallenge, SanitizedAdminKey, DetectedAlgorithm As String
+	SanitizedChallenge = SanitizedUserInputs(1)
+	SanitizedAdminKey  = SanitizedUserInputs(2)
+	DetectedAlgorithm  = DetectChallengeAlgorithm(SanitizedChallenge, SanitizedAdminKey)
+	
+	If	DetectedAlgorithm <> Cryptography.ALGORITHM_2DES	And _
+		DetectedAlgorithm <> Cryptography.ALGORITHM_3DES	And _
+		DetectedAlgorithm <> Cryptography.ALGORITHM_AES128	And _
+		DetectedAlgorithm <> Cryptography.ALGORITHM_AES256	Then
+		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow("Unblock algorithm cannot be determined", Constants.TOAST_DURATION_SHORT)
+		Return
+	End If
+	
+	Msgbox2Async($"I detected, based on your inputs, that your smartcard's challenge-response algorithm is:
+- ${DetectedAlgorithm}
+
+Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes long (${SanitizedChallenge.Length} characters).
+
+Your Admin key is ${(SanitizedAdminKey.Length / 2).As(Int)} bytes long (${SanitizedAdminKey.Length} characters).
+
+Is that correct? If yes, you may try clicking on Take the Risk.
+Otherwise do not proceed further and click on Cancel"$&".", "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+	Wait For Msgbox_Result(Result As Int)
+	
+	'Positive = "Take the Risk"
+	If Result <> DialogResponse.POSITIVE Then
+		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow("You decided not to proceed further", Constants.TOAST_DURATION_SHORT)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	'
+	'Hide the Admin Key field during the PIN unblock, because I currently don't do it
+	'in a separate thread, so the Activity's View might look visually frozen with
+	'the Admin key still visible on it
+	'
+	'In order to mitigate this (having the key visually seen for too long)
+	'I always hide the Admin Key field before proceeding to sending APDUs
+	'
+	chkHideAdminKey.Checked = True
+	
+	'Wait 100ms until the Admin Key field is surely hidden by now
+	Common.SynchronousSleep(100, Me, "mnuDirectUnblock_Click")
+	Wait For SynchronousSleep_mnuDirectUnblock_Click_Completed
+	
+	'--------------------------------------------------------------------------------
+	Dim LastSentAPDU As String = "00 A4 04 00 07 A0 00 00 00 03 00 00 00" 'Select industry-standard PKI applet ID
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	Dim CallerBundle() As Object = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Selecting the common industry-standard PKI applet ID failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "80 CA 00 66 00" 'Whatever that is, it's required anyway
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Sending a GET DATA for P1=00 & P2=66 failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "80 CA 00 42 00" 'Whatever that is, it's required anyway
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Sending a GET DATA for P1=00 & P2=42 failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "80 CA 00 45 00" 'Whatever that is, it's required anyway
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Sending a GET DATA for P1=00 & P2=45 failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "00 A4 04 00 07 A0 00 00 00 79 10 00 00" 'Select some security-related directory
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Selecting the security directory failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+		LastSentAPDU = "80 84 00 00 08" 'Request a challenge code of 8 bytes (0x08 bytes)
+		
+	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+		LastSentAPDU = "80 84 00 00 10" 'Request a challenge code of 16 bytes (0x10 bytes)
+		
+	End If
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Requesting a ${DetectedAlgorithm} challenge code failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	'2DES / 3DES
+	Dim SmartcardChallengeCode As String = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
+	
+	'AES-128 / AES-256
+	If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+	Or DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+		SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 32) '32 chars = 16 bytes
+		
+	End If
+	
+	Dim SmartcardResponseCode As String
+	
+	Try
+		If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+		Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+			SmartcardResponseCode = Cryptography.TripleDesEncrypt(SmartcardChallengeCode, SanitizedAdminKey)
+			
+		Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+		Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+			SmartcardResponseCode = Cryptography.AesEncrypt(SmartcardChallengeCode, SanitizedAdminKey)
+			
+		End If
+	Catch
+		Msgbox2Async($"Generating a Response code locally on this device failed!
+
+Tried algorithm:
+${DetectedAlgorithm} / ECB / NoPadding
+
+Last sent APDU (GET CHALLENGE):
+${LastSentAPDU}
+
+Last received APDU (Challenge code + 2 status bytes):
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End Try
+	'--------------------------------------------------------------------------------
+	'2DES / 3DES
+	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+		LastSentAPDU = "80 82 00 01 08 " & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		
+	'AES-128 / AES-256
+	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+		LastSentAPDU = "80 82 00 01 10 " & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		
+	End If
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE request APDU
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Performing EXTERNAL AUTHENTICATE with generated Response code failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	End If
+	'--------------------------------------------------------------------------------
+	'Wait 100ms before sending next APDUs because some Crescendo C1150 smartcards
+	'had a firmware bug that could cause the card to reject a valid unblock code or
+	'reboot themselves when an APDU was sent too quickly after performing an
+	'EXTERNAL AUTHENTICATE command with it
+	'
+	' - Source: I verified that it's what actually happens sometimes on my C1150,
+	'           despite the Internet saying that this "has never actually happened"
+	'
+	Common.SynchronousSleep(100, Me, "mnuDirectUnblock_Click")
+	Wait For SynchronousSleep_mnuDirectUnblock_Click_Completed
+	'--------------------------------------------------------------------------------
+	' - Many smartcards have a minimum PIN requirement of 6 characters
+	' - Some smartcards also have a PIN policy that only allows digits
+	' - PKI smartcards should allow up to 16 and even 64 characters,
+	'   but it's not guaranteed that it's what the card owner actually allows
+	'
+	' - As a safe general default, we reset the PIN to "202608"
+	'   I chose "202608" because some smartcards don't allow repeating digits,
+	'   so in such cases setting a new PIN such as "123456" would fail
+	'
+	' - "202608" is "32 30 32 36 30 38" in Hex bytes:
+	'   The rest is padding (0xFF) so that the command fits the required minimum
+	'   of 8 bytes for this SET REFERENCE DATA command's payload data length
+	'
+	'                           vv -- -- -- -- -- -- ** **
+	LastSentAPDU = "80 2C 02 00 08 32 30 32 36 30 38 FF FF 00" '00 = Expected Le not set
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _ 'Send SET REFERENCE DATA APDU for Primary User PIN
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		Msgbox2Async($"Performing SET REFERENCE DATA to set a new PIN value of 202608 failed!
+
+Sent APDU:
+${LastSentAPDU}
+
+Received APDU:
+${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+		Return
+	Else
+		ToastMessageShow("New PIN successfully set to:"&CRLF&"202608", Constants.TOAST_DURATION_LONG)
+		
+	End If
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "00 A4 04 00 07 A0 00 00 00 79 10 00 00" 'Select security directory again
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	'
+	'At this point the job is done, the rest is just informal APDU requests that
+	'I saw being used by the Gemalto MiniDriver Manager
+	'
+	'They're probably not needed but just incase I want to fully replicate
+	'the exact behavior of Gemalto MiniDriver Manager, by doing exactly
+	'what it does with its smartcard PIN unblock APDU sequences
+	'
+	'And because it's now informal APDU requests, we just ignore any 'errors' here
+	'If any 'error' happens, it's simply just a common warning from the smartcard
+	'that you would happen anyway even if you used an established & popular CMS / SCMS
+	'
+	
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "80 5A 00 00 00" 'Whatever that is, it's required anyway
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _ 'Send GET DATA APDU request for whatever that APDU is
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = "00 A4 04 00 07 A0 00 00 00 79 10 00 00" 'Select security directory again (again)
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+		Array As Object( _
+			LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	'--------------------------------------------------------------------------------
+	'
+	'Gemalto MiniDriver Manager selects yet again the PKI applet's security directory,
+	'one last time before sending a VERIFY PIN command with empty PIN:
+	'
+	' - Then this triggers a 'PIN verify failed' response status that contains
+	'   the number of remaining PIN tries, but doesn't actually decrement the
+	'   remaining PIN tries count or penalize the user at all:
+	'
+	'   It's the standard way of requesting the remaining number of PIN tries,
+	'   however as abundance of precaution of don't do this and won't request
+	'   a VERIFY PIN APDU of "80 20 00 00 00":
+	'    - I don't know in advance which smartcard the user has,
+	'      and if they have a bad-quality one or a weird PKI applet,
+	'      then this might actually decrement it to get the remaining
+	'      PIN tries count in the expected "63 C?" response status
+	'       - (With "?" being the remaining number of tries, between 0x00 & 0x0F)
+	'
+	'--------------------------------------------------------------------------------
+	'
+	'StopService(Smartcard) 'We don't stop the Smartcard service this way at current time
+	'
+	'--------------------------------------------------------------------------------
+	
+	'Now we tell the user about the successful PIN unblock operation,
+	'and what their new PIN code is (it will always be set to 202608 for now)
+	Msgbox2Async($"Your smartcard User PIN has been unblocked successfully!
+
+Your new User PIN is now set to 202608: you may change it again later at your convenience using e.g. a desktop smartcard utility.
+
+I did not implement a full user interface to choose your own new User PIN yet but this will surely be implemented in a future application update"$, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, Application.Icon, True)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
@@ -2870,9 +3217,6 @@ Private Sub edtChallenge_FocusChanged(HasFocus As Boolean)
 		
 	End If
 	
-	LogColor($"[${ActivityName}-${LogContextId}] edtChallenge_FocusChanged: Update neat borders for this EditText field (according to the state of HasFocus = ${HasFocus})"$, Colors.Blue)
-	AddBordersToEditText(edtChallenge, HasFocus)
-	
 	LogColor($"[${ActivityName}-${LogContextId}] edtChallenge_FocusChanged: Correct the scroll position to be better than Android's default scrolling to focused elements"$, Colors.Blue)
 	scvActivity.ScrollPosition = 0dip
 	
@@ -3000,10 +3344,6 @@ Private Sub edtAdminKey_FocusChanged(HasFocus As Boolean)
 		ViewState_LastFocusedElement = "undetermined"
 		
 	End If
-	
-	LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_FocusChanged: Update neat borders for this EditText field (according to the state of HasFocus = ${HasFocus})"$, Colors.Blue)
-	AddBordersToEditText(edtAdminKey, HasFocus)
-	AddBordersToEditText(edtDecoyKey, HasFocus)
 	
 	'Setting the scroll position to be a right below the UI element
 	'that 'tops' the Admin Key field (edtChallenge)
@@ -3479,22 +3819,10 @@ Private Sub btnGenerate_Click
 			LogColor($"[${ActivityName}-${LogContextId}] btnGenerate_Click: The response code length is 16 chars, setting 4x 4-chars separation on it"$, Colors.Blue)
 			ResponseCode =	Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", _
 								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4")
+			
 		Case 32
 			LogColor($"[${ActivityName}-${LogContextId}] btnGenerate_Click: The response code length is 32 chars, setting 8x 4-chars separation on it"$, Colors.Blue)
 			ResponseCode =	Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", _
-								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
-		Case 64
-			LogColor($"[${ActivityName}-${LogContextId}] btnGenerate_Click: The response code length is 32 chars, setting 16x 4-chars separation on it"$, Colors.Blue)
-			
-			'First part of the AES-256 response code:
-			'Match from the beginning without the end ('$' character)
-			'Also add a trailing space to separate the two response code parts
-			ResponseCode =	Regex.Replace2("^([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})", _
-								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8 ")
-			
-			'Second part of the AES-256 response code:
-			'Here for the second part match it from the end (no '^' character at the beginning)
-			ResponseCode =	Regex.Replace2("([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})([a-f0-9]{4})$", _
 								Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
 			
 		Case Else
@@ -3567,10 +3895,9 @@ Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) 
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified as being valid strings representing Hex bytes, verifying if they are of correct supported lengths each"$, Colors.Blue)
-	'Challenge codes can currently only ever be 16, 32 or 64 chars
+	'Challenge codes can currently only ever be 16, 32 chars
 	Dim KnownChallengeLength As Boolean =	SanitizedChallenge.Length == 16 Or _
-											SanitizedChallenge.Length == 32 Or _
-											SanitizedChallenge.Length == 64
+											SanitizedChallenge.Length == 32
 	
 	'Admin Keys can currenly only ever be 32, 48 or 64 chars
 	Dim KnownAdminKeyLength  As Boolean =	SanitizedAdminKey.Length == 32 Or _
@@ -3588,26 +3915,26 @@ Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) 
 	'If using DES-EDE2 the Admin Key will be 32 chars and the challenge 16 chars
 	'If using DES-EDE3 the Admin Key will be 48 chars and the challenge 16 chars
 	'If using AES-128  the Admin Key and challenge code will be 32 chars each
-	'If using AES-256  the Admin Key and challenge code will be 64 chars each
+	'If using AES-256  the Admin Key will be 64 chars and the challenge 32 chars
+	'
 	LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified to have correct supported lengths, now checking for Challenge vs. Admin Key algorithm mismatches"$, Colors.Blue)
-	'AES-128
-	If	SanitizedChallenge.Length == 32 And _		'AES-128 challenge
-		SanitizedAdminKey.Length  <> 32 Then		'Not AES-128 Admin Key
-		LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-128 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
-		Return Array As String(False, "Code needs AES-128 key")
+	'
+	'AES-128 / AES-256
+	'
+	If	SanitizedChallenge.Length == 32 And _	'AES-128 or AES-256 challenge
+		SanitizedAdminKey.Length  <> 32 And _	'Not AES-128 Admin Key
+		SanitizedAdminKey.Length  <> 64 Then	'Not AES-256 Admin Key
+		LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-128 or AES-256 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
+		Return Array As String(False, "Code needs AES-128/256 key")
 		
-		'DES-EDE3 / DES-EDE2
+	'
+	'DES-EDE3 / DES-EDE2
+	'
 	Else If	SanitizedChallenge.Length == 16 And _	'DES-EDE2 or DES-EDE3 challenge
 			SanitizedAdminKey.Length  <> 32 And _	'Not DES-EDE2 Admin Key (2DES)
 			SanitizedAdminKey.Length  <> 48 Then	'Not DES-EDE3 Admin Key (3DES)
 		LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs a 2DES or 3DES Admin Key but the provided one is neither, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
 		Return Array As String(False, "Code needs 2/3DES key")
-		
-		'AES-256
-	Else If	SanitizedChallenge.Length == 64 And _	'AES-256 challenge
-			SanitizedAdminKey.Length  <> 64 Then	'Not AES-256 Admin Key
-		LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Algorithm mismatch detected because the Challenge needs an AES-256 Admin Key but the provided one isn't, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
-		Return Array As String(False, "Code needs AES-256 key")
 		
 	End If
 	
@@ -3646,8 +3973,8 @@ Private Sub DetectChallengeAlgorithm(SanitizedChallenge As String, SanitizedAdmi
 		LogColor($"[${ActivityName}-${LogContextId}] DetectChallengeAlgorithm: Setting the detected algorithm value to ${Cryptography.ALGORITHM_AES128}"$, Colors.Blue)
 		DetectedAlgorithm = Cryptography.ALGORITHM_AES128
 		
-	Else If	SanitizedAdminKey.Length == 64 And SanitizedChallenge.Length == 64 Then
-		LogColor($"[${ActivityName}-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are 64 and 64 chars respectively"$, Colors.Blue)
+	Else If	SanitizedAdminKey.Length == 64 And SanitizedChallenge.Length == 32 Then
+		LogColor($"[${ActivityName}-${LogContextId}] DetectChallengeAlgorithm: Sanitized Admin Key and Challenge codes are 64 and 32 chars respectively"$, Colors.Blue)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] DetectChallengeAlgorithm: Setting the detected algorithm value to ${Cryptography.ALGORITHM_AES256}"$, Colors.Blue)
 		DetectedAlgorithm = Cryptography.ALGORITHM_AES256
@@ -3693,9 +4020,6 @@ Private Sub edtResponse_FocusChanged(HasFocus As Boolean)
 		ViewState_LastFocusedElement = "undetermined"
 		
 	End If
-	
-	LogColor($"[${ActivityName}-${LogContextId}] edtResponse_FocusChanged: Update neat borders for this EditText field (according to the state of HasFocus = ${HasFocus})"$, Colors.Blue)
-	AddBordersToEditText(edtResponse, HasFocus)
 	
 	'Scroll just a bit (atleast 32dip) below the edtResponse field:
 	' - Just so that we get a prettier scroll effect

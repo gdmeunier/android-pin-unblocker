@@ -151,6 +151,7 @@ public static class SmartcardReader implements Closeable
 	{
 		OK,
 		OkGetRsp,
+		OkMoreExpected,
 		VerifyFail,
 		MemoryUnchanged,
 		CommandTimeout,
@@ -158,6 +159,7 @@ public static class SmartcardReader implements Closeable
 		AuthBlocked,
 		WrongParamP1P2,
 		BadLengthLeCorrectIsXX,
+		InitialSwCode, /* Just a default value so that "status" variable isn't null on init */
 	}
 	
 	/* Values higher than 0x7F (127) should probably be explicitly casted as bytes */
@@ -198,14 +200,24 @@ public static class SmartcardReader implements Closeable
 		byte[] apdu = jHexBytesFromString(apduHexString);
 		byte[] cmd  = Arrays.copyOf(apdu, apdu.length);
 		
-		byte[]     rsp;
-		ApduSwCode status;
+		byte[]     rsp    = new byte[0];              // Just so that the Java compiler is happy
+		ApduSwCode status = ApduSwCode.InitialSwCode; // Just so that it's not null at first
 		
 		ByteArrayOutputStream rspOut = new ByteArrayOutputStream();
 		
+		// Incase we get SW status 63F1 (More Data Expected)
+		int offset = 0;
+		
+		int currentCLA;
+		int currentP1;
+		int currentP2;
+		
 		do
 		{
-			rsp    = cardReader.transmitApdu(cmd);
+			if ( status != ApduSwCode.OkGetRsp ) /* The OkGetRsp branch already does it */
+			{
+				rsp = cardReader.transmitApdu(cmd);
+			}
 			status = validateResponse(rsp);
 			
 			switch ( status )
@@ -217,18 +229,100 @@ public static class SmartcardReader implements Closeable
 					 * So no worries, we're not writing at the index 0
 					 * of our rspOut byte array stream
 					 */
-					rspOut.write(rsp, 0, rsp.length - 2);
+					rspOut.write(rsp, 0, rsp.length); // Return status code too (last 2 bytes)
 					break;
 					
-				case OkGetRsp:
-					rsp = getResponse(rsp[rsp.length - 1]);
+				case OkMoreExpected:
+					/* ********************************** *
+					 * Stream current response data first *
+					 * ********************************** */
 					rspOut.write(rsp, 0, rsp.length - 2);
 					
-					status = validateResponse(rsp);
+					/* We make the handling of chained APDUs transparent for the caller,
+					 * so that they don't have to chain command APDUs themselves
+					 */
+					// Check what the original command was (what INS was)
+					switch ( rsp[1] ) // Index 1 = INS byte
+					{
+						case (byte)0xB0: // READ BINARY
+							// Check if it's a Short File Identifier (SFI)
+							if ( (cmd[2] & 0x80) != 0 )
+							{
+								// SFI: Increase P2 only in command (request APDU)
+								currentP2 = cmd[3] + (rsp.length - 2);
+								
+								// Correct the offset to the new one in the command (request APDU)
+								cmd[3] = (byte)(currentP2 & 0xFF);
+							}
+							else
+							{
+								/* Compute what the current offset is
+								 *
+								 * Note: In Java we have to make sure our bytes don't get
+								 *       accidentally trimmed as signed bytes,
+								 *       so we always mask them with 0xFF
+								 */
+								currentP1 = cmd[2] & 0xFF; // Index 2 = P1 (in request APDU)
+								currentP2 = cmd[3] & 0xFF; // Index 3 = P2 (in request APDU)
+								offset    = (currentP1 << 8) | currentP2;
+								
+								// Increment the computed offset by (response data length) [without status]
+								offset += rsp.length - 2;
+								
+								// Correct the offset to the new one in the command (request APDU)
+								cmd[2] = (byte)((offset >> 8) & 0xFF);
+								cmd[3] = (byte)(offset & 0xFF);
+							}
+							break;
+							
+						case (byte)0xA4: // SELECT FILE (if FCP - File Control Parameter was too big)
+							/* Must switch from SELECT FILE to GET RESPONSE
+							 *
+							 * Replacing the original request APDU with a GET RESPONSE one
+							 * Also setting the requested response length to 256 bytes:
+							 *  - By setting the value to 0x00 (0x00 = 256 in ISO-7816),
+							 *    it's not 0xFF because 0xFF = 255 (not 256)
+							 *
+							 *  - 256 would be 0x0100 but because the length must be 1 byte,
+							 *    ISO-7816 considers that 0x00 = 256 always
+							 */
+							cmd    = Arrays.copyOf(GET_RESPONSE, GET_RESPONSE.length);
+							cmd[4] = (byte)0x00;
+							break;
+							
+						case (byte)0xCA: // GET DATA
+							/* Same as the default action:
+							 *  - So we don't add "break;" here
+							 */
+						default:
+							/* Note: If a smartcard returns 63F1 (More Data Expected),
+							 *       and yet the request APDU was neither of these:
+							 *        - READ BINARY
+							 *        - GET DATA
+							 *        - SELECT FILE
+							 *
+							 *       Then you must only set a CLA chaining bit in the
+							 *       request APDU's CLA byte (Index 0), and never alter
+							 *       any of the INS, P1 and P2 bytes (Indexes 1, 2 & 3)
+							 */
+							// Get the current CLA value from the command (request APDU)
+							currentCLA = cmd[0] & 0xFF;
+							
+							/* Correct the CLA byte in the command (request APDU):
+							 *  - Set the bit 5 (chaining bit) in the CLA (bitOR with 0x10)
+							 */
+							cmd[0] = (byte)((currentCLA | 0x10) & 0xFF);
+							break;
+					}
+					break;
+					
+				case OkGetRsp: /*** T=0 protocol only ***/
+					rspOut.write(rsp, 0, rsp.length - 2);   // Stream current response data first
+					rsp = getResponse(rsp[rsp.length - 1]); // Request the next response data
 					break;
 					
 				case BadLengthLeCorrectIsXX:
-					cmd[4] = rsp[1];
+					cmd[4] = rsp[1]; // Correct the length field
 					break;
 					
 				default:
@@ -237,14 +331,7 @@ public static class SmartcardReader implements Closeable
 		}
 		while
 		(
-			/* It's not sure whether the maximum APDU response length is either:
-			 *  - 256 bytes (according to Yubico),
-			 *  - 258 bytes (according to specification),
-			 *  - 260 bytes (according to the Internet)
-			 *
-			 * So we just simply check for all of these lengths anyway
-			 */
-			status == ApduSwCode.BadLengthLeCorrectIsXX || status == ApduSwCode.OkGetRsp || (status == ApduSwCode.OK && rsp.length == 256)  || (status == ApduSwCode.OK && rsp.length == 258) || (status == ApduSwCode.OK && rsp.length == 260)
+			status == ApduSwCode.BadLengthLeCorrectIsXX || status == ApduSwCode.OkGetRsp || status == ApduSwCode.OkMoreExpected
 		);
 		
 		Log.d(TAG, String.format("Response APDU received (len %d)", rspOut.toByteArray().length));
@@ -474,16 +561,31 @@ public static class SmartcardReader implements Closeable
 	private byte[] getResponse(int len) throws IOException
 	{
 		byte[] cmd = Arrays.copyOf(GET_RESPONSE, GET_RESPONSE.length);
+		
+		// Check if requested byte length is 256 bytes
+		if ( len == 256 )
+		{
+			/* Correct the length to zero, because in Javacards
+			 * a length of 256 exceeds 0xFF (it's actually 0x100),
+			 * so the Javacards actually condider that it's 0x00  that is
+			 * a 256-bytes length, not 0x100:
+			 *
+			 *  - 0x100 (256) would take 01 00 or 00 01 as bytes,
+			 *    depending on Little Endian vs. Big Endian,
+			 *    whereas it's only allowed to use one byte for the length
+			 */
+			 len = 0;
+		}
 		cmd[4] = (byte)len;
 		
 		byte[] rsp = cardReader.transmitApdu(cmd);
 		
 		switch ( validateResponse(rsp) )
 		{
+			// Basically same as if it was "case (OK || OkGetRsp || OkMoreExpected):"
 			case OK:
-				return rsp;
-				
 			case OkGetRsp:
+			case OkMoreExpected:
 				return rsp;
 				
 			default:
@@ -503,10 +605,16 @@ public static class SmartcardReader implements Closeable
 		{
 			return ApduSwCode.OK;
 		}
-		else if ( rsp[rsp.length - 2] == (byte)0x61 )
+		else if ( rsp[rsp.length - 2] == (byte)0x61 ) /* T=0 protocol only */
 		{
-			Log.d(TAG, String.format("APDU OK, still %X bytes available", rsp[rsp.length-1]));
+			Log.d(TAG, String.format("(T=0 protocol) APDU OK, still %X bytes available", rsp[rsp.length-1]));
 			return ApduSwCode.OkGetRsp;
+		}
+		else if ( rsp[rsp.length - 2] == (byte)0x63 &&
+				  rsp[rsp.length - 1] == (byte)0xF1 )
+		{
+			Log.d(TAG, "(T=1 protocol) APDU OK, more bytes expected");
+			return ApduSwCode.OkMoreExpected;
 		}
 		else if ( rsp[rsp.length - 2] == (byte)0x63 &&
 				  (rsp[rsp.length - 1] & 0xF0) == 0xC0 )

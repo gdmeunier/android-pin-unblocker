@@ -914,7 +914,7 @@ Private Sub LoadActivityLayout
 		
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Fixing the Camera preview to be neatly square..."$, Colors.Blue)
 		Dim ProperCameraPreviewHeight As Int
-		ProperCameraPreviewHeight = btnToggleFlash.Top - lblScanChallenge.Top - lblScanChallenge.Height
+		ProperCameraPreviewHeight = (btnToggleFlash.Top - lblScanChallenge.Top - lblScanChallenge.Height - (16dip * LoadedLayout.Scale)) * LoadedLayout.Scale
 		
 		lblQRCodeReaderBg.Height   = ProperCameraPreviewHeight
 		qrvQRCodeReaderView.Height = ProperCameraPreviewHeight
@@ -967,7 +967,7 @@ Private Sub LoadActivityLayout
 		
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Fixing the Camera preview to be neatly square..."$, Colors.Blue)
 		Dim ProperCameraPreviewHeight As Int
-		ProperCameraPreviewHeight = btnToggleFlash.Top - lblScanChallenge.Top - lblScanChallenge.Height
+		ProperCameraPreviewHeight = (btnToggleFlash.Top - lblScanChallenge.Top - lblScanChallenge.Height - (16dip * LoadedLayout.Scale)) * LoadedLayout.Scale
 		
 		lblQRCodeReaderBg.Height   = ProperCameraPreviewHeight
 		qrvQRCodeReaderView.Height = ProperCameraPreviewHeight

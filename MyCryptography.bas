@@ -177,8 +177,10 @@ Public Sub TripleDesEncrypt(PlaintextBytesString As String, KeyBytesString As St
 		Throw("The provided key bytes string is not a valid TripleDES key length")
 	End If
 	
-	If KeyBytesString.Length <> KeyBytesString.Length Then
-		Throw("The provided key bytes string is not the same length as the plaintext bytes string")
+	'DES-EDE2 & DES-EDE3 block sizes are 8 bytes for both (16 Hex chars)
+	'Since we use ECB without padding, length must match the block size
+	If PlaintextBytesString.Length Mod 16 <> 0 Then
+		Throw("The provided plaintext bytes string is not a length multiple of 8 bytes (16 chars)")
 	End If
 	
 	Dim CiphertextBytesString As String
@@ -352,8 +354,10 @@ Public Sub AesEncrypt(PlaintextBytesString As String, KeyBytesString As String) 
 		Throw("The provided key bytes string is not a supported AES key length")
 	End If
 	
-	If KeyBytesString.Length <> KeyBytesString.Length Then
-		Throw("The provided key bytes string is not the same length as the plaintext bytes string")
+	'AES-128 & AES-256 block sizes are 16 bytes for both (32 Hex chars)
+	'Since we use ECB without padding, length must match the block size
+	If PlaintextBytesString.Length Mod 32 <> 0 Then
+		Throw("The provided plaintext bytes string is not a length multiple of 16 bytes (32 chars)")
 	End If
 	
 	Dim CiphertextBytesString As String
