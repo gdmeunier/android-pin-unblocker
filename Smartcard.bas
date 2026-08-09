@@ -11,6 +11,12 @@ Version=9.9
 	
 #End Region
 
+#Region Module File Attributes
+	'Ignore "Variable x was not initialized" warning (#11)
+	#IgnoreWarnings: 11
+	
+#End Region
+
 '----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 '
@@ -41,8 +47,14 @@ Sub Process_Globals
 	'These global variables will be declared once when the application starts
 	'These variables can be accessed from all modules
 	
+	'For requesting JVM GC clears
+	Private Security As MySecurity
+	
 	'For running native Java code
 	Private joService As JavaObject
+	
+	'For doing APDU communications in a separate thread
+	Private ServiceMessageThread As Thread
 	
 	'List of possible Service messaging values
 	Public Const DO_CCID_DIAGNOSTICS As Int = 0x100
@@ -51,9 +63,6 @@ Sub Process_Globals
 	private static final int DO_CCID_DIAGNOSTICS = 0x100;
 	private static final int SEND_APDU           = 0x200;
 	#End If
-	
-	'For requesting JVM GC clears
-	Private Security As MySecurity
 	
 End Sub
 
@@ -82,6 +91,9 @@ Sub Service_Create
 	'Initialize the PC/SC stack
 	joService.RunMethod("jService_Create", Null)
 	
+	'For doing APDU communications in a separate thread
+	ServiceMessageThread.Initialise("ServiceMessageThread")
+	
 End Sub
 #If Java
 public void jService_Create()
@@ -100,6 +112,12 @@ public void jService_Create()
 	broadcast = new Handler(bcThread.getLooper());
 }
 #End If
+
+Private Sub ServiceMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Nothing to do here
+	'
+End Sub
 
 '
 'Smartcard Service Basic code
@@ -123,63 +141,74 @@ Sub Service_Start(StartingIntent As Intent)
 		
 	End If
 	
+	ServiceMessageThread.Start(Me, "Service_Message_NewThread", Null)
+	
 End Sub
 
 'Inter-communication between the Service and Activities:
 ' - It's for letting this Service receive messages from
 '   this application's Activities to this Service only
 '
-Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
+Sub Service_Message_NewThread
 	
-	Dim Caller       As Object = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
-	Dim SubName      As String = CallerBundle(1) 'CallerBundle(1) = SubName    - String
-	Dim Parameters() As Object = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
+	Dim Caller       As Object
+	Dim SubName      As String
+	Dim Parameters() As Object
 	
-	Select DoWhat
-		Case DO_CCID_DIAGNOSTICS, SEND_APDU
-			Try
-				Dim ServiceReply() As Object  = joService.RunMethod("jService_Message", Array(DoWhat, Parameters))
-				Dim IsSuccessful   As Boolean = True
+	Do While True
+		Wait For Service_Message_To_NewThread(DoWhat As Int, CallerBundle() As Object)
+		
+		Select DoWhat
+			Case DO_CCID_DIAGNOSTICS, SEND_APDU
+				Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
+				SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
+				Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
 				
-				'The MySmartcardReader class automatically handles APDU
-				'request chaining transparently, so we can just simply
-				'check for a 90 00 status code
-				If DoWhat == SEND_APDU And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
-					IsSuccessful = False
-				End If
+				Try
+					Dim ServiceReply() As Object = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
+					Dim IsSuccessful   As Boolean = True
+					
+					'The MySmartcardReader class automatically handles APDU
+					'request chaining transparently, so we can just simply
+					'check for a 90 00 status code
+					If DoWhat == SEND_APDU And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+						IsSuccessful = False
+					End If
+					
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
+					
+				Catch
+					Log(LastException)
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+					
+				End Try
 				
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
-				
-			Catch
-				Log(LastException)
-				
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object("A Java native exception happened:"&CRLF&LastException))
 				Exit
 				
-			End Try
-			
-			Exit
-			
-		Case Else
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"Unknown message type ${DoWhat} sent to this Service"$))
-			Exit
-			
-	End Select
+			Case Else
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"Unknown message type ${DoWhat} sent to this Service"$))
+				Exit
+				
+		End Select
+	Loop
 	
 End Sub
 #If Java
 import java.lang.RuntimeException;
 import java.io.StringWriter;
 import java.io.PrintWriter;
-public Object[] jService_Message(int doWhat, Object[] parameters) throws RemoteException, IOException, RuntimeException
+public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) throws RemoteException, IOException, RuntimeException
 {
-	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
+	/* Don't use SCREEN_DIM_WAKE_LOCK:
+	 *  - Many phones lower the USB power output or suspend it on screen dimming
+	 */
+	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 	wl.acquire();
 	
 	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
 		.setSmallIcon(R.drawable.ic_stat_card)
 		.setContentTitle("Android PIN Unblocker")
-		.setContentText("Accessing your Smartcard reader...")
+		.setContentText("Accessing smartcard reader...")
 		.setCategory(Notification.CATEGORY_SERVICE);
 	startForeground(1, builder.build());
 	
@@ -221,7 +250,17 @@ public Object[] jService_Message(int doWhat, Object[] parameters) throws RemoteE
 	}
 	finally
 	{
-		wl.release();
+		if ( wl != null && wl.isHeld() )
+		{
+			try
+			{
+				wl.release();
+			}
+			catch (Exception e)
+			{
+				/* Nothing to do here */
+			}
+		}
 		stopForeground(true);
 	}
 	
@@ -229,6 +268,12 @@ public Object[] jService_Message(int doWhat, Object[] parameters) throws RemoteE
 }
 #End If
 
+Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
+	
+	'Send all requests to the dedicated background thread
+	CallSubDelayed3(Me, "Service_Message_To_NewThread", DoWhat, CallerBundle)
+	
+End Sub
 
 Sub Service_Destroy
 	
@@ -243,6 +288,7 @@ Sub Service_Destroy
 		
 	End If
 	
+	ServiceMessageThread.Interrupt
 	joService.RunMethod("jService_Destroy", Null)
 	
 End Sub
@@ -428,6 +474,9 @@ public String jDoCcidDiagnostics() throws RemoteException
 			{
 				foundCard = true;
 			}
+			
+			builder.append("\r\n\r\n");
+			builder.append(String.format("Is CCID: %s\r\nHas card: %s", foundCCID, foundCard));
 		}
 		catch (Exception e)
 		{
@@ -446,6 +495,13 @@ public String jDoCcidDiagnostics() throws RemoteException
 #If Java
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
+	if ( ccidDevice != null && myccid.CCID.isCCIDCompliant(ccidDevice) )
+	{
+		// We already have a connected USB-CCID device
+		// No need to obtain it again
+		return;
+	}
+	
 	ccidDevice     = null;
 	detachReceiver = null;
 	
@@ -495,7 +551,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 							@Override
 							public void run()
 							{
-								Toast.makeText(smartcard.this, String.format("The connected device (%1$s) is not recognised", product), Toast.LENGTH_LONG).show();
+								Toast.makeText(smartcard.this, String.format("The connected device (%1$s) is not recognized", product), Toast.LENGTH_LONG).show();
 							}
 						}
 					);
@@ -507,7 +563,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_stat_card)
 				.setContentTitle("Android PIN Unblocker")
-				.setContentText("Please connect your Smartcard reader")
+				.setContentText("Connect your smartcard reader")
 				.setCategory(Notification.CATEGORY_SERVICE)
 				.setPriority(NotificationCompat.PRIORITY_MAX)
 				.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS);
@@ -518,7 +574,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				@Override
 				public void run()
 				{
-					Toast.makeText(smartcard.this, "Please connect your Smartcard reader to the tablet/phone", Toast.LENGTH_LONG).show();
+					Toast.makeText(smartcard.this, "Connect your smartcard reader...", Toast.LENGTH_LONG).show();
 				}
 			}
 		);
@@ -563,6 +619,13 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 			
 			if ( device.getDeviceName().equals(ccidDevice.getDeviceName()) )
 			{
+				/* Clear the current connected device handle
+				 *
+				 * This way the next jObtainUsbDevice call will
+				 * re-acquire a new USB-CCID device
+				 */
+				ccidDevice = null;
+				
 				// End the ongoing wait
 				if ( wait != null )
 				{
@@ -654,7 +717,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
 			.setSmallIcon(R.drawable.ic_stat_card)
 			.setContentTitle("Android PIN Unblocker")
-			.setContentText("Obtaining Smartcard access...")
+			.setContentText("Accessing your smartcard...")
 			.setCategory(Notification.CATEGORY_SERVICE);
 	
 	notifyMgr.notify(1, builder.build());
@@ -669,7 +732,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 				{
 					if ( wait == null )
 					{
-						Log.w(TAG, "Obtained Smartcard device without wait handler");
+						Log.w(TAG, "Obtained smartcard device without wait handler");
 						return;
 					}
 					synchronized ( wait )
@@ -686,7 +749,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 			}
 		);
 		
-		final String msg = String.format("Please insert your Smartcard in your %1$s reader", getProductName(ccidDevice));
+		final String msg = String.format("Insert your smartcard in your %1$s reader...", getProductName(ccidDevice));
 		
 		builder = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_stat_card)
@@ -718,7 +781,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 			}
 			catch (InterruptedException e)
 			{
-				Log.e(TAG, "Interrupted while waiting for Smartcard", e);
+				Log.e(TAG, "Interrupted while waiting for smartcard", e);
 			}
 		}
 		wait = null;

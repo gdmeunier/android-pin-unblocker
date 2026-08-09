@@ -36,8 +36,8 @@ Version=12.5
 
 #Region Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 71
-	#VersionName: 5.1.0
+	#VersionCode: 72
+	#VersionName: 5.1.1
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -76,7 +76,9 @@ Version=12.5
 #Region Module File Attributes
 	'Ignore "The recommended value for android:targetSdkVersion is x (manifest editor)" warning (#31)
 	'Ignore "This sub should only be used for variables declaration or assignments of primitive values" warning (#29)
-	#IgnoreWarnings: 31,29
+	'Ignore "Variable x was not initialized" warning (#11)
+	'Ignore "Sub x is not used" warning (#12)
+	#IgnoreWarnings: 31,29,11,12
 	
 #End Region
 
@@ -186,6 +188,26 @@ import android.app.Activity;
 public float jGetUserFontScale()
 {
 	return mycommonInstance.jGetUserFontScale(this);
+}
+
+import android.content.Context;
+import android.app.Activity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+public void jSetKeepScreenOn()
+{
+	this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+}
+
+import android.content.Context;
+import android.app.Activity;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+public void jClearKeepScreenOn()
+{
+	this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 }
 #End If
 
@@ -990,6 +1012,9 @@ Sub Process_Globals
 	Public Shared_AllowEmptyQRCodeContent As Boolean 'Whether the QR code content was literally empty
 	Public Shared_DetectedQRCodeContents  As String
 	
+	'For background smartcard operations
+	Private DirectUnblockThread As Thread
+	
 End Sub
 
 Sub Globals
@@ -1265,6 +1290,10 @@ Sub Activity_Create(FirstTime As Boolean)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Cryptography Class (MyCryptography class)"$, Colors.Blue)
 		Cryptography.Initialize
 		
+		'For background smartcard operations
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Direct Unblock thread"$, Colors.Blue)
+		DirectUnblockThread.Initialise("DirectUnblockThread")
+		
 	Else
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: It's not the FirstTime Activity launch"$, Colors.Blue)
 		
@@ -1307,6 +1336,12 @@ Sub Activity_Create(FirstTime As Boolean)
 	InitializeActivityLayout
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Nothing to do here
+	'
 End Sub
 
 Private Sub LoadActivityLayout
@@ -2536,30 +2571,24 @@ Private Sub mnuDirectUnblock_Click
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The dialog result is positive and the device supports USB-OTG"$, Colors.Blue)
 	
-	'
+	'--------------------------------------------------------------
 	'Unlogged code because it's temporarily considered experimental
-	'
+	'--------------------------------------------------------------
 	
 	Msgbox2Async($"This functionality is currently in pre-release state.
-It has been tested as working on my own PKI smartcards though.
 
-In order to use it; enter a dummy challenge code that must match the challenge code length for your card in the challenge code field.
+In order to use it enter a dummy challenge code that must match the challenge code length for your card in the challenge code field:
+- For example type FFFF FFFF FFFF FFFF (8 bytes so 16 characters) in the challenge code field if your smartcard uses DES-EDE2 or DES-EDE3 (2DES / 3DES)
+- If your smartcard uses AES-128 or AES-256 then input a dummy challenge code such as FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF (16 bytes so 32 characters)
 
-- For example type FFFF FFFF FFFF FFFF (8 bytes so 16 characters) in the challenge code field if your smartcard uses DES-EDE2 or DES-EDE3 (2DES / 3DES).
-- If your smartcard uses AES-128 Or AES-256 then input a dummy challenge code such as FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF (16 bytes so 32 characters).
+Then write your Admin key into the Admin key field and the direct unblock process will try unblocking your Primary PIN code (User PIN).
 
-Then write your Admin key into the Admin key field: and the direct unblock process will try unblocking your Primary PIN code (User PIN).
-
-If it fails in any way: well not the end of the world then but avoid trying to unblock your smartcard with this application again (atleast for now).
-
-If any failure happened while trying to unblock it: then use a computer program such as Gemalto MiniDriver Manager to unblock your smartcard or vSEC_TOOL_K"$, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+If any failure happened while trying to unblock it then use a computer program such as Gemalto MiniDriver Manager to unblock your smartcard or vSEC_TOOL_K"$, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 	Wait For Msgbox_Result(Result As Int)
 	
 	If Result <> DialogResponse.POSITIVE Then
-		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
 		Return
 	End If
-	
 	
 	Dim SanitizedUserInputs() As String = GetSanitizedUserInputs(edtChallenge.Text, edtAdminKey.Text)
 	If SanitizedUserInputs(0) == False Then
@@ -2578,19 +2607,19 @@ If any failure happened while trying to unblock it: then use a computer program 
 		DetectedAlgorithm <> Cryptography.ALGORITHM_AES128	And _
 		DetectedAlgorithm <> Cryptography.ALGORITHM_AES256	Then
 		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
-		ToastMessageShow("Unblock algorithm cannot be determined", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow("Unblock algorithm is undetermined", Constants.TOAST_DURATION_SHORT)
 		Return
 	End If
 	
-	Msgbox2Async($"I detected, based on your inputs, that your smartcard's challenge-response algorithm is:
+	Msgbox2Async($"I detected based on your inputs that your smartcard's challenge-response algorithm is:
 - ${DetectedAlgorithm}
 
 Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes long (${SanitizedChallenge.Length} characters).
 
 Your Admin key is ${(SanitizedAdminKey.Length / 2).As(Int)} bytes long (${SanitizedAdminKey.Length} characters).
 
-Is that correct? If yes, you may try clicking on Take the Risk.
-Otherwise do not proceed further and click on Cancel"$&".", "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+Is that correct? If yes you may try clicking on Take the Risk.
+Otherwise do not proceed further And click on Cancel"$&".", "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 	Wait For Msgbox_Result(Result As Int)
 	
 	'Positive = "Take the Risk"
@@ -2599,6 +2628,39 @@ Otherwise do not proceed further and click on Cancel"$&".", "Direct Unblock", "T
 		ToastMessageShow("You decided not to proceed further", Constants.TOAST_DURATION_SHORT)
 		Return
 	End If
+	
+	'--------------------------------------------------------------------------------
+	'Warn the user if the entered Admin key is still the default one
+	'They might have forgotten to even input their own in the first place
+	'
+	'Ask them to confirm that they Admin key is really 48 zeroes
+	If SanitizedAdminKey == DEFAULT_ZEROES_ADMIN_KEY Then
+		Msgbox2Async($"Warning!
+The entered Admin key you provided is still the **default 48-zeroes Admin key**.
+
+Are you sure that you did not just forget to write your Admin key?
+
+If yes then click on Cancel and input a proper Admin key first.
+
+If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".", "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Wait For Msgbox_Result(Result As Int)
+		
+		'Positive = "Take the Risk"
+		If Result <> DialogResponse.POSITIVE Then
+			ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
+			ToastMessageShow("Please correct your Admin key", Constants.TOAST_DURATION_SHORT)
+			Return
+		End If
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	'Set the Activity to always keep the screen on during the process
+	'
+	'This helps avoid Android suspending the USB port when the screen is
+	'turned off or its brightness gets dimmed
+	joActivity.RunMethod("jSetKeepScreenOn", Null)
+	
 	'--------------------------------------------------------------------------------
 	'
 	'Hide the Admin Key field during the PIN unblock, because I currently don't do it
@@ -2615,157 +2677,228 @@ Otherwise do not proceed further and click on Cancel"$&".", "Direct Unblock", "T
 	Wait For SynchronousSleep_mnuDirectUnblock_Click_Completed
 	
 	'--------------------------------------------------------------------------------
-	Dim LastSentAPDU As String = "00 A4 04 00 07 A0 00 00 00 03 00 00 00" 'Select industry-standard PKI applet ID
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	Dim CallerBundle() As Object = Array As Object(Me, "mnuDirectUnblock_Click", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	DirectUnblockThread.Start(Me, "SendPinUnblockAPDUSequence", Array(SanitizedAdminKey, DetectedAlgorithm))
+	Wait For mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
 	
-	If IsSucessful == False Then
-		Msgbox2Async($"Selecting the common industry-standard PKI applet ID failed!
+	If IsSuccessful Then
+		'
+		'Now we tell the user about the successful PIN unblock operation,
+		'and what their new PIN code is (it will always be set to 202608 for now)
+		'
+		
+		ToastMessageShow("New PIN successfully set to: 202608", Constants.TOAST_DURATION_LONG)
+		
+		Msgbox2Async($"Your smartcard User PIN has been unblocked successfully!
 
-Sent APDU:
-${LastSentAPDU}
+Your new User PIN is now set to:
+- 202608
+You may change it again later at your convenience using e.g. a desktop smartcard utility.
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
-		Return
+I did not implement a full user interface to choose your own new User PIN yet.
+This will surely be implemented in a future application update"$&".", "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		
+	Else
+		Msgbox2Async(ErrorIfAny, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		
 	End If
+	
+	'This allows keeping the screen on until the user
+	'dismisses the dialog window
+	Wait For Msgbox_Result(Result As Int)
+	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "80 CA 00 66 00" 'Whatever that is, it's required anyway
+	'Set the Activity back to normal (clear the FLAG_KEP_SCREEN_ON flag)
+	joActivity.RunMethod("jClearKeepScreenOn", Null)
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	'We don't stop the Smartcard service this way at this time
+	'StopService(Smartcard)
 	
-	If IsSucessful == False Then
-		Msgbox2Async($"Sending a GET DATA for P1=00 & P2=66 failed!
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
+End Sub
 
-Sent APDU:
-${LastSentAPDU}
-
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
-		Return
-	End If
+Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
+	
+	'                                                Class ISO7816 (CLA=00)
+	'                                                |  Command SELECT FILE (INS=A4)
+	'                                                |  |  Type APPLET (P1=04 & P2=00)
+	'                                                |  |  |     Length of data / Applet ID (Lc=00)
+	'                                                |  |  |     |  Data / Applet ID
+	'                                                |  |  |     |  |                    Expected Response Data Length (Le=00)
+	'                                                |  |  |     |  |                    |
+	Dim SELECT_STANDARD_PKI_APPLET_ID   As String = "00 A4 04 00 07 A0 00 00 00 03 00 00 00"
+	Dim SELECT_MANAGEMENT_PKI_APPLET_ID As String = "00 A4 04 00 07 A0 00 00 00 79 10 00 00"
+	
+	'                                             Class Proprietary / Management (CLA=80)
+	'                                             |  Command (INS)
+	'                                             |  |  P1 P2
+	'                                             |  |  |  |
+	'                                             |  |  |  |
+	'                                             |  |  |  |
+	'                                             |  |  |  |
+	Dim GET_DATA                     As String = "80 CA"
+	Dim GET_CHALLENGE                As String = "80 84 00 00"
+	Dim EXTERNAL_AUTHENTICATE_MANUAL As String = "80 82 00 01" '01 = manual authentication
+	Dim SET_REFERENCE_DATA           As String = "80 2C"
+	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "80 CA 00 42 00" 'Whatever that is, it's required anyway
+	Dim LastSentAPDU As String = SELECT_STANDARD_PKI_APPLET_ID
 	
 	'CallerBundle(0) = Caller       - Object
 	'CallerBundle(1) = SubName      - String
 	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	Dim CallerBundle() As Object = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		Msgbox2Async($"Sending a GET DATA for P1=00 & P2=42 failed!
+		
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select industry-standard PKI applet ID! (step 1)
 
-Sent APDU:
+[Sent APDU]
 ${LastSentAPDU}
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
+		
 	End If
+	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "80 CA 00 45 00" 'Whatever that is, it's required anyway
+	LastSentAPDU = GET_DATA & "00 66" & "00" 'Whatever that is, it's required anyway
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		Msgbox2Async($"Sending a GET DATA for P1=00 & P2=45 failed!
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to send GET DATA for P1=00 & P2=66! (step 2)
 
-Sent APDU:
+[Sent APDU]
 ${LastSentAPDU}
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
+		
 	End If
+	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "00 A4 04 00 07 A0 00 00 00 79 10 00 00" 'Select some security-related directory
+	LastSentAPDU = GET_DATA & "00 42" & "00" 'Whatever that is, it's required anyway
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		Msgbox2Async($"Selecting the security directory failed!
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to send GET DATA for P1=00 & P2=42! (step 3)
 
-Sent APDU:
+[Sent APDU]
 ${LastSentAPDU}
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
+		
 	End If
+	
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = GET_DATA & "00 45" & "00" 'Whatever that is, it's required anyway
+	
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to send GET DATA for P1=00 & P2=45! (step 4)
+
+[Sent APDU]
+${LastSentAPDU}
+
+[Received]
+${ResponseBundle(0)}"$)
+		Return
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID
+	
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select PKI management applet ID! (step 5)
+
+[Sent APDU]
+${LastSentAPDU}
+
+[Received]
+${ResponseBundle(0)}"$)
+		Return
+		
+	End If
+	
 	'--------------------------------------------------------------------------------
 	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
 	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = "80 84 00 00 08" 'Request a challenge code of 8 bytes (0x08 bytes)
+		LastSentAPDU = GET_CHALLENGE & "08" 'Request a challenge code of 8 bytes (0x08 bytes)
 		
 	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
 	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = "80 84 00 00 10" 'Request a challenge code of 16 bytes (0x10 bytes)
+		LastSentAPDU = GET_CHALLENGE & "10" 'Request a challenge code of 16 bytes (0x10 bytes)
 		
 	End If
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		Msgbox2Async($"Requesting a ${DetectedAlgorithm} challenge code failed!
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to request a ${DetectedAlgorithm} challenge code! (step 6)
 
-Sent APDU:
+[Sent APDU]
 ${LastSentAPDU}
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
+		
 	End If
+	
 	'--------------------------------------------------------------------------------
 	'2DES / 3DES
 	Dim SmartcardChallengeCode As String = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
@@ -2790,63 +2923,76 @@ ${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Consta
 			
 		End If
 	Catch
-		Msgbox2Async($"Generating a Response code locally on this device failed!
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device! (step 7)
 
-Tried algorithm:
+[Algorithm]
 ${DetectedAlgorithm} / ECB / NoPadding
 
-Last sent APDU (GET CHALLENGE):
+[Sent APDU]
 ${LastSentAPDU}
 
-Last received APDU (Challenge code + 2 status bytes):
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
+		
 	End Try
 	'--------------------------------------------------------------------------------
-	'2DES / 3DES
-	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = "80 82 00 01 08 " & SmartcardResponseCode & " 00" '00 = Expected Le not set
+	LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID
+	
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
 		
-	'AES-128 / AES-256
-	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = "80 82 00 01 10 " & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select PKI management applet ID! (step 8)
+
+[Sent APDU]
+${LastSentAPDU}
+
+[Received]
+${ResponseBundle(0)}"$)
+		Return
 		
 	End If
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	'--------------------------------------------------------------------------------
+	'2DES / 3DES (data length 0x08)
+	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+		LastSentAPDU = EXTERNAL_AUTHENTICATE_MANUAL & "08" & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		
+	'AES-128 / AES-256 (data length 0x10)
+	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+		LastSentAPDU = EXTERNAL_AUTHENTICATE_MANUAL & "10" & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		
+	End If
+	
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE request APDU
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		Msgbox2Async($"Performing EXTERNAL AUTHENTICATE with generated Response code failed!
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code! (step 9)
 
-Sent APDU:
+[Sent APDU]
 ${LastSentAPDU}
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
+		
 	End If
-	'--------------------------------------------------------------------------------
-	'Wait 100ms before sending next APDUs because some Crescendo C1150 smartcards
-	'had a firmware bug that could cause the card to reject a valid unblock code or
-	'reboot themselves when an APDU was sent too quickly after performing an
-	'EXTERNAL AUTHENTICATE command with it
-	'
-	' - Source: I verified that it's what actually happens sometimes on my C1150,
-	'           despite the Internet saying that this "has never actually happened"
-	'
-	Common.SynchronousSleep(100, Me, "mnuDirectUnblock_Click")
-	Wait For SynchronousSleep_mnuDirectUnblock_Click_Completed
 	'--------------------------------------------------------------------------------
 	' - Many smartcards have a minimum PIN requirement of 6 characters
 	' - Some smartcards also have a PIN policy that only allows digits
@@ -2861,48 +3007,31 @@ ${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Consta
 	'   The rest is padding (0xFF) so that the command fits the required minimum
 	'   of 8 bytes for this SET REFERENCE DATA command's payload data length
 	'
-	'                           vv -- -- -- -- -- -- ** **
-	LastSentAPDU = "80 2C 02 00 08 32 30 32 36 30 38 FF FF 00" '00 = Expected Le not set
+	'                                              vv     -- -- -- -- -- -- ** **
+	LastSentAPDU = SET_REFERENCE_DATA & "02 00" & "08" & "32 30 32 36 30 38 FF FF" & "00" '00 = Expected Le not set
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _ 'Send SET REFERENCE DATA APDU for Primary User PIN
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		Msgbox2Async($"Performing SET REFERENCE DATA to set a new PIN value of 202608 failed!
+		
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with a new PIN value of 202608! (step 10)
 
-Sent APDU:
+[Sent APDU]
 ${LastSentAPDU}
 
-Received APDU:
-${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", Application.Icon, True)
+[Received]
+${ResponseBundle(0)}"$)
 		Return
-	Else
-		ToastMessageShow("New PIN successfully set to:"&CRLF&"202608", Constants.TOAST_DURATION_LONG)
 		
 	End If
+	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "00 A4 04 00 07 A0 00 00 00 79 10 00 00" 'Select security directory again
-	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
-		Array As Object( _
-			LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	'
 	'At this point the job is done, the rest is just informal APDU requests that
 	'I saw being used by the Gemalto MiniDriver Manager
 	'
@@ -2913,38 +3042,41 @@ ${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Consta
 	'And because it's now informal APDU requests, we just ignore any 'errors' here
 	'If any 'error' happens, it's simply just a common warning from the smartcard
 	'that you would happen anyway even if you used an established & popular CMS / SCMS
-	'
 	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "80 5A 00 00 00" 'Whatever that is, it's required anyway
+	LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID 'Select security directory again (to 'logout' / reset logged-in status)
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
-		Array As Object( _
-			LastSentAPDU _ 'Send GET DATA APDU request for whatever that APDU is
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	'--------------------------------------------------------------------------------
-	LastSentAPDU = "00 A4 04 00 07 A0 00 00 00 79 10 00 00" 'Select security directory again (again)
-	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "mnuDirectUnblock_Click", _
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
 			LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_mnuDirectUnblock_Click_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	'--------------------------------------------------------------------------------
-	'
+	LastSentAPDU = "80 5A 00 00 00" 'Whatever that is, it's required anyway
+	
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object( _
+			LastSentAPDU _ 'Send GET DATA APDU request for whatever that APDU is
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	'--------------------------------------------------------------------------------
+	LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID 'Select security directory again (again - one last time)
+	
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object( _
+			LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	'--------------------------------------------------------------------------------
 	'Gemalto MiniDriver Manager selects yet again the PKI applet's security directory,
 	'one last time before sending a VERIFY PIN command with empty PIN:
 	'
@@ -2960,22 +3092,14 @@ ${ResponseBundle(0)}"$, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Consta
 	'      then this might actually decrement it to get the remaining
 	'      PIN tries count in the expected "63 C?" response status
 	'       - (With "?" being the remaining number of tries, between 0x00 & 0x0F)
-	'
-	'--------------------------------------------------------------------------------
-	'
-	'StopService(Smartcard) 'We don't stop the Smartcard service this way at current time
-	'
+	
 	'--------------------------------------------------------------------------------
 	
-	'Now we tell the user about the successful PIN unblock operation,
-	'and what their new PIN code is (it will always be set to 202608 for now)
-	Msgbox2Async($"Your smartcard User PIN has been unblocked successfully!
-
-Your new User PIN is now set to 202608: you may change it again later at your convenience using e.g. a desktop smartcard utility.
-
-I did not implement a full user interface to choose your own new User PIN yet but this will surely be implemented in a future application update"$, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, Application.Icon, True)
+	'Tell the mnuDirectUnblock_Click function that the task is completed (success)
+	' - IsSuccessful = True
+	' - ErrorIAny    = (empty string)
+	CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", True, "")
 	
-	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
 
 Private Sub mnuAbout_Click

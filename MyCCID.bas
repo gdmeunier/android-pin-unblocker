@@ -78,9 +78,10 @@ public static class CCIDDescriptor
 		CanStopClock,
 		NADAccepted,
 		AutoIFSDExchange,
-		TPDU,
-		ShortAPDU,
-		ShortAndExtendedAPDU,
+		CharacterLevel,
+		TPDULevel,
+		ShortAPDULevel,
+		ExtendedAPDULevel,
 		WakeOnCardAction
 	}
 	
@@ -118,7 +119,7 @@ public static class CCIDDescriptor
 					throw new IllegalArgumentException("Invalid Interface descriptor (wrong length)");
 				}
 				
-				i = bb.getShort();
+				i = bb.get();
 				bb.position(bb.position() + len - 4);
 			}
 			else if ( type == 0x21 )
@@ -180,8 +181,9 @@ public static class CCIDDescriptor
 				 * ProGuard / R8, otherwise this call will be removed
 				 *
 				 * Then you would get corrupt CCID descriptors due to this
+				 * (because bb gets incremented on every call)
 				 */
-				bb.getInt(); /* We ignore the synchProtocols (not relevant for USB) */
+				ccid.synchProtocols = bb.getInt(); /* We ignore the synchProtocols (not relevant for USB) */
 				
 				int mData = bb.getInt();
 				List<Mechanical> mList = new LinkedList<Mechanical>();
@@ -249,15 +251,19 @@ public static class CCIDDescriptor
 				}
 				if ( (fData & 0x00010000) == 0x00010000 )
 				{
-					fList.add(Feature.TPDU);
+					fList.add(Feature.CharacterLevel);
 				}
 				if ( (fData & 0x00020000) == 0x00020000 )
 				{
-					fList.add(Feature.ShortAPDU);
+					fList.add(Feature.TPDULevel);
 				}
 				if ( (fData & 0x00040000) == 0x00040000 )
 				{
-					fList.add(Feature.ShortAndExtendedAPDU);
+					fList.add(Feature.ShortAPDULevel);
+				}
+				if ( (fData & 0x00080000) == 0x00080000 )
+				{
+					fList.add(Feature.ExtendedAPDULevel);
 				}
 				if ( (fData & 0x00100000) == 0x00100000 )
 				{
@@ -320,6 +326,7 @@ public static class CCIDDescriptor
 	private ScreenSize lcdLayout;
 	private EnumSet<PINSupport> pinSupports;
 	private int maxCCIDBusySlots;
+	private int synchProtocols;
 	
 	@Override
 	public String toString()
@@ -329,13 +336,13 @@ public static class CCIDDescriptor
 						     "DefaultDataRate=%dbps, MaxDataRate=%dpbs, NumDataRatesSupported=%d, " +
 						     "MaxIFSD=%d, Mechanicals=%s, Features=%s, MaxCCIDMessageLength=%d, "   +
 						     "ClassGetResponse=%X, classEnvelope=%X, lcdLayout=%dx%d, "             +
-						     "PIN Support=%s, MaxCCIDBusySlots=%d",
+						     "PIN Support=%s, MaxCCIDBusySlots=%d, SynchProtocols=%d",
 				ccidVersion, maxSlotIndex +1, voltages, protocols,
 				defaultClock, maxClock, numClockSupported,
 				defaultDataRate, maxDataRate, numDataRatesSupported,
 				maxIFSD, mechanicals, features, maxCCIDMessageLength,
 				classGetResponse, classEnvelope, lcdLayout.charsPerLine, lcdLayout.lines,
-				pinSupports, maxCCIDBusySlots
+				pinSupports, maxCCIDBusySlots, synchProtocols
 		);
 	}
 	
@@ -566,7 +573,6 @@ public interface CardCallback
 }
 #End If
 
-
 '
 'CCID class code
 '
@@ -746,8 +752,8 @@ public static class CCID implements Closeable
 		
         pinPad = desc.getPinSupports().contains(CCIDDescriptor.PINSupport.Verification);
 		
-        supportApdu = desc.getFeatures().contains(CCIDDescriptor.Feature.ShortAPDU) ||
-			desc.getFeatures().contains(CCIDDescriptor.Feature.ShortAndExtendedAPDU);
+        supportApdu = desc.getFeatures().contains(CCIDDescriptor.Feature.ShortAPDULevel) ||
+			desc.getFeatures().contains(CCIDDescriptor.Feature.ExtendedAPDULevel);
 		
         autoInit = desc.getFeatures().contains(CCIDDescriptor.Feature.AutoParamConfigViaATR);
 		
@@ -846,38 +852,94 @@ public static class CCID implements Closeable
         transmit((byte)0x63, null, (byte)0x81, false);
     }
 	
-    public synchronized void init() throws IOException
+	// T=1 only (so by default set to 0x00)
+	private byte xfrBlockWaitingIntegerT1 = 0x00;
+	
+    public synchronized void init(byte[] atr) throws IOException
 	{
         if ( !autoInit )
 		{
-			/* TODO: determine Fi/Di from ATR (for now we assume 0x13 for all eID)
-             * See: 9.2 http://read.pudn.com/downloads132/doc/comm/563504/ISO-IEC%207816/ISO%2BIEC%207816-3-2006.pdf
+			/* cardParameters[0] = Protocol (T1 = 0x01, T0 = x00)
+			 * cardParameters[1] = pps0
+			 * cardParameters[2] = Fi/Di
+			 * cardParameters[3] = Extra Guard Time
+			 * cardParameters[4] = Maximum Waiting Time for T=0
+			 * cardParameters[5] = IFSC (maximum block size for T=1)
+			 * cardParameters[6] = Block Waiting Time for T=1
+			 * cardParameters[7] = bmTCCKST1 (T=1)
 			 */
-            if ( !supportApdu )
+			byte[] cardParameters = determineCardParameters(atr, true); // true = mark that pps1 follows pps0
+			
+			/* Update the xfrBlockWaitingIntegerT1 field [T=1 only]
+			 * This extracts BWI from BWT (e.g. BWT of 0x45 -> BWI = 0x04, CWI 0x05)
+			 *
+			 * For for a BWT of 0x45:
+			 *  - BWI is 4
+			 *  - CWI is 5
+			 */
+			if ( cardParameters[0] == (byte)0x01 ) // If T=1 protocol
 			{
-                // TPDU for PPS
-				transmit((byte)0x6F, new byte[]{(byte)0xFF, 0x10, 0x13, (byte)0xFC}, (byte)0x80, false);
-            }
+				int tmpBWI = (cardParameters[6] & 0xFF) >> 4;
+				this.xfrBlockWaitingIntegerT1 = (byte)tmpBWI;
+			}
 			
-            // Set params
-            byte[] pds = new byte[5];
-            
-			pds[0] = 0x13; // bmFindexDindex: Fi/f(max) = 372/5, Di = 4
+			//
+            // Set parameters
+			//
 			
-            pds[1] = 0x00; // bmTCCKST0:         ignored (PCSC compatibility issue)
-            pds[2] = 0x00; // bGuardTimeT0:      default
-            pds[3] = 0x0A; // bWaitingIntegerT0: WI value
+            byte[] pds;
 			
-            pds[4] = 0x00; // bClockStop: no clock stop
+			if ( cardParameters[0] == (byte)0x00 ) // If T=0 protocol
+			{
+				pds    = new byte[5];
+				
+				pds[0] = cardParameters[2]; // bmFindexDindex:    (usually 0x13) Fi/f(max)
+				pds[1] = 0x00;              // bmTCCKST0:         ignored (PCSC compatibility issue)
+				pds[2] = cardParameters[3]; // bGuardTimeT0:      (usually 0x00) [always 0 for T=0]
+				pds[3] = cardParameters[4]; // bWaitingIntegerT0: (usually 0x0A) WI value
+				pds[4] = 0x00;              // bClockStop:        no clock stop
+			}
+			else // If T=1 protocol
+			{
+				pds    = new byte[7];
+				
+				pds[0] = cardParameters[2]; // bmFindexDindex:         (usually 0x13) Fi/f(max)
+				pds[1] = cardParameters[7]; // bmTCCKST1:              (bit 0 = CRC(1) or LRC(0))
+				pds[2] = cardParameters[3]; // bGuardTimeT1:           (usually 0x00)
+				pds[3] = cardParameters[6]; // bBlockWaitingIntegerT1: (usually 0x4D) BWT value
+				pds[4] = 0x00;              // bClockStop:             no clock stop
+				pds[5] = cardParameters[5]; // bIFSC:                  info field size (max 254 bytes)
+				pds[6] = 0x00;              // bNadValue:              node address (default: host-to-card routing)
+			}
 			
 			//             SetParameters    Parameters
+			//             |                |
             transmit((byte)0x61, pds, (byte)0x82, true);
+			
+			//
+			// Sent PDS first always before sending a TPDU (even for PPS)
+			//
+			
+			// See: 9.2 http://read.pudn.com/downloads132/doc/comm/563504/ISO-IEC%207816/ISO%2BIEC%207816-3-2006.pdf
+			if ( !supportApdu )
+			{
+                // TPDU for PPS
+				/* Last byte of the PPS frame is a checksum that we have to compute:
+				 *  - e.g. 0xFF [xor] pps0 [xor] pps1 = checksum byte
+				 */
+				byte ppss = (byte)0xFF;
+				byte pps0 = cardParameters[1];              // Already byte (protocol selection)
+				byte pps1 = cardParameters[2];              // Already byte (Fi/Di: usually 0x13, default 0x11)
+				byte pck  = (byte)(ppss ^ pps0 ^ pps1);     // Checksum (LRC)
+				transmit((byte)0x6F, new byte[] { ppss, pps0, pps1, pck }, (byte)0x80, false);
+            }
         }
     }
 	
     public synchronized byte[] transmitApdu(byte[] apdu) throws IOException
 	{
 		//                    XfrBlock         DataBlock
+		//                    |                |
         return transmit((byte)0x6F, apdu,(byte)0x80, true).data;
     }
 	
@@ -920,6 +982,7 @@ public static class CCID implements Closeable
         System.arraycopy(apdu, 0, pvds, 15, apdu.length);
 		
 		//                    Secure
+		//                    |
         return transmit((byte)0x69, pvds, (byte)0x80, true).data;
     }
 	
@@ -938,7 +1001,9 @@ public static class CCID implements Closeable
         req[5] = (byte)0x00; // Slot
 		
         req[6] = (byte)sequence;
-        req[7] = (byte)( (cmd == (byte)0x6F) ? 0x01 : 0x00 ); // Not used (Xfr: Block Waiting Timeout)
+		
+		// "xfrBlockWaitingIntegerT1" is actually 0x00 for T=0 cards by default
+        req[7] = (byte)( (cmd == (byte)0x6F) ? xfrBlockWaitingIntegerT1 : 0x00 ); // Xfr: Block Waiting Timeout (T=1 only)
 		
         req[8] = 0x00; // Not used (Xfr: Param (short APDU))
         req[9] = 0x00; // Not used (Xfr: Param, continued (short APDU))
@@ -1024,11 +1089,22 @@ public static class CCID implements Closeable
         // No need to check errors like PIN_TIMEOUT (0xF0) and PIN_CANCELLED (0xEF), they aren't returned.
         if ( (rsp[7] & (byte)0x03) != 0x00 )
 		{
-            throw new CCIDException(
-				String.format("Command Error returned by the CCID reader: %x",
-					rsp[8]
-				),
-				rsp[7], rsp[8]);
+			if ( rsp[8] == (byte)0xFE )
+			{
+	            throw new CCIDException(
+					String.format("Command Error returned by the CCID reader: %x (SLOTERROR_ICCMUTE)",
+						rsp[8]
+					),
+					rsp[7], rsp[8]);
+			}
+			else
+			{
+	            throw new CCIDException(
+					String.format("Command Error returned by the CCID reader: %x",
+						rsp[8]
+					),
+					rsp[7], rsp[8]);
+			}
         }
 		
         switch( (byte)(rsp[7] & (byte)0xC0) )
@@ -1050,6 +1126,209 @@ public static class CCID implements Closeable
 				);
         }
     }
+}
+#End If
+
+'
+'CCID helpers
+'
+
+#If Java
+/* Example Crescendo C1150 ATR:
+ *  - 3B DF 96 FF 81 31 FE 45 5A 01 80 48 49 44 43 31 31 58 58 73 00 01 1B 09
+ *
+ * Protocol:           T=1
+ * Fi/Di:              0x96
+ * Extra Guard Time:   0xFF
+ * IFSC:               0xFE
+ * Block Waiting Time: 0x45
+ * bmTCCKST1:          0x10
+ */
+import java.lang.IllegalArgumentException;
+public static byte[] determineCardParameters(byte[] atr, boolean includePps1) throws IllegalArgumentException
+{
+    // Valid ATRs are atleast 2 bytes (TS + T0)
+    if ( atr == null || atr.length < 2 )
+	{
+        throw new IllegalArgumentException("ATR too short to parse protocol.");
+    }
+	
+	byte ts = atr[0];
+	
+    int tmpT0 = atr[1] & 0xFF;
+    int nextMask = (tmpT0 & 0xF0) >> 4; // Contains indication for TA1, TB1, TC1, TD1
+    
+    byte ta1 = (byte)0x11; // 0x11 = Fi/Di [Fi=372 Di=1]:               Specification default
+	byte tc1 = 0x00;       // 0x00 = Extra Guard Time:                  Specification default
+	byte tc2 = (byte)0x0A; // 0x0A = Maximum Waiting Time for T=0:      Specification default
+	byte taX = (byte)0x20; // 0x20 = IFSC (maximum block size for T=1): Specification default
+	byte tbX = (byte)0x4D; // 0x4D = Block Waiting Time for T=1:        Specification default
+	
+	byte bmTCCKST1 = (byte)(0x00 | 0x10); // 0x00 = bmTCCKST1 (T=1) [Direct / LRC] + mandatory 0x10 mask (default)
+	
+	int interfaceGroupNumber = 0;
+	int index = 2; // Index starts at the 3rd byte of the ATR
+	
+    boolean isT1Protocol = false;
+	int tmpTDx;
+	
+    // Iterate all interface byte groups (TD1, TD2, TD3...)
+    while ( nextMask != 0 )
+	{
+		if ( index >= atr.length ) // Avoid crashes
+		{
+			break;
+		}
+		
+		interfaceGroupNumber = interfaceGroupNumber + 1;
+		
+        // Check TA(x)
+        if ( (nextMask & 0x01) != 0 )
+		{
+			if ( interfaceGroupNumber == 1 ) // TA1 = Fi/Di
+			{
+				ta1 = atr[index];
+			}
+			
+			if ( interfaceGroupNumber == 3 && isT1Protocol ) // TA3 = IFSC (maximum block size for T=1)
+			{
+				taX = atr[index];
+			}
+			
+            index++;
+        }
+		
+        // Check TB(x)
+        if ( (nextMask & 0x02) != 0 )
+		{
+			if ( interfaceGroupNumber == 3 && isT1Protocol ) // TB3 = Block Waiting Time for T=1
+			{
+				tbX = atr[index];
+			}
+			
+            index++;
+        }
+		
+        // Check TC(x)
+        if ( (nextMask & 0x04) != 0 )
+		{
+            if ( index >= atr.length ) { break; }
+			
+			if ( interfaceGroupNumber == 1 ) // TC1 = Extra Guard Time
+			{
+				tc1 = atr[index];
+			}
+			if ( interfaceGroupNumber == 2 && !isT1Protocol ) // TC2 = Maximum waiting time for protocol T=0
+			{
+				tc2 = atr[index];
+			}
+			
+			if ( interfaceGroupNumber == 3 && isT1Protocol ) // TC3 = Error Correction Algorithm for T=1
+			{
+				bmTCCKST1 = getBmTCCKST1(ts, atr[index]); // Build the bmTCCKST1 byte
+			}
+			
+            index++;
+        }
+		
+        // Process TD(x)
+        if ( (nextMask & 0x08) != 0 )
+		{
+            tmpTDx = atr[index] & 0xFF;
+            
+            if ( (tmpTDx & 0x0F) == 1 ) // Lower 4 bits of TDx announce the protocol
+			{
+                isT1Protocol = true;
+			}
+			
+            // Extract new mask for next bytes group (TAx+1, TBx+1, TCx+1, TDx+1)
+            nextMask = (tmpTDx & 0xF0) >> 4;
+			
+			// Continue after TD(x)
+            index++;
+        }
+		else
+		{
+            // No more TD byte announced (stop parsing)
+            nextMask = 0;
+        }
+    }
+	
+    // Building PPS0 byte:
+    // Bits 1-4:     Protocol type (0 for T=0 :: 1 for T=1)
+    // Bit 5 (0x10): If PPS1 is present
+	byte pps0 = (byte)(0x00 & 0x0F);
+	
+	if ( isT1Protocol )
+    {
+		pps0 = (byte)(0x01 & 0x0F);
+	}
+	
+    if ( includePps1 )
+	{
+        pps0 = (byte)(pps0 | 0x10); // Set bit 5 (pps1 follows pps0)
+    }
+	
+	/* cardParameters[0] = Protocol (T1 = 0x01, T0 = x00)
+	 * cardParameters[1] = pps0
+	 * cardParameters[2] = Fi/Di
+	 * cardParameters[3] = Extra Guard Time
+	 * cardParameters[4] = Maximum Waiting Time for T=0
+	 * cardParameters[5] = IFSC (maximum block size for T=1)
+	 * cardParameters[6] = Block Waiting Time for T=1
+	 * cardParameters[7] = bmTCCKST1 (T=1)
+	 */
+	byte[] cardParameters = new byte[]
+	{
+		(byte)0x00,
+		pps0,
+		ta1,
+		tc1,
+		tc2,
+		taX,
+		tbX,
+		bmTCCKST1
+	};
+	
+	if ( isT1Protocol )
+    {
+		cardParameters[0] = (byte)0x01;
+	}
+	
+	return cardParameters;
+}
+
+import java.lang.IllegalArgumentException;
+public static byte getBmTCCKST1(byte ts, byte tcX) throws IllegalArgumentException
+{
+    int bmTCCKST1 = 0x10; // Mandatory bTCCKST1 mask (0x10)
+    int tmpTS     = ts & 0xFF;
+	
+    if ( tmpTS == 0x3F )
+	{
+        bmTCCKST1 |= (1 << 1); // Inverse transmission convension
+    }
+	else if ( tmpTS == 0x3B )
+	{
+        bmTCCKST1 |= (0 << 1); // Direct transmission convention
+    }
+	else
+	{
+        throw new IllegalArgumentException(String.format("Invalid TS byte (expected: 0x3B or 0x3F, received: 0x%02X)", tmpTS));
+    }
+	
+	int tmpTCx = tcX & 0xFF;
+	
+    if ( (tmpTCx & 0x01) == 0x01 )
+	{
+        bmTCCKST1 |= (1 << 0); // CRC
+    }
+	else
+	{
+        bmTCCKST1 |= (0 << 0); // Specification default: LRC
+    }
+	
+    return (byte)bmTCCKST1;
 }
 #End If
 

@@ -65,6 +65,19 @@ Public Sub Initialize
 	
 End Sub
 
+Public Sub Throw(Message As String)
+	
+	joClass.RunMethod("jThrow", Array(Message))
+	
+End Sub
+#If Java
+import java.lang.RuntimeException;
+public static void jThrow(final String message) throws RuntimeException
+{
+	throw new RuntimeException(message);
+}
+#End If
+
 Public Sub SynchronousSleep(Milliseconds As Int, OriginActivityCaller As Object, SubName As String)
 	
 	SynchronousSleep2.SynchronousSleep_Start(Milliseconds, Me, "SynchronousSleep")

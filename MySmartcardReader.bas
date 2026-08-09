@@ -249,10 +249,10 @@ public static class SmartcardReader implements Closeable
 							if ( (cmd[2] & 0x80) != 0 )
 							{
 								// SFI: Increase P2 only in command (request APDU)
-								currentP2 = cmd[3] + (rsp.length - 2);
+								currentP2 = (cmd[3] & 0xFF) + (rsp.length - 2);
 								
 								// Correct the offset to the new one in the command (request APDU)
-								cmd[3] = (byte)(currentP2 & 0xFF);
+								cmd[3] = (byte)currentP2;
 							}
 							else
 							{
@@ -270,8 +270,8 @@ public static class SmartcardReader implements Closeable
 								offset += rsp.length - 2;
 								
 								// Correct the offset to the new one in the command (request APDU)
-								cmd[2] = (byte)((offset >> 8) & 0xFF);
-								cmd[3] = (byte)(offset & 0xFF);
+								cmd[2] = (byte)(offset >> 8);
+								cmd[3] = (byte)offset;
 							}
 							break;
 							
@@ -311,7 +311,7 @@ public static class SmartcardReader implements Closeable
 							/* Correct the CLA byte in the command (request APDU):
 							 *  - Set the bit 5 (chaining bit) in the CLA (bitOR with 0x10)
 							 */
-							cmd[0] = (byte)((currentCLA | 0x10) & 0xFF);
+							cmd[0] = (byte)(currentCLA | 0x10);
 							break;
 					}
 					break;
@@ -453,6 +453,18 @@ public static class SmartcardReader implements Closeable
 		this.cardReader.setCallback(new CardReaderCallback());
 	}
 	
+	private byte[] cardATR;
+	
+	public byte[] getCardATR()
+	{
+		return this.cardATR;
+	}
+	
+	private void setCardATR(byte[] atr)
+	{
+		this.cardATR = atr;
+	}
+	
 	public synchronized void open() throws IOException
 	{
 		if ( cardReader.isOpen() )
@@ -475,7 +487,8 @@ public static class SmartcardReader implements Closeable
 		
 		try
 		{
-			processAtr(cardReader.powerOn());
+			setCardATR(cardReader.powerOn());
+			processAtr(getCardATR());
 		}
 		catch (IOException io)
 		{
@@ -490,7 +503,8 @@ public static class SmartcardReader implements Closeable
 		{
 			try
 			{
-				processAtr(cardReader.powerOn());
+				setCardATR(cardReader.powerOn());
+				processAtr(getCardATR());
 				
 				if ( cardPresent && cardCallback != null )
 				{
@@ -524,7 +538,7 @@ public static class SmartcardReader implements Closeable
 		if ( atr != null )
 		{
 			cardPresent = true;
-			cardReader.init();
+			cardReader.init(atr);
 		}
 		else
 		{
