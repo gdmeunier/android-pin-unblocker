@@ -53,12 +53,7 @@ Public Sub Initialize
 	
 	'Initialize the Activity lifecycle tracking thread
 	'It will be named e.g. "ActivityLifecycleTimer_Thread_Ended"
-	'
-	'Note: "Initialise" is the real function name for
-	'      the thread initialization, it's a typo but
-	'      that's how the function is actually named
-	'
-	LifecycleClearingThread.Initialise("LifecycleClearingThread")
+	LifecycleClearingThread.Initialize("LifecycleClearingThread")
 	
 End Sub
 

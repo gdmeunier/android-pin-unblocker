@@ -110,8 +110,8 @@ effect of suspending the thread and immediately rescheduling it for execution.</
 			<returntype>void</returntype>
 		</method>
 		<method>
-			<name>Initialise</name>
-			<comment>Initialises the thread object with the given event name.</comment>
+			<name>Initialize</name>
+			<comment>Initializes the thread object with the given event name.</comment>
 			<returntype>void</returntype>
 			<parameter>
 				<name>processBA</name>
@@ -163,7 +163,7 @@ a global variable whose value will tell it to stop or perform some other action.
 				<type>java.lang.String</type>
 			</parameter>
 			<comment>Sets or returns the name of the Thread. This name is displayed in DDMS while the
-thread is running. The default name for a thread is the event name passed to Initialise.</comment>
+thread is running. The default name for a thread is the event name passed to Initialize.</comment>
 		</property>
 		<property>
 			<name>NormalPriority</name>
@@ -371,9 +371,9 @@ as it does so.</comment>
 		<method>
 			<name>Initialize</name>
 			<comment>Makes a new locked Semaphore, with zero permits, or an unlocked Semaphore
-with one permit. A Semaphore initialised unlocked can be used to control
+with one permit. A Semaphore initialized unlocked can be used to control
 access to a resource. To acquire a resource the sequence for a thread is
-Wait() - use resource - UnLock(). A Semaphore initialised locked can be
+Wait() - use resource - UnLock(). A Semaphore initialized locked can be
 used to flag events across threads. The sequence is for the waiting thread
 to call Wait() and the invoking thread to call Unlock().</comment>
 			<returntype>void</returntype>
@@ -422,7 +422,7 @@ as it is read if another thread uses this Lock.</comment>
 			<comment>Returns the version number of the library.</comment>
 		</property>
 	</class>
-	<version>1.1</version>
+	<version>1.2</version>
 	<comment>Basic4Android applications have only one thread, the main or GUI (Graphical User Interface)
 thread that, not surprisingly, handles the user interface (and everything else).
 Using this library you can create additional threads that operate (apparently)

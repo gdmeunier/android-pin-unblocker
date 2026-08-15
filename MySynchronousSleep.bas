@@ -5,12 +5,6 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
-#Region Class File Attributes
-	'Ignore "Variable x was not initialized" warning (#11)
-	#IgnoreWarnings: 11
-	
-#End Region
-
 '
 'This class is a subclass of the MyCommon one
 '
@@ -30,12 +24,7 @@ End Sub
 Public Sub Initialize
 	
 	'To ensure correct running functions order
-	'
-	'Note: "Initialise" is the real function name for
-	'      the thread initialization, it's a typo but
-	'      that's how the function is actually named
-	'
-	SynchronousSleepThread.Initialise("SynchronousSleepThread")
+	SynchronousSleepThread.Initialize("SynchronousSleepThread")
 	
 End Sub
 

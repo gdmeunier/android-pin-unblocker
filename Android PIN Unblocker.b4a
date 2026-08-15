@@ -16,7 +16,7 @@ Library2=javaobject
 Library3=lightruntimepermissions
 Library4=threading
 Library5=newqrcodereaderview
-ManifestCode='~\n~'Android PIN Unblocker's application manifest file~\n~'~\n~~\n~'This application supports Android 2.3.2 and higher (API level 9+)~\n~'This application guarantees compliance with Android up to Android 13 (API level 33)~\n~'~\n~'This application requires atleast Android 2.3.2 (API level 9) for:~\n~' - Camera-related functions~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'This application makes use of Camera hardware and Flashlight~\n~'However this is not strictly required to run this application~\n~'~\n~'Features used for:~\n~' - Scanning QR codes~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'This application makes use of USB-OTG (On-The-Go)~\n~'However this is not strictly required to run this application~\n~'~\n~'Feature used for:~\n~' - Unblocking smartcards over USB~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.usb.host"         android:required="false" />)~\n~~\n~'This application supports all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'This application cans broadcast Intents:~\n~' - Opening HTTP or HTTPS links~\n~'~\n~'This requirement was introduced starting with Android 11 (API level 30)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'~\n~'Camera and Flashlight permissions are automatically inserted when using~\n~'the NewQRCodeReaderView library~\n~'~\n~~\n~'Application identity (automatically inserted)~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application icon (uses a mipmap instead of a drawable)~\n~SetApplicationAttribute(android:icon, "@mipmap/ic_launcher")~\n~~\n~'Application theme (this app uses a custom theme)~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Application's task affinity (this application refuses to share affinity with other ones):~\n~' - Always detach this application's Activities from the task stack of other apps~\n~' - We do this by clearing its task affinity attribute (setting it to "")~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> covers all Activities~\n~'~\n~'This is done for security reasons, so that other applications cannot do~\n~'task reparenting attacks on it (known as StrandHogg vulnerability)~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'This application wishes to benefit from hardware acceleration:~\n~' - Performance optimization for the Camera preview (QR code scanning)~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'We wish to benefit from it for all this application's Activities~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'The running state of this application should never be preserved across reboots:~\n~' - Don't let Android persist this application's state across device reboots and on shutdown~\n~' - We don't want the user having leftovers (forensic traces) from Activities across reboots~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'This application's Activities when started by a specific user,~\n~'should only be visible for this user and other ones on the device:~\n~' - We don't want to let one Android user launch one of this application's Activities,~\n~'   then have other Android users on the same device being able to see~\n~'   this user's own Activities in their task history (for security reasons)~\n~'~\n~' - Each Android user account on a device should~\n~'   launch their own Activities if they want to~\n~'   see those in their own task histories~\n~'~\n~'This attribute was introduced starting with Android 6 (API level 23)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'Mark the Main Activity as exported~\n~'~\n~'Newer versions of Android require that Activities with <intent-filters /> must~\n~'explicitly be marked as exported for security reasons~\n~'~\n~'This requirement was introduced starting with Android 12 (API level 32)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Mark the Scan Activity as unexported (private):~\n~' - Android applications should always mark as unexported all Activities that~\n~'   are not explicitly made open to other ones~\n~'~\n~'We mark all Activities that are not explicitly callable from other applications as~\n~'unexported for security reasons (as a security precaution)~\n~'~\n~'Set it for all Activities that you don't wish to explicitly offer to other applications~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the Scan Activity from the Android Recent Apps panel:~\n~' - Only the Main Activity (entry point) should appear in it~\n~'~\n~'Add all Activities other than the Main one here~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Main Activity automatically disappear form the Recent Apps panel when finished:~\n~' - This Activity will only be visible until the user intentionally exits the application,~\n~'   then it will disappear from the Recent Apps panel to avoid leaving traces of use~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Set the Main Activity's launch mode to singleTop:~\n~' - Atleast a singleTop or singleTask launch mode is required to receive~\n~'   onNewIntent Activity callbacks~\n~'~\n~'Attribute used for:~\n~' - Receiving Admin key texts shared to this application~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~~\n~'Enforce stricter Intent matching rules for sending Intents to the Main Activity:~\n~' - Explicit Intents must match this application's exact component name~\n~' - Intents without any ACTION type don't match this application~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'This attribute was introduced starting with Android 16 (API level 36)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Add a Share To Intent filter to the Main Activity:~\n~' - Allow sharing Admin key texts from other applications to this one~\n~'~\n~'Used attributes:~\n~' - "android:autoVerify": Introduced starting with Android 6 (API level 23)~\n~'~\n~'                         It's some useless thing that's used for verifying~\n~'                         Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":      Introduced starting with Android 9 (API level 28)~\n~'~\n~'                         This is the priority order of Intent filters~\n~'                         The higher the number the higher the priority~\n~'~\n~'                         It only sets the priority of this application's own~\n~'                         Intent filters~\n~'~\n~'Note:~\n~' - I don't want to use the "android:priority" Intent filter attribute since it would~\n~'   interfere with other applications' own Intent filter offers, by taking priority over~\n~'   their own offers when you want to share text to a different application instead of this one~\n~'~\n~' - So out of courtesy for other applications, we only use the "android:order" Intent filter attribute~\n~'   instead of the "android:priority" one~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Mark Picture-in-Picture mode (PiP) as unsupported:~\n~' - we don't want to support it for security reasons~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform graphical post-processing for~\n~'this application (minimal post-processing):~\n~' - Some new-technology displays might try to improve the graphics and colors of this application,~\n~'   but we don't need any such graphical enhancements here~\n~'~\n~'This attribute was introduced starting with Android 11 (API level 30)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations in this application's Activities:~\n~' - We don't use any animations in this application for performance reasons,~\n~'   because we just don't need fancy animations in a technical application~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~~\n~'Intercept mundane device configuration change events to deliberately ignore them:~\n~' - Tell Android that we will handle these configuration change events, but we will actually~\n~'   simply ignore them, so that Android doesn't destroy then re-create this application's Activities for~\n~'   mundane device configuration changes that are not even related to the device display or its orientation~\n~'~\n~'Real display-related configuration change events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we hook all the other ones to simply ignore them~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'Tell Android that it cans shrink our application's Activities if necessary:~\n~' - When it shows the keyboard, the keyboard should not cover Activity content~\n~' - This attribute tells Android that it cans adjust the Activity pan if necessary~\n~'~\n~'The "adjustPan" part is the important one, which should not be needed to set explicitly,~\n~'but Basic4Android explicitly sets by default a windowSoftInputMode value of "stateHidden"~\n~'~\n~'So we have to override Basic4Android's default value with our own instead~\n~'~\n~'We also want to prevent Android from automatically setting~\n~'the focus on the first Activity UI element on application resume,~\n~'because we already handle this on our own in our ViewState management functions~\n~'~\n~'So we also use "stateAlwaysHidden" too instead of just using "stateHidden":~\n~' - "By default, Android will automatically assign initial focus~\n~'    to the first EditText or focusable control in your Activity.~\n~'	 [...]~\n~'    The windowSoftInputMode attribute in AndroidManifest.xml,~\n~'    when set to stateAlwaysHidden, instructs the keyboard to~\n~'    ignore this automatically-assigned initial focus.~\n~'    [...]~\n~'    Therefore, stateAlwaysHidden is VERY poorly named indeed.~\n~'    It should perhaps be called ignoreInitialFocus instead."~\n~'~\n~'Add all Activities that contain input fields here~\n~SetActivityAttribute(Main, "android:windowSoftInputMode", "adjustPan|stateAlwaysHidden")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'~\n~~\n~'~\n~' - Application themes -~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~' - Default Activity & application colors -~\n~'~\n~~\n~'Android version doesn't matter (all versions need to pick the same color)~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~~\n~
+ManifestCode='~\n~'Android PIN Unblocker's application manifest file~\n~'~\n~~\n~'This application supports Android 2.3.2 and higher (API level 9+)~\n~'This application guarantees compliance with Android up to Android 13 (API level 33)~\n~'~\n~'This application requires atleast Android 2.3.2 (API level 9) for:~\n~' - Camera-related functions~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'This application makes use of Camera hardware and Flashlight~\n~'However this is not strictly required to run this application~\n~'~\n~'Features used for:~\n~' - Scanning QR codes~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'This application makes use of USB-OTG (On-The-Go)~\n~'However this is not strictly required to run this application~\n~'~\n~'Feature used for:~\n~' - Unblocking smartcards over USB~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.usb.host"         android:required="false" />)~\n~~\n~'This application supports all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'This application cans broadcast Intents:~\n~' - Opening HTTP or HTTPS links~\n~'~\n~'This requirement was introduced starting with Android 11 (API level 30)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'~\n~'Camera and Flashlight permissions are automatically inserted when using~\n~'the NewQRCodeReaderView library~\n~'~\n~~\n~'~\n~'Don't add the imaginary USB_PERMISSION to this application's manifest:~\n~' - The "android.permission.USB_PERMISSION" one~\n~'~\n~'This permission doesn't actually exist anywhere in the Android codebase,~\n~'and is nothing more than the Internet's collective false news~\n~'about a supposed 'USB permission' which would be added~\n~'to application manifest files~\n~'~\n~'This is fabricated, because USB_PERMISSION only exists during runtime,~\n~'not in the application manifest, and is always requested dynamically~\n~'~\n~'Even seemingly professional websites will tell you to add this fictious~\n~'Android permission to your application manifest file,~\n~'but it literally does nothing at all~\n~'~\n~~\n~'Application identity (automatically inserted)~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application icon (uses a mipmap instead of a drawable)~\n~SetApplicationAttribute(android:icon, "@mipmap/ic_launcher")~\n~~\n~'Application theme (this app uses a custom theme)~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Application's task affinity (this application refuses to share affinity with other ones):~\n~' - Always detach this application's Activities from the task stack of other apps~\n~' - We do this by clearing its task affinity attribute (setting it to "")~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> covers all Activities~\n~'~\n~'This is done for security reasons, so that other applications cannot do~\n~'task reparenting attacks on it (known as StrandHogg vulnerability)~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'This application wishes to benefit from hardware acceleration:~\n~' - Performance optimization for the Camera preview (QR code scanning)~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'We wish to benefit from it for all this application's Activities~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Security hardening for this application's Smartcard service~\n~'~\n~'Other applications shouldn't be able to launch this application's~\n~'Smartcard service or communicate with it in any way,~\n~'so we mark the Smartcard service as private (exported = false)~\n~SetServiceAttribute(Smartcard, "android:exported", false)~\n~~\n~'Also mark its corresponding receiver as private,~\n~'because this Service uses separate USB receivers generated from~\n~'Java code at runtime, whenever they are needed,~\n~'and not the one declared in its manifest file~\n~SetReceiverAttribute(Smartcard, "android:exported", false)~\n~~\n~'The running state of this application should never be preserved across reboots:~\n~' - Don't let Android persist this application's state across device reboots and on shutdown~\n~' - We don't want the user having leftovers (forensic traces) from Activities across reboots~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'This application's Activities when started by a specific user,~\n~'should only be visible for this user and other ones on the device:~\n~' - We don't want to let one Android user launch one of this application's Activities,~\n~'   then have other Android users on the same device being able to see~\n~'   this user's own Activities in their task history (for security reasons)~\n~'~\n~' - Each Android user account on a device should~\n~'   launch their own Activities if they want to~\n~'   see those in their own task histories~\n~'~\n~'This attribute was introduced starting with Android 6 (API level 23)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'Mark the Main Activity as exported~\n~'~\n~'Newer versions of Android require that Activities with <intent-filters /> must~\n~'explicitly be marked as exported for security reasons~\n~'~\n~'This requirement was introduced starting with Android 12 (API level 32)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Mark the Scan Activity as unexported (private):~\n~' - Android applications should always mark as unexported all Activities that~\n~'   are not explicitly made open to other ones~\n~'~\n~'We mark all Activities that are not explicitly callable from other applications as~\n~'unexported for security reasons (as a security precaution)~\n~'~\n~'Set it for all Activities that you don't wish to explicitly offer to other applications~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the Scan Activity from the Android Recent Apps panel:~\n~' - Only the Main Activity (entry point) should appear in it~\n~'~\n~'Add all Activities other than the Main one here~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Main Activity automatically disappear form the Recent Apps panel when finished:~\n~' - This Activity will only be visible until the user intentionally exits the application,~\n~'   then it will disappear from the Recent Apps panel to avoid leaving traces of use~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Set the Main Activity's launch mode to singleTop:~\n~' - Atleast a singleTop or singleTask launch mode is required to receive~\n~'   onNewIntent Activity callbacks~\n~'~\n~'Attribute used for:~\n~' - Receiving Admin key texts shared to this application~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~~\n~'Enforce stricter Intent matching rules for sending Intents to the Main Activity:~\n~' - Explicit Intents must match this application's exact component name~\n~' - Intents without any ACTION type don't match this application~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'This attribute was introduced starting with Android 16 (API level 36)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Add a Share To Intent filter to the Main Activity:~\n~' - Allow sharing Admin key texts from other applications to this one~\n~'~\n~'Used attributes:~\n~' - "android:autoVerify": Introduced starting with Android 6 (API level 23)~\n~'~\n~'                         It's some useless thing that's used for verifying~\n~'                         Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":      Introduced starting with Android 9 (API level 28)~\n~'~\n~'                         This is the priority order of Intent filters~\n~'                         The higher the number the higher the priority~\n~'~\n~'                         It only sets the priority of this application's own~\n~'                         Intent filters~\n~'~\n~'Note:~\n~' - I don't want to use the "android:priority" Intent filter attribute since it would~\n~'   interfere with other applications' own Intent filter offers, by taking priority over~\n~'   their own offers when you want to share text to a different application instead of this one~\n~'~\n~' - So out of courtesy for other applications, we only use the "android:order" Intent filter attribute~\n~'   instead of the "android:priority" one~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Mark Picture-in-Picture mode (PiP) as unsupported:~\n~' - we don't want to support it for security reasons~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform graphical post-processing for~\n~'this application (minimal post-processing):~\n~' - Some new-technology displays might try to improve the graphics and colors of this application,~\n~'   but we don't need any such graphical enhancements here~\n~'~\n~'This attribute was introduced starting with Android 11 (API level 30)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations in this application's Activities:~\n~' - We don't use any animations in this application for performance reasons,~\n~'   because we just don't need fancy animations in a technical application~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~~\n~'Intercept mundane device configuration change events to deliberately ignore them:~\n~' - Tell Android that we will handle these configuration change events, but we will actually~\n~'   simply ignore them, so that Android doesn't destroy then re-create this application's Activities for~\n~'   mundane device configuration changes that are not even related to the device display or its orientation~\n~'~\n~'Real display-related configuration change events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we hook all the other ones to simply ignore them~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'Tell Android that it cans shrink our application's Activities if necessary:~\n~' - When it shows the keyboard, the keyboard should not cover Activity content~\n~' - This attribute tells Android that it cans adjust the Activity pan if necessary~\n~'~\n~'The "adjustPan" part is the important one, which should not be needed to set explicitly,~\n~'but Basic4Android explicitly sets by default a windowSoftInputMode value of "stateHidden"~\n~'~\n~'So we have to override Basic4Android's default value with our own instead~\n~'~\n~'We also want to prevent Android from automatically setting~\n~'the focus on the first Activity UI element on application resume,~\n~'because we already handle this on our own in our ViewState management functions~\n~'~\n~'So we also use "stateAlwaysHidden" too instead of just using "stateHidden":~\n~' - "By default, Android will automatically assign initial focus~\n~'    to the first EditText or focusable control in your Activity.~\n~'	 [...]~\n~'    The windowSoftInputMode attribute in AndroidManifest.xml,~\n~'    when set to stateAlwaysHidden, instructs the keyboard to~\n~'    ignore this automatically-assigned initial focus.~\n~'    [...]~\n~'    Therefore, stateAlwaysHidden is VERY poorly named indeed.~\n~'    It should perhaps be called ignoreInitialFocus instead."~\n~'~\n~'Add all Activities that contain input fields here~\n~SetActivityAttribute(Main, "android:windowSoftInputMode", "adjustPan|stateAlwaysHidden")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'~\n~~\n~'~\n~' - Application themes -~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~' - Default Activity & application colors -~\n~'~\n~~\n~'Android version doesn't matter (all versions need to pick the same color)~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~~\n~
 Module1=MyAdvanced
 Module10=Scan
 Module11=Smartcard
@@ -36,8 +36,8 @@ Version=12.5
 
 #Region Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 72
-	#VersionName: 5.1.1
+	#VersionCode: 75
+	#VersionName: 5.1.4
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -76,9 +76,8 @@ Version=12.5
 #Region Module File Attributes
 	'Ignore "The recommended value for android:targetSdkVersion is x (manifest editor)" warning (#31)
 	'Ignore "This sub should only be used for variables declaration or assignments of primitive values" warning (#29)
-	'Ignore "Variable x was not initialized" warning (#11)
 	'Ignore "Sub x is not used" warning (#12)
-	#IgnoreWarnings: 31,29,11,12
+	#IgnoreWarnings: 31,29,12
 	
 #End Region
 
@@ -709,6 +708,7 @@ import android.content.Intent;
 import android.content.BroadcastReceiver;
 import anywheresoftware.b4a.objects.ActivityWrapper;
 import android.content.IntentFilter;
+import android.os.Build;
 public void _onCreate()
 {
 	BA.LogInfo("["+activityName+"] _onCreate: Function entry");
@@ -919,7 +919,17 @@ public void _onCreate()
 	 */
 	BA.LogInfo("["+activityName+"] _onCreate: Registering the DeviceIdleReceiver");
 	this.DeviceIdleDetectionReceiver = new myadvanced.DeviceIdleReceiver(this.processBA, this._activity);
-	this.registerReceiver(DeviceIdleDetectionReceiver, myadvancedInstance.jGetDeviceIdleIntentFilter());
+	
+	// Android 13+ require explicitly exporting the receiver
+	// (Android 13+ is API level 33+)
+	if ( Build.VERSION.SDK_INT >= 33 )
+	{
+		this.registerReceiver(DeviceIdleDetectionReceiver, myadvancedInstance.jGetDeviceIdleIntentFilter(), Context.RECEIVER_EXPORTED);
+	}
+	else
+	{
+		this.registerReceiver(DeviceIdleDetectionReceiver, myadvancedInstance.jGetDeviceIdleIntentFilter());
+	}
 	
 	BA.LogInfo("["+activityName+"] _onCreate: Function return");
 }
@@ -1292,7 +1302,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		
 		'For background smartcard operations
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Direct Unblock thread"$, Colors.Blue)
-		DirectUnblockThread.Initialise("DirectUnblockThread")
+		DirectUnblockThread.Initialize("DirectUnblockThread")
 		
 	Else
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: It's not the FirstTime Activity launch"$, Colors.Blue)
@@ -2485,6 +2495,31 @@ End Sub
 'UI element events
 '
 
+'Small helper function to avoid having to rewrite
+'this function code multiple times in the code
+Private Sub mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
+	
+	Dim DirectUnblockInfoText As CSBuilder
+	DirectUnblockInfoText.Initialize
+	
+	DirectUnblockInfoText.Bold
+	DirectUnblockInfoText.Append(Application.LabelName&CRLF)
+	DirectUnblockInfoText.Pop
+	DirectUnblockInfoText.RelativeSize(0.9)
+	If DeviceHasUsbOtg Then
+		DirectUnblockInfoText.Append("Direct unblock over USB-OTG"&CRLF)
+	Else
+		DirectUnblockInfoText.Append("Device has no USB-OTG support"&CRLF)
+	End If
+	DirectUnblockInfoText.PopAll
+	
+	DirectUnblockInfoText.Append(CRLF)
+	DirectUnblockInfoText.PopAll
+	
+	Return DirectUnblockInfoText
+	
+End Sub
+
 Private Sub mnuDirectUnblock_Click
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub entry"$, Colors.Blue)
@@ -2504,22 +2539,7 @@ Private Sub mnuDirectUnblock_Click
 		DirectUnblockIcon = DirectUnblockIcon.Resize(SquareIcoSize, SquareIcoSize, Constants.BITMAP_RESIZE_KEEP_ASPECT_RATIO)
 	End If
 	
-	Dim DirectUnblockInfoText As CSBuilder
-	DirectUnblockInfoText.Initialize
-	
-	DirectUnblockInfoText.Bold
-	DirectUnblockInfoText.Append(Application.LabelName&CRLF)
-	DirectUnblockInfoText.Pop
-	DirectUnblockInfoText.RelativeSize(0.9)
-	If DeviceHasUsbOtg Then
-		DirectUnblockInfoText.Append("Direct unblock over USB-OTG"&CRLF)
-	Else
-		DirectUnblockInfoText.Append("Device has no USB-OTG support"&CRLF)
-	End If
-	DirectUnblockInfoText.PopAll
-	
-	DirectUnblockInfoText.Append(CRLF)
-	DirectUnblockInfoText.PopAll
+	Dim DirectUnblockInfoText As CSBuilder = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
 	
 	If DeviceHasUsbOtg Then
 		DirectUnblockInfoText.Append("You will be asked to connect your smartcard reader then insert your PKI smartcard into the reader."&CRLF)
@@ -2575,15 +2595,18 @@ Private Sub mnuDirectUnblock_Click
 	'Unlogged code because it's temporarily considered experimental
 	'--------------------------------------------------------------
 	
-	Msgbox2Async($"This functionality is currently in pre-release state.
+	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+	DirectUnblockInfoText.Append($"This functionality is currently in pre-release state.
 
 In order to use it enter a dummy challenge code that must match the challenge code length for your card in the challenge code field:
 - For example type FFFF FFFF FFFF FFFF (8 bytes so 16 characters) in the challenge code field if your smartcard uses DES-EDE2 or DES-EDE3 (2DES / 3DES)
 - If your smartcard uses AES-128 or AES-256 then input a dummy challenge code such as FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF (16 bytes so 32 characters)
 
-Then write your Admin key into the Admin key field and the direct unblock process will try unblocking your Primary PIN code (User PIN).
+Then write your Admin key into the Admin key field and the direct unblock process will try unblocking your Primary PIN code (User PIN) to 202608.
 
-If any failure happened while trying to unblock it then use a computer program such as Gemalto MiniDriver Manager to unblock your smartcard or vSEC_TOOL_K"$, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+If any failure happened while trying to unblock it then use a computer program such as Gemalto MiniDriver Manager to unblock your smartcard or vSEC_TOOL_K"$&".")
+	
+	Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 	Wait For Msgbox_Result(Result As Int)
 	
 	If Result <> DialogResponse.POSITIVE Then
@@ -2611,7 +2634,8 @@ If any failure happened while trying to unblock it then use a computer program s
 		Return
 	End If
 	
-	Msgbox2Async($"I detected based on your inputs that your smartcard's challenge-response algorithm is:
+	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+	DirectUnblockInfoText.Append($"I detected based on your inputs that your smartcard's challenge-response algorithm is:
 - ${DetectedAlgorithm}
 
 Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes long (${SanitizedChallenge.Length} characters).
@@ -2619,7 +2643,9 @@ Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes l
 Your Admin key is ${(SanitizedAdminKey.Length / 2).As(Int)} bytes long (${SanitizedAdminKey.Length} characters).
 
 Is that correct? If yes you may try clicking on Take the Risk.
-Otherwise do not proceed further And click on Cancel"$&".", "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+Otherwise do not proceed further And click on Cancel"$&".")
+	
+	Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 	Wait For Msgbox_Result(Result As Int)
 	
 	'Positive = "Take the Risk"
@@ -2635,14 +2661,18 @@ Otherwise do not proceed further And click on Cancel"$&".", "Direct Unblock", "T
 	'
 	'Ask them to confirm that they Admin key is really 48 zeroes
 	If SanitizedAdminKey == DEFAULT_ZEROES_ADMIN_KEY Then
-		Msgbox2Async($"Warning!
+		
+		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append($"Warning!
 The entered Admin key you provided is still the **default 48-zeroes Admin key**.
 
 Are you sure that you did not just forget to write your Admin key?
 
 If yes then click on Cancel and input a proper Admin key first.
 
-If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".", "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".")
+		
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
 		
 		'Positive = "Take the Risk"
@@ -2681,25 +2711,29 @@ If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".
 	DirectUnblockThread.Start(Me, "SendPinUnblockAPDUSequence", Array(SanitizedAdminKey, DetectedAlgorithm))
 	Wait For mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
 	
+	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+	
 	If IsSuccessful Then
 		'
 		'Now we tell the user about the successful PIN unblock operation,
 		'and what their new PIN code is (it will always be set to 202608 for now)
 		'
-		
 		ToastMessageShow("New PIN successfully set to: 202608", Constants.TOAST_DURATION_LONG)
 		
-		Msgbox2Async($"Your smartcard User PIN has been unblocked successfully!
+		DirectUnblockInfoText.Append($"Your smartcard User PIN has been unblocked successfully!
 
 Your new User PIN is now set to:
 - 202608
 You may change it again later at your convenience using e.g. a desktop smartcard utility.
 
 I did not implement a full user interface to choose your own new User PIN yet.
-This will surely be implemented in a future application update"$&".", "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+This will surely be implemented in a future application update"$&".")
+		
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 	Else
-		Msgbox2Async(ErrorIfAny, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		DirectUnblockInfoText.Append(ErrorIfAny)
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 	End If
 	
@@ -2772,7 +2806,7 @@ ${ResponseBundle(0)}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = GET_DATA & "00 66" & "00" 'Whatever that is, it's required anyway
+	LastSentAPDU = GET_DATA & "00 66" & "00" 'Get card configuration data (GlobalPlatform)
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
@@ -2796,7 +2830,7 @@ ${ResponseBundle(0)}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = GET_DATA & "00 42" & "00" 'Whatever that is, it's required anyway
+	LastSentAPDU = GET_DATA & "00 42" & "00" 'Get card image data (GlobalPlatform)
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
@@ -2820,7 +2854,7 @@ ${ResponseBundle(0)}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = GET_DATA & "00 45" & "00" 'Whatever that is, it's required anyway
+	LastSentAPDU = GET_DATA & "00 45" & "00" 'Get (unknown type of) data (GlobalPlatform)
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
@@ -3055,27 +3089,32 @@ ${ResponseBundle(0)}"$)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = "80 5A 00 00 00" 'Whatever that is, it's required anyway
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _ 'Send GET DATA APDU request for whatever that APDU is
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
+	'Sending this APDU with empty auth is usually for logging out,
+	'but I already logout from the Admin state by doing a SELECT Applet APDU
+	'
+	'So no need to send this APDU at all
+	'
+	'LastSentAPDU = "80 5A 00 00 00" 'EXTERNAL AUTHENTICATE (GlobalPlatform) [empty auth]
+	'
+	'CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+	'	Array As Object( _
+	'		LastSentAPDU _ 'Send GET DATA APDU request for whatever that APDU is
+	'	) _
+	')
+	'CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	'Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	'
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID 'Select security directory again (again - one last time)
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
+	'LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID 'Select security directory again (again - one last time)
+	'
+	'CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+	'	Array As Object( _
+	'		LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
+	'	) _
+	')
+	'CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	'Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	'
 	'--------------------------------------------------------------------------------
 	'Gemalto MiniDriver Manager selects yet again the PKI applet's security directory,
 	'one last time before sending a VERIFY PIN command with empty PIN:
@@ -3092,7 +3131,7 @@ ${ResponseBundle(0)}"$)
 	'      then this might actually decrement it to get the remaining
 	'      PIN tries count in the expected "63 C?" response status
 	'       - (With "?" being the remaining number of tries, between 0x00 & 0x0F)
-	
+	'
 	'--------------------------------------------------------------------------------
 	
 	'Tell the mnuDirectUnblock_Click function that the task is completed (success)

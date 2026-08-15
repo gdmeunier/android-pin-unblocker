@@ -494,6 +494,7 @@ import android.content.Intent;
 import android.content.BroadcastReceiver;
 import anywheresoftware.b4a.objects.ActivityWrapper;
 import android.content.IntentFilter;
+import android.os.Build;
 public void _onCreate()
 {
 	BA.LogInfo("["+activityName+"] _onCreate: Function entry");
@@ -538,7 +539,17 @@ public void _onCreate()
 	 */
 	BA.LogInfo("["+activityName+"] _onCreate: Registering the DeviceIdleReceiver");
 	this.DeviceIdleDetectionReceiver = new myadvanced.DeviceIdleReceiver(this.processBA, this._activity);
-	this.registerReceiver(DeviceIdleDetectionReceiver, myadvancedInstance.jGetDeviceIdleIntentFilter());
+	
+	// Android 13+ require explicitly exporting the receiver
+	// (Android 13+ is API level 33+)
+	if ( Build.VERSION.SDK_INT >= 33 )
+	{
+		this.registerReceiver(DeviceIdleDetectionReceiver, myadvancedInstance.jGetDeviceIdleIntentFilter(), Context.RECEIVER_EXPORTED);
+	}
+	else
+	{
+		this.registerReceiver(DeviceIdleDetectionReceiver, myadvancedInstance.jGetDeviceIdleIntentFilter());
+	}
 	
 	BA.LogInfo("["+activityName+"] _onCreate: Function return");
 }

@@ -81,8 +81,9 @@ public static class CCIDDescriptor
 		CharacterLevel,
 		TPDULevel,
 		ShortAPDULevel,
-		ExtendedAPDULevel,
-		WakeOnCardAction
+		ShortAndExtendedAPDULevel,
+		WakeOnCardInsert,
+		WakeOnCardRemove
 	}
 	
 	public static enum PINSupport { Verification, Modification }
@@ -119,7 +120,7 @@ public static class CCIDDescriptor
 					throw new IllegalArgumentException("Invalid Interface descriptor (wrong length)");
 				}
 				
-				i = bb.get();
+				i = bb.getShort();
 				bb.position(bb.position() + len - 4);
 			}
 			else if ( type == 0x21 )
@@ -251,23 +252,23 @@ public static class CCIDDescriptor
 				}
 				if ( (fData & 0x00010000) == 0x00010000 )
 				{
-					fList.add(Feature.CharacterLevel);
+					fList.add(Feature.TPDULevel);
 				}
 				if ( (fData & 0x00020000) == 0x00020000 )
 				{
-					fList.add(Feature.TPDULevel);
+					fList.add(Feature.ShortAPDULevel);
 				}
 				if ( (fData & 0x00040000) == 0x00040000 )
 				{
-					fList.add(Feature.ShortAPDULevel);
-				}
-				if ( (fData & 0x00080000) == 0x00080000 )
-				{
-					fList.add(Feature.ExtendedAPDULevel);
+					fList.add(Feature.ShortAndExtendedAPDULevel);
 				}
 				if ( (fData & 0x00100000) == 0x00100000 )
 				{
-					fList.add(Feature.WakeOnCardAction);
+					fList.add(Feature.WakeOnCardInsert);
+				}
+				if ( (fData & 0x00100000) == 0x00200000 )
+				{
+					fList.add(Feature.WakeOnCardRemove);
 				}
 				ccid.features = fList.isEmpty() ? EnumSet.noneOf(Feature.class) : EnumSet.copyOf(fList);
 				
@@ -753,7 +754,7 @@ public static class CCID implements Closeable
         pinPad = desc.getPinSupports().contains(CCIDDescriptor.PINSupport.Verification);
 		
         supportApdu = desc.getFeatures().contains(CCIDDescriptor.Feature.ShortAPDULevel) ||
-			desc.getFeatures().contains(CCIDDescriptor.Feature.ExtendedAPDULevel);
+			desc.getFeatures().contains(CCIDDescriptor.Feature.ShortAndExtendedAPDULevel);
 		
         autoInit = desc.getFeatures().contains(CCIDDescriptor.Feature.AutoParamConfigViaATR);
 		
@@ -852,9 +853,6 @@ public static class CCID implements Closeable
         transmit((byte)0x63, null, (byte)0x81, false);
     }
 	
-	// T=1 only (so by default set to 0x00)
-	private byte xfrBlockWaitingIntegerT1 = 0x00;
-	
     public synchronized void init(byte[] atr) throws IOException
 	{
         if ( !autoInit )
@@ -870,18 +868,19 @@ public static class CCID implements Closeable
 			 */
 			byte[] cardParameters = determineCardParameters(atr, true); // true = mark that pps1 follows pps0
 			
-			/* Update the xfrBlockWaitingIntegerT1 field [T=1 only]
-			 * This extracts BWI from BWT (e.g. BWT of 0x45 -> BWI = 0x04, CWI 0x05)
-			 *
-			 * For for a BWT of 0x45:
-			 *  - BWI is 4
-			 *  - CWI is 5
-			 */
-			if ( cardParameters[0] == (byte)0x01 ) // If T=1 protocol
+			// See: 9.2 http://read.pudn.com/downloads132/doc/comm/563504/ISO-IEC%207816/ISO%2BIEC%207816-3-2006.pdf
+			if ( !supportApdu ) // If TPDU reader
 			{
-				int tmpBWI = (cardParameters[6] & 0xFF) >> 4;
-				this.xfrBlockWaitingIntegerT1 = (byte)tmpBWI;
-			}
+                // TPDU for PPS
+				/* Last byte of the PPS frame is a checksum that we have to compute:
+				 *  - e.g. 0xFF [xor] pps0 [xor] pps1 = checksum byte
+				 */
+				byte ppss = (byte)0xFF;
+				byte pps0 = cardParameters[1];              // Already byte (protocol selection)
+				byte pps1 = cardParameters[2];              // Already byte (Fi/Di: usually 0x13, default 0x11)
+				byte pck  = (byte)(ppss ^ pps0 ^ pps1);     // Checksum (LRC)
+				transmit((byte)0x6F, new byte[] { ppss, pps0, pps1, pck }, (byte)0x80, false);
+            }
 			
 			//
             // Set parameters
@@ -915,24 +914,6 @@ public static class CCID implements Closeable
 			//             SetParameters    Parameters
 			//             |                |
             transmit((byte)0x61, pds, (byte)0x82, true);
-			
-			//
-			// Sent PDS first always before sending a TPDU (even for PPS)
-			//
-			
-			// See: 9.2 http://read.pudn.com/downloads132/doc/comm/563504/ISO-IEC%207816/ISO%2BIEC%207816-3-2006.pdf
-			if ( !supportApdu )
-			{
-                // TPDU for PPS
-				/* Last byte of the PPS frame is a checksum that we have to compute:
-				 *  - e.g. 0xFF [xor] pps0 [xor] pps1 = checksum byte
-				 */
-				byte ppss = (byte)0xFF;
-				byte pps0 = cardParameters[1];              // Already byte (protocol selection)
-				byte pps1 = cardParameters[2];              // Already byte (Fi/Di: usually 0x13, default 0x11)
-				byte pck  = (byte)(ppss ^ pps0 ^ pps1);     // Checksum (LRC)
-				transmit((byte)0x6F, new byte[] { ppss, pps0, pps1, pck }, (byte)0x80, false);
-            }
         }
     }
 	
@@ -991,9 +972,10 @@ public static class CCID implements Closeable
         sequence = (sequence + 1) % 0xFF;
 		
         byte[] req = new byte[(data == null ? 0 : data.length) + 10];
-        req[0] = cmd;
-        req[1] = (byte)(req.length - 10); // Length (of data)
 		
+        req[0] = cmd;
+		
+        req[1] = (byte)(req.length - 10); // dwLength (of data - Little Endian)
         req[2] = 0x00; // Length, continued (we don't support long lenghts)
         req[3] = 0x00; // Length, continued (we don't support long lenghts)
         req[4] = 0x00; // Length, continued (we don't support long lenghts)
@@ -1002,11 +984,17 @@ public static class CCID implements Closeable
 		
         req[6] = (byte)sequence;
 		
-		// "xfrBlockWaitingIntegerT1" is actually 0x00 for T=0 cards by default
-        req[7] = (byte)( (cmd == (byte)0x6F) ? xfrBlockWaitingIntegerT1 : 0x00 ); // Xfr: Block Waiting Timeout (T=1 only)
+		/* "xfrBlockWaitingIntegerT1" of 0x00 = 'automatic management'
+		 *
+		 * For T=1 cards only you could also manually specify a value
+		 * (not recommended)
+		 */
+		//                                     xfrBlockWaitingIntegerT1
+		//                                     |
+        req[7] = (byte)( (cmd == (byte)0x6F) ? 0x00 : 0x00 ); // Xfr: Block Waiting Timeout (T=1 only)
 		
-        req[8] = 0x00; // Not used (Xfr: Param (short APDU))
-        req[9] = 0x00; // Not used (Xfr: Param, continued (short APDU))
+        req[8] = 0x00; // wLevel (Xfr: Param (short APDU))            [Must be 0x00 if T=1]
+        req[9] = 0x00; // wLevel (Xfr: Param, continued (short APDU)) [Must be 0x00 if T=1]
 		
         if ( data != null )
 		{
@@ -1142,7 +1130,7 @@ public static class CCID implements Closeable
  * Extra Guard Time:   0xFF
  * IFSC:               0xFE
  * Block Waiting Time: 0x45
- * bmTCCKST1:          0x10
+ * bmTCCKST1:          0x20
  */
 import java.lang.IllegalArgumentException;
 public static byte[] determineCardParameters(byte[] atr, boolean includePps1) throws IllegalArgumentException
@@ -1164,7 +1152,7 @@ public static byte[] determineCardParameters(byte[] atr, boolean includePps1) th
 	byte taX = (byte)0x20; // 0x20 = IFSC (maximum block size for T=1): Specification default
 	byte tbX = (byte)0x4D; // 0x4D = Block Waiting Time for T=1:        Specification default
 	
-	byte bmTCCKST1 = (byte)(0x00 | 0x10); // 0x00 = bmTCCKST1 (T=1) [Direct / LRC] + mandatory 0x10 mask (default)
+	byte bmTCCKST1 = (byte)(0x00 | 0x20); // 0x00 = bmTCCKST1 (T=1) [Direct / LRC] + mandatory 0x20 mask (default)
 	
 	int interfaceGroupNumber = 0;
 	int index = 2; // Index starts at the 3rd byte of the ATR
@@ -1255,8 +1243,8 @@ public static byte[] determineCardParameters(byte[] atr, boolean includePps1) th
     }
 	
     // Building PPS0 byte:
-    // Bits 1-4:     Protocol type (0 for T=0 :: 1 for T=1)
-    // Bit 5 (0x10): If PPS1 is present
+    // Bits 0-3:      Protocol type (0 for T=0 :: 1 for T=1)
+    // Bit  4 (0x10): If PPS1 is present
 	byte pps0 = (byte)(0x00 & 0x0F);
 	
 	if ( isT1Protocol )
@@ -1266,7 +1254,7 @@ public static byte[] determineCardParameters(byte[] atr, boolean includePps1) th
 	
     if ( includePps1 )
 	{
-        pps0 = (byte)(pps0 | 0x10); // Set bit 5 (pps1 follows pps0)
+        pps0 = (byte)(pps0 | 0x10); // Set bit 4 (pps1 follows pps0)
     }
 	
 	/* cardParameters[0] = Protocol (T1 = 0x01, T0 = x00)
@@ -1301,7 +1289,7 @@ public static byte[] determineCardParameters(byte[] atr, boolean includePps1) th
 import java.lang.IllegalArgumentException;
 public static byte getBmTCCKST1(byte ts, byte tcX) throws IllegalArgumentException
 {
-    int bmTCCKST1 = 0x10; // Mandatory bTCCKST1 mask (0x10)
+    int bmTCCKST1 = 0x20; // Mandatory bTCCKST1 mask (0x20)
     int tmpTS     = ts & 0xFF;
 	
     if ( tmpTS == 0x3F )

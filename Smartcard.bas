@@ -5,15 +5,9 @@ Type=Service
 Version=9.9
 @EndOfDesignText@
 
-#Region Service Attributes 
+#Region Service Attributes
 	#StartAtBoot:        False
 	#ExcludeFromLibrary: True
-	
-#End Region
-
-#Region Module File Attributes
-	'Ignore "Variable x was not initialized" warning (#11)
-	#IgnoreWarnings: 11
 	
 #End Region
 
@@ -92,7 +86,7 @@ Sub Service_Create
 	joService.RunMethod("jService_Create", Null)
 	
 	'For doing APDU communications in a separate thread
-	ServiceMessageThread.Initialise("ServiceMessageThread")
+	ServiceMessageThread.Initialize("ServiceMessageThread")
 	
 End Sub
 #If Java
@@ -558,7 +552,17 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				}
 			}
 		};
-		registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcast);
+		
+		// Android 13+ require explicitly exporting the receiver
+		// (Android 13+ is API level 33+)
+		if ( Build.VERSION.SDK_INT >= 33 )
+		{
+			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcast, Context.RECEIVER_EXPORTED);
+		}
+		else
+		{
+			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcast);
+		}
 		
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_stat_card)
@@ -638,7 +642,16 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		}
 	};
 	
-	registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcast);
+	// Android 13+ require explicitly exporting the receiver
+	// (Android 13+ is API level 33+)
+	if ( Build.VERSION.SDK_INT >= 33 )
+	{
+		registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcast, Context.RECEIVER_EXPORTED);
+	}
+	else
+	{
+		registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcast);
+	}
 }
 #End If
 
@@ -667,7 +680,16 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		
 		wait = new Object();
 		
-		registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcast);
+		// Android 13+ require explicitly exporting the receiver
+		// (Android 13+ is API level 33+)
+		if ( Build.VERSION.SDK_INT >= 33 )
+		{
+			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcast, Context.RECEIVER_EXPORTED);
+		}
+		else
+		{
+			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcast);
+		}
 		
 		usbManager.requestPermission(
 			ccidDevice,
