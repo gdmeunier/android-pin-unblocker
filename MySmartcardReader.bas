@@ -105,19 +105,9 @@ import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
 public static class SmartcardReader
 {
-	private Reader mReader;
-	private int    iSlotNum;
-	
-	public SmartcardReader(Reader mProvidedReader, int iProvidedSlotNum)
+	public SmartcardReader()
 	{
-		this.mReader  = mProvidedReader;
-		this.iSlotNum = iProvidedSlotNum;
-	}
-	
-	public void updateReaderConfig(Reader mProvidedReader, int iProvidedSlotNum)
-	{
-		this.mReader  = mProvidedReader;
-		this.iSlotNum = iProvidedSlotNum;
+		/* Nothing to do here */
 	}
 	
 	// More info:
@@ -148,7 +138,7 @@ public static class SmartcardReader
 	 *    length of data from the card later when there are more bytes available
 	 */
 	
-	private boolean isCardReady()
+	private boolean isCardReady(Reader mReader, int iSlotNum)
 	{
 		int iCurrentState = mReader.getState(iSlotNum);
 		return iCurrentState >= Reader.CARD_POWERED && iCurrentState != Reader.CARD_SWALLOWED;
@@ -157,9 +147,9 @@ public static class SmartcardReader
 	/* For sending any APDU that we wish to send to the smartcards:
 	 *  - It's for sending arbitrary APDUs
 	 */
-	public String sendSpecificAPDU(String apduHexString) throws IOException
+	public String sendSpecificAPDU(String apduHexString, Reader mReader, int iSlotNum) throws IOException
 	{
-		if ( !isCardReady() )
+		if ( !isCardReady(mReader, iSlotNum) )
 		{
 			throw new IOException("No Smartcard ready");
 		}
@@ -186,7 +176,7 @@ public static class SmartcardReader
 		int currentP1;
 		int currentP2;
 		
-		byte[] responseBuffer = new byte[254]; // Was 512, perhaps needs to be 254
+		byte[] responseBuffer = new byte[0]; // Just so that the Java compiler is happy
 		int    responseLength = 0;
 		
 		do
@@ -196,7 +186,7 @@ public static class SmartcardReader
 				try
 				{
 					// Reset response buffer before next APDU command
-					responseBuffer = new byte[254]; // Was 512, perhaps needs to be 254
+					responseBuffer = new byte[258]; // Max 256 bytes + 2-bytes SW status
 					
 					// This function returns only the response length
 					responseLength = mReader.transmit(iSlotNum, cmd, cmd.length, responseBuffer, responseBuffer.length);
@@ -312,7 +302,7 @@ public static class SmartcardReader
 					
 					// Request the next response data (SW1)
 					// rsp[rsp.length - 1] = last byte index (CorrectLengthIsXX value)
-					rsp = getResponse(rsp[rsp.length - 1]);
+					rsp = getResponse(rsp[rsp.length - 1], mReader, iSlotNum);
 					break;
 					
 				case BadLengthLeCorrectIsXX:
@@ -332,7 +322,7 @@ public static class SmartcardReader
 		return jHexStringFromBytes(rspOut.toByteArray());
 	}
 	
-	private byte[] getResponse(int len) throws IOException
+	private byte[] getResponse(int len, Reader mReader, int iSlotNum) throws IOException
 	{
 		byte[] cmd = Arrays.copyOf(GET_RESPONSE, GET_RESPONSE.length);
 		
@@ -352,7 +342,7 @@ public static class SmartcardReader
 		}
 		cmd[4] = (byte)len;
 		
-		byte[] responseBuffer = new byte[254]; // Was 512, perhaps needs to be 254
+		byte[] responseBuffer = new byte[258]; // Max 256 bytes + 2-bytes SW status
 		int    responseLength = 0;
 		
 		try

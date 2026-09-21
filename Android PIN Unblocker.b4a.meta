@@ -1,6 +1,6 @@
 ﻿ModuleBookmarks0=2612,2931,3250,969,1611,1918,2152,3263,1275,1283,2621,1019,2344,2835
 ModuleBookmarks1=
-ModuleBookmarks10=412,244,811
+ModuleBookmarks10=412,244,807
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -31,6 +31,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Main,CheckIfAdminKeySharedToTheApp,2158,6,Main,Activity_Exit,2343,0,Main,StopAllActivityTimers,2377,0,Main,Activity_Pause,2389,0,Main,mnuDirectUnblock_GetDialogHeader,2544,0,Main,SetUiElementsEnabledState,2568,0,Main,SendPinUnblockAPDUSequence,2951,0,Main,mnuDirectUnblock_Click,2621,0,Main,mnuAbout_Click,3324,0,Main,btnScanQR_Click,3513,0,Smartcard,Application_Error,925,0
+NavigationStack=Main,SetUiElementsEnabledState,2568,0,Main,btnScanQR_Click,3513,0,Main,mnuDirectUnblock_Click,2925,0,Main,SendPinUnblockAPDUSequence,3200,0,Main,mnuAbout_Click,3470,0,Smartcard,Service_Start,149,0,Smartcard,Service_Create,117,0,MySmartcardReader,Initialize,344,0,Smartcard,Application_Error,544,0,Smartcard,Service_Message_NewThread,214,0
 SelectedBuild=0
 VisibleModules=9,10,7

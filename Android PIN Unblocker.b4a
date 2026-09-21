@@ -35,8 +35,8 @@ Version=12.5
 
 #Region Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 86
-	#VersionName: 5.2.10
+	#VersionCode: 87
+	#VersionName: 5.2.11
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2819,7 +2819,7 @@ Otherwise do not proceed further And click on Cancel"$&".")
 		'Positive = "Take the Risk"
 		If Result <> DialogResponse.POSITIVE Then
 			ToastMessageShow($"Direct unblock cancelled:
-	You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
+You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 			
 			ViewState_mnuDirectUnblock_Visible = False
 			DirectUnblockLastDialogCount = 0

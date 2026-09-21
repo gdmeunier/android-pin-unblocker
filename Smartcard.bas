@@ -247,7 +247,7 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 		switch ( doWhat )
 		{
 			case SEND_APDU:
-				reply = new Object[] { cardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0])) };
+				reply = new Object[] { cardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0]), mReader, iSlotNum) };
 				break;
 				
 			default:
@@ -448,7 +448,7 @@ import com.acs.smartcard.ReaderException;
 
 #If Java
 private static final long USB_TIMEOUT       = 10 * 1000; // 10s
-private static final long SMARTCARD_TIMEOUT = 5  * 1000; // 5s
+private static final long SMARTCARD_TIMEOUT =  5 * 1000; // 5s
 private static final long CONFIRM_TIMEOUT   = 30 * 1000; // 30s
 
 private UsbManager mManager;
@@ -802,11 +802,7 @@ public void jObtainSmartcardReader() throws Exception
 	
 	if ( cardReaderProxy == null )
 	{
-		cardReaderProxy = new mysmartcardreader.SmartcardReader(mReader, iSlotNum);
-	}
-	else
-	{
-		cardReaderProxy.updateReaderConfig(mReader, iSlotNum);
+		cardReaderProxy = new mysmartcardreader.SmartcardReader();
 	}
 }
 #End If
@@ -922,14 +918,6 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 			throw new mysmartcardreader.AbortException("Smartcard failed to connect:\r\n" + stackTrace.toString());
 		}
 	}
-	
-	/* Update cardReaderProxy's provided mReader & iSlotNum parameters
-	 *
-	 * Otherwise the user might switch between different card types,
-	 * then it would not work because the cardReaderProxy would still
-	 * have the old mReader & iSlotNum parameters
-	 */
-	cardReaderProxy.updateReaderConfig(mReader, iSlotNum);
 }
 #End If
 
