@@ -76,54 +76,12 @@ public static class APDUException extends IOException
 	}
 }
 
-public static class UserCancelException extends Exception
-{
-	public UserCancelException(String msg)
-	{
-		super(msg);
-	}
-}
-
 public static class AbortException extends Exception
 {
 	public AbortException(String msg)
 	{
 		super(msg);
 	}
-}
-
-import java.io.IOException;
-public static class CardBlockedException extends IOException
-{
-	public CardBlockedException(String msg)
-	{
-		super(msg);
-	}
-}
-#End If
-
-'
-'PC/SC smartcard callbacks
-'
-
-#If Java
-public interface CardCallback
-{
-	void inserted();
-	void removed();
-}
-
-public interface PinCallback
-{
-    /* Called to get the PIN from the user.
-     * The method may throw an exception to cancel.
-     * @param retries The number of retries left, -1 is unknown
-     * @return The PIN as chars ('0', '1', ...)
-     */
-    char[] getPin(int retries) throws UserCancelException;
-
-    void pinPadStart(int retries);
-    void pinPadEnd();
 }
 #End If
 
@@ -142,8 +100,26 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
-public static class SmartcardReader implements Closeable
+import com.acs.smartcard.Reader;
+import com.acs.smartcard.Reader.OnStateChangeListener;
+import com.acs.smartcard.ReaderException;
+public static class SmartcardReader
 {
+	private Reader mReader;
+	private int    iSlotNum;
+	
+	public SmartcardReader(Reader mProvidedReader, int iProvidedSlotNum)
+	{
+		this.mReader  = mProvidedReader;
+		this.iSlotNum = iProvidedSlotNum;
+	}
+	
+	public void updateReaderConfig(Reader mProvidedReader, int iProvidedSlotNum)
+	{
+		this.mReader  = mProvidedReader;
+		this.iSlotNum = iProvidedSlotNum;
+	}
+	
 	// More info:
 	//  - https://www.eftlab.com.au/index.php/site-map/knowledge-base/118-apdu-response-list
 	//
@@ -160,16 +136,9 @@ public static class SmartcardReader implements Closeable
 		WrongParamP1P2,
 		BadLengthLeCorrectIsXX,
 		InitialSwCode, /* Just a default value so that "status" variable isn't null on init */
+		CondOfUseNotSatisfied
 	}
 	
-	/* Values higher than 0x7F (127) should probably be explicitly casted as bytes */
-	//
-	//                                          CLA         INS         P1----------P2          Lc
-	//                                          |           |           |           |           |
-	private static final byte[] VERIFY_PIN  = { (byte)0x00, (byte)0x20, (byte)0x00, (byte)0x01, (byte)0x08, /* <-- ISO/IEC 7816 header */
-	//                                    /* vv ISO/IEC 7816 data below vv */
-	//                                          |
-	                                            (byte)0x20, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF, (byte)0xFF };
 	//
 	//                                          CLA          INS         P1----------P2          Lc
 	//                                          |            |           |           |           |
@@ -178,15 +147,21 @@ public static class SmartcardReader implements Closeable
 	 *    it's just so that we get a 5-bytes array length to request specific
 	 *    length of data from the card later when there are more bytes available
 	 */
-	 
+	
+	private boolean isCardReady()
+	{
+		int iCurrentState = mReader.getState(iSlotNum);
+		return iCurrentState >= Reader.CARD_POWERED && iCurrentState != Reader.CARD_SWALLOWED;
+	}
+	
 	/* For sending any APDU that we wish to send to the smartcards:
 	 *  - It's for sending arbitrary APDUs
 	 */
 	public String sendSpecificAPDU(String apduHexString) throws IOException
 	{
-		if ( !cardPresent )
+		if ( !isCardReady() )
 		{
-			throw new IOException("No card present");
+			throw new IOException("No Smartcard ready");
 		}
 		
 		// Remove spaces from the APDU Hex string if any
@@ -197,8 +172,7 @@ public static class SmartcardReader implements Closeable
 			throw new IOException("Your APDU string is not valid (not Hex bytes string of even length and 0-9 A-F chars)");
 		}
 		
-		byte[] apdu = jHexBytesFromString(apduHexString);
-		byte[] cmd  = Arrays.copyOf(apdu, apdu.length);
+		byte[] cmd  = jHexBytesFromString(apduHexString);
 		
 		byte[]     rsp    = new byte[0];              // Just so that the Java compiler is happy
 		ApduSwCode status = ApduSwCode.InitialSwCode; // Just so that it's not null at first
@@ -212,11 +186,28 @@ public static class SmartcardReader implements Closeable
 		int currentP1;
 		int currentP2;
 		
+		byte[] responseBuffer = new byte[254]; // Was 512, perhaps needs to be 254
+		int    responseLength = 0;
+		
 		do
 		{
 			if ( status != ApduSwCode.OkGetRsp ) /* The OkGetRsp branch already does it */
 			{
-				rsp = cardReader.transmitApdu(cmd);
+				try
+				{
+					// Reset response buffer before next APDU command
+					responseBuffer = new byte[254]; // Was 512, perhaps needs to be 254
+					
+					// This function returns only the response length
+					responseLength = mReader.transmit(iSlotNum, cmd, cmd.length, responseBuffer, responseBuffer.length);
+				}
+				catch (ReaderException re)
+				{
+					throw new IOException("Card reader transmit error (before smartcard) [sendSpecificAPDU]");
+				}
+				
+				// The real response object "rsp" gets only correct bytes length copied (responseLength)
+				rsp = Arrays.copyOf(responseBuffer, responseLength);
 			}
 			status = validateResponse(rsp);
 			
@@ -318,11 +309,14 @@ public static class SmartcardReader implements Closeable
 					
 				case OkGetRsp: /*** T=0 protocol only ***/
 					rspOut.write(rsp, 0, rsp.length - 2);   // Stream current response data first
-					rsp = getResponse(rsp[rsp.length - 1]); // Request the next response data
+					
+					// Request the next response data (SW1)
+					// rsp[rsp.length - 1] = last byte index (CorrectLengthIsXX value)
+					rsp = getResponse(rsp[rsp.length - 1]);
 					break;
 					
 				case BadLengthLeCorrectIsXX:
-					cmd[4] = rsp[1]; // Correct the length field
+					cmd[4] = rsp[1]; // Correct the length field (2-bytes return APDU)
 					break;
 					
 				default:
@@ -336,240 +330,6 @@ public static class SmartcardReader implements Closeable
 		
 		Log.d(TAG, String.format("Response APDU received (len %d)", rspOut.toByteArray().length));
 		return jHexStringFromBytes(rspOut.toByteArray());
-	}
-	
-	public void verifyPin() throws IOException, UserCancelException
-	{
-		int retries = -1;
-		
-		while ( true )
-		{
-			byte[] rsp;
-			
-			if ( cardReader.hasPinPad() )
-			{
-				pinCallback.pinPadStart(retries);
-				
-				try
-				{
-					rsp = cardReader.transmitApduWithPin(VERIFY_PIN);
-				}
-				finally
-				{
-					pinCallback.pinPadEnd();
-				}
-			}
-			else
-			{
-				char[] pin = pinCallback.getPin(retries);
-				byte[] cmd = Arrays.copyOf(VERIFY_PIN, VERIFY_PIN.length);
-				
-				cmd[5] = (byte)(cmd[5] | pin.length);
-				
-				for ( int idx = 0; idx < pin.length; idx += 2 )
-				{
-					byte digit1 = (byte)((pin[idx] - '0') << 4);
-					byte digit2 = idx + 1 < pin.length ? (byte)(pin[idx + 1] - '0') : 0x0F;
-					cmd[idx / 2 + 6] = (byte)(digit1 | digit2);
-				}
-				
-				// Erase pin from memory
-				Arrays.fill(pin, (char)0x00);
-				
-				try
-				{
-					rsp = cardReader.transmitApdu(cmd);
-				}
-				finally
-				{
-					Arrays.fill(cmd, (byte)0x00);
-				}
-			}
-			switch ( validateResponse(rsp) )
-			{
-				case OK:
-					return;
-					
-				case VerifyFail:
-					retries = rsp[1] & 0x0F;
-					break;
-					
-				case MemoryUnchanged:
-					throw new UserCancelException("PIN Timeout");
-					
-				case CommandTimeout:
-					throw new UserCancelException("User canceled PIN entry");
-					
-				case AuthBlocked:
-					throw new CardBlockedException("The key on the card is blocked (too many tries)");
-					
-				default:
-					throw new APDUException("The card returned an error: "+jHexStringFromBytes(rsp), rsp[0], rsp[1]);
-			}
-		}
-	}
-	
-	private myccid.CCID  cardReader;
-	private CardCallback cardCallback;
-    private PinCallback  pinCallback;
-	
-	private boolean cardPresent;
-	
-	public CardCallback getCardCallback()
-	{
-		return cardCallback;
-	}
-	
-	public void setCardCallback(CardCallback value)
-	{
-		this.cardCallback = value;
-	}
-	
-	public PinCallback getPinCallback()
-	{
-		return pinCallback;
-	}
-	
-	public void setPinCallback(PinCallback value)
-	{
-		this.pinCallback = value;
-	}
-	
-	public boolean isOpen()
-	{
-		return cardReader.isOpen();
-	}
-	
-	public boolean isCardPresent()
-	{
-		return cardPresent;
-	}
-	
-	public SmartcardReader(UsbManager manager, final UsbDevice device)
-	{
-		cardPresent = false;
-		
-		this.cardReader = new myccid.CCID(manager, device);
-		this.cardReader.setCallback(new CardReaderCallback());
-	}
-	
-	private byte[] cardATR;
-	
-	public byte[] getCardATR()
-	{
-		return this.cardATR;
-	}
-	
-	private void setCardATR(byte[] atr)
-	{
-		this.cardATR = atr;
-	}
-	
-	public synchronized void open() throws IOException
-	{
-		if ( cardReader.isOpen() )
-		{
-			Log.d(TAG, "Card reader is already open");
-			return;
-		}
-		
-		cardPresent = false;
-		cardReader.open();
-		
-		try
-		{
-			cardReader.powerOff();
-		}
-		catch (Exception e)
-		{
-			Log.d(TAG, "Failed power off after open", e);
-		}
-		
-		try
-		{
-			setCardATR(cardReader.powerOn());
-			processAtr(getCardATR());
-		}
-		catch (IOException io)
-		{
-			Log.d(TAG, "Failed power on after open");
-		}
-	}
-	
-	private class CardReaderCallback implements myccid.CardCallback
-	{
-		@Override
-		public void inserted()
-		{
-			try
-			{
-				setCardATR(cardReader.powerOn());
-				processAtr(getCardATR());
-				
-				if ( cardPresent && cardCallback != null )
-				{
-					cardCallback.inserted();
-				}
-			}
-			catch (IOException io)
-			{
-				Log.d(TAG, "Failed to handle card insert", io);
-			}
-		}
-		
-		@Override
-		public void removed()
-		{
-			if ( cardPresent )
-			{
-				cardPresent = false;
-				
-				if ( cardCallback != null )
-				{
-					cardCallback.removed();
-				}
-			}
-		}
-	}
-	
-	private void processAtr(byte[] atr) throws IOException
-	{
-		/* If card is present */
-		if ( atr != null )
-		{
-			cardPresent = true;
-			cardReader.init(atr);
-		}
-		else
-		{
-			cardPresent = false;
-		}
-	}
-	
-	@Override
-	public synchronized void close() throws IOException
-	{
-		if ( !cardReader.isOpen() )
-		{
-			Log.d(TAG, "Card reader is already closed");
-			return;
-		}
-		
-		if ( cardPresent )
-		{
-			try
-			{
-				cardReader.powerOff();
-			}
-			catch (Exception e)
-			{
-				Log.d(TAG, "Card reader can't power down the card", e);
-			}
-			
-			cardPresent = false;
-		}
-		
-		cardReader.close();
 	}
 	
 	private byte[] getResponse(int len) throws IOException
@@ -592,7 +352,21 @@ public static class SmartcardReader implements Closeable
 		}
 		cmd[4] = (byte)len;
 		
-		byte[] rsp = cardReader.transmitApdu(cmd);
+		byte[] responseBuffer = new byte[254]; // Was 512, perhaps needs to be 254
+		int    responseLength = 0;
+		
+		try
+		{
+			// This function returns only the response length
+			responseLength = mReader.transmit(iSlotNum, cmd, cmd.length, responseBuffer, responseBuffer.length);
+		}
+		catch (ReaderException re)
+		{
+			throw new IOException("Card reader transmit error (before smartcard) [GetResponse]");
+		}
+		
+		// The real response object "rsp" gets only correct bytes length copied (responseLength)
+		byte[] rsp = Arrays.copyOf(responseBuffer, responseLength);
 		
 		switch ( validateResponse(rsp) )
 		{
@@ -659,6 +433,12 @@ public static class SmartcardReader implements Closeable
 		{
 			Log.w(TAG, "Authentication method blocked");
 			return ApduSwCode.AuthBlocked;
+		}
+		else if ( rsp[rsp.length - 2] == (byte)0x69 &&
+				  rsp[rsp.length - 1] == (byte)0x85 )
+		{
+			Log.w(TAG, "Conditions of use not satisfied");
+			return ApduSwCode.CondOfUseNotSatisfied;
 		}
 		else if ( rsp[rsp.length - 2] == (byte)0x6B &&
 				  rsp[rsp.length - 1] == 0x00 )

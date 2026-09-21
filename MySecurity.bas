@@ -116,7 +116,7 @@ Public Sub GenerateTruncatedTextRehash(Plaintext As String) As String
 	
 	Try
 		For i = 1 To TruncatedRehashRounds
-			GeneratedTruncatedTextRehash = joClass.RunMethod("jGenerateTextTruncatedRehash", Array(GeneratedTruncatedTextRehash&TruncatedRehashSalt, TruncatedRehashAlgorithm))
+			GeneratedTruncatedTextRehash = joClass.RunMethod("jGenerateTruncatedTextRehash", Array(GeneratedTruncatedTextRehash&TruncatedRehashSalt, TruncatedRehashAlgorithm))
 		Next
 	Catch
 		Throw($"The generation of a truncated text rehash for the provided plaintext failed:

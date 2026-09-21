@@ -79,6 +79,25 @@
     *;
 }
 
+# acssmc library (smartcard)
+-keep,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.** {
+    *;
+}
+-keep class a
+-keep class b
+-keep class c
+-keep class d
+-keep class e
+-keep class f
+-keep class g
+-keep class h
+-keep class i
+-keep class j
+-keep class k
+-keep class l
+-keep class m
+
 # ----- Shrinking Options
 
 #-dontshrink
@@ -126,6 +145,22 @@
 # Layout BAL files refer to the exact class names
 # And the NewQRCodeReaderView must keep its names
 -keeppackagenames newqrcodereaderviewwrapper
+
+# acssmc library (smartcard)
+-keeppackagenames com.acs.smartcard
+-keeppackagenames a
+-keeppackagenames b
+-keeppackagenames c
+-keeppackagenames d
+-keeppackagenames e
+-keeppackagenames f
+-keeppackagenames g
+-keeppackagenames h
+-keeppackagenames i
+-keeppackagenames j
+-keeppackagenames k
+-keeppackagenames l
+-keeppackagenames m
 
 -keepattributes *
 -keepparameternames

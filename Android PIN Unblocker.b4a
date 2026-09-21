@@ -18,26 +18,25 @@ Library4=threading
 Library5=newqrcodereaderview
 ManifestCode='~\n~'Android PIN Unblocker's application manifest file~\n~'~\n~~\n~'This application supports Android 2.3.2 and higher (API level 9+)~\n~'This application guarantees compliance with Android up to Android 13 (API level 33)~\n~'~\n~'This application requires atleast Android 2.3.2 (API level 9) for:~\n~' - Camera-related functions~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'This application makes use of Camera hardware and Flashlight~\n~'However this is not strictly required to run this application~\n~'~\n~'Features used for:~\n~' - Scanning QR codes~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'This application makes use of USB-OTG (On-The-Go)~\n~'However this is not strictly required to run this application~\n~'~\n~'Feature used for:~\n~' - Unblocking smartcards over USB~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.usb.host"         android:required="false" />)~\n~~\n~'This application supports all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'This application cans broadcast Intents:~\n~' - Opening HTTP or HTTPS links~\n~'~\n~'This requirement was introduced starting with Android 11 (API level 30)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'~\n~'Camera and Flashlight permissions are automatically inserted when using~\n~'the NewQRCodeReaderView library~\n~'~\n~~\n~'~\n~'Don't add the imaginary USB_PERMISSION to this application's manifest:~\n~' - The "android.permission.USB_PERMISSION" one~\n~'~\n~'This permission doesn't actually exist anywhere in the Android codebase,~\n~'and is nothing more than the Internet's collective false news~\n~'about a supposed 'USB permission' which would be added~\n~'to application manifest files~\n~'~\n~'This is fabricated, because USB_PERMISSION only exists during runtime,~\n~'not in the application manifest, and is always requested dynamically~\n~'~\n~'Even seemingly professional websites will tell you to add this fictious~\n~'Android permission to your application manifest file,~\n~'but it literally does nothing at all~\n~'~\n~~\n~'Application identity (automatically inserted)~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application icon (uses a mipmap instead of a drawable)~\n~SetApplicationAttribute(android:icon, "@mipmap/ic_launcher")~\n~~\n~'Application theme (this app uses a custom theme)~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Application's task affinity (this application refuses to share affinity with other ones):~\n~' - Always detach this application's Activities from the task stack of other apps~\n~' - We do this by clearing its task affinity attribute (setting it to "")~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> covers all Activities~\n~'~\n~'This is done for security reasons, so that other applications cannot do~\n~'task reparenting attacks on it (known as StrandHogg vulnerability)~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'This application wishes to benefit from hardware acceleration:~\n~' - Performance optimization for the Camera preview (QR code scanning)~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'We wish to benefit from it for all this application's Activities~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Security hardening for this application's Smartcard service~\n~'~\n~'Other applications shouldn't be able to launch this application's~\n~'Smartcard service or communicate with it in any way,~\n~'so we mark the Smartcard service as private (exported = false)~\n~SetServiceAttribute(Smartcard, "android:exported", false)~\n~~\n~'Also mark its corresponding receiver as private,~\n~'because this Service uses separate USB receivers generated from~\n~'Java code at runtime, whenever they are needed,~\n~'and not the one declared in its manifest file~\n~SetReceiverAttribute(Smartcard, "android:exported", false)~\n~~\n~'The running state of this application should never be preserved across reboots:~\n~' - Don't let Android persist this application's state across device reboots and on shutdown~\n~' - We don't want the user having leftovers (forensic traces) from Activities across reboots~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'This application's Activities when started by a specific user,~\n~'should only be visible for this user and other ones on the device:~\n~' - We don't want to let one Android user launch one of this application's Activities,~\n~'   then have other Android users on the same device being able to see~\n~'   this user's own Activities in their task history (for security reasons)~\n~'~\n~' - Each Android user account on a device should~\n~'   launch their own Activities if they want to~\n~'   see those in their own task histories~\n~'~\n~'This attribute was introduced starting with Android 6 (API level 23)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'Mark the Main Activity as exported~\n~'~\n~'Newer versions of Android require that Activities with <intent-filters /> must~\n~'explicitly be marked as exported for security reasons~\n~'~\n~'This requirement was introduced starting with Android 12 (API level 32)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Mark the Scan Activity as unexported (private):~\n~' - Android applications should always mark as unexported all Activities that~\n~'   are not explicitly made open to other ones~\n~'~\n~'We mark all Activities that are not explicitly callable from other applications as~\n~'unexported for security reasons (as a security precaution)~\n~'~\n~'Set it for all Activities that you don't wish to explicitly offer to other applications~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the Scan Activity from the Android Recent Apps panel:~\n~' - Only the Main Activity (entry point) should appear in it~\n~'~\n~'Add all Activities other than the Main one here~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Main Activity automatically disappear form the Recent Apps panel when finished:~\n~' - This Activity will only be visible until the user intentionally exits the application,~\n~'   then it will disappear from the Recent Apps panel to avoid leaving traces of use~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Set the Main Activity's launch mode to singleTop:~\n~' - Atleast a singleTop or singleTask launch mode is required to receive~\n~'   onNewIntent Activity callbacks~\n~'~\n~'Attribute used for:~\n~' - Receiving Admin key texts shared to this application~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~~\n~'Enforce stricter Intent matching rules for sending Intents to the Main Activity:~\n~' - Explicit Intents must match this application's exact component name~\n~' - Intents without any ACTION type don't match this application~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'This attribute was introduced starting with Android 16 (API level 36)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Add a Share To Intent filter to the Main Activity:~\n~' - Allow sharing Admin key texts from other applications to this one~\n~'~\n~'Used attributes:~\n~' - "android:autoVerify": Introduced starting with Android 6 (API level 23)~\n~'~\n~'                         It's some useless thing that's used for verifying~\n~'                         Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":      Introduced starting with Android 9 (API level 28)~\n~'~\n~'                         This is the priority order of Intent filters~\n~'                         The higher the number the higher the priority~\n~'~\n~'                         It only sets the priority of this application's own~\n~'                         Intent filters~\n~'~\n~'Note:~\n~' - I don't want to use the "android:priority" Intent filter attribute since it would~\n~'   interfere with other applications' own Intent filter offers, by taking priority over~\n~'   their own offers when you want to share text to a different application instead of this one~\n~'~\n~' - So out of courtesy for other applications, we only use the "android:order" Intent filter attribute~\n~'   instead of the "android:priority" one~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Mark Picture-in-Picture mode (PiP) as unsupported:~\n~' - we don't want to support it for security reasons~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform graphical post-processing for~\n~'this application (minimal post-processing):~\n~' - Some new-technology displays might try to improve the graphics and colors of this application,~\n~'   but we don't need any such graphical enhancements here~\n~'~\n~'This attribute was introduced starting with Android 11 (API level 30)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations in this application's Activities:~\n~' - We don't use any animations in this application for performance reasons,~\n~'   because we just don't need fancy animations in a technical application~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~~\n~'Intercept mundane device configuration change events to deliberately ignore them:~\n~' - Tell Android that we will handle these configuration change events, but we will actually~\n~'   simply ignore them, so that Android doesn't destroy then re-create this application's Activities for~\n~'   mundane device configuration changes that are not even related to the device display or its orientation~\n~'~\n~'Real display-related configuration change events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we hook all the other ones to simply ignore them~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'Tell Android that it cans shrink our application's Activities if necessary:~\n~' - When it shows the keyboard, the keyboard should not cover Activity content~\n~' - This attribute tells Android that it cans adjust the Activity pan if necessary~\n~'~\n~'The "adjustPan" part is the important one, which should not be needed to set explicitly,~\n~'but Basic4Android explicitly sets by default a windowSoftInputMode value of "stateHidden"~\n~'~\n~'So we have to override Basic4Android's default value with our own instead~\n~'~\n~'We also want to prevent Android from automatically setting~\n~'the focus on the first Activity UI element on application resume,~\n~'because we already handle this on our own in our ViewState management functions~\n~'~\n~'So we also use "stateAlwaysHidden" too instead of just using "stateHidden":~\n~' - "By default, Android will automatically assign initial focus~\n~'    to the first EditText or focusable control in your Activity.~\n~'	 [...]~\n~'    The windowSoftInputMode attribute in AndroidManifest.xml,~\n~'    when set to stateAlwaysHidden, instructs the keyboard to~\n~'    ignore this automatically-assigned initial focus.~\n~'    [...]~\n~'    Therefore, stateAlwaysHidden is VERY poorly named indeed.~\n~'    It should perhaps be called ignoreInitialFocus instead."~\n~'~\n~'Add all Activities that contain input fields here~\n~SetActivityAttribute(Main, "android:windowSoftInputMode", "adjustPan|stateAlwaysHidden")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'~\n~~\n~'~\n~' - Application themes -~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~' - Default Activity & application colors -~\n~'~\n~~\n~'Android version doesn't matter (all versions need to pick the same color)~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~~\n~
 Module1=MyAdvanced
-Module10=Scan
-Module11=Smartcard
-Module2=MyCCID
-Module3=MyCommon
-Module4=MyConstants
-Module5=MyCryptography
-Module6=MyLifecycleTracking
-Module7=MySecurity
-Module8=MySmartcardReader
-Module9=MySynchronousSleep
+Module10=Smartcard
+Module2=MyCommon
+Module3=MyConstants
+Module4=MyCryptography
+Module5=MyLifecycleTracking
+Module6=MySecurity
+Module7=MySmartcardReader
+Module8=MySynchronousSleep
+Module9=Scan
 NumberOfFiles=5
 NumberOfLibraries=5
-NumberOfModules=11
+NumberOfModules=10
 Version=12.5
 @EndOfDesignText@
 
 #Region Project Attributes 
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 75
-	#VersionName: 5.1.4
+	#VersionCode: 86
+	#VersionName: 5.2.10
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -64,6 +63,20 @@ Version=12.5
 	#SignKeyAlgorithm: -digestalg SHA1 -sigalg SHA256withRSA
 	#SignKeyAlias:     androiddebugkey
 	#SignKeyPassword:  android
+	
+	'Newer ACS smartcard mobile connector library (ACS SMC)
+	'Old version is version: 1.1.1 / 1.1.3
+	'Newer version is: 1.1.6
+	'
+	'Notes: - The .jar file extension is omitted.
+	'       - The file "acssmc-1.1.6-patched.jar" should be in the
+	'         Additional Libraries folder of Basic4Android
+	'
+	'The patched version removes the Vendor ID & Product ID checks
+	'that previously restricted the acssmc library to only work
+	'with ACS card readers, now it should work with any card reader
+	'
+	#AdditionalJar: acssmc-1.1.6-patched
 	
 #End Region
 
@@ -986,6 +999,9 @@ Sub Process_Globals
 	Private ViewState_LastFocusedElement As String
 	Private ViewState_LastScrollPosition As Int
 	
+	'Needed for the SetUiElementsEnabledState function
+	Private ViewState_SetUiElementsEnabledState_TrueOrFalse As Boolean = True 'True by default
+	
 	'
 	'General-use process globals
 	'
@@ -1025,6 +1041,18 @@ Sub Process_Globals
 	'For background smartcard operations
 	Private DirectUnblockThread As Thread
 	
+	Private DirectUnblockInProgress      As Boolean = False
+	Private DirectUnblockLastDialogCount As Int = 0
+	
+	'Because we want to add a delay before being able to click
+	'on the Activity TitleBar's USB & About buttons / menu items,
+	'otherwise clicking on them while the Activity is 'frozen' will
+	'cause the TitleBar button to immediately be clicked when unfrozen
+	'
+	'(When you do the direct unblock action and the Activity is frozen)
+	Private AllowClickingActivityMenuItems As Boolean = True 'Default value is True
+	Private ActivityTimer_AllowClickingActivityMenuItems As Timer
+	
 End Sub
 
 Sub Globals
@@ -1039,6 +1067,7 @@ Sub Globals
 	
 	Private lblChallenge As Label 'For getting its properties to fix btnHashMenuBg's
 	Private edtChallenge As EditText
+	Private btnScanQR    As Button 'For enabling / disabling UI elements on Direct Unblock
 	
 	Private lblAdminKey As Label
 	Private edtAdminKey As EditText
@@ -1054,8 +1083,11 @@ Sub Globals
 	Private btnSha256     As Button
 	Private btnSha512     As Button
 	
+	Private btnGenerate As Button 'For enabling / disabling UI elements on Direct Unblock
+	
 	Private lblResponse As Label
 	Private edtResponse As EditText
+	Private btnShareTo  As Button 'For enabling / disabling UI elements on Direct Unblock
 	
 End Sub
 
@@ -1273,8 +1305,16 @@ Sub Activity_Create(FirstTime As Boolean)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Disable the Admin Key selection timer so that it doesn't tick upon initialization"$, Colors.Blue)
 		SelectionTimer_edtAdminKey.Enabled = False
 		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Disable the AllowClickingActivityMenuItems timer so that it doesn't tick upon initialization"$, Colors.Blue)
+		ActivityTimer_AllowClickingActivityMenuItems.Enabled = False
+		
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Admin Key selection timer at a tick rate of 100ms"$, Colors.Blue)
 		SelectionTimer_edtAdminKey.Initialize("SelectionTimer_edtAdminKey", 100)
+		
+		'The delay before allowing the clicking of Activity menu items
+		'is 200ms (duration of an eye blink)
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the ActivityTimer_AllowClickingActivityMenuItems timer at a tick rate of 200ms"$, Colors.Blue)
+		ActivityTimer_AllowClickingActivityMenuItems.Initialize("ActivityTimer_AllowClickingActivityMenuItems", 200)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Get an initial ViewState with default UI element values by resetting the ViewState"$, Colors.Blue)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: The layout files don't always contain default UI element values"$, Colors.Blue)
@@ -1600,6 +1640,10 @@ Private Sub ResetViewState
 	ViewState_chkHideAdminKey_Checked = True
 	ViewState_btnHashMenu_Checked     = False
 	
+	'Has built-in checks against re-enabling chkHideAdminKey after locking it down
+	LogColor($"[${ActivityName}-${LogContextId}] ResetViewState: Setting initial .Enabled states of UI elements for this Activity"$, Colors.Blue)
+	SetUiElementsEnabledState(True)
+	
 	LogColor($"[${ActivityName}-${LogContextId}] ResetViewState: Sub return"$, Colors.Blue)
 End Sub
 
@@ -1903,6 +1947,10 @@ Private Sub RestoreViewState()
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the Hide Admin Key checkbox .Checked state"$, Colors.Blue)
 	chkHideAdminKey.Checked = ViewState_chkHideAdminKey_Checked
 	
+	'Has built-in checks against re-enabling chkHideAdminKey after locking it down
+	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the .Enabled states of UI elements for this Activity (except chkHideAdminKey) to ${ViewState_SetUiElementsEnabledState_TrueOrFalse}"$, Colors.Blue)
+	SetUiElementsEnabledState(ViewState_SetUiElementsEnabledState_TrueOrFalse)
+	
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the About window if it was visible (Visible = ${ViewState_mnuAbout_Visible})"$, Colors.Blue)
 	If ViewState_mnuAbout_Visible Then
 		'Simulate a click on the About window
@@ -1912,16 +1960,20 @@ Private Sub RestoreViewState()
 		
 	End If
 	
-	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the Direct Unblock window if it was visible (Visible = ${ViewState_mnuDirectUnblock_Visible})"$, Colors.Blue)
-	If ViewState_mnuDirectUnblock_Visible Then
-		mnuDirectUnblock_Click
-	End If
-	
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the Challenge field .Text"$, Colors.Blue)
 	edtChallenge.Text = ViewState_edtChallenge_Text
 	
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the Admin Key field .Text"$, Colors.Blue)
 	edtAdminKey.Text = ViewState_edtAdminKey_Text
+	
+	'This mnuDirectUnblock_Click cans only be restored
+	'after restoring the edtChallenge & edtAdminKey fields
+	'
+	'Because this function will want to read their values
+	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the Direct Unblock window if it was visible (Visible = ${ViewState_mnuDirectUnblock_Visible})"$, Colors.Blue)
+	If ViewState_mnuDirectUnblock_Visible Then
+		mnuDirectUnblock_Click
+	End If
 	
 	'The Admin Key label is always dynamically re-generated anyway
 	'No need to save and restore it
@@ -2129,6 +2181,17 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub entry"$, Colors.Blue)
 	
+	'Don't allow sharing Admin key texts to the application while
+	'a direct unblock operation is running
+	If DirectUnblockInProgress Then
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Direct Unblock(?) operation is in progress"$, Colors.Magenta)
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: We don't proceed further and return early..."$, Colors.Magenta)
+	
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
+		Return
+		
+	End If
+	
 	'This variable will receive the Share To Intents' TEXT extra data (if any)
 	Dim ReceivedText As String
 	
@@ -2150,6 +2213,11 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 		Try
 			TruncatedTextRehash = Security.GenerateTruncatedTextRehash(ReceivedText)
 		Catch
+			LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Failed to generate the truncated text rehash."$, Colors.Red)
+			LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: As a fallback, set truncated text rehash result to the previous one."$, Colors.Red)
+			
+			LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: This way we consider that the currently shared Admin key text is the same as the previous one."$, Colors.Red)
+			
 			'If generating the truncated text rehash fails,
 			'then we deliberately set it to the previous one so that
 			'the next part of the code considers it to be a duplicate
@@ -2305,6 +2373,20 @@ Private Sub Activity_Exit
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Sub entry"$, Colors.Blue)
 	
+	'Don't accidentally exit the app if direct unblock is in progress
+	'And also if the Smartcard service has ongoing operations
+	If DirectUnblockInProgress Then
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Direct Unblock(?) is in progress..."$, Colors.Magenta)
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Show small toast notification about it"$, Colors.Magenta)
+		ToastMessageShow($"Direct Unblock in progress...
+Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Returning early without exiting Activity..."$, Colors.Magenta)
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Sub return"$, Colors.Magenta)
+		Return
+		
+	End If
+	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Stopping this Activity's Lifecycle reset Timer for foreground rotation detection"$, Colors.Blue)
 	LifecycleTracking.LifecycleClearingThread_Stop
 	
@@ -2314,21 +2396,15 @@ Private Sub Activity_Exit
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Resetting the ViewState to clear all input contents etc"$, Colors.Blue)
 	ResetViewState
 	
+	'Stop the Smartcard service (currently only this Activity uses it)
+	StopService(Smartcard)
+	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Asking the JVM to do a garbage collection as soon as possible"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: This will clear traces of leftover variable contents"$, Colors.Blue)
 	Security.TriggerJvmGarbageCollection
 	
-	'Don't exit the app anymore by killing its process
-	'or calling System.exit(0) and so on,
-	'because the Smartcard servie might be performing
-	'a smartcard operation and in such cases we have
-	'to wait until they complete, so by only exiting
-	'this Activity and not the Service too
-	'
-	'Killing its process or calling System.exit()
-	'would kill the Smartcard service too
-	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Finishing the Activity now"$, Colors.Blue)
-	Activity.Finish
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Exiting the application now"$, Colors.Blue)
+	ExitApplication
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Sub return"$, Colors.Blue)
 End Sub
@@ -2486,6 +2562,9 @@ Private Sub SaveViewState()
 	LogColor($"[${ActivityName}-${LogContextId}] SaveViewState: Saving the ScrollView's last scroll position"$, Colors.Blue)
 	ViewState_LastScrollPosition = scvActivity.ScrollPosition
 	
+	'The last UI elements enabled state is already saved in realtime
+	'by the SetUiElementsEnabledState function
+	
 	LogColor($"[${ActivityName}-${LogContextId}] SaveViewState: Sub return"$, Colors.Blue)
 End Sub
 
@@ -2520,9 +2599,66 @@ Private Sub mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg As Boolean) As CSBu
 	
 End Sub
 
+'Helper function
+Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
+	'
+	'Save the last SetUiElementsEnabledState's TrueOrFalse parameter
+	'in the ViewState registers, so that if the screen rotates,
+	'even during direct unblock, the elements still get restored as
+	'the last disabled state that was used in the last function call
+	'
+	ViewState_SetUiElementsEnabledState_TrueOrFalse = TrueOrFalse
+	
+	edtChallenge.Enabled = TrueOrFalse
+	btnScanQR.Enabled    = TrueOrFalse
+	
+	edtAdminKey.Enabled = TrueOrFalse
+	
+	'Don't affect the chkHideAdminKey enabled state
+	'if it was already locked-down before
+	If ViewState_chkHideAdminKey_Enabled Then
+		chkHideAdminKey.Enabled = TrueOrFalse
+	End If
+	
+	btnHashMenu.Enabled = TrueOrFalse
+	btnSha256.Enabled   = TrueOrFalse
+	btnSha512.Enabled   = TrueOrFalse
+	
+	btnGenerate.Enabled = TrueOrFalse
+	
+	edtResponse.Enabled = TrueOrFalse
+	btnShareTo.Enabled  = TrueOrFalse
+	
+End Sub
+
+'This Sub when ActivityTimer_AllowClickingActivityMenuItems is enabled
+'will automatically run 200ms later
+Private Sub ActivityTimer_AllowClickingActivityMenuItems_Tick
+	
+	'Allow clicking Activity menu items
+	AllowClickingActivityMenuItems = True
+	
+	'This Timer runs only once per call
+	ActivityTimer_AllowClickingActivityMenuItems.Enabled = False
+	
+End Sub
+
 Private Sub mnuDirectUnblock_Click
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub entry"$, Colors.Blue)
+	
+	'Don't allow showing the Direct Unblock window
+	'if there's already another unblock operation in progress
+	'
+	'Also when clicking Activity menu items is disallowed
+	'
+	If DirectUnblockInProgress Or Not(AllowClickingActivityMenuItems) Then
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Ongoing direct unblock already in progress, returning early..."$, Colors.Magenta)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Magenta)
+		Return
+		
+	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Get the USB OTG support status of this device..."$, Colors.Blue)
 	Dim DeviceHasUsbOtg As Boolean = joActivity.RunMethod("jDeviceHasUsbOtgSupport", Null)
@@ -2541,83 +2677,108 @@ Private Sub mnuDirectUnblock_Click
 	
 	Dim DirectUnblockInfoText As CSBuilder = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
 	
-	If DeviceHasUsbOtg Then
-		DirectUnblockInfoText.Append("You will be asked to connect your smartcard reader then insert your PKI smartcard into the reader."&CRLF)
-		DirectUnblockInfoText.Append(CRLF)
-		DirectUnblockInfoText.Color(Colors.Yellow)
-		DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully and don't retry to unblock the same card with this app again.")
-	Else
-		DirectUnblockInfoText.Append("Direct unblocking of smartcard PINs requires a device with USB-OTG support but your device claimed that it doesn't support it.")
-		DirectUnblockInfoText.PopAll
-	End If
-	DirectUnblockInfoText.PopAll
-	
-	If DeviceHasUsbOtg Then
-		'Positive action = Proceed
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device supports USB-OTG, displaying a card operation introducory message"$, Colors.Blue)
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Proceed to Unblock", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
-		
-	Else
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device does not support USB-OTG, displaying an operation abort message"$, Colors.Magenta)
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
-		
-	End If
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Setting the ViewState Visible attribute of the dialog window to True"$, Colors.Blue)
 	ViewState_mnuDirectUnblock_Visible = True
 	
-	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Waiting for the MessageBox to be closed to check its return result"$, Colors.Blue)
-	Wait For Msgbox_Result(Result As Int)
-	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox has been closed now"$, Colors.Blue)
+	'## Dialog count: Dialog 1 ##
 	
-	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Setting the ViewState Visible attribute of the dialog window to False"$, Colors.Blue)
-	ViewState_mnuDirectUnblock_Visible = False
-	
-	If Result <> DialogResponse.POSITIVE And DeviceHasUsbOtg Then
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox return result is not positive, cannot proceed further"$, Colors.Blue)
+	If DirectUnblockLastDialogCount < 1 Then
+		If DeviceHasUsbOtg Then
+			DirectUnblockInfoText.Append("You will be asked to connect your smartcard reader then insert your PKI smartcard into the reader."&CRLF)
+			DirectUnblockInfoText.Append(CRLF)
+			DirectUnblockInfoText.Color(Colors.Yellow)
+			DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully and don't retry to unblock the same card with this app again.")
+		Else
+			DirectUnblockInfoText.Append("Direct unblocking of smartcard PINs requires a device with USB-OTG support but your device claimed that it doesn't support it.")
+			DirectUnblockInfoText.PopAll
+		End If
+		DirectUnblockInfoText.PopAll
 		
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
-		Return
+		If DeviceHasUsbOtg Then
+			'Positive action = Proceed
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device supports USB-OTG, displaying a card operation introductory message"$, Colors.Blue)
+			Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Proceed to Unblock", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+			
+		Else
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device does not support USB-OTG, displaying an operation abort message"$, Colors.Magenta)
+			Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+			
+		End If
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Waiting for the MessageBox to be closed to check its return result"$, Colors.Blue)
+		Wait For Msgbox_Result(Result As Int)
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox has been closed now"$, Colors.Blue)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Setting the ViewState Visible attribute of the dialog window to False"$, Colors.Blue)
+		
+		If Result <> DialogResponse.POSITIVE And DeviceHasUsbOtg Then
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox return result is not positive, cannot proceed further"$, Colors.Blue)
+			
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
+			
+		End If
+		
+		If Not(DeviceHasUsbOtg) Then
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device does not support OTG so cannot proceed further"$, Colors.Magenta)
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: So we don't care about checking the result of the operation abort dialog"$, Colors.Magenta)
+			
+			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Magenta)
+			
+		End If
+		
+		If Result <> DialogResponse.POSITIVE Or Not(DeviceHasUsbOtg) Then
+			ViewState_mnuDirectUnblock_Visible = False
+			DirectUnblockLastDialogCount = 0
+			
+			Return
+			
+		End If
+		
+		DirectUnblockLastDialogCount = DirectUnblockLastDialogCount + 1
+		
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The dialog result is positive and the device supports USB-OTG"$, Colors.Blue)
 		
 	End If
 	
-	If Not(DeviceHasUsbOtg) Then
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device does not support OTG so cannot proceed further"$, Colors.Magenta)
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: So we don't care about checking the result of the operation abort dialog"$, Colors.Magenta)
+	'## Dialog count: Dialog 2 ##
+	
+	If DirectUnblockLastDialogCount < 2 Then
+		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append($"Enter a dummy challenge code that matches the challenge code length for your card in the challenge code field.
+
+If 3DES or 2DES: (8 bytes so 16 characters)
+FFFF FFFF FFFF FFFF
+
+If AES-128 or AES-256: (16 bytes so 32 characters)
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+
+The direct unblock process will try unblocking your Primary PIN code (User PIN) to 202608.
+The Admin key that will be used is the one currently written in the Admin Key field"$&".")
 		
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Magenta)
-		Return
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Wait For Msgbox_Result(Result As Int)
 		
-	End If
-	
-	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The dialog result is positive and the device supports USB-OTG"$, Colors.Blue)
-	
-	'--------------------------------------------------------------
-	'Unlogged code because it's temporarily considered experimental
-	'--------------------------------------------------------------
-	
-	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-	DirectUnblockInfoText.Append($"This functionality is currently in pre-release state.
-
-In order to use it enter a dummy challenge code that must match the challenge code length for your card in the challenge code field:
-- For example type FFFF FFFF FFFF FFFF (8 bytes so 16 characters) in the challenge code field if your smartcard uses DES-EDE2 or DES-EDE3 (2DES / 3DES)
-- If your smartcard uses AES-128 or AES-256 then input a dummy challenge code such as FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF (16 bytes so 32 characters)
-
-Then write your Admin key into the Admin key field and the direct unblock process will try unblocking your Primary PIN code (User PIN) to 202608.
-
-If any failure happened while trying to unblock it then use a computer program such as Gemalto MiniDriver Manager to unblock your smartcard or vSEC_TOOL_K"$&".")
-	
-	Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
-	Wait For Msgbox_Result(Result As Int)
-	
-	If Result <> DialogResponse.POSITIVE Then
-		Return
+		If Result <> DialogResponse.POSITIVE Then
+			ViewState_mnuDirectUnblock_Visible = False
+			DirectUnblockLastDialogCount = 0
+			
+			Return
+			
+		End If
+		
+		DirectUnblockLastDialogCount = DirectUnblockLastDialogCount + 1
+		
 	End If
 	
 	Dim SanitizedUserInputs() As String = GetSanitizedUserInputs(edtChallenge.Text, edtAdminKey.Text)
 	If SanitizedUserInputs(0) == False Then
-		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
-		ToastMessageShow("Your inputs are invalid (verify again)", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow($"Direct unblock cancelled:
+Your inputs are invalid (verify again"$&")", Constants.TOAST_DURATION_SHORT)
+		
+		ViewState_mnuDirectUnblock_Visible = False
+		DirectUnblockLastDialogCount = 0
+		
 		Return
+		
 	End If
 	
 	Dim SanitizedChallenge, SanitizedAdminKey, DetectedAlgorithm As String
@@ -2629,30 +2790,46 @@ If any failure happened while trying to unblock it then use a computer program s
 		DetectedAlgorithm <> Cryptography.ALGORITHM_3DES	And _
 		DetectedAlgorithm <> Cryptography.ALGORITHM_AES128	And _
 		DetectedAlgorithm <> Cryptography.ALGORITHM_AES256	Then
-		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
-		ToastMessageShow("Unblock algorithm is undetermined", Constants.TOAST_DURATION_SHORT)
+		ToastMessageShow($"Direct unblock cancelled:
+Unblock algorithm is undetermined"$, Constants.TOAST_DURATION_SHORT)
+		
+		ViewState_mnuDirectUnblock_Visible = False
+		DirectUnblockLastDialogCount = 0
+		
 		Return
+		
 	End If
 	
-	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-	DirectUnblockInfoText.Append($"I detected based on your inputs that your smartcard's challenge-response algorithm is:
-- ${DetectedAlgorithm}
+	'## Dialog count: Dialog 3 ##
+	
+	If DirectUnblockLastDialogCount < 3 Then
+		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append($"Your smartcard's challenge-response algorithm is:
+${DetectedAlgorithm}
 
-Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes long (${SanitizedChallenge.Length} characters).
+Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes (${SanitizedChallenge.Length} chars).
+Your Admin key is ${(SanitizedAdminKey.Length / 2).As(Int)} bytes (${SanitizedAdminKey.Length} chars).
 
-Your Admin key is ${(SanitizedAdminKey.Length / 2).As(Int)} bytes long (${SanitizedAdminKey.Length} characters).
-
-Is that correct? If yes you may try clicking on Take the Risk.
+Is this correct? If yes you can click on Take the Risk.
 Otherwise do not proceed further And click on Cancel"$&".")
-	
-	Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
-	Wait For Msgbox_Result(Result As Int)
-	
-	'Positive = "Take the Risk"
-	If Result <> DialogResponse.POSITIVE Then
-		ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
-		ToastMessageShow("You decided not to proceed further", Constants.TOAST_DURATION_SHORT)
-		Return
+		
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Wait For Msgbox_Result(Result As Int)
+		
+		'Positive = "Take the Risk"
+		If Result <> DialogResponse.POSITIVE Then
+			ToastMessageShow($"Direct unblock cancelled:
+	You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
+			
+			ViewState_mnuDirectUnblock_Visible = False
+			DirectUnblockLastDialogCount = 0
+			
+			Return
+			
+		End If
+		
+		DirectUnblockLastDialogCount = DirectUnblockLastDialogCount + 1
+		
 	End If
 	
 	'--------------------------------------------------------------------------------
@@ -2664,25 +2841,47 @@ Otherwise do not proceed further And click on Cancel"$&".")
 		
 		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
 		DirectUnblockInfoText.Append($"Warning!
-The entered Admin key you provided is still the **default 48-zeroes Admin key**.
+The entered Admin key you provided is still the *default 48-zeroes Admin key*.
 
 Are you sure that you did not just forget to write your Admin key?
-
 If yes then click on Cancel and input a proper Admin key first.
 
-If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".")
+If your Admin key is *really* 48-zeroes then click on Take the Risk again"$&".")
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
 		
 		'Positive = "Take the Risk"
 		If Result <> DialogResponse.POSITIVE Then
-			ToastMessageShow("Direct unblock cancelled", Constants.TOAST_DURATION_SHORT)
-			ToastMessageShow("Please correct your Admin key", Constants.TOAST_DURATION_SHORT)
+			ToastMessageShow($"Direct unblock cancelled:
+Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
+			
+			ViewState_mnuDirectUnblock_Visible = False
+			DirectUnblockLastDialogCount = 0
+			
 			Return
+			
 		End If
 		
 	End If
+	
+	'Now there's an active Direct Unblock operation in progress
+	DirectUnblockInProgress = True
+	
+	'No more visible dialogs that can be restored by ViewState Manager
+	ViewState_mnuDirectUnblock_Visible = False
+	DirectUnblockLastDialogCount = 0
+	
+	'Move focus to edtChallenge incase it might be on edtAdminKey
+	'This way it stops any potentially running edtAdminKey Timer
+	'It saves CPU cycles
+	edtChallenge.RequestFocus 'Do it before SetUiElementsEnabledState
+	
+	'Disable all this Activity's UI elements
+	SetUiElementsEnabledState(False)
+	
+	'Disallow clicking Activity menu items
+	AllowClickingActivityMenuItems = False
 	
 	'--------------------------------------------------------------------------------
 	'Set the Activity to always keep the screen on during the process
@@ -2711,6 +2910,17 @@ If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".
 	DirectUnblockThread.Start(Me, "SendPinUnblockAPDUSequence", Array(SanitizedAdminKey, DetectedAlgorithm))
 	Wait For mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
 	
+	'Direct Unblock operation completed (either successfully or failed)
+	DirectUnblockInProgress = False
+	
+	'Re-enable all this Activity's UI elements
+	'Has built-in checks against re-enabling chkHideAdminKey after locking it down
+	SetUiElementsEnabledState(True)
+	
+	'Allow clicking Activity menu items
+	'This Timer will automatically run in 200ms
+	ActivityTimer_AllowClickingActivityMenuItems.Enabled = True
+	
 	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
 	
 	If IsSuccessful Then
@@ -2718,12 +2928,13 @@ If your Admin key is **really** 48-zeroes then click on Take the Risk again"$&".
 		'Now we tell the user about the successful PIN unblock operation,
 		'and what their new PIN code is (it will always be set to 202608 for now)
 		'
-		ToastMessageShow("New PIN successfully set to: 202608", Constants.TOAST_DURATION_LONG)
+		ToastMessageShow("New PIN successfully set to:"&CRLF&"202608", Constants.TOAST_DURATION_LONG)
 		
-		DirectUnblockInfoText.Append($"Your smartcard User PIN has been unblocked successfully!
+		DirectUnblockInfoText.Append($"Smartcard User PIN unblocked successfully!
 
-Your new User PIN is now set to:
-- 202608
+Your new User PIN is now:
+202608
+
 You may change it again later at your convenience using e.g. a desktop smartcard utility.
 
 I did not implement a full user interface to choose your own new User PIN yet.
@@ -2970,29 +3181,6 @@ ${ResponseBundle(0)}"$)
 		Return
 		
 	End Try
-	'--------------------------------------------------------------------------------
-	LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select PKI management applet ID! (step 8)
-
-[Sent APDU]
-${LastSentAPDU}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End If
 	
 	'--------------------------------------------------------------------------------
 	'2DES / 3DES (data length 0x08)
@@ -3017,7 +3205,7 @@ ${ResponseBundle(0)}"$)
 	
 	If IsSucessful == False Then
 		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code! (step 9)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code! (step 8)
 
 [Sent APDU]
 ${LastSentAPDU}
@@ -3054,7 +3242,7 @@ ${ResponseBundle(0)}"$)
 	
 	If IsSucessful == False Then
 		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with a new PIN value of 202608! (step 10)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with a new PIN value of 202608! (step 9)
 
 [Sent APDU]
 ${LastSentAPDU}
@@ -3089,50 +3277,6 @@ ${ResponseBundle(0)}"$)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	'--------------------------------------------------------------------------------
-	'Sending this APDU with empty auth is usually for logging out,
-	'but I already logout from the Admin state by doing a SELECT Applet APDU
-	'
-	'So no need to send this APDU at all
-	'
-	'LastSentAPDU = "80 5A 00 00 00" 'EXTERNAL AUTHENTICATE (GlobalPlatform) [empty auth]
-	'
-	'CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-	'	Array As Object( _
-	'		LastSentAPDU _ 'Send GET DATA APDU request for whatever that APDU is
-	'	) _
-	')
-	'CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	'Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	'
-	'--------------------------------------------------------------------------------
-	'LastSentAPDU = SELECT_MANAGEMENT_PKI_APPLET_ID 'Select security directory again (again - one last time)
-	'
-	'CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-	'	Array As Object( _
-	'		LastSentAPDU _ 'Send SELECT FILE for the smartcard PKI applet's security directory
-	'	) _
-	')
-	'CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	'Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	'
-	'--------------------------------------------------------------------------------
-	'Gemalto MiniDriver Manager selects yet again the PKI applet's security directory,
-	'one last time before sending a VERIFY PIN command with empty PIN:
-	'
-	' - Then this triggers a 'PIN verify failed' response status that contains
-	'   the number of remaining PIN tries, but doesn't actually decrement the
-	'   remaining PIN tries count or penalize the user at all:
-	'
-	'   It's the standard way of requesting the remaining number of PIN tries,
-	'   however as abundance of precaution of don't do this and won't request
-	'   a VERIFY PIN APDU of "80 20 00 00 00":
-	'    - I don't know in advance which smartcard the user has,
-	'      and if they have a bad-quality one or a weird PKI applet,
-	'      then this might actually decrement it to get the remaining
-	'      PIN tries count in the expected "63 C?" response status
-	'       - (With "?" being the remaining number of tries, between 0x00 & 0x0F)
-	'
-	'--------------------------------------------------------------------------------
 	
 	'Tell the mnuDirectUnblock_Click function that the task is completed (success)
 	' - IsSuccessful = True
@@ -3144,6 +3288,19 @@ End Sub
 Private Sub mnuAbout_Click
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Sub entry"$, Colors.Blue)
+	
+	'Don't allow displaying the About window when
+	'a direct unblock in is progress
+	'
+	'Also when clicking Activity menu items is disallowed
+	'
+	If DirectUnblockInProgress Or Not(AllowClickingActivityMenuItems) Then
+		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Ongoing direct unblock already in progress, returning early..."$, Colors.Magenta)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Sub return"$, Colors.Magenta)
+		Return
+		
+	End If
 	
 	'The About window automatically disappears
 	'on Activity pause & Activity destroy
