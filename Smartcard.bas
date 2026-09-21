@@ -462,7 +462,7 @@ private int iActualState = Reader.CARD_UNKNOWN;
 private static int iSlotNum = -1;
 private byte[] atr = null;
 
-private int actionNum          = Reader.CARD_COLD_RESET;
+private int actionNum          = Reader.CARD_WARM_RESET; // Use warm reset instead of cold reset
 private int preferredProtocols = Reader.PROTOCOL_UNDEFINED;
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
@@ -904,10 +904,9 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		//
 		try
 		{
-			actionNum = Reader.CARD_COLD_RESET;
-			atr = mReader.power(iSlotNum, actionNum);
+			atr = mReader.power(iSlotNum, actionNum); // Use default actionNum value (cold / warm reset)
 			
-			preferredProtocols = (Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1);
+			preferredProtocols = (Reader.PROTOCOL_T1 | Reader.PROTOCOL_T0 | Reader.PROTOCOL_TX | Reader.PROTOCOL_RAW);
 			activeProtocol     = mReader.setProtocol(iSlotNum, preferredProtocols);
 		}
 		catch (Exception e)
