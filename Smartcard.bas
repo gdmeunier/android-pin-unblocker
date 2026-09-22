@@ -463,7 +463,7 @@ private static int iSlotNum = -1;
 private byte[] atr = null;
 
 private int actionNum          = Reader.CARD_WARM_RESET; // Use warm reset instead of cold reset
-private int preferredProtocols = Reader.PROTOCOL_UNDEFINED;
+private int preferredProtocols = (Reader.PROTOCOL_RAW | Reader.PROTOCOL_T1 | Reader.PROTOCOL_T0 | Reader.PROTOCOL_TX);
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
 private mysmartcardreader.SmartcardReader cardReaderProxy;
@@ -634,6 +634,23 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		}
 	}
 	
+	/* Unregister previous detach receiver
+	 *
+	 * Make sure to check if it's null, because on the very first run of
+	 * this function it could very well have never been initialized yet
+	 */
+	if ( detachReceiver != null )
+	{
+		try
+		{
+			unregisterReceiver(detachReceiver);
+		}
+		catch (IllegalArgumentException iae)
+		{
+			/* Nothing to do here */
+		}
+	}
+	
 	// Listen to detach
 	detachReceiver = new BroadcastReceiver()
 	{
@@ -644,13 +661,6 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 			
 			if ( device.getDeviceName().equals(mDevice.getDeviceName()) )
 			{
-				/* Clear the current connected device handle
-				 *
-				 * This way the next jObtainUsbDevice call will
-				 * re-acquire a new USB-CCID device
-				 */
-				mDevice = null;
-				
 				try
 				{
 					mReader.close();
@@ -662,14 +672,40 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				
 				cardReaderProxy = null;
 				
+				/* Clear the current connected device handle
+				 *
+				 * This way the next jObtainUsbDevice call will
+				 * re-acquire a new USB-CCID device
+				 */
+				mDevice = null;
+				
 				iSlotNum = -1;
 				atr = null;
+				
+				iActualState   = Reader.CARD_UNKNOWN;
+				activeProtocol = Reader.PROTOCOL_UNDEFINED;
 				
 			    if ( waitLockUsbDevice != null )
 				{
                     synchronized ( waitLockUsbDevice )
 					{
                         waitLockUsbDevice.notify();
+                    }
+                }
+				
+			    if ( waitLockUsbPermission != null )
+				{
+                    synchronized ( waitLockUsbPermission )
+					{
+                        waitLockUsbPermission.notify();
+                    }
+                }
+				
+			    if ( waitLockSmartcardInsert != null )
+				{
+                    synchronized ( waitLockSmartcardInsert )
+					{
+                        waitLockSmartcardInsert.notify();
                     }
                 }
 			}
@@ -808,6 +844,15 @@ public void jObtainSmartcardReader() throws Exception
 #End If
 
 #If Java
+/* Card state constants:
+ * - CARD_UNKNOWN    = 0
+ * - CARD_ABSENT     = 1
+ * - CARD_PRESENT    = 2
+ * - CARD_SWALLOWED  = 3
+ * - CARD_POWERED    = 4
+ * - CARD_NEGOTIABLE = 5
+ * - CARD_SPECIFIC   = 6
+ */
 import java.io.StringWriter;
 import java.io.PrintWriter;
 public void jObtainSmartcard() throws mysmartcardreader.AbortException
@@ -897,17 +942,45 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		throw new mysmartcardreader.AbortException("Smartcard is swallowed?");
 	}
 	
-	if ( iActualState < Reader.CARD_POWERED )
+	if ( iActualState < Reader.CARD_SPECIFIC ) // Reader.CARD_SPECIFIC = 6
 	{
 		//
 		// Poweron the smartcard and get ATR
 		//
 		try
 		{
-			atr = mReader.power(iSlotNum, actionNum); // Use default actionNum value (cold / warm reset)
+			/* Experimental change:
+			 * Set the protocol first before actually trying to poweron the card
+			 *
+			 * The protocol selection is theorically reaching the card reader,
+			 * not the smartcard itself, so this shouldn't be a problem
+			 *
+			 * Perhaps this will make T=0 cards work with this application
+			 */
+			activeProtocol = mReader.setProtocol(iSlotNum, preferredProtocols);
 			
-			preferredProtocols = (Reader.PROTOCOL_T1 | Reader.PROTOCOL_T0 | Reader.PROTOCOL_TX | Reader.PROTOCOL_RAW);
-			activeProtocol     = mReader.setProtocol(iSlotNum, preferredProtocols);
+			if ( iActualState < Reader.CARD_POWERED )
+			{
+				actionNum = Reader.CARD_COLD_RESET;
+			}
+			else
+			{
+				// If card is already POWERED (4) or in NEGOTIABLE (5) state;
+				actionNum = Reader.CARD_WARM_RESET;
+			}
+			
+			atr = mReader.power(iSlotNum, actionNum);
+			
+			/* Check if the card reader automatically did the
+			 * protocol selection for us directly,
+			 * otherwise explicitly do the protocol negociation again
+			 *
+			 * (If needed then redo the setProtocol function call)
+			 */
+			if ( iActualState == Reader.CARD_NEGOTIABLE )
+			{
+				activeProtocol = mReader.setProtocol(iSlotNum, preferredProtocols);
+			}
 		}
 		catch (Exception e)
 		{
