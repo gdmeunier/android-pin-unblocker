@@ -1,6 +1,6 @@
-﻿ModuleBookmarks0=2612,2940,969,1611,1918,2152,3324,1275,1283,2621,1019,2344,2844
+﻿ModuleBookmarks0=2612,2940,969,1611,1918,2152,3333,1275,1283,2621,1019,2344,2844
 ModuleBookmarks1=
-ModuleBookmarks10=412,244,852,946
+ModuleBookmarks10=410,244,843
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -31,6 +31,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Smartcard,Service_Create,117,0,Smartcard,Service_Message_NewThread,220,0,Main,mnuDirectUnblock_Click,2612,6,Main,ActivityTimer_AllowClickingActivityMenuItems_Tick,2601,0,Main,SetUiElementsEnabledState,2585,0,Main,mnuDirectUnblock_GetDialogHeader,2554,0,MySmartcardReader,Initialize,185,0,Smartcard,Service_Destroy,335,0,Smartcard,Application_Error,938,0,Main,SendPinUnblockAPDUSequence,3312,6
+NavigationStack=Main,ActivityTimer_AllowClickingActivityMenuItems_Tick,2601,0,Main,SetUiElementsEnabledState,2585,0,Main,mnuDirectUnblock_GetDialogHeader,2554,0,Smartcard,Service_Destroy,319,0,Smartcard,Service_Message_NewThread,256,0,Main,Activity_Create,1261,0,Smartcard,Application_Error,956,0,MySmartcardReader,Initialize,337,0,Main,mnuDirectUnblock_Click,2720,6,Main,SendPinUnblockAPDUSequence,3321,6
 SelectedBuild=0
 VisibleModules=9,10,7

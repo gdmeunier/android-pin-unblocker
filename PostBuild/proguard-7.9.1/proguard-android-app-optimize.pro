@@ -80,23 +80,46 @@
 }
 
 # acssmc library (smartcard)
--keep,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.**
--keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.** {
-    *;
+#-keep,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.**
+#-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.** {
+#    *;
+#}
+#
+# acssmc library (smartcard - already minified by ACS)
+#-keep class com.acs.smartcard.ccid.**
+#-keepclassmembers class com.acs.smartcard.ccid.** {
+#    *;
+#}
+
+# acssmc library (official proguard config from ACS)
+#----------------------------------------------------
+-keep public class com.acs.smartcard.* {
+    public protected *;
 }
--keep class a
--keep class b
--keep class c
--keep class d
--keep class e
--keep class f
--keep class g
--keep class h
--keep class i
--keep class j
--keep class k
--keep class l
--keep class m
+#
+-keepclassmembernames class com.acs.smartcard.* {
+    java.lang.Class class$(java.lang.String);
+    java.lang.Class class$(java.lang.String, boolean);
+}
+#
+-keepclasseswithmembernames class com.acs.smartcard.* {
+    native <methods>;
+}
+#
+-keepclassmembers class com.acs.smartcard.* extends java.lang.Enum {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+#
+-keepclassmembers class com.acs.smartcard.* implements java.io.Serializable {
+    static final long serialVersionUID;
+    static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+#----------------------------------------------------
 
 # ----- Shrinking Options
 
@@ -148,19 +171,7 @@
 
 # acssmc library (smartcard)
 -keeppackagenames com.acs.smartcard
--keeppackagenames a
--keeppackagenames b
--keeppackagenames c
--keeppackagenames d
--keeppackagenames e
--keeppackagenames f
--keeppackagenames g
--keeppackagenames h
--keeppackagenames i
--keeppackagenames j
--keeppackagenames k
--keeppackagenames l
--keeppackagenames m
+-keeppackagenames com.acs.smartcard.ccid
 
 -keepattributes *
 -keepparameternames
@@ -532,8 +543,11 @@
 
 # Remove debugging - All Log4j API calls. Remove all invocations of the
 # Log4j API whose return values are not used.
--assumenosideeffects public class org.apache.log4j.** {
-    <methods>;
-}
+#
+# Android PIN Unblocker currently doesn't use log4j at all
+#
+#-assumenosideeffects public class org.apache.log4j.** {
+#    <methods>;
+#}
 
 

@@ -16,7 +16,7 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 - LightRuntimePermissions.xml
 - LightRuntimePermissions-AndroidX.aar
 
-- acssmc-1.1.6-patched.jar
+- acssmc-1.1.8-patched.jar
 
  [i] Create this folder structure if it doesn't already exist
 

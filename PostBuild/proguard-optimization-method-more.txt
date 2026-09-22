@@ -1,0 +1,26 @@
+
+ProGuard optimization method (more)
+-----------------------------------
+
+Incase you want to optimize the APK file even further!
+
+Follow the "proguard-optimization-method.txt" guide,
+then redo the process again (a second time).
+
+Except that instead of using R8 for the second optimization,
+you will be using jar2dex (which is based on the older DX).
+
+This way you have all the benefits of:
+
+1. ProGuard removing all unnecessary code & optimizing it
+
+2. R8 removing all logging from the application
+
+3. ProGuard re-optimizing the code again after using R8,
+   because R8 does actually generate some small overhead
+
+4. jar2dex (DX) now generating a DEX file without trying to
+   optimize the bytecode which is already done by ProGuard
+
+You will be able to get a ~5KB smaller DEX file.
+

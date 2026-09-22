@@ -33,10 +33,10 @@ NumberOfModules=10
 Version=12.5
 @EndOfDesignText@
 
-#Region Project Attributes 
+#Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 90
-	#VersionName: 5.2.14
+	#VersionCode: 93
+	#VersionName: 5.2.17
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -66,21 +66,21 @@ Version=12.5
 	
 	'Newer ACS smartcard mobile connector library (ACS SMC)
 	'Old version is version: 1.1.1 / 1.1.3
-	'Newer version is: 1.1.6
+	'Newer version is: 1.1.6 / 1.1.8
 	'
 	'Notes: - The .jar file extension is omitted.
-	'       - The file "acssmc-1.1.6-patched.jar" should be in the
+	'       - The file "acssmc-1.1.8-patched.jar" should be in the
 	'         Additional Libraries folder of Basic4Android
 	'
 	'The patched version removes the Vendor ID & Product ID checks
 	'that previously restricted the acssmc library to only work
 	'with ACS card readers, now it should work with any card reader
 	'
-	#AdditionalJar: acssmc-1.1.6-patched
+	#AdditionalJar: acssmc-1.1.8-patched
 	
 #End Region
 
-#Region Activity Attributes 
+#Region Activity Attributes
 	#FullScreen:   False
 	#IncludeTitle: True
 	
@@ -2997,9 +2997,21 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'                                              |  |  |     Length of data / Applet ID (Lc=0B)
 	'                                              |  |  |     |  Data / Applet ID
 	'                                              |  |  |     |  |
-	Dim SELECT_VLETOUX_PKI_APPLET_ID  As String = "00 A4 04 00 0B A0 00 00 03 97 42 54 46 59 02 01"
-	'   |
-	'   GIDS Applet ID for Vincent Letoux's open-source GIDS applet
+	'Dim SELECT_VLETOUX_PKI_APPLET_ID As String = "00 A4 04 00 0B A0 00 00 03 97 42 54 46 59 02 01"
+	'    ^ GIDS Applet ID for Vincent Letoux's open-source GIDS applet
+	
+	'
+	'The below APDUs all use the CLA 80 (Card Management
+	'
+	'This is not how most minidriver managers do it,
+	'they usually use CLA 00 for most of them (ISO7816)
+	'
+	'However this is exactly how Microsoft's own PIN Tool does it,
+	'and Microsoft's method is the most generic one
+	'
+	'Microsoft's method also doesn't need to explicitly set
+	'a new maximum PIN try count when setting a new PIN
+	'
 	
 	'                                              Class Proprietary / Management (CLA=80)
 	'                                              |  Command (INS)
@@ -3120,7 +3132,7 @@ ${ResponseBundle(0)}"$)
 	'
 	'Try selecting each known PKI Applet ID
 	'
-	For Each SelectPKIAppletIDAPDU As String In Array As String(SELECT_VLETOUX_PKI_APPLET_ID, SELECT_ACTIVID_PKI_APPLET_ID, SELECT_GEMALTO_PKI_APPLET_ID)
+	For Each SelectPKIAppletIDAPDU As String In Array As String(SELECT_GEMALTO_PKI_APPLET_ID, SELECT_ACTIVID_PKI_APPLET_ID)
 		
 		LastSentAPDU = SelectPKIAppletIDAPDU
 		
@@ -3158,14 +3170,11 @@ ${ResponseBundle(0)}"$)
 		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
 
 [Sent APDUs]
-[1] GIDS:
-${SELECT_VLETOUX_PKI_APPLET_ID}
+[1] Gemalto:
+${SELECT_GEMALTO_PKI_APPLET_ID}
 
 [2] ActivID:
 ${SELECT_ACTIVID_PKI_APPLET_ID}
-
-[3] Gemalto:
-${SELECT_GEMALTO_PKI_APPLET_ID}
 
 [Received]
 The smartcard could not find the PKI applets we searched for"$&".")

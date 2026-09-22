@@ -392,8 +392,11 @@
 
 # Remove debugging - All Log4j API calls. Remove all invocations of the
 # Log4j API whose return values are not used.
--assumenosideeffects public class org.apache.log4j.** {
-    <methods>;
-}
+#
+# Android PIN Unblocker currently doesn't use log4j at all
+#
+#-assumenosideeffects public class org.apache.log4j.** {
+#    <methods>;
+#}
 
 

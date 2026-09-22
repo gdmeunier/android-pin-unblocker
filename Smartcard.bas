@@ -260,8 +260,6 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 		e.printStackTrace(new PrintWriter(stackTrace));
 		
 		Log.e(TAG, "Failed to process message", e);
-		processError(e);
-		
 		throw new RuntimeException(stackTrace.toString());
 	}
 	finally
@@ -463,10 +461,10 @@ private static int iSlotNum = -1;
 private byte[] atr = null;
 
 private int actionNum          = Reader.CARD_WARM_RESET; // Use warm reset instead of cold reset
-private int preferredProtocols = (Reader.PROTOCOL_RAW | Reader.PROTOCOL_T1 | Reader.PROTOCOL_T0 | Reader.PROTOCOL_TX);
+private int preferredProtocols = Reader.PROTOCOL_T1 | Reader.PROTOCOL_T0;
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
-private mysmartcardreader.SmartcardReader cardReaderProxy;
+private mysmartcardreader.SmartcardReader cardReaderProxy = new mysmartcardreader.SmartcardReader();
 
 private NotificationManager notifyMgr;
 private PowerManager        powerMgr;
@@ -670,8 +668,6 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 					/* Nothing to do here */
 				}
 				
-				cardReaderProxy = null;
-				
 				/* Clear the current connected device handle
 				 *
 				 * This way the next jObtainUsbDevice call will
@@ -835,11 +831,6 @@ public void jObtainSmartcardReader() throws Exception
 			iSlotNum = 0;
 		}
 	}
-	
-	if ( cardReaderProxy == null )
-	{
-		cardReaderProxy = new mysmartcardreader.SmartcardReader();
-	}
 }
 #End If
 
@@ -949,16 +940,6 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		//
 		try
 		{
-			/* Experimental change:
-			 * Set the protocol first before actually trying to poweron the card
-			 *
-			 * The protocol selection is theorically reaching the card reader,
-			 * not the smartcard itself, so this shouldn't be a problem
-			 *
-			 * Perhaps this will make T=0 cards work with this application
-			 */
-			activeProtocol = mReader.setProtocol(iSlotNum, preferredProtocols);
-			
 			if ( iActualState < Reader.CARD_POWERED )
 			{
 				actionNum = Reader.CARD_COLD_RESET;
@@ -975,9 +956,9 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 			 * protocol selection for us directly,
 			 * otherwise explicitly do the protocol negociation again
 			 *
-			 * (If needed then redo the setProtocol function call)
+			 * (If needed then do the setProtocol function call)
 			 */
-			if ( iActualState == Reader.CARD_NEGOTIABLE )
+			if ( iActualState < Reader.CARD_SPECIFIC )
 			{
 				activeProtocol = mReader.setProtocol(iSlotNum, preferredProtocols);
 			}
@@ -988,6 +969,19 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 			e.printStackTrace(new PrintWriter(stackTrace));
 			
 			throw new mysmartcardreader.AbortException("Smartcard failed to connect:\r\n" + stackTrace.toString());
+		}
+		
+		/* Now check if the smartcard was correct put in operation
+		 *
+		 * if the smartcard is still not in CARD_SPECIFIC state,
+		 * then there was a problem; the smartcard rejected all the
+		 * offered communication protocols from the setProtocol call
+		 */
+		iActualState = mReader.getState(iSlotNum);
+		
+		if ( iActualState < Reader.CARD_SPECIFIC )
+		{
+			throw new mysmartcardreader.AbortException("Smartcard didn't accept any of the offered communication protocols RAW, T1, T0 & TX.");
 		}
 	}
 }
@@ -1103,56 +1097,6 @@ private String getClassName(int deviceClass)
 		
 		default:
 			return "unknown";
-	}
-}
-
-private void processError(Exception e)
-{
-	Throwable root = e;
-	
-	while ( root.getCause() != null )
-	{
-		root = root.getCause();
-	}
-	
-	if ( root instanceof mysmartcardreader.AbortException )
-	{
-		uiHandler.post(
-			new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(smartcard.this, "Smartcard action aborted", Toast.LENGTH_SHORT).show();
-				}
-			}
-		);
-	}
-	else if ( root instanceof mysmartcardreader.APDUException )
-	{
-		uiHandler.post(
-			new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(smartcard.this, "Smartcard returned error APDU", Toast.LENGTH_LONG).show();
-				}
-			}
-		);
-	}
-	else
-	{
-		uiHandler.post(
-			new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(smartcard.this, "Smartcard generic exception", Toast.LENGTH_LONG).show();
-				}
-			}
-		);
 	}
 }
 #End If
