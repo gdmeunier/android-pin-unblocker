@@ -102,11 +102,33 @@
 
 # ----- Fully remove Basic4Android logging (release build)
 
--assumenosideeffects class anywheresoftware.b4a.BA {
-    public static void Log(...);
-    public static void LogError(...);
-    public static void LogInfo(...);
+-assumenosideeffects public class anywheresoftware.b4a.BA {
+    public static void Log(java.lang.String);
+    public static void LogError(java.lang.String);
+    public static void LogInfo(java.lang.String);
+    public static void addLogPrefix(java.lang.String, java.lang.String);
 }
+#-assumenoexternalsideeffects public class anywheresoftware.b4a.BA {
+#    public static void Log(java.lang.String);
+#    public static void LogError(java.lang.String);
+#    public static void LogInfo(java.lang.String);
+#    public static void addLogPrefix(java.lang.String, java.lang.String);
+#}
+
+-assumenosideeffects public class anywheresoftware.b4a.keywords.Common {
+    public static void Log(java.lang.String);
+    public static void LogColor(java.lang.String, int);
+    public static void LogImpl(java.lang.String, java.lang.String, int);
+    public static int Rnd(int, int);
+    public static java.lang.String SmartStringFormatter(java.lang.String, java.lang.Object);
+}
+#-assumenoexternalsideeffects public class anywheresoftware.b4a.keywords.Common {
+#    public static void Log(java.lang.String);
+#    public static void LogColor(java.lang.String, int);
+#    public static void LogImpl(java.lang.String, java.lang.String, int);
+#    public static int Rnd(int, int);
+#    public static java.lang.String SmartStringFormatter(java.lang.String, java.lang.Object);
+#}
 
 # ----- General logging removal (not Android-specific)
 
