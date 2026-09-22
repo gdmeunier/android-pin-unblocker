@@ -78,6 +78,16 @@
 -keepclassmembers,allowoptimization,includedescriptorclasses,includecode class newqrcodereaderviewwrapper.** {
     *;
 }
+-keep,allowoptimization,includedescriptorclasses,includecode class com.dlazaro66.qrcodereaderview.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.dlazaro66.qrcodereaderview.** {
+    *;
+}
+
+# Google ZXing QR code library
+-keep,allowoptimization,includedescriptorclasses,includecode class com.google.zxing.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.google.zxing.** {
+    *;
+}
 
 # acssmc library (smartcard)
 #-keep,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.**
@@ -168,6 +178,18 @@
 # Layout BAL files refer to the exact class names
 # And the NewQRCodeReaderView must keep its names
 -keeppackagenames newqrcodereaderviewwrapper
+-keeppackagenames com.dlazaro66.qrcodereaderview
+
+# Google ZXing QR code library
+-keeppackagenames com.google.zxing.client.android.camera
+-keeppackagenames com.google.zxing.client.android.camera.open
+-keeppackagenames com.google.zxing
+-keeppackagenames com.google.zxing.common
+-keeppackagenames com.google.zxing.common.detector
+-keeppackagenames com.google.zxing.common.reedsolomon
+-keeppackagenames com.google.zxing.qrcode
+-keeppackagenames com.google.zxing.qrcode.decoder
+-keeppackagenames com.google.zxing.qrcode.detector
 
 # acssmc library (smartcard)
 -keeppackagenames com.acs.smartcard
