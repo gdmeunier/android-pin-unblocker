@@ -40,6 +40,7 @@ MyApkTool/*
 !MyApkTool/MyApkTool.exe.sha256
 
 # Ignore the obsolete PostBuild tools
-PostBuild/[obsolete]/*
+# Brackets have to be escaped
+PostBuild/\[obsolete\]/*
 
 
