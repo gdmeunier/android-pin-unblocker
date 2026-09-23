@@ -90,46 +90,11 @@
 }
 
 # acssmc library (smartcard)
-#-keep,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.**
-#-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.acs.smartcard.** {
-#    *;
-#}
-#
-# acssmc library (smartcard - already minified by ACS)
-#-keep class com.acs.smartcard.ccid.**
-#-keepclassmembers class com.acs.smartcard.ccid.** {
-#    *;
-#}
-
-# acssmc library (official proguard config from ACS)
-#----------------------------------------------------
--keep public class com.acs.smartcard.* {
-    public protected *;
+# Seemingly it somehow must not be optimized (if library version is older than 1.1.6)
+-keep class com.acs.smartcard.**
+-keepclassmembers class com.acs.smartcard.** {
+    *;
 }
-#
--keepclassmembernames class com.acs.smartcard.* {
-    java.lang.Class class$(java.lang.String);
-    java.lang.Class class$(java.lang.String, boolean);
-}
-#
--keepclasseswithmembernames class com.acs.smartcard.* {
-    native <methods>;
-}
-#
--keepclassmembers class com.acs.smartcard.* extends java.lang.Enum {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
-#
--keepclassmembers class com.acs.smartcard.* implements java.io.Serializable {
-    static final long serialVersionUID;
-    static final java.io.ObjectStreamField[] serialPersistentFields;
-    private void writeObject(java.io.ObjectOutputStream);
-    private void readObject(java.io.ObjectInputStream);
-    java.lang.Object writeReplace();
-    java.lang.Object readResolve();
-}
-#----------------------------------------------------
 
 # ----- Shrinking Options
 

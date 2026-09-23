@@ -186,7 +186,7 @@ public static class SmartcardReader
 				try
 				{
 					// Reset response buffer before next APDU command
-					responseBuffer = new byte[288]; // acssmc requires up to 288 bytes!
+					responseBuffer = new byte[258]; // Max APDU response length for T0 / T1 (256+2)
 					
 					// This function returns only the response length
 					responseLength = mReader.transmit(iSlotNum, cmd, cmd.length, responseBuffer, responseBuffer.length);
@@ -342,7 +342,7 @@ public static class SmartcardReader
 		}
 		cmd[4] = (byte)len;
 		
-		byte[] responseBuffer = new byte[288]; // acssmc requires up to 288 bytes!
+		byte[] responseBuffer = new byte[258]; // Max APDU response length for T0 / T1 (256+2)
 		int    responseLength = 0;
 		
 		try

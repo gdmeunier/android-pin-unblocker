@@ -460,8 +460,8 @@ private int iActualState = Reader.CARD_UNKNOWN;
 private static int iSlotNum = -1;
 private byte[] atr = null;
 
-private int actionNum          = Reader.CARD_WARM_RESET; // Use warm reset instead of cold reset
-private int preferredProtocols = Reader.PROTOCOL_T1 | Reader.PROTOCOL_T0;
+private int actionNum          = Reader.CARD_COLD_RESET;
+private int preferredProtocols = Reader.PROTOCOL_RAW | Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1;
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
 private mysmartcardreader.SmartcardReader cardReaderProxy = new mysmartcardreader.SmartcardReader();
@@ -940,15 +940,24 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		//
 		try
 		{
+			/* This part sometimes causes problems with slow cards,
+			 * so I now always use cold card-reset instead of warm
+			 *
+			 * This is defined as the default initial value for
+			 * the actionNum variable
+			 */
+			// Check if card is already POWERED (4) or in NEGOTIABLE (5) state
+			/*
 			if ( iActualState < Reader.CARD_POWERED )
 			{
 				actionNum = Reader.CARD_COLD_RESET;
 			}
 			else
 			{
-				// If card is already POWERED (4) or in NEGOTIABLE (5) state;
+				
 				actionNum = Reader.CARD_WARM_RESET;
 			}
+			*/
 			
 			atr = mReader.power(iSlotNum, actionNum);
 			
