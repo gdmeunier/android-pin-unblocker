@@ -43,4 +43,8 @@ MyApkTool/*
 # Brackets have to be escaped
 PostBuild/\[obsolete\]/*
 
+# Ignore the obsolete libraries
+# Brackets have to be escaped
+Libraries/\[obsolete\]/*
+
 

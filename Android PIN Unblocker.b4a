@@ -35,8 +35,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 95
-	#VersionName: 5.2.19
+	#VersionCode: 101
+	#VersionName: 5.3.5
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -73,14 +73,14 @@ Version=12.5
 	' - 1.1.6 <-> 1.1.8
 	'
 	'Notes: - The .jar file extension is omitted.
-	'       - The file "acssmc-1.1.8-patched.jar" should be in the
+	'       - The file "acssmc-1.1.8-patched-experimental1.jar" should be in the
 	'         Additional Libraries folder of Basic4Android
 	'
 	'The patched version removes the Vendor ID & Product ID checks
 	'that previously restricted the acssmc library to only work
 	'with ACS card readers, now it should work with any card reader
 	'
-	#AdditionalJar: acssmc-1.1.8-patched
+	#AdditionalJar: acssmc-1.1.8-patched-experimental1
 	
 #End Region
 
@@ -1093,6 +1093,12 @@ Sub Globals
 	Private edtResponse As EditText
 	Private btnShareTo  As Button 'For enabling / disabling UI elements on Direct Unblock
 	
+	'New Lockdown button that allows the user to
+	'lockdown the Admin Key field at any time
+	'without having to create hashes with a long-click
+	'or share Admin key texts to the application
+	Private btnLockdown As Button
+	
 End Sub
 
 '----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -1453,8 +1459,12 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, edtResponse)
+		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
+		'FixVariantSpecificLayouts(ActivityMargins, edtResponse)
+		
+		'It's now the btnLockdown element that's always the bottom-most one
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
 		
 	Else If LoadedLayout.Width == 480 And LoadedLayout.Height == 320 And LoadedLayout.Scale == 1 Then
 		'480x320, scale = 1 (160dpi)
@@ -1468,8 +1478,12 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, btnSha512)
+		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
+		'FixVariantSpecificLayouts(ActivityMargins, btnSha512)
+		
+		'It's now the btnLockdown element that's always the bottom-most one
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
 		
 	Else If LoadedLayout.Width == 240 And LoadedLayout.Height == 320 And LoadedLayout.Scale == 0.75 Then
 		'240x320, scale = 0.75 (120dpi)
@@ -1483,8 +1497,12 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, edtResponse)
+		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
+		'FixVariantSpecificLayouts(ActivityMargins, edtResponse)
+		
+		'It's now the btnLockdown element that's always the bottom-most one
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
 		
 	Else If LoadedLayout.Width == 320 And LoadedLayout.Height == 240 And LoadedLayout.Scale == 0.75 Then
 		'320x240, scale = 0.75 (120dpi)
@@ -1498,8 +1516,12 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, btnSha512)
+		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
+		'FixVariantSpecificLayouts(ActivityMargins, btnSha512)
+		
+		'It's now the btnLockdown element that's always the bottom-most one
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
 		
 	End If
 	
@@ -1665,6 +1687,19 @@ Private Sub InitializeActivityLayout
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Fix this Activity's EditTexts that have a monospace font to stay monospace on older Android versions"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Otherwise some older Android devices see these EditTexts as not being monospace"$, Colors.Blue)
 	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
+	
+	'The new Admin key Lockdown button isn't visible by default
+	'So we make it visible when the Admin Key field isn't already
+	'locked-down, but it disappears after a lockdown
+	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Checking if the Admin Key field is not already locked-down..."$, Colors.Blue)
+	If ViewState_chkHideAdminKey_Enabled Then
+		LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: The Admin Key field is not already locked-down, displaying the Lockdown button"$, Colors.Blue)
+		btnLockdown.Visible = True
+		
+	Else
+		LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: The Admin Key field is already locked-down, no need to display it"$, Colors.Blue)
+		
+	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Sub return"$, Colors.Blue)
 End Sub
@@ -2187,12 +2222,17 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 	
 	'Don't allow sharing Admin key texts to the application while
 	'a direct unblock operation is running
+	LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking if a Direct Unblock(?) operation is in progress..."$, Colors.Blue)
 	If DirectUnblockInProgress Then
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Direct Unblock(?) operation is in progress"$, Colors.Magenta)
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: We don't proceed further and return early..."$, Colors.Magenta)
 	
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
 		Return
+		
+	Else
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: No Direct Unblock(?) operation is in progress, alright"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can continue to proceed further"$, Colors.Blue)
 		
 	End If
 	
@@ -2323,6 +2363,20 @@ Private Sub LockdownAdminKeyField
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Hiding the Admin Key field for security reasons"$, Colors.Blue)
 	chkHideAdminKey.Checked = True
 	
+	'Hide the Lockdown button if it's visible
+	'Because it should disappear after Lockdown
+	'
+	'No need to check for visibility first,
+	'if it's already hidden then Android don't
+	'actually do the redundant call anyway
+	'
+	'Note: do this one last, because it's not
+	'      a very high priority task to do,
+	'      most important ones are the above tasks
+	'
+	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Hiding the Admin key Lockdown button now"$, Colors.Blue)
+	btnLockdown.Visible = False
+	
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Sub return"$, Colors.Blue)
 End Sub
 
@@ -2379,6 +2433,7 @@ Private Sub Activity_Exit
 	
 	'Don't accidentally exit the app if direct unblock is in progress
 	'And also if the Smartcard service has ongoing operations
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Checking if a Direct Unblock(?) operation is in progress..."$, Colors.Blue)
 	If DirectUnblockInProgress Then
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Direct Unblock(?) is in progress..."$, Colors.Magenta)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Show small toast notification about it"$, Colors.Magenta)
@@ -2388,6 +2443,10 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Returning early without exiting Activity..."$, Colors.Magenta)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Sub return"$, Colors.Magenta)
 		Return
+		
+	Else
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: No Direct Unblock(?) operation is in progress, alright"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: We can continue to proceed further"$, Colors.Blue)
 		
 	End If
 	
@@ -2578,31 +2637,6 @@ End Sub
 'UI element events
 '
 
-'Small helper function to avoid having to rewrite
-'this function code multiple times in the code
-Private Sub mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
-	
-	Dim DirectUnblockInfoText As CSBuilder
-	DirectUnblockInfoText.Initialize
-	
-	DirectUnblockInfoText.Bold
-	DirectUnblockInfoText.Append(Application.LabelName&CRLF)
-	DirectUnblockInfoText.Pop
-	DirectUnblockInfoText.RelativeSize(0.9)
-	If DeviceHasUsbOtg Then
-		DirectUnblockInfoText.Append("Direct unblock over USB-OTG"&CRLF)
-	Else
-		DirectUnblockInfoText.Append("Device has no USB-OTG support"&CRLF)
-	End If
-	DirectUnblockInfoText.PopAll
-	
-	DirectUnblockInfoText.Append(CRLF)
-	DirectUnblockInfoText.PopAll
-	
-	Return DirectUnblockInfoText
-	
-End Sub
-
 'Helper function
 Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
 	'
@@ -2622,6 +2656,17 @@ Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
 	'if it was already locked-down before
 	If ViewState_chkHideAdminKey_Enabled Then
 		chkHideAdminKey.Enabled = TrueOrFalse
+		
+		'We put this one here because if the Lockdown
+		'has already happened then no need to bother
+		'with processing a button that already got
+		'hidden entirely to begin with
+		'
+		'Lockdown = Permanently hiding the Admin Key field until
+		'           next application start (full exit then relaunch)
+		'
+		btnLockdown.Enabled = TrueOrFalse
+		
 	End If
 	
 	btnHashMenu.Enabled = TrueOrFalse
@@ -2647,6 +2692,31 @@ Private Sub ActivityTimer_AllowClickingActivityMenuItems_Tick
 	
 End Sub
 
+'Small helper function to avoid having to rewrite
+'this function code multiple times in the code
+Private Sub mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
+	
+	Dim DirectUnblockInfoText As CSBuilder
+	DirectUnblockInfoText.Initialize
+	
+	DirectUnblockInfoText.Bold
+	DirectUnblockInfoText.Append(Application.LabelName&CRLF)
+	DirectUnblockInfoText.Pop
+	DirectUnblockInfoText.RelativeSize(0.9)
+	If DeviceHasUsbOtg Then
+		DirectUnblockInfoText.Append("Direct unblock over USB-OTG"&CRLF)
+	Else
+		DirectUnblockInfoText.Append("Device has no USB-OTG support"&CRLF)
+	End If
+	DirectUnblockInfoText.PopAll
+	
+	DirectUnblockInfoText.Append(CRLF)
+	DirectUnblockInfoText.PopAll
+	
+	Return DirectUnblockInfoText
+	
+End Sub
+
 Private Sub mnuDirectUnblock_Click
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub entry"$, Colors.Blue)
@@ -2656,11 +2726,16 @@ Private Sub mnuDirectUnblock_Click
 	'
 	'Also when clicking Activity menu items is disallowed
 	'
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Checking if a Direct Unblock(?) operation is in progress..."$, Colors.Blue)
 	If DirectUnblockInProgress Or Not(AllowClickingActivityMenuItems) Then
 		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Ongoing direct unblock already in progress, returning early..."$, Colors.Magenta)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Magenta)
 		Return
+		
+	Else
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: No Direct Unblock(?) operation is in progress, alright"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: We can continue to proceed further"$, Colors.Blue)
 		
 	End If
 	
@@ -2670,7 +2745,7 @@ Private Sub mnuDirectUnblock_Click
 	'The Direct Unblock window automatically disappears
 	'on Activity pause & Activity destroy
 	
-	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Prepare an introducory Activity dialog about this function..."$, Colors.Blue)
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Prepare introductory Activity dialogs about this function..."$, Colors.Blue)
 	Dim DirectUnblockIcon As Bitmap = Application.Icon
 	
 	Dim SquareIcoSize As Int = Common.GetSquareIconSizeForDisplayScale
@@ -2690,11 +2765,13 @@ Private Sub mnuDirectUnblock_Click
 		If DeviceHasUsbOtg Then
 			DirectUnblockInfoText.Append("You will be asked to connect your smartcard reader then insert your PKI smartcard into the reader."&CRLF)
 			DirectUnblockInfoText.Append(CRLF)
-			DirectUnblockInfoText.Color(Colors.Yellow)
-			DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully and don't retry to unblock the same card with this app again.")
+				DirectUnblockInfoText.Color(Colors.Yellow)
+					DirectUnblockInfoText.RelativeSize(0.9)
+						DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully and don't retry to unblock the same card with this app again.")
+					DirectUnblockInfoText.Pop 'Pop RelativeSize node
+				DirectUnblockInfoText.Pop 'Pop Color node
 		Else
 			DirectUnblockInfoText.Append("Direct unblocking of smartcard PINs requires a device with USB-OTG support but your device claimed that it doesn't support it.")
-			DirectUnblockInfoText.PopAll
 		End If
 		DirectUnblockInfoText.PopAll
 		
@@ -2708,16 +2785,11 @@ Private Sub mnuDirectUnblock_Click
 			Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 			
 		End If
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Waiting for the MessageBox to be closed to check its return result"$, Colors.Blue)
 		Wait For Msgbox_Result(Result As Int)
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox has been closed now"$, Colors.Blue)
-		
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Setting the ViewState Visible attribute of the dialog window to False"$, Colors.Blue)
 		
 		If Result <> DialogResponse.POSITIVE And DeviceHasUsbOtg Then
-			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The MessageBox return result is not positive, cannot proceed further"$, Colors.Blue)
-			
 			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
+			'The Return statement is in "If Result <> DialogResponse.POSITIVE Or Not(DeviceHasUsbOtg) Then"
 			
 		End If
 		
@@ -2739,26 +2811,38 @@ Private Sub mnuDirectUnblock_Click
 		
 		DirectUnblockLastDialogCount = DirectUnblockLastDialogCount + 1
 		
-		LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The dialog result is positive and the device supports USB-OTG"$, Colors.Blue)
-		
 	End If
 	
 	'## Dialog count: Dialog 2 ##
 	
 	If DirectUnblockLastDialogCount < 2 Then
 		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-		DirectUnblockInfoText.Append($"Enter a dummy challenge code that matches the challenge code length for your card in the challenge code field.
-
-If 3DES or 2DES: (8 bytes so 16 characters)
-FFFF FFFF FFFF FFFF
-
-If AES-128 or AES-256: (16 bytes so 32 characters)
-FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
-
-The direct unblock process will try unblocking your Primary PIN code (User PIN) to 202608.
-The Admin key that will be used is the one currently written in the Admin Key field"$&".")
+		DirectUnblockInfoText.Append("Enter a dummy challenge code that matches the challenge length of your card in the challenge field."&CRLF&CRLF)
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("3DES or 2DES")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append(CRLF)
+			DirectUnblockInfoText.RelativeSize(0.9)
+				DirectUnblockInfoText.Append("8 bytes (16 characters)")
+			DirectUnblockInfoText.Pop 'Pop RelativeSize node
+		DirectUnblockInfoText.Append(CRLF&CRLF&"FFFF FFFF FFFF FFFF"&CRLF&CRLF)
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("AES-128 or AES-256")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append(CRLF)
+			DirectUnblockInfoText.RelativeSize(0.9)
+				DirectUnblockInfoText.Append("16 bytes (32 characters)")
+			DirectUnblockInfoText.Pop 'Pop RelativeSize node
+		DirectUnblockInfoText.Append(CRLF&CRLF&"FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF"&CRLF&CRLF)
+		DirectUnblockInfoText.Append("The direct unblock process will try unblocking your Primary PIN code (User PIN) to ")
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("202608")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append("."&CRLF&CRLF)
+		DirectUnblockInfoText.Append("The Admin key that will be used is the one currently written in the Admin Key field.")
+		DirectUnblockInfoText.PopAll
 		
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Proceed to Unblock", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
 		
 		If Result <> DialogResponse.POSITIVE Then
@@ -2808,14 +2892,34 @@ Unblock algorithm is undetermined"$, Constants.TOAST_DURATION_SHORT)
 	
 	If DirectUnblockLastDialogCount < 3 Then
 		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-		DirectUnblockInfoText.Append($"Your smartcard's challenge-response algorithm is:
-${DetectedAlgorithm}
-
-Your challenge code length is ${(SanitizedChallenge.Length / 2).As(Int)} bytes (${SanitizedChallenge.Length} chars).
-Your Admin key is ${(SanitizedAdminKey.Length / 2).As(Int)} bytes (${SanitizedAdminKey.Length} chars).
-
-Is this correct? If yes you can click on Take the Risk.
-Otherwise do not proceed further And click on Cancel"$&".")
+		DirectUnblockInfoText.Append("Please confirm your smartcard's properties."&CRLF&CRLF)
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("Challenge Algorithm")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append(CRLF)
+			DirectUnblockInfoText.RelativeSize(0.9)
+				DirectUnblockInfoText.Append(DetectedAlgorithm)
+			DirectUnblockInfoText.Pop 'Pop RelativeSize node
+		DirectUnblockInfoText.Append(CRLF&CRLF)
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("Challenge Length")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append(CRLF)
+			DirectUnblockInfoText.RelativeSize(0.9)
+				DirectUnblockInfoText.Append($"${(SanitizedChallenge.Length / 2).As(Int)} bytes (${SanitizedChallenge.Length} chars)"$)
+			DirectUnblockInfoText.Pop 'Pop RelativeSize node
+		DirectUnblockInfoText.Append(CRLF&CRLF)
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("Admin Key")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append(CRLF)
+			DirectUnblockInfoText.RelativeSize(0.9)
+				DirectUnblockInfoText.Append($"${(SanitizedAdminKey.Length / 2).As(Int)} bytes (${SanitizedAdminKey.Length} chars)"$)
+			DirectUnblockInfoText.Pop 'Pop RelativeSize node
+		DirectUnblockInfoText.Append(CRLF&CRLF)
+		DirectUnblockInfoText.Append($"Is this correct? If yes you can click on Take the Risk.
+Otherwise do not proceed further and click on Cancel"$&".")
+		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
@@ -2844,21 +2948,22 @@ You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 	If SanitizedAdminKey == DEFAULT_ZEROES_ADMIN_KEY Then
 		
 		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-		DirectUnblockInfoText.Append($"Warning!
-The entered Admin key you provided is still the"$&" ")
+			DirectUnblockInfoText.Color(Colors.Yellow)
+				DirectUnblockInfoText.Append("The entered Admin key you provided is still the ")
+				DirectUnblockInfoText.Bold
+					DirectUnblockInfoText.Append("default 48-zeroes Admin key")
+				DirectUnblockInfoText.Pop 'Pop the Bold node
+				DirectUnblockInfoText.Append(".")
+			DirectUnblockInfoText.Pop 'Pop the Color node
+		DirectUnblockInfoText.Append(CRLF&CRLF)
+		DirectUnblockInfoText.Append("Are you sure that you did not just forget to write your Admin key?"&CRLF)
+		DirectUnblockInfoText.Append("If yes then click on Cancel and input a proper Admin key first."&CRLF)
+		DirectUnblockInfoText.Append(CRLF)
+		DirectUnblockInfoText.Append("If your Admin key is ")
 			DirectUnblockInfoText.Bold
-			DirectUnblockInfoText.Append("default 48-zeroes Admin key")
-			DirectUnblockInfoText.Pop
-		DirectUnblockInfoText.Append($".
-
-Are you sure that you did not just forget to write your Admin key?
-If yes then click on Cancel and input a proper Admin key first.
-
-If your Admin key is"$&" ")
-			DirectUnblockInfoText.Bold
-			DirectUnblockInfoText.Append("really")
-			DirectUnblockInfoText.Pop
-		DirectUnblockInfoText.Append(" 48-zeroes then click on Take the Risk again.")
+				DirectUnblockInfoText.Append("really")
+			DirectUnblockInfoText.Pop 'Pop the Bold node
+		DirectUnblockInfoText.Append(" 48-zeroes then you can click on Take the Risk again.")
 		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
@@ -2943,20 +3048,24 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 		'
 		ToastMessageShow("New PIN successfully set to:"&CRLF&"202608", Constants.TOAST_DURATION_LONG)
 		
-		DirectUnblockInfoText.Append($"Smartcard User PIN unblocked successfully!
-
-Your new User PIN is now:
-202608
+		DirectUnblockInfoText.Append("Smartcard User PIN unblocked successfully!"&CRLF&CRLF&"Your new User PIN is now:"&CRLF)
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("202608")
+			DirectUnblockInfoText.Pop 'Pop the Bold node
+		DirectUnblockInfoText.Append($"
 
 You may change it again later at your convenience using e.g. a desktop smartcard utility.
 
 I did not implement a full user interface to choose your own new User PIN yet.
 This will surely be implemented in a future application update"$&".")
+		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 	Else
 		DirectUnblockInfoText.Append(ErrorIfAny)
+		DirectUnblockInfoText.PopAll
+		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 	End If
@@ -2977,57 +3086,72 @@ End Sub
 
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
 	
-	'                                              Class ISO7816 (CLA=00)
+	'                                              CLA (00 = ISO-7816)
 	'                                              |  Command SELECT FILE (INS=A4)
 	'                                              |  |  Type APPLET (P1=04 & P2=00)
-	'                                              |  |  |
-	'                                              |  |  |     Length of data / Applet ID (Lc=07)
-	'                                              |  |  |     |  Data / Applet ID
-	'                                              |  |  |     |  |                    Expected Response Data Length (Le=00)
-	'                                              |  |  |     |  |                    |
-	Dim SELECT_CARD_MANAGER_APPLET_ID As String = "00 A4 04 00 07 A0 00 00 00 03 00 00 00"
 	'                                              |  |  |
 	'                                              |  |  |     Length of data / Applet ID (Lc=0B)
 	'                                              |  |  |     |  Data / Applet ID
 	'                                              |  |  |     |  |
-	Dim SELECT_GEMALTO_PKI_APPLET_ID  As String = "00 A4 04 00 0B A0 00 00 00 18 80 00 00 00 06 62"
+	Dim SELECT_GEMALTO_PKI_APPLET_ID  As String = "00 A4 04 00 0B A0 00 00 00 18 80 00 00 00 06 62" 'No Le set
 	'                                              |  |  |
 	'                                              |  |  |     Length of data / Applet ID (Lc=07)
 	'                                              |  |  |     |  Data / Applet ID
 	'                                              |  |  |     |  |                    Expected Response Data Length (Le=00)
 	'                                              |  |  |     |  |                    |
 	Dim SELECT_ACTIVID_PKI_APPLET_ID  As String = "00 A4 04 00 07 A0 00 00 00 79 10 00 00"
-	'                                              |  |  |
-	'                                              |  |  |     Length of data / Applet ID (Lc=0B)
-	'                                              |  |  |     |  Data / Applet ID
-	'                                              |  |  |     |  |
-	'Dim SELECT_VLETOUX_PKI_APPLET_ID As String = "00 A4 04 00 0B A0 00 00 03 97 42 54 46 59 02 01"
-	'    ^ GIDS Applet ID for Vincent Letoux's open-source GIDS applet
 	
+	'-------------------------------------------------------
+	'The Gemalto IDPrime 930 v2 T=0 doesn't have a known
+	'Card Manager Applet ID, or it's a different one than
+	'the usual "A0 00 00 00 03 00 00" for a PKI smartcard
 	'
-	'The below APDUs all use the CLA 80 (Card Management
+	'So this would just cause an APDU error status to be
+	'thrown by the smartcard, and because I don't even
+	'actually use the return of the GET_DATA APDU commands
+	'there's simply no need to even do these commands
 	'
-	'This is not how most minidriver managers do it,
-	'they usually use CLA 00 for most of them (ISO7816)
-	'
-	'However this is exactly how Microsoft's own PIN Tool does it,
-	'and Microsoft's method is the most generic one
-	'
-	'Microsoft's method also doesn't need to explicitly set
-	'a new maximum PIN try count when setting a new PIN
-	'
+	'That's why the commands are commented out now,
+	'the ones related to the Card Manager Applet
+	'-------------------------------------------------------
 	
-	'                                              Class Proprietary / Management (CLA=80)
+	'Variable for keeping track of which PKI Applet ID was the correct one
+	'So that we can logout after the PIN unblock sequence
+	Dim LAST_APPLET_ID_SELECT_APDU As String = Null
+	
+	'-----                                         CLA (80 = Proprietary / Management)
 	'                                              |  Command (INS)
-	'                                              |  |
-	Dim GET_DATA                      As String = "80 CA"
 	'                                              |  |
 	'                                              |  |  P1 P2
 	'                                              |  |  |  |
-	Dim GET_CHALLENGE                 As String = "80 84 00 00"
-	Dim EXTERNAL_AUTHENTICATE_MANUAL  As String = "80 82 00 01" '01 = manual authentication
+	Dim GET_CHALLENGE_GENERIC         As String = "80 84 00 00"
+	
+	'-----                                         CLA (80 = Proprietary / Management, 00 = ISO-7816)
+	'                                              |  Command (INS)
 	'                                              |  |
-	Dim SET_REFERENCE_DATA            As String = "80 2C"
+	'                                              |  |  P1 P2 (31 = Key ID, Gemalto)
+	'                                              |  |  |  |
+	Dim EXTERNAL_AUTHENTICATE_GEMALTO As String = "00 82 00 31"
+	'                                              |  |
+	'                                              |  |  P1 P2 (11 = User PIN, Gemalto)
+	'                                              |  |  |  |
+	Dim SET_REFERENCE_DATA_GEMALTO    As String = "80 2C 90 11"
+	'                                              |  |
+	'                                              |  |  P1 (FF = Logout)
+	'                                              |  |  |  P2 (31 = Key ID, Gemalto)
+	'                                              |  |  |  |
+	Dim EXTERNAL_AUTH_LOGOUT_GEMALTO  As String = "00 82 FF 31"
+	
+	'-----                                         CLA (80 = Proprietary / Management)
+	'                                              |  Command (INS)
+	'                                              |  |
+	'                                              |  |  P1 P2 (01 = Key ID, ActivID)
+	'                                              |  |  |  |
+	Dim EXTERNAL_AUTHENTICATE_ACTIVID As String = "80 82 00 01"
+	'                                              |  |
+	'                                              |  |  P1 P2 (02 00 = User PIN, ActivID)
+	'                                              |  |  |  |
+	Dim SET_REFERENCE_DATA_ACTIVID    As String = "80 2C 02 00"
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -3035,102 +3159,6 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'
 	Dim CallerBundle() As Object
 	Dim LastSentAPDU   As String
-	
-	'--------------------------------------------------------------------------------
-	LastSentAPDU = SELECT_CARD_MANAGER_APPLET_ID
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select Card Manager applet ID!
-
-[Sent APDU]
-${LastSentAPDU}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End If
-	
-	'--------------------------------------------------------------------------------
-	LastSentAPDU = GET_DATA & "00 66" & "00" 'Get card configuration data (GlobalPlatform)
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to send GET DATA for P1=00 & P2=66!
-
-[Sent APDU]
-${LastSentAPDU}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End If
-	
-	'--------------------------------------------------------------------------------
-	LastSentAPDU = GET_DATA & "00 42" & "00" 'Get card image data (GlobalPlatform)
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to send GET DATA for P1=00 & P2=42!
-
-[Sent APDU]
-${LastSentAPDU}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End If
-	
-	'--------------------------------------------------------------------------------
-	LastSentAPDU = GET_DATA & "00 45" & "00" 'Get (unknown type of) data (GlobalPlatform)
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to send GET DATA for P1=00 & P2=45!
-
-[Sent APDU]
-${LastSentAPDU}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End If
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -3154,9 +3182,11 @@ ${ResponseBundle(0)}"$)
 		'Check if the current Applet ID selection worked
 		'
 		If IsSucessful Then
-			'
+			
+			'Save this PKI Applet ID selection APDU as the one that worked
+			LAST_APPLET_ID_SELECT_APDU = LastSentAPDU
+			
 			'If yes no need to try selecting any other ones
-			'
 			Exit 'Exits for For Each loop
 			
 		End If
@@ -3189,11 +3219,11 @@ The smartcard could not find the PKI applets we searched for"$&".")
 	'--------------------------------------------------------------------------------
 	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
 	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = GET_CHALLENGE & "08" 'Request a challenge code of 8 bytes (0x08 bytes)
+		LastSentAPDU = GET_CHALLENGE_GENERIC & " 08" 'Request a challenge code of 8 bytes (0x08 bytes)
 		
 	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
 	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = GET_CHALLENGE & "10" 'Request a challenge code of 16 bytes (0x10 bytes)
+		LastSentAPDU = GET_CHALLENGE_GENERIC & " 10" 'Request a challenge code of 16 bytes (0x10 bytes)
 		
 	End If
 	
@@ -3219,12 +3249,17 @@ ${ResponseBundle(0)}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
-	'2DES / 3DES
-	Dim SmartcardChallengeCode As String = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
 	
+	Dim SmartcardChallengeCode As String = Null
+	
+	'2DES / 3DES
+	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+		SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
+		
 	'AES-128 / AES-256
-	If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-	Or DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
 		SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 32) '32 chars = 16 bytes
 		
 	End If
@@ -3247,8 +3282,8 @@ ${ResponseBundle(0)}"$)
 [Algorithm]
 ${DetectedAlgorithm} / ECB / NoPadding
 
-[Sent APDU]
-${LastSentAPDU}
+[Challenge]
+${SmartcardChallengeCode}
 
 [Received]
 ${ResponseBundle(0)}"$)
@@ -3257,15 +3292,34 @@ ${ResponseBundle(0)}"$)
 	End Try
 	
 	'--------------------------------------------------------------------------------
+	'Clear the last-sent APDU just incase no PKI applet ID matches
+	LastSentAPDU = Null
+	
+	If LAST_APPLET_ID_SELECT_APDU == SELECT_GEMALTO_PKI_APPLET_ID Then
+		'Specific to Gemalto PKI smartcards
+		LastSentAPDU = EXTERNAL_AUTHENTICATE_GEMALTO
+		
+	Else If LAST_APPLET_ID_SELECT_APDU == SELECT_ACTIVID_PKI_APPLET_ID Then
+		'Specific to ActivID PKI smartcards
+		LastSentAPDU = EXTERNAL_AUTHENTICATE_ACTIVID
+		
+	End If
+	
 	'2DES / 3DES (data length 0x08)
 	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
 	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_MANUAL & "08" & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		LastSentAPDU = LastSentAPDU & " 08 " & SmartcardResponseCode
 		
 	'AES-128 / AES-256 (data length 0x10)
 	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
 	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_MANUAL & "10" & SmartcardResponseCode & " 00" '00 = Expected Le not set
+		LastSentAPDU = LastSentAPDU & " 10 " & SmartcardResponseCode
+		
+	End If
+	
+	If LAST_APPLET_ID_SELECT_APDU == SELECT_ACTIVID_PKI_APPLET_ID Then
+		'Specific to ActivID PKI smartcards
+		LastSentAPDU = LastSentAPDU & " 00" 'Le is set to 00 for ActivID PKI smartcards
 		
 	End If
 	
@@ -3281,6 +3335,15 @@ ${ResponseBundle(0)}"$)
 		
 		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
 
+[Algorithm]
+${DetectedAlgorithm} / ECB / NoPadding
+
+[Challenge]
+${SmartcardChallengeCode}
+
+[Response]
+${SmartcardResponseCode}
+
 [Sent APDU]
 ${LastSentAPDU}
 
@@ -3289,7 +3352,11 @@ ${ResponseBundle(0)}"$)
 		Return
 		
 	End If
+	
 	'--------------------------------------------------------------------------------
+	'Clear the last-sent APDU just incase no PKI applet ID matches
+	LastSentAPDU = Null
+	
 	' - Many smartcards have a minimum PIN requirement of 6 characters
 	' - Some smartcards also have a PIN policy that only allows digits
 	' - PKI smartcards should allow up to 16 and even 64 characters,
@@ -3299,12 +3366,41 @@ ${ResponseBundle(0)}"$)
 	'   I chose "202608" because some smartcards don't allow repeating digits,
 	'   so in such cases setting a new PIN such as "123456" would fail
 	'
-	' - "202608" is "32 30 32 36 30 38" in Hex bytes:
-	'   The rest is padding (0xFF) so that the command fits the required minimum
-	'   of 8 bytes for this SET REFERENCE DATA command's payload data length
+	' - "202608" is "32 30 32 36 30 38" in Hex bytes
 	'
-	'                                              vv     -- -- -- -- -- -- ** **
-	LastSentAPDU = SET_REFERENCE_DATA & "02 00" & "08" & "32 30 32 36 30 38 FF FF" & "00" '00 = Expected Le not set
+	If LAST_APPLET_ID_SELECT_APDU == SELECT_GEMALTO_PKI_APPLET_ID Then
+		'
+		'Specific to Gemalto PKI smartcards
+		'
+		'Note: Gemalto PKI smartcards expect you to give a new
+		'      PIN Try Count for the PIN you want to unblock,
+		'      you can choose any from 1 to 15 (0x01 to 0x0F)
+		'
+		'Note: Gemalto PKI smartcards don't need any padding
+		'      for the new PIN, even if it's smaller than 8 bytes
+		'
+		'                                             Lc (Length: New PIN Try Count + New PIN, 7 bytes)
+		'                                             |  New PIN Try Count (3 tries, 1 byte)
+		'                                             |  |  New PIN (202608 in ASCII Hex, 6 bytes)
+		'                                             |  |  |
+		LastSentAPDU = SET_REFERENCE_DATA_GEMALTO & " 07 03 32 30 32 36 30 38" 'No Le is set
+		
+	Else If LAST_APPLET_ID_SELECT_APDU == SELECT_ACTIVID_PKI_APPLET_ID Then
+		'
+		'Specific to ActivID PKI smartcards
+		'
+		'Note: the new PIN data length must be atleast 8 bytes,
+		'      if the PIN is shorter then you must pad it with 0xFF bytes
+		'      until it reaches 8 bytes (must be atleast 8 bytes or more)
+		'
+		'                                             Lc (Length: New PIN + padding, 8 bytes)
+		'                                             |  New PIN (202608 in ASCII Hex, 6 bytes)
+		'                                             |  |                 Padding (2 bytes)
+		'                                             |  |                 |     Le is set to 00
+		'                                             |  |                 |     |
+		LastSentAPDU = SET_REFERENCE_DATA_ACTIVID & " 08 32 30 32 36 30 38 FF FF 00"
+		
+	End If
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
@@ -3340,7 +3436,43 @@ ${ResponseBundle(0)}"$)
 	'that you would happen anyway even if you used an established & popular CMS / SCMS
 	
 	'--------------------------------------------------------------------------------
-	LastSentAPDU = SELECT_CARD_MANAGER_APPLET_ID 'Select Card Manager Applet ID again (to 'logout' / reset logged-in status)
+	'Clear the last-sent APDU just incase no PKI applet ID matches
+	LastSentAPDU = Null
+	
+	'ActivID PKI smartcards only support logout using
+	'SELECT FILE request APDU (selecting the PKI applet again)
+	'to clear the authenticated state
+	If LAST_APPLET_ID_SELECT_APDU <> SELECT_ACTIVID_PKI_APPLET_ID Then
+		'
+		'Specific to Gemalto PKI smartcards
+		'
+		LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GEMALTO
+		
+		If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+		Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+			'2DES / 3DES (data length 0x08)
+			LastSentAPDU = LastSentAPDU & " 08 " & "00 00 00 00 00 00 00 00"
+			
+		Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+		Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+			'AES-128 / AES-256 (data length 0x10)
+			LastSentAPDU = LastSentAPDU & " 10 " & "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+			
+		End If
+		
+		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+			Array As Object( _
+				LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE (LOGOUT) request APDU
+			) _
+		)
+		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	
+	LastSentAPDU = LAST_APPLET_ID_SELECT_APDU 'Select last PKI Applet ID again (to 'logout' again / reset logged-in status)
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
@@ -4441,6 +4573,26 @@ Private Sub btnShareTo_Click
 	StartActivity(ShareIntent)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub btnLockdown_Click
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: This is a single-click, so display a short toast notification about how to use this button"$, Colors.Blue)
+	ToastMessageShow("Long-click this button to make the Admin key unrevealable", Constants.TOAST_DURATION_SHORT)
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub btnLockdown_LongClick
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_LongClick: Sub entry"$, Colors.Blue)
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_LongClick: Locking down the Admin Key field (making it unrevealable)"$, Colors.Blue)
+	LockdownAdminKeyField
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_LongClick: Sub return"$, Colors.Blue)
 End Sub
 
 

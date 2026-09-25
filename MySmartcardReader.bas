@@ -126,7 +126,8 @@ public static class SmartcardReader
 		WrongParamP1P2,
 		BadLengthLeCorrectIsXX,
 		InitialSwCode, /* Just a default value so that "status" variable isn't null on init */
-		CondOfUseNotSatisfied
+		CondOfUseNotSatisfied,
+		SelFileNotFound
 	}
 	
 	//
@@ -141,7 +142,7 @@ public static class SmartcardReader
 	private boolean isCardReady(Reader mReader, int iSlotNum)
 	{
 		int iCurrentState = mReader.getState(iSlotNum);
-		return iCurrentState >= Reader.CARD_POWERED && iCurrentState != Reader.CARD_SWALLOWED;
+		return iCurrentState == Reader.CARD_SPECIFIC;
 	}
 	
 	/* For sending any APDU that we wish to send to the smartcards:
@@ -444,6 +445,18 @@ public static class SmartcardReader
 				)
 			);
 			return ApduSwCode.BadLengthLeCorrectIsXX;
+		}
+		else if ( rsp[rsp.length - 2] == (byte)0x6A &&
+				  rsp[rsp.length - 1] == 0x82 )
+		{
+			Log.d(TAG, "Selected File ID not found (SELECT FILE)");
+			return ApduSwCode.SelFileNotFound;
+		}
+		else if ( rsp[rsp.length - 2] == (byte)0x6A &&
+				  rsp[rsp.length - 1] == 0x86 )
+		{
+			Log.d(TAG, "Incorrect parameters (P1:P2)");
+			return ApduSwCode.WrongParamP1P2;
 		}
 		else
 		{

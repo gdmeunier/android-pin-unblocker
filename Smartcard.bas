@@ -90,6 +90,15 @@ Sub Service_Create
 	
 End Sub
 #If Java
+/* Card state constants:
+ * - CARD_UNKNOWN    = 0
+ * - CARD_ABSENT     = 1
+ * - CARD_PRESENT    = 2
+ * - CARD_SWALLOWED  = 3
+ * - CARD_POWERED    = 4
+ * - CARD_NEGOTIABLE = 5
+ * - CARD_SPECIFIC   = 6
+ */
 public void jService_Create()
 {
 	Log.d(TAG, "SmartcardService onCreate "+this);
@@ -111,6 +120,27 @@ public void jService_Create()
             }
 			
             iActualState = currState; // 1 = insert card, 2 = a card is inserted
+			
+			/* Notify if necessary about smartcard insert to any
+			 * potentially running wait timer that needs it
+			 *
+			 * Make sure to verify exactly that the state is CARD_PRESENT,
+			 * so that we don't try to notify again when the card gets
+			 * powered on, then yet again when its protocol type is set
+			 *
+			 * Otherwise it would happen 4 times:
+			 * - CARD_PRESENT (2),
+			 * - CARD_POWERED (4),
+			 * - CARD_NEGOCIABLE (5),
+			 * - CARD_SPECIFIC (6)
+			 */
+			if ( iActualState == Reader.CARD_PRESENT && waitLockSmartcardInsert != null )
+			{
+	            synchronized ( waitLockSmartcardInsert )
+				{
+	                waitLockSmartcardInsert.notify();
+	            }
+            }
         }
     });
 	
@@ -461,7 +491,7 @@ private static int iSlotNum = -1;
 private byte[] atr = null;
 
 private int actionNum          = Reader.CARD_COLD_RESET;
-private int preferredProtocols = Reader.PROTOCOL_RAW | Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1;
+private int preferredProtocols = Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1 | Reader.PROTOCOL_RAW;
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
 private mysmartcardreader.SmartcardReader cardReaderProxy = new mysmartcardreader.SmartcardReader();
@@ -586,6 +616,12 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcast);
 		}
 		
+		/* This method of sleeping multiple times in 500ms chunks is done
+		 * to avoid having the 'Application Not Responding' pop-up (ANR)
+		 * when the application is waiting for the user to do something
+		 *
+		 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
+		 */
         synchronized ( waitLockUsbDevice )
 		{
 			int maxSleepRounds = (int)(USB_TIMEOUT / 1000) * 2; // e.g. 30000ms = 30x 1s = 60x 0.5s
@@ -770,6 +806,12 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		
 		if ( !hasUsbPermission )
 		{
+			/* This method of sleeping multiple times in 500ms chunks is done
+			 * to avoid having the 'Application Not Responding' pop-up (ANR)
+			 * when the application is waiting for the user to do something
+			 *
+			 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
+			 */
             synchronized ( waitLockUsbPermission )
 			{
 				int maxSleepRounds = (int)(CONFIRM_TIMEOUT / 1000) * 2; // e.g. 30000ms = 30x 1s = 60x 0.5s
@@ -885,6 +927,12 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		
 		waitLockSmartcardInsert = new Object();
 		
+		/* This method of sleeping multiple times in 500ms chunks is done
+		 * to avoid having the 'Application Not Responding' pop-up (ANR)
+		 * when the application is waiting for the user to do something
+		 *
+		 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
+		 */
 		synchronized ( waitLockSmartcardInsert )
 		{
 			int maxSleepRounds = (int)(SMARTCARD_TIMEOUT / 1000) * 2; // e.g. 30000ms = 30x 1s = 60x 0.5s
@@ -940,25 +988,6 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		//
 		try
 		{
-			/* This part sometimes causes problems with slow cards,
-			 * so I now always use cold card-reset instead of warm
-			 *
-			 * This is defined as the default initial value for
-			 * the actionNum variable
-			 */
-			// Check if card is already POWERED (4) or in NEGOTIABLE (5) state
-			/*
-			if ( iActualState < Reader.CARD_POWERED )
-			{
-				actionNum = Reader.CARD_COLD_RESET;
-			}
-			else
-			{
-				
-				actionNum = Reader.CARD_WARM_RESET;
-			}
-			*/
-			
 			atr = mReader.power(iSlotNum, actionNum);
 			
 			/* Check if the card reader automatically did the

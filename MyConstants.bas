@@ -41,7 +41,6 @@ Sub Class_Globals
 	'Use these constants instead of directly writing using raw glyphs in
 	'your code, which might accidentally be lost due to text encoding [...]
 	Public Const COPYLEFT_ICON  As String = Chr(0xEB4D) 'Custom glyph addition (unofficial)
-	'Public Const COPYRIGHT_ICON As String = Chr(0xE90C) 'Currently unused, for reference purposes only
 	
 	'Flashlight state icons (raw glyph from an icon font):
 	' - These are actually important

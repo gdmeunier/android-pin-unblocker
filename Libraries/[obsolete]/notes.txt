@@ -1,8 +1,0 @@
-
-Versions older than 1.1.6 will not work with this application,
-or perhaps it's because I'm using a non-ACS smartcard reader
-and it's actually considered as an unsupported use-case.
-
-Versions older than 1.1.6 will throw IllegalAccessException
-when trying to open an USB device with mReader.open(UsbDevice)
-
