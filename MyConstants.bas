@@ -54,6 +54,11 @@ Sub Class_Globals
 	'For special Hotfix logging purposes
 	Public Const COLORS_ORANGE As Int = Colors.RGB(0xFF, 0x66, 0x00) 'Web-safe 256-indexed color
 	
+	'These are useful constants for getting a real CRLF & LF combo
+	'Otherwise Basic4Android's built-in CRLF is acually "\n" (LF)
+	Public Const TRUE_CRLF As String = BytesToString(Array As Byte(0x0D, 0x0A), 0, 2, "UTF-8")
+	Public Const TRUE_LF   As String = BytesToString(Array As Byte(0x0A),       0, 1, "UTF-8")
+	
 	'
 	'These constants below only exist to make reading the source code easier
 	'

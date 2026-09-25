@@ -1,4 +1,4 @@
-﻿ModuleBookmarks0=3053,2192,3469,2696,2403,2953,2998,49
+﻿ModuleBookmarks0=3053,2192,3469,2696,2403,2953,2998,49,3876
 ModuleBookmarks1=
 ModuleBookmarks10=440,274,885,105
 ModuleBookmarks2=
@@ -31,6 +31,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Main,FixVariantSpecificLayouts,1551,0,Main,ResetViewState,1587,0,Main,Activity_Resume,1900,0,MySmartcardReader,Class_Globals,27,0,MySmartcardReader,Initialize,138,0,Smartcard,Service_Message_NewThread,286,0,Visual Designer,Main.bal,-100,4,Main,mnuAbout_Click,3463,0,Main,mnuDirectUnblock_Click,3046,0,Main,SendPinUnblockAPDUSequence,3081,6
+NavigationStack=MySmartcardReader,Class_Globals,25,0,Smartcard,Application_Error,1002,0,Main,ResetViewState,1639,0,Main,mnuAbout_Click,3678,0,Main,edtChallenge_FocusChanged,3708,0,Main,btnScanQR_Click,3726,0,Main,SendPinUnblockAPDUSequence,3087,0,MyConstants,Class_Globals,54,6,Main,edtAdminKey_ShowSelectionInfo,3913,0,Main,edtAdminKey_TextChanged,3905,6
 SelectedBuild=0
 VisibleModules=9,10,7

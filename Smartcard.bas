@@ -1026,26 +1026,6 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 #End If
 
 #If Java
-private String getVendor()
-{
-	if ( mDevice == null )
-	{
-		return "unknown";
-	}
-	
-	return String.format("%X", mDevice.getVendorId());
-}
-
-private String getProduct()
-{
-	if ( mDevice == null )
-	{
-		return "unknown";
-	}
-	
-	return String.format("%X", mDevice.getProductId());
-}
-
 private String getProductName(UsbDevice device)
 {
 	if ( Build.VERSION.SDK_INT >= 21 )

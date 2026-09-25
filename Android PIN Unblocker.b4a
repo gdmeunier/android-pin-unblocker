@@ -35,8 +35,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 101
-	#VersionName: 5.3.5
+	#VersionCode: 103
+	#VersionName: 5.3.7
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2859,7 +2859,7 @@ Private Sub mnuDirectUnblock_Click
 	
 	Dim SanitizedUserInputs() As String = GetSanitizedUserInputs(edtChallenge.Text, edtAdminKey.Text)
 	If SanitizedUserInputs(0) == False Then
-		ToastMessageShow($"Direct unblock cancelled:
+		ToastMessageShow($"Direct unblock canceled:
 Your inputs are invalid (verify again"$&")", Constants.TOAST_DURATION_SHORT)
 		
 		ViewState_mnuDirectUnblock_Visible = False
@@ -2878,7 +2878,7 @@ Your inputs are invalid (verify again"$&")", Constants.TOAST_DURATION_SHORT)
 		DetectedAlgorithm <> Cryptography.ALGORITHM_3DES	And _
 		DetectedAlgorithm <> Cryptography.ALGORITHM_AES128	And _
 		DetectedAlgorithm <> Cryptography.ALGORITHM_AES256	Then
-		ToastMessageShow($"Direct unblock cancelled:
+		ToastMessageShow($"Direct unblock canceled:
 Unblock algorithm is undetermined"$, Constants.TOAST_DURATION_SHORT)
 		
 		ViewState_mnuDirectUnblock_Visible = False
@@ -2926,7 +2926,7 @@ Otherwise do not proceed further and click on Cancel"$&".")
 		
 		'Positive = "Take the Risk"
 		If Result <> DialogResponse.POSITIVE Then
-			ToastMessageShow($"Direct unblock cancelled:
+			ToastMessageShow($"Direct unblock canceled:
 You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 			
 			ViewState_mnuDirectUnblock_Visible = False
@@ -2971,7 +2971,7 @@ You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 		
 		'Positive = "Take the Risk"
 		If Result <> DialogResponse.POSITIVE Then
-			ToastMessageShow($"Direct unblock cancelled:
+			ToastMessageShow($"Direct unblock canceled:
 Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 			
 			ViewState_mnuDirectUnblock_Visible = False
@@ -3886,13 +3886,100 @@ Private Sub edtAdminKey_TextChanged(Old As String, New As String)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
 	
-	'The Admin Key field text might be changed even if
-	'the Admin Key field is not focused, such as when
-	'generating a SHA256, SHA512 etc hash while another
-	'field is focused, so the TextChanged event should
-	'also update the Admin Key label too
-	LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
-	edtAdminKey_ShowSelectionInfo
+	'We don't allow the use of newlines / line-breaks in
+	'the Admin Key field, even if the Admin Key field
+	'doesn't have the 'Single Line' attribute:
+	'
+	' - Allowing newlines might cause problems with users
+	'   who are accustomed to Windows, where newlines are
+	'   based on CRLF instead of LF
+	'
+	' - On Android, a newline in input fields is LF
+	'
+	' - So it might cause problems when users want to
+	'   enter text to hash for their Admin key,
+	'   because it might generate the wrong hash,
+	'   as CRLF isn't LF
+	'
+	'We can't use the 'Single Line' attribute because
+	'otherwise the padding of the Admin Key field gets
+	'wrecked by Android into only having the first line
+	'visible even when word-wrap is enabled
+	'
+	LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Removing newlines (both CRLF and LF) if any from the Admin Key field .Text"$, Constants.COLORS_ORANGE)
+	If New.Contains(Constants.TRUE_CRLF) Or New.Contains(Constants.TRUE_LF) Then
+		'Make sure to use the If statement so that we don't
+		'infinitely recurse into calling this TextChanged callback
+		'all the time, so that once we remove the newlines,
+		'the next call doesn't find them and skips recursively calling itself
+		
+		'We need to backup the current cursor position in the Admin Key field,
+		'so that we restore it as it was before the newlines get denied in
+		'the Admin Key field
+		'
+		'Because setting any .Text value resets its selection state
+		'
+		'Note: notice how we substract some characters count from the value,
+		'      because the original value actually includes the presence of
+		'      the newline characters that we need to substract from the count
+		'
+		Dim SelectionStart          As Int = edtAdminKey.SelectionStart
+		Dim TextLengthBeforeReplace As Int = New.Length
+		
+		'How it works:
+		' - Check if there's any CRLF or LF
+		'
+		' - If any CRLF is found, replace all of them in the "New" variable
+		'   to empty string ""
+		'
+		' - In order to know how many characters were removed, I compare
+		'   the length of the text before any replacement to the new one:
+		'    - The difference between the two (delta) is the count to substract
+		'      out of the SelectionStart value
+		'
+		' - Then update the "TextBeforeReplace" variable for the next pass (LF)
+		'
+		If New.Contains(Constants.TRUE_CRLF) Then
+			'Empty replacement string means we remove the newlines
+			'Avoid using RegEx when possible to get faster code
+			New = New.Replace(Constants.TRUE_CRLF, "")
+			SelectionStart = SelectionStart - (TextLengthBeforeReplace - New.Length)
+			
+			TextLengthBeforeReplace = New.Length
+			
+		End If
+		
+		If New.Contains(Constants.TRUE_LF) Then
+			New = New.Replace(Constants.TRUE_LF, "")
+			SelectionStart = SelectionStart - (TextLengthBeforeReplace - New.Length)
+			
+		End If
+		
+		edtAdminKey.Text = New
+		
+		'Restoring the selection state after setting the .Text value
+		'For making things simple I always restore the selection length as 0
+		edtAdminKey.SetSelection(SelectionStart, 0)
+		
+	Else
+		'We put the next call to edtAdminKey_ShowSelectionInfo here
+		'in the Else statement of the newlines check,
+		'so that we avoid redundantly calling it,
+		'since if we detected newlines, then we will set a new .Text
+		'without them, which will trigger this TextChanged callback again,
+		'and from there, there won't be the newlines anymore
+		'
+		'So this allows saving CPU cycles by avoiding useless duplicate calls
+		
+		'The Admin Key field text might be changed even if
+		'the Admin Key field is not focused, such as when
+		'generating a SHA256, SHA512 etc hash while another
+		'field is focused, so the TextChanged event should
+		'also update the Admin Key label too
+		LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
+		edtAdminKey_ShowSelectionInfo
+		
+	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Sub return"$, Colors.Blue)
 End Sub
@@ -4580,7 +4667,7 @@ Private Sub btnLockdown_Click
 	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: Sub entry"$, Colors.Blue)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: This is a single-click, so display a short toast notification about how to use this button"$, Colors.Blue)
-	ToastMessageShow("Long-click this button to make the Admin key unrevealable", Constants.TOAST_DURATION_SHORT)
+	ToastMessageShow("Make Admin key unrevealable by long-clicking this button", Constants.TOAST_DURATION_SHORT)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: Sub return"$, Colors.Blue)
 End Sub
