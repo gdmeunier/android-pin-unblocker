@@ -324,7 +324,55 @@ private static String jHexStringFromBytesTwo(final byte[] array, final int n, fi
 	
 	return new String(hexChars);
 }
+
+public static String jStringToASCIIHex(final String string)
+{
+    char[]        chars = string.toCharArray();
+    StringBuilder hex   = new StringBuilder();
+	
+    for (char ch : chars) {
+        hex.append(Integer.toHexString((int)ch));
+    }
+	
+    return hex.toString();
+}
+
+public static String jNumberToStringHex(final int number)
+{
+	return Integer.toHexString(number);
+}
 #End If
+
+Public Sub StringToASCIIHex(Text As String) As String
+	
+	If Text == Null Then
+		Throw("The provided text is Null")
+	End If
+	
+	If Text == "" Then
+		Throw("The provided text is an empty string")
+	End If
+	
+	Return joClass.RunMethod("jStringToASCIIHex", Array(Text))
+	
+End Sub
+
+Public Sub NumberToStringHex(Number As Int) As String
+	
+	Dim StringHexNumber As String = joClass.RunMethod("jNumberToStringHex", Array(Number))
+	
+	'Check if the length is even, if not add 0 padding at start of string
+	If StringHexNumber.Length < 2 Or StringHexNumber.Length Mod 2 <> 0 Then
+		Do While StringHexNumber.Length < 2 Or StringHexNumber.Length Mod 2 <> 0
+			StringHexNumber = "0" & StringHexNumber
+			
+		Loop
+		
+	End If
+	
+	Return StringHexNumber
+	
+End Sub
 
 Public Sub IsTextHexBytes(Text As String) As Boolean
 	

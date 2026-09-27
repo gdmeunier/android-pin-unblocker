@@ -51,9 +51,13 @@ Sub Process_Globals
 	Private ServiceMessageThread As Thread
 	
 	'List of possible Service messaging values
-	Public Const SEND_APDU As Int = 0x100
+	Public Const SEND_APDU    As Int = 0x100
+	Public Const GET_ATR      As Int = 0x200
+	Public Const GET_PROTOCOL As Int = 0x300
 	#If Java
-	private static final int SEND_APDU = 0x100;
+	private static final int SEND_APDU    = 0x100;
+	private static final int GET_ATR      = 0x200;
+	private static final int GET_PROTOCOL = 0x300;
 	#End If
 	
 	Private ActiveOperationInProgress As Boolean = False
@@ -221,9 +225,45 @@ Sub Service_Message_NewThread
 					'The MySmartcardReader class automatically handles APDU
 					'request chaining transparently, so we can just simply
 					'check for a 90 00 status code
-					If DoWhat == SEND_APDU And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+					If Not(ServiceReply(0).As(String).EndsWith("9000")) Then
 						IsSuccessful = False
 					End If
+					
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
+					
+				Catch
+					Log(LastException)
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+					
+				End Try
+				ActiveOperationInProgress = False
+				
+				Exit
+				
+			Case GET_ATR
+				
+				ActiveOperationInProgress = True
+				Try
+					Dim ServiceReply() As Object = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
+					Dim IsSuccessful   As Boolean = True
+					
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
+					
+				Catch
+					Log(LastException)
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+					
+				End Try
+				ActiveOperationInProgress = False
+				
+				Exit
+				
+			Case GET_PROTOCOL
+				
+				ActiveOperationInProgress = True
+				Try
+					Dim ServiceReply() As Object = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
+					Dim IsSuccessful   As Boolean = True
 					
 					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
 					
@@ -280,6 +320,41 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 				reply = new Object[] { cardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0]), mReader, iSlotNum) };
 				break;
 				
+			case GET_ATR:
+				if ( atr == null )
+				{
+					throw new RuntimeException("Couldn't get the smartcard's ATR because the smartcard is not connected.");
+				}
+				
+				reply = new Object[] { jBytesToHexString(atr) };
+				break;
+				
+			case GET_PROTOCOL:
+				if ( activeProtocol == Reader.PROTOCOL_UNDEFINED )
+				{
+					throw new RuntimeException("Couldn't get the smartcard's communication protocol because the smartcard is not connected.");
+				}
+				
+				reply = new Object[] { "T=?" };
+				
+				if ( activeProtocol == Reader.PROTOCOL_T0 )
+				{
+					reply = new Object[] { "T=0" };
+				}
+				if ( activeProtocol == Reader.PROTOCOL_T1 )
+				{
+					reply = new Object[] { "T=1" };
+				}
+				if ( activeProtocol == Reader.PROTOCOL_RAW )
+				{
+					reply = new Object[] { "T=R" };
+				}
+				if ( activeProtocol == Reader.PROTOCOL_TX )
+				{
+					reply = new Object[] { "T=X" };
+				}
+				break;
+				
 			default:
 				throw new RuntimeException("You requested a message type that this Service does not know nor support");
 		}
@@ -309,6 +384,16 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	}
 	
 	return reply;
+}
+
+import java.math.BigInteger;
+private static String jBytesToHexString(final byte[] bytes)
+{
+	BigInteger bigInt = new BigInteger(1, bytes);
+	
+	// "X" = UPPERCASE hash
+	// "x" = lowercase hash
+	return String.format("%0"+(bytes.length << 1)+"X", bigInt);
 }
 #End If
 

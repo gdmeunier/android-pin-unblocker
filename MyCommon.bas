@@ -279,7 +279,7 @@ public float jGetUserFontScale(Context ctx)
 	// Don't cache this information
 	//
 	Configuration cfg = ctxRes.getConfiguration();
-	return cfg.fontScale;
+	return cfg.fontScale; // API level 1+
 }
 #End If
 

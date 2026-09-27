@@ -2,41 +2,44 @@
 Build2=NO_FLAG_SECURE,net.gdmeunier.pinunblocker,NO_FLAG_SECURE
 File1=About.png
 File2=Base.bal
-File3=Main.bal
-File4=Scan.bal
-File5=USB.png
+File3=DirectUnblock.bal
+File4=Main.bal
+File5=Scan.bal
+File6=USB.png
 FileGroup1=Icons
 FileGroup2=Layouts
 FileGroup3=Layouts
 FileGroup4=Layouts
-FileGroup5=Icons
+FileGroup5=Layouts
+FileGroup6=Icons
 Group=Activities
 Library1=core
 Library2=javaobject
 Library3=lightruntimepermissions
 Library4=threading
 Library5=newqrcodereaderview
-ManifestCode='~\n~'Android PIN Unblocker's application manifest file~\n~'~\n~~\n~'This application supports Android 2.3.2 and higher (API level 9+)~\n~'This application guarantees compliance with Android up to Android 13 (API level 33)~\n~'~\n~'This application requires atleast Android 2.3.2 (API level 9) for:~\n~' - Camera-related functions~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'This application makes use of Camera hardware and Flashlight~\n~'However this is not strictly required to run this application~\n~'~\n~'Features used for:~\n~' - Scanning QR codes~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'This application makes use of USB-OTG (On-The-Go)~\n~'However this is not strictly required to run this application~\n~'~\n~'Feature used for:~\n~' - Unblocking smartcards over USB~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.usb.host"         android:required="false" />)~\n~~\n~'This application supports all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'This application cans broadcast Intents:~\n~' - Opening HTTP or HTTPS links~\n~'~\n~'This requirement was introduced starting with Android 11 (API level 30)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'~\n~'Camera and Flashlight permissions are automatically inserted when using~\n~'the NewQRCodeReaderView library~\n~'~\n~~\n~'~\n~'Don't add the imaginary USB_PERMISSION to this application's manifest:~\n~' - The "android.permission.USB_PERMISSION" one~\n~'~\n~'This permission doesn't actually exist anywhere in the Android codebase,~\n~'and is nothing more than the Internet's collective false news~\n~'about a supposed 'USB permission' which would be added~\n~'to application manifest files~\n~'~\n~'This is fabricated, because USB_PERMISSION only exists during runtime,~\n~'not in the application manifest, and is always requested dynamically~\n~'~\n~'Even seemingly professional websites will tell you to add this fictious~\n~'Android permission to your application manifest file,~\n~'but it literally does nothing at all~\n~'~\n~~\n~'Application identity (automatically inserted)~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application icon (uses a mipmap instead of a drawable)~\n~SetApplicationAttribute(android:icon, "@mipmap/ic_launcher")~\n~~\n~'Application theme (this app uses a custom theme)~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Application's task affinity (this application refuses to share affinity with other ones):~\n~' - Always detach this application's Activities from the task stack of other apps~\n~' - We do this by clearing its task affinity attribute (setting it to "")~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> covers all Activities~\n~'~\n~'This is done for security reasons, so that other applications cannot do~\n~'task reparenting attacks on it (known as StrandHogg vulnerability)~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'This application wishes to benefit from hardware acceleration:~\n~' - Performance optimization for the Camera preview (QR code scanning)~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'We wish to benefit from it for all this application's Activities~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Security hardening for this application's Smartcard service~\n~'~\n~'Other applications shouldn't be able to launch this application's~\n~'Smartcard service or communicate with it in any way,~\n~'so we mark the Smartcard service as private (exported = false)~\n~SetServiceAttribute(Smartcard, "android:exported", false)~\n~~\n~'Also mark its corresponding receiver as private,~\n~'because this Service uses separate USB receivers generated from~\n~'Java code at runtime, whenever they are needed,~\n~'and not the one declared in its manifest file~\n~SetReceiverAttribute(Smartcard, "android:exported", false)~\n~~\n~'The running state of this application should never be preserved across reboots:~\n~' - Don't let Android persist this application's state across device reboots and on shutdown~\n~' - We don't want the user having leftovers (forensic traces) from Activities across reboots~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~~\n~'This application's Activities when started by a specific user,~\n~'should only be visible for this user and other ones on the device:~\n~' - We don't want to let one Android user launch one of this application's Activities,~\n~'   then have other Android users on the same device being able to see~\n~'   this user's own Activities in their task history (for security reasons)~\n~'~\n~' - Each Android user account on a device should~\n~'   launch their own Activities if they want to~\n~'   see those in their own task histories~\n~'~\n~'This attribute was introduced starting with Android 6 (API level 23)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~~\n~'Mark the Main Activity as exported~\n~'~\n~'Newer versions of Android require that Activities with <intent-filters /> must~\n~'explicitly be marked as exported for security reasons~\n~'~\n~'This requirement was introduced starting with Android 12 (API level 32)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Mark the Scan Activity as unexported (private):~\n~' - Android applications should always mark as unexported all Activities that~\n~'   are not explicitly made open to other ones~\n~'~\n~'We mark all Activities that are not explicitly callable from other applications as~\n~'unexported for security reasons (as a security precaution)~\n~'~\n~'Set it for all Activities that you don't wish to explicitly offer to other applications~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~~\n~'Exclude the Scan Activity from the Android Recent Apps panel:~\n~' - Only the Main Activity (entry point) should appear in it~\n~'~\n~'Add all Activities other than the Main one here~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~~\n~'Make the Main Activity automatically disappear form the Recent Apps panel when finished:~\n~' - This Activity will only be visible until the user intentionally exits the application,~\n~'   then it will disappear from the Recent Apps panel to avoid leaving traces of use~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Set the Main Activity's launch mode to singleTop:~\n~' - Atleast a singleTop or singleTask launch mode is required to receive~\n~'   onNewIntent Activity callbacks~\n~'~\n~'Attribute used for:~\n~' - Receiving Admin key texts shared to this application~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~~\n~'Enforce stricter Intent matching rules for sending Intents to the Main Activity:~\n~' - Explicit Intents must match this application's exact component name~\n~' - Intents without any ACTION type don't match this application~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'This attribute was introduced starting with Android 16 (API level 36)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Add a Share To Intent filter to the Main Activity:~\n~' - Allow sharing Admin key texts from other applications to this one~\n~'~\n~'Used attributes:~\n~' - "android:autoVerify": Introduced starting with Android 6 (API level 23)~\n~'~\n~'                         It's some useless thing that's used for verifying~\n~'                         Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":      Introduced starting with Android 9 (API level 28)~\n~'~\n~'                         This is the priority order of Intent filters~\n~'                         The higher the number the higher the priority~\n~'~\n~'                         It only sets the priority of this application's own~\n~'                         Intent filters~\n~'~\n~'Note:~\n~' - I don't want to use the "android:priority" Intent filter attribute since it would~\n~'   interfere with other applications' own Intent filter offers, by taking priority over~\n~'   their own offers when you want to share text to a different application instead of this one~\n~'~\n~' - So out of courtesy for other applications, we only use the "android:order" Intent filter attribute~\n~'   instead of the "android:priority" one~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Mark Picture-in-Picture mode (PiP) as unsupported:~\n~' - we don't want to support it for security reasons~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform graphical post-processing for~\n~'this application (minimal post-processing):~\n~' - Some new-technology displays might try to improve the graphics and colors of this application,~\n~'   but we don't need any such graphical enhancements here~\n~'~\n~'This attribute was introduced starting with Android 11 (API level 30)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations in this application's Activities:~\n~' - We don't use any animations in this application for performance reasons,~\n~'   because we just don't need fancy animations in a technical application~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~~\n~~\n~'Intercept mundane device configuration change events to deliberately ignore them:~\n~' - Tell Android that we will handle these configuration change events, but we will actually~\n~'   simply ignore them, so that Android doesn't destroy then re-create this application's Activities for~\n~'   mundane device configuration changes that are not even related to the device display or its orientation~\n~'~\n~'Real display-related configuration change events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we hook all the other ones to simply ignore them~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'Tell Android that it cans shrink our application's Activities if necessary:~\n~' - When it shows the keyboard, the keyboard should not cover Activity content~\n~' - This attribute tells Android that it cans adjust the Activity pan if necessary~\n~'~\n~'The "adjustPan" part is the important one, which should not be needed to set explicitly,~\n~'but Basic4Android explicitly sets by default a windowSoftInputMode value of "stateHidden"~\n~'~\n~'So we have to override Basic4Android's default value with our own instead~\n~'~\n~'We also want to prevent Android from automatically setting~\n~'the focus on the first Activity UI element on application resume,~\n~'because we already handle this on our own in our ViewState management functions~\n~'~\n~'So we also use "stateAlwaysHidden" too instead of just using "stateHidden":~\n~' - "By default, Android will automatically assign initial focus~\n~'    to the first EditText or focusable control in your Activity.~\n~'	 [...]~\n~'    The windowSoftInputMode attribute in AndroidManifest.xml,~\n~'    when set to stateAlwaysHidden, instructs the keyboard to~\n~'    ignore this automatically-assigned initial focus.~\n~'    [...]~\n~'    Therefore, stateAlwaysHidden is VERY poorly named indeed.~\n~'    It should perhaps be called ignoreInitialFocus instead."~\n~'~\n~'Add all Activities that contain input fields here~\n~SetActivityAttribute(Main, "android:windowSoftInputMode", "adjustPan|stateAlwaysHidden")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'~\n~~\n~'~\n~' - Application themes -~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~' - Default Activity & application colors -~\n~'~\n~~\n~'Android version doesn't matter (all versions need to pick the same color)~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~~\n~
-Module1=MyAdvanced
-Module10=Smartcard
-Module2=MyCommon
-Module3=MyConstants
-Module4=MyCryptography
-Module5=MyLifecycleTracking
-Module6=MySecurity
-Module7=MySmartcardReader
-Module8=MySynchronousSleep
-Module9=Scan
-NumberOfFiles=5
+ManifestCode='~\n~'Android PIN Unblocker's application manifest file~\n~'~\n~~\n~'This application supports Android 2.3.2 and higher (API level 9+)~\n~'This application guarantees compliance with Android up to Android 13 (API level 33)~\n~'~\n~'This application requires atleast Android 2.3.2 (API level 9) for:~\n~' - Camera-related functions~\n~'~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'This application makes use of Camera hardware and Flashlight~\n~'However this is not strictly required to run this application~\n~'~\n~'Features used for:~\n~' - Scanning QR codes~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'This application makes use of USB-OTG (On-The-Go)~\n~'However this is not strictly required to run this application~\n~'~\n~'Feature used for:~\n~' - Unblocking smartcards over USB~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.usb.host"         android:required="false" />)~\n~~\n~'This application supports all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'This application cans broadcast Intents:~\n~' - Opening HTTP or HTTPS links~\n~'~\n~'This requirement was introduced starting with Android 11 (API level 30)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'~\n~'Camera and Flashlight permissions are automatically inserted when using~\n~'the NewQRCodeReaderView library~\n~'~\n~~\n~'~\n~'Don't add the imaginary USB_PERMISSION to this application's manifest:~\n~' - The "android.permission.USB_PERMISSION" one~\n~'~\n~'This permission doesn't actually exist anywhere in the Android codebase,~\n~'and is nothing more than the Internet's collective false news~\n~'about a supposed 'USB permission' which would be added~\n~'to application manifest files~\n~'~\n~'This is fabricated, because USB_PERMISSION only exists during runtime,~\n~'not in the application manifest, and is always requested dynamically~\n~'~\n~'Even seemingly professional websites will tell you to add this fictious~\n~'Android permission to your application manifest file,~\n~'but it literally does nothing at all~\n~'~\n~~\n~'Application identity (automatically inserted)~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application icon (uses a mipmap instead of a drawable)~\n~SetApplicationAttribute(android:icon, "@mipmap/ic_launcher")~\n~~\n~'Application theme (this app uses a custom theme)~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Application's task affinity (this application refuses to share affinity with other ones):~\n~' - Always detach this application's Activities from the task stack of other apps~\n~' - We do this by clearing its task affinity attribute (setting it to "")~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> covers all Activities~\n~'~\n~'This is done for security reasons, so that other applications cannot do~\n~'task reparenting attacks on it (known as StrandHogg vulnerability)~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'This application wishes to benefit from hardware acceleration:~\n~' - Performance optimization for the Camera preview (QR code scanning)~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'We wish to benefit from it for all this application's Activities~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Security hardening for this application's Smartcard service~\n~'~\n~'Other applications shouldn't be able to launch this application's~\n~'Smartcard service or communicate with it in any way,~\n~'so we mark the Smartcard service as private (exported = false)~\n~SetServiceAttribute(Smartcard, "android:exported", false)~\n~~\n~'Also mark its corresponding receiver as private,~\n~'because this Service uses separate USB receivers generated from~\n~'Java code at runtime, whenever they are needed,~\n~'and not the one declared in its manifest file~\n~SetReceiverAttribute(Smartcard, "android:exported", false)~\n~~\n~'The running state of this application should never be preserved across reboots:~\n~' - Don't let Android persist this application's state across device reboots and on shutdown~\n~' - We don't want the user having leftovers (forensic traces) from Activities across reboots~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(DirectUnblock, "android:persistableMode", "persistNever")~\n~~\n~'This application's Activities when started by a specific user,~\n~'should only be visible for this user and other ones on the device:~\n~' - We don't want to let one Android user launch one of this application's Activities,~\n~'   then have other Android users on the same device being able to see~\n~'   this user's own Activities in their task history (for security reasons)~\n~'~\n~' - Each Android user account on a device should~\n~'   launch their own Activities if they want to~\n~'   see those in their own task histories~\n~'~\n~'This attribute was introduced starting with Android 6 (API level 23)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~SetActivityAttribute(DirectUnblock, "android:showForAllUsers", "false")~\n~~\n~'Mark the Main Activity as exported~\n~'~\n~'Newer versions of Android require that Activities with <intent-filters /> must~\n~'explicitly be marked as exported for security reasons~\n~'~\n~'This requirement was introduced starting with Android 12 (API level 32)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Mark the Scan & Direct Unblock Activities as unexported (private):~\n~' - Android applications should always mark as unexported all Activities that~\n~'   are not explicitly made open to other ones~\n~'~\n~'We mark all Activities that are not explicitly callable from other applications as~\n~'unexported for security reasons (as a security precaution)~\n~'~\n~'Set it for all Activities that you don't wish to explicitly offer to other applications~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~SetActivityAttribute(DirectUnblock, "android:exported", "false")~\n~~\n~'Exclude the Scan & Direct Unblock Activities from the Android Recent Apps panel:~\n~' - Only the Main Activity (entry point) should appear in it~\n~'~\n~'Add all Activities other than the Main one here~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~SetActivityAttribute(DirectUnblock, "android:excludeFromRecents", "true")~\n~~\n~'Make the Main Activity automatically disappear form the Recent Apps panel when finished:~\n~' - This Activity will only be visible until the user intentionally exits the application,~\n~'   then it will disappear from the Recent Apps panel to avoid leaving traces of use~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Set the Main Activity's launch mode to singleTop:~\n~' - Atleast a singleTop or singleTask launch mode is required to receive~\n~'   onNewIntent Activity callbacks~\n~'~\n~'Attribute used for:~\n~' - Receiving Admin key texts shared to this application~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~~\n~'Enforce stricter Intent matching rules for sending Intents to the Main Activity:~\n~' - Explicit Intents must match this application's exact component name~\n~' - Intents without any ACTION type don't match this application~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'This attribute was introduced starting with Android 16 (API level 36)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Add a Share To Intent filter to the Main Activity:~\n~' - Allow sharing Admin key texts from other applications to this one~\n~'~\n~'Used attributes:~\n~' - "android:autoVerify": Introduced starting with Android 6 (API level 23)~\n~'~\n~'                         It's some useless thing that's used for verifying~\n~'                         Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":      Introduced starting with Android 9 (API level 28)~\n~'~\n~'                         This is the priority order of Intent filters~\n~'                         The higher the number the higher the priority~\n~'~\n~'                         It only sets the priority of this application's own~\n~'                         Intent filters~\n~'~\n~'Note:~\n~' - I don't want to use the "android:priority" Intent filter attribute since it would~\n~'   interfere with other applications' own Intent filter offers, by taking priority over~\n~'   their own offers when you want to share text to a different application instead of this one~\n~'~\n~' - So out of courtesy for other applications, we only use the "android:order" Intent filter attribute~\n~'   instead of the "android:priority" one~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Mark Picture-in-Picture mode (PiP) as unsupported:~\n~' - we don't want to support it for security reasons~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(DirectUnblock, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform graphical post-processing for~\n~'this application (minimal post-processing):~\n~' - Some new-technology displays might try to improve the graphics and colors of this application,~\n~'   but we don't need any such graphical enhancements here~\n~'~\n~'This attribute was introduced starting with Android 11 (API level 30)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(DirectUnblock, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations in this application's Activities:~\n~' - We don't use any animations in this application for performance reasons,~\n~'   because we just don't need fancy animations in a technical application~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(DirectUnblock, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'Intercept mundane device configuration change events to deliberately ignore them:~\n~' - Tell Android that we will handle these configuration change events, but we will actually~\n~'   simply ignore them, so that Android doesn't destroy then re-create this application's Activities for~\n~'   mundane device configuration changes that are not even related to the device display or its orientation~\n~'~\n~'Real display-related configuration change events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~'~\n~'So we hook all the other ones to simply ignore them~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~SetActivityAttribute(DirectUnblock, "android:configChanges", "colorMode|grammaticalGender|keyboard|keyboardHidden|locale|mcc|mnc|navigation|touchscreen")~\n~~\n~'Tell Android that it cans shrink our application's Activities if necessary:~\n~' - When it shows the keyboard, the keyboard should not cover Activity content~\n~' - This attribute tells Android that it cans adjust the Activity pan if necessary~\n~'~\n~'The "adjustPan" part is the important one, which should not be needed to set explicitly,~\n~'but Basic4Android explicitly sets by default a windowSoftInputMode value of "stateHidden"~\n~'~\n~'So we have to override Basic4Android's default value with our own instead~\n~'~\n~'We also want to prevent Android from automatically setting~\n~'the focus on the first Activity UI element on application resume,~\n~'because we already handle this on our own in our ViewState management functions~\n~'~\n~'So we also use "stateAlwaysHidden" too instead of just using "stateHidden":~\n~' - "By default, Android will automatically assign initial focus~\n~'    to the first EditText or focusable control in your Activity.~\n~'	 [...]~\n~'    The windowSoftInputMode attribute in AndroidManifest.xml,~\n~'    when set to stateAlwaysHidden, instructs the keyboard to~\n~'    ignore this automatically-assigned initial focus.~\n~'    [...]~\n~'    Therefore, stateAlwaysHidden is VERY poorly named indeed.~\n~'    It should perhaps be called ignoreInitialFocus instead."~\n~'~\n~'Add all Activities that contain input fields here~\n~SetActivityAttribute(Main, "android:windowSoftInputMode", "adjustPan|stateAlwaysHidden")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'~\n~~\n~'~\n~' - Application themes -~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~' - Default Activity & application colors -~\n~'~\n~~\n~'Android version doesn't matter (all versions need to pick the same color)~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~~\n~
+Module1=DirectUnblock
+Module10=Scan
+Module11=Smartcard
+Module2=MyAdvanced
+Module3=MyCommon
+Module4=MyConstants
+Module5=MyCryptography
+Module6=MyLifecycleTracking
+Module7=MySecurity
+Module8=MySmartcardReader
+Module9=MySynchronousSleep
+NumberOfFiles=6
 NumberOfLibraries=5
-NumberOfModules=10
+NumberOfModules=11
 Version=12.5
 @EndOfDesignText@
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 103
-	#VersionName: 5.3.7
+	#VersionCode: 113
+	#VersionName: 5.4.9
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1034,7 +1037,7 @@ Sub Process_Globals
 	'For sharing Admin key texts to the application:
 	' - (prevent Android from repeatedly re-send its Share To Intents)
 	'
-	Private PreviousSharedTextTruncatedRehash As String = "" 'Must be Null by default
+	Private PreviousSharedTextTruncatedRehash As String = ""
 	
 	Private IsFirstApplicationResume As Boolean = True 'True by default
 	
@@ -1056,6 +1059,39 @@ Sub Process_Globals
 	'(When you do the direct unblock action and the Activity is frozen)
 	Private AllowClickingActivityMenuItems As Boolean = True 'Default value is True
 	Private ActivityTimer_AllowClickingActivityMenuItems As Timer
+	
+	'
+	'-----
+	'
+	
+	'Needed because the Select PIN label is like:
+	' - "Select PIN: (Gemalto) - T=0"
+	' - "Select PIN: (ActivID) - T=1"
+	'
+	Public Shared_DetectedCardType     As String 'No default value ("Gemalto", "ActivID")
+	Public Shared_DetectedCardProtocol As String 'No default value ("T=0", "T=1", "T=CL")
+	
+	'Needed because the New PIN label is like:
+	' - "New PIN: (6 chars) - Min: 4 | Max: 16"
+	' - "New PIN: (6 chars) - Min: 4 | Max: 14"
+	'
+	Public Shared_DetectedCardMinPINLength As Int 'No default value
+	Public Shared_DetectedCardMaxPINLength As Int 'No default value
+	
+	Public Shared_DetectedAlgorithm As String 'No default value
+	Public Shared_DetectedAdminKey  As String 'No default value
+	
+	'Needed on some PKI smartcards to logout
+	Public Shared_DetectedSelectAppletAPDU As String 'No default value
+	
+	'Card ATR helps detect if the user switches smartcards without
+	'reloading the Activity, which is required before using a different
+	'PKI smartcard for the next PIN unblock process
+	Public Shared_DetectedCardATR As String 'No default value
+	
+	'
+	'-----
+	'
 	
 End Sub
 
@@ -1083,6 +1119,12 @@ Sub Globals
 	Private chkHideAdminKey As CheckBox
 	Private btnHashMenu     As ToggleButton
 	
+	'New Lockdown button that allows the user to
+	'lockdown the Admin Key field at any time
+	'without having to create hashes with a long-click
+	'or share Admin key texts to the application
+	Private btnLockdown As Button
+	
 	Private btnHashMenuBg As Button
 	Private btnSha256     As Button
 	Private btnSha512     As Button
@@ -1092,12 +1134,6 @@ Sub Globals
 	Private lblResponse As Label
 	Private edtResponse As EditText
 	Private btnShareTo  As Button 'For enabling / disabling UI elements on Direct Unblock
-	
-	'New Lockdown button that allows the user to
-	'lockdown the Admin Key field at any time
-	'without having to create hashes with a long-click
-	'or share Admin key texts to the application
-	Private btnLockdown As Button
 	
 End Sub
 
@@ -1335,7 +1371,7 @@ Sub Activity_Create(FirstTime As Boolean)
 		'
 		'Remember that ResetViewState actually resets the Admin Key field's
 		'text content to be 48-zeroes too
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Becausse this is the first-time Activity create, we alter the ViewState of the Hide Admin Key checkbox to be Checked = False"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Because this is the first-time Activity create, we alter the ViewState of the Hide Admin Key checkbox to be Checked = False"$, Colors.Blue)
 		ViewState_chkHideAdminKey_Checked = False
 		
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Constants Class (MyConstants class)"$, Colors.Blue)
@@ -1459,12 +1495,8 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
-		'FixVariantSpecificLayouts(ActivityMargins, edtResponse)
-		
-		'It's now the btnLockdown element that's always the bottom-most one
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, edtResponse)
 		
 	Else If LoadedLayout.Width == 480 And LoadedLayout.Height == 320 And LoadedLayout.Scale == 1 Then
 		'480x320, scale = 1 (160dpi)
@@ -1478,12 +1510,8 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
-		'FixVariantSpecificLayouts(ActivityMargins, btnSha512)
-		
-		'It's now the btnLockdown element that's always the bottom-most one
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, btnSha512)
 		
 	Else If LoadedLayout.Width == 240 And LoadedLayout.Height == 320 And LoadedLayout.Scale == 0.75 Then
 		'240x320, scale = 0.75 (120dpi)
@@ -1497,12 +1525,8 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
-		'FixVariantSpecificLayouts(ActivityMargins, edtResponse)
-		
-		'It's now the btnLockdown element that's always the bottom-most one
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element edtResponse"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, edtResponse)
 		
 	Else If LoadedLayout.Width == 320 And LoadedLayout.Height == 240 And LoadedLayout.Scale == 0.75 Then
 		'320x240, scale = 0.75 (120dpi)
@@ -1516,12 +1540,8 @@ Private Sub LoadActivityLayout
 		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Setting Activity margins to left(${(LeftMargin / 1dip).As(Int)}dip), top(${(TopMargin / 1dip).As(Int)}dip), right(${(RightMargin / 1dip).As(Int)}dip) & bottom(${(BottomMargin / 1dip).As(Int)}dip)"$, Colors.Blue)
 		ActivityMargins = Array As Int(LeftMargin, TopMargin, RightMargin, BottomMargin)
 		
-		'LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
-		'FixVariantSpecificLayouts(ActivityMargins, btnSha512)
-		
-		'It's now the btnLockdown element that's always the bottom-most one
-		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnLockdown"$, Colors.Blue)
-		FixVariantSpecificLayouts(ActivityMargins, btnLockdown)
+		LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Calling FixVariantSpecificLayouts with the Activity margins & bottom-most element btnSha512"$, Colors.Blue)
+		FixVariantSpecificLayouts(ActivityMargins, btnSha512)
 		
 	End If
 	
@@ -1636,7 +1656,7 @@ Private Sub ResetViewState
 	LogColor($"[${ActivityName}-${LogContextId}] ResetViewState: Setting initial values for text labels"$, Colors.Blue)
 	ViewState_lblResponse_Text = "Response:"
 	
-	'The layout file for Main has the Admin Key field revelaed by default,
+	'The layout file for Main has the Admin Key field revealed by default,
 	'and the Hide Admin Key checkbox in unchecked state by default,
 	'so reset their ViewStates to safer values
 	'
@@ -1697,7 +1717,10 @@ Private Sub InitializeActivityLayout
 		btnLockdown.Visible = True
 		
 	Else
-		LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: The Admin Key field is already locked-down, no need to display it"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: The Admin Key field is already locked-down, no need to display the Lockdown button"$, Colors.Blue)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Letting the Hash Text button reclaim the width freed by the Lockdown button too..."$, Colors.Blue)
+		ReclaimHashButtonWidth
 		
 	End If
 	
@@ -1935,7 +1958,7 @@ Sub Activity_Resume
 	'(The ViewState successfully completed, and its synchronous now)
 	'
 	' - This decoy EditText field is used for hiding
-	'   theAdmin key field with explanation about
+	'   the Admin key field with explanation about
 	'   why it's hidden (during app pauses)
 	'
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Reset decoy Admin Key field visibility back to invisible"$, Colors.Blue)
@@ -2355,6 +2378,11 @@ Private Sub LockdownAdminKeyField
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Disabling the Hide Admin Key checkbox permanently"$, Colors.Blue)
 	chkHideAdminKey.Enabled = False
 	
+	'Backup the prior Lockdown state before modifying it,
+	'because we also have code that should run only once
+	'in this function
+	Dim PriorLockdownState As Boolean = ViewState_chkHideAdminKey_Enabled
+	
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Registering the Hide Admin Key checkbox disabling in the ViewState registers"$, Colors.Blue)
 	ViewState_chkHideAdminKey_Enabled = False
 	
@@ -2377,7 +2405,31 @@ Private Sub LockdownAdminKeyField
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Hiding the Admin key Lockdown button now"$, Colors.Blue)
 	btnLockdown.Visible = False
 	
+	'This code should only run once even if
+	'the Lockdown function is called more than once
+	If PriorLockdownState == True Then 'Explicit comparison with True for readability purposes
+		LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Letting the Hash Text button reclaim the width freed by the Lockdown button..."$, Colors.Blue)
+		ReclaimHashButtonWidth
+		
+	End If
+	
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Sub return"$, Colors.Blue)
+End Sub
+
+'When hiding the Lockdown button, you have to
+'also fix the layout so that the Hash button
+'gets to reclaim the width freed by the Lockdown one
+Private Sub ReclaimHashButtonWidth
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[${ActivityName}-${LogContextId}] ReclaimHashButtonWidth: Sub entry"$, Colors.Blue)
+	
+	'Anchoring (gravity) is top-right (TOP | RIGHT)
+	'No need to adjust the .Left property
+	
+	LogColor($"[${ActivityName}-${LogContextId}] ReclaimHashButtonWidth: Correcting the width of the Hash Text button"$, Colors.Blue)
+	btnHashMenu.Width = btnHashMenu.Width + btnLockdown.Width
+	
+	LogColor($"[${ActivityName}-${LogContextId}] ReclaimHashButtonWidth: Sub return"$, Colors.Blue)
 End Sub
 
 Private Sub Activity_KeyPress(KeyCode As Int) As Boolean
@@ -2513,7 +2565,7 @@ Sub Activity_Pause(UserClosed As Boolean)
 	'So that's why the Admin Key field is hidden *After* saving the ViewState
 	'and updating the Activity lifecycle tracking value
 	'
-	'It's the only way that we get enough time to save everythin before the
+	'It's the only way that we get enough time to save everything before the
 	'Activity gets paused, *stopped*, destroyed, started, created & resumed
 	'
 	'Note: Yes, in Basic4Android Activities are started first then created...
@@ -2568,7 +2620,7 @@ Sub Activity_Pause(UserClosed As Boolean)
 	'
 	'Show the decoy Admin key field during application pauses
 	'
-	'It's used for hiding the Admin key field with explanation abouy
+	'It's used for hiding the Admin key field with explanation about
 	'why it's hidden, so that users know that it's not a bug
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Pause: Set the decoy Admin Key field visibility to Visible"$, Colors.Blue)
 	edtDecoyKey.Visible = True
@@ -2834,9 +2886,9 @@ Private Sub mnuDirectUnblock_Click
 				DirectUnblockInfoText.Append("16 bytes (32 characters)")
 			DirectUnblockInfoText.Pop 'Pop RelativeSize node
 		DirectUnblockInfoText.Append(CRLF&CRLF&"FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF"&CRLF&CRLF)
-		DirectUnblockInfoText.Append("The direct unblock process will try unblocking your Primary PIN code (User PIN) to ")
+		DirectUnblockInfoText.Append("The direct unblock process will try unblocking your PIN code to ")
 			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("202608")
+				DirectUnblockInfoText.Append("a new PIN that you will choose")
 			DirectUnblockInfoText.Pop 'Pop Bold node
 		DirectUnblockInfoText.Append("."&CRLF&CRLF)
 		DirectUnblockInfoText.Append("The Admin key that will be used is the one currently written in the Admin Key field.")
@@ -3039,53 +3091,48 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'This Timer will automatically run in 200ms
 	ActivityTimer_AllowClickingActivityMenuItems.Enabled = True
 	
-	DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-	
-	If IsSuccessful Then
-		'
-		'Now we tell the user about the successful PIN unblock operation,
-		'and what their new PIN code is (it will always be set to 202608 for now)
-		'
-		ToastMessageShow("New PIN successfully set to:"&CRLF&"202608", Constants.TOAST_DURATION_LONG)
+	If IsSuccessful == False Then
 		
-		DirectUnblockInfoText.Append("Smartcard User PIN unblocked successfully!"&CRLF&CRLF&"Your new User PIN is now:"&CRLF)
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("202608")
-			DirectUnblockInfoText.Pop 'Pop the Bold node
-		DirectUnblockInfoText.Append($"
-
-You may change it again later at your convenience using e.g. a desktop smartcard utility.
-
-I did not implement a full user interface to choose your own new User PIN yet.
-This will surely be implemented in a future application update"$&".")
-		DirectUnblockInfoText.PopAll
+		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
 		
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
-		
-	Else
 		DirectUnblockInfoText.Append(ErrorIfAny)
 		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
+		'This allows keeping the screen on until the user
+		'dismisses the dialog window
+		Wait For Msgbox_Result(Result As Int)
+		
+		Return
+		
 	End If
-	
-	'This allows keeping the screen on until the user
-	'dismisses the dialog window
-	Wait For Msgbox_Result(Result As Int)
 	
 	'--------------------------------------------------------------------------------
 	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
 	joActivity.RunMethod("jClearKeepScreenOn", Null)
 	
-	'We don't stop the Smartcard service this way at this time
-	'StopService(Smartcard)
+	'--------------------------------------------------------------------------------
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Must hide the Admin Key field before launching another Activity"$, Colors.Blue)
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Hide the Admin Key field to avoid having it potentially leak visually for a few milliseconds on Activity resume..."$, Colors.Blue)
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: (Launching another Activity causes this one to get paused, so we have to this before launching another one)"$, Colors.Blue)
+	chkHideAdminKey.Checked = True
+	
+	'When you start another Activity, this one's Activity_Pause
+	'automatically gets fired and handles the rest for you
+	'
+	'You don't have anything else in particular to do now
+	
+	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Launching the Direct Unblock module Activity"$, Colors.Blue)
+	StartActivity(DirectUnblock)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
 
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
 	
+	'----- e.g. Gemalto IDPrime 830, IDPrime 930, eToken 5300 & eToken 5110+
+	'
 	'                                              CLA (00 = ISO-7816)
 	'                                              |  Command SELECT FILE (INS=A4)
 	'                                              |  |  Type APPLET (P1=04 & P2=00)
@@ -3094,6 +3141,12 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'                                              |  |  |     |  Data / Applet ID
 	'                                              |  |  |     |  |
 	Dim SELECT_GEMALTO_PKI_APPLET_ID  As String = "00 A4 04 00 0B A0 00 00 00 18 80 00 00 00 06 62" 'No Le set
+	
+	'----- e.g. HID Crescendo C1150 & similar cards from HID Global
+	'
+	'                                              CLA (00 = ISO-7816)
+	'                                              |  Command SELECT FILE (INS=A4)
+	'                                              |  |  Type APPLET (P1=04 & P2=00)
 	'                                              |  |  |
 	'                                              |  |  |     Length of data / Applet ID (Lc=07)
 	'                                              |  |  |     |  Data / Applet ID
@@ -3105,53 +3158,16 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'The Gemalto IDPrime 930 v2 T=0 doesn't have a known
 	'Card Manager Applet ID, or it's a different one than
 	'the usual "A0 00 00 00 03 00 00" for a PKI smartcard
-	'
-	'So this would just cause an APDU error status to be
-	'thrown by the smartcard, and because I don't even
-	'actually use the return of the GET_DATA APDU commands
-	'there's simply no need to even do these commands
-	'
-	'That's why the commands are commented out now,
-	'the ones related to the Card Manager Applet
 	'-------------------------------------------------------
 	
-	'Variable for keeping track of which PKI Applet ID was the correct one
-	'So that we can logout after the PIN unblock sequence
-	Dim LAST_APPLET_ID_SELECT_APDU As String = Null
+	'For initializing the Direct Unblock Activity
+	Dim Algorithm, AdminKey                As String
+	Dim SelectAppletAPDU, CardType         As String
+	Dim CardMinPINLength, CardMaxPINLength As Int
+	Dim	CardATR, CardProtocol              As String
 	
-	'-----                                         CLA (80 = Proprietary / Management)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2
-	'                                              |  |  |  |
-	Dim GET_CHALLENGE_GENERIC         As String = "80 84 00 00"
-	
-	'-----                                         CLA (80 = Proprietary / Management, 00 = ISO-7816)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2 (31 = Key ID, Gemalto)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTHENTICATE_GEMALTO As String = "00 82 00 31"
-	'                                              |  |
-	'                                              |  |  P1 P2 (11 = User PIN, Gemalto)
-	'                                              |  |  |  |
-	Dim SET_REFERENCE_DATA_GEMALTO    As String = "80 2C 90 11"
-	'                                              |  |
-	'                                              |  |  P1 (FF = Logout)
-	'                                              |  |  |  P2 (31 = Key ID, Gemalto)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTH_LOGOUT_GEMALTO  As String = "00 82 FF 31"
-	
-	'-----                                         CLA (80 = Proprietary / Management)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2 (01 = Key ID, ActivID)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTHENTICATE_ACTIVID As String = "80 82 00 01"
-	'                                              |  |
-	'                                              |  |  P1 P2 (02 00 = User PIN, ActivID)
-	'                                              |  |  |  |
-	Dim SET_REFERENCE_DATA_ACTIVID    As String = "80 2C 02 00"
+	Algorithm = DetectedAlgorithm
+	AdminKey  = SanitizedAdminKey
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -3184,7 +3200,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 		If IsSucessful Then
 			
 			'Save this PKI Applet ID selection APDU as the one that worked
-			LAST_APPLET_ID_SELECT_APDU = LastSentAPDU
+			SelectAppletAPDU = LastSentAPDU
 			
 			'If yes no need to try selecting any other ones
 			Exit 'Exits for For Each loop
@@ -3216,271 +3232,95 @@ The smartcard could not find the PKI applets we searched for"$&".")
 		
 	End If
 	
-	'--------------------------------------------------------------------------------
-	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = GET_CHALLENGE_GENERIC & " 08" 'Request a challenge code of 8 bytes (0x08 bytes)
+	If SelectAppletAPDU == SELECT_GEMALTO_PKI_APPLET_ID Then
+		CardType = "Gemalto"
 		
-	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = GET_CHALLENGE_GENERIC & " 10" 'Request a challenge code of 16 bytes (0x10 bytes)
+		'Default IDPrime 930 PIN policy
+		CardMinPINLength = 4
+		CardMaxPINLength = 16
+		
+	Else If SelectAppletAPDU == SELECT_ACTIVID_PKI_APPLET_ID Then
+		CardType = "ActivID"
+		
+		'Default Crescendo C1150 PIN policy
+		CardMinPINLength = 4
+		CardMaxPINLength = 14
 		
 	End If
 	
+	'--------------------------------------------------------------------------------
+	'Get the smartcard's ATR
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
+		Array As Object() _
 	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_ATR, CallerBundle)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
 		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to request a ${DetectedAlgorithm} challenge code!
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's ATR!
 
-[Sent APDU]
-${LastSentAPDU}
+Check if the PKI smartcard is still plugged-in the smartcard reader.
 
 [Received]
-${ResponseBundle(0)}"$)
+${ResponseBundle(0)}"$&".")
 		Return
 		
 	End If
 	
-	'--------------------------------------------------------------------------------
-	
-	Dim SmartcardChallengeCode As String = Null
-	
-	'2DES / 3DES
-	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
-		
-	'AES-128 / AES-256
-	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 32) '32 chars = 16 bytes
-		
-	End If
-	
-	Dim SmartcardResponseCode As String
-	
-	Try
-		If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-		Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-			SmartcardResponseCode = Cryptography.TripleDesEncrypt(SmartcardChallengeCode, SanitizedAdminKey)
-			
-		Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-		Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-			SmartcardResponseCode = Cryptography.AesEncrypt(SmartcardChallengeCode, SanitizedAdminKey)
-			
-		End If
-	Catch
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
-
-[Algorithm]
-${DetectedAlgorithm} / ECB / NoPadding
-
-[Challenge]
-${SmartcardChallengeCode}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End Try
+	CardATR = ResponseBundle(0)
 	
 	'--------------------------------------------------------------------------------
-	'Clear the last-sent APDU just incase no PKI applet ID matches
-	LastSentAPDU = Null
+	'Get the smartcard's communication protocol
 	
-	If LAST_APPLET_ID_SELECT_APDU == SELECT_GEMALTO_PKI_APPLET_ID Then
-		'Specific to Gemalto PKI smartcards
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_GEMALTO
-		
-	Else If LAST_APPLET_ID_SELECT_APDU == SELECT_ACTIVID_PKI_APPLET_ID Then
-		'Specific to ActivID PKI smartcards
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_ACTIVID
-		
-	End If
-	
-	'2DES / 3DES (data length 0x08)
-	If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-	Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = LastSentAPDU & " 08 " & SmartcardResponseCode
-		
-	'AES-128 / AES-256 (data length 0x10)
-	Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-	Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = LastSentAPDU & " 10 " & SmartcardResponseCode
-		
-	End If
-	
-	If LAST_APPLET_ID_SELECT_APDU == SELECT_ACTIVID_PKI_APPLET_ID Then
-		'Specific to ActivID PKI smartcards
-		LastSentAPDU = LastSentAPDU & " 00" 'Le is set to 00 for ActivID PKI smartcards
-		
-	End If
-	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE request APDU
-		) _
+		Array As Object() _
 	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_PROTOCOL, CallerBundle)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
 		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's communication protocol!
 
-[Algorithm]
-${DetectedAlgorithm} / ECB / NoPadding
-
-[Challenge]
-${SmartcardChallengeCode}
-
-[Response]
-${SmartcardResponseCode}
-
-[Sent APDU]
-${LastSentAPDU}
+Check if the PKI smartcard is still plugged-in the smartcard reader.
 
 [Received]
-${ResponseBundle(0)}"$)
+${ResponseBundle(0)}"$&".")
 		Return
 		
 	End If
 	
-	'--------------------------------------------------------------------------------
-	'Clear the last-sent APDU just incase no PKI applet ID matches
-	LastSentAPDU = Null
-	
-	' - Many smartcards have a minimum PIN requirement of 6 characters
-	' - Some smartcards also have a PIN policy that only allows digits
-	' - PKI smartcards should allow up to 16 and even 64 characters,
-	'   but it's not guaranteed that it's what the card owner actually allows
-	'
-	' - As a safe general default, we reset the PIN to "202608"
-	'   I chose "202608" because some smartcards don't allow repeating digits,
-	'   so in such cases setting a new PIN such as "123456" would fail
-	'
-	' - "202608" is "32 30 32 36 30 38" in Hex bytes
-	'
-	If LAST_APPLET_ID_SELECT_APDU == SELECT_GEMALTO_PKI_APPLET_ID Then
-		'
-		'Specific to Gemalto PKI smartcards
-		'
-		'Note: Gemalto PKI smartcards expect you to give a new
-		'      PIN Try Count for the PIN you want to unblock,
-		'      you can choose any from 1 to 15 (0x01 to 0x0F)
-		'
-		'Note: Gemalto PKI smartcards don't need any padding
-		'      for the new PIN, even if it's smaller than 8 bytes
-		'
-		'                                             Lc (Length: New PIN Try Count + New PIN, 7 bytes)
-		'                                             |  New PIN Try Count (3 tries, 1 byte)
-		'                                             |  |  New PIN (202608 in ASCII Hex, 6 bytes)
-		'                                             |  |  |
-		LastSentAPDU = SET_REFERENCE_DATA_GEMALTO & " 07 03 32 30 32 36 30 38" 'No Le is set
-		
-	Else If LAST_APPLET_ID_SELECT_APDU == SELECT_ACTIVID_PKI_APPLET_ID Then
-		'
-		'Specific to ActivID PKI smartcards
-		'
-		'Note: the new PIN data length must be atleast 8 bytes,
-		'      if the PIN is shorter then you must pad it with 0xFF bytes
-		'      until it reaches 8 bytes (must be atleast 8 bytes or more)
-		'
-		'                                             Lc (Length: New PIN + padding, 8 bytes)
-		'                                             |  New PIN (202608 in ASCII Hex, 6 bytes)
-		'                                             |  |                 Padding (2 bytes)
-		'                                             |  |                 |     Le is set to 00
-		'                                             |  |                 |     |
-		LastSentAPDU = SET_REFERENCE_DATA_ACTIVID & " 08 32 30 32 36 30 38 FF FF 00"
-		
-	End If
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _ 'Send SET REFERENCE DATA APDU for Primary User PIN
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with a new PIN value of 202608!
-
-[Sent APDU]
-${LastSentAPDU}
-
-[Received]
-${ResponseBundle(0)}"$)
-		Return
-		
-	End If
+	CardProtocol = ResponseBundle(0)
 	
 	'--------------------------------------------------------------------------------
-	'At this point the job is done, the rest is just informal APDU requests that
-	'I saw being used by the Gemalto MiniDriver Manager
 	'
-	'They're probably not needed but just incase I want to fully replicate
-	'the exact behavior of Gemalto MiniDriver Manager, by doing exactly
-	'what it does with its smartcard PIN unblock APDU sequences
+	'Initializing the Direct Unblock Activity's settings
 	'
-	'And because it's now informal APDU requests, we just ignore any 'errors' here
-	'If any 'error' happens, it's simply just a common warning from the smartcard
-	'that you would happen anyway even if you used an established & popular CMS / SCMS
+	Shared_DetectedCardType     = CardType
+	Shared_DetectedCardProtocol = CardProtocol
 	
-	'--------------------------------------------------------------------------------
-	'Clear the last-sent APDU just incase no PKI applet ID matches
-	LastSentAPDU = Null
+	Shared_DetectedCardMinPINLength = CardMinPINLength
+	Shared_DetectedCardMaxPINLength = CardMaxPINLength
 	
-	'ActivID PKI smartcards only support logout using
-	'SELECT FILE request APDU (selecting the PKI applet again)
-	'to clear the authenticated state
-	If LAST_APPLET_ID_SELECT_APDU <> SELECT_ACTIVID_PKI_APPLET_ID Then
-		'
-		'Specific to Gemalto PKI smartcards
-		'
-		LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GEMALTO
-		
-		If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-		Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-			'2DES / 3DES (data length 0x08)
-			LastSentAPDU = LastSentAPDU & " 08 " & "00 00 00 00 00 00 00 00"
-			
-		Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-		Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-			'AES-128 / AES-256 (data length 0x10)
-			LastSentAPDU = LastSentAPDU & " 10 " & "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-			
-		End If
-		
-		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-			Array As Object( _
-				LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE (LOGOUT) request APDU
-			) _
-		)
-		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-		
-	End If
+	Shared_DetectedAlgorithm = Algorithm
+	Shared_DetectedAdminKey  = AdminKey
 	
-	'--------------------------------------------------------------------------------
-	
-	LastSentAPDU = LAST_APPLET_ID_SELECT_APDU 'Select last PKI Applet ID again (to 'logout' again / reset logged-in status)
-	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	Shared_DetectedSelectAppletAPDU = SelectAppletAPDU
+	Shared_DetectedCardATR          = CardATR
 	
 	'--------------------------------------------------------------------------------
 	
@@ -3971,13 +3811,42 @@ Private Sub edtAdminKey_TextChanged(Old As String, New As String)
 		'
 		'So this allows saving CPU cycles by avoiding useless duplicate calls
 		
-		'The Admin Key field text might be changed even if
-		'the Admin Key field is not focused, such as when
-		'generating a SHA256, SHA512 etc hash while another
-		'field is focused, so the TextChanged event should
-		'also update the Admin Key label too
-		LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
-		edtAdminKey_ShowSelectionInfo
+		'Detect whether the follow-up call to this TextChanged function
+		'is because we fixed the newlines in the Admin Key EditText field
+		Dim OldTextHasNewlines, NewTextHasNewlines As Boolean
+		OldTextHasNewlines = Old.Contains(Constants.TRUE_CRLF) Or Old.Contains(Constants.TRUE_LF)
+		NewTextHasNewlines = New.Contains(Constants.TRUE_CRLF) Or New.Contains(Constants.TRUE_LF)
+		
+		'If you call edtAdminKey_ShowSelectionInfo 2 times quickly,
+		'such as what would happen by removing the newlines then
+		'the TextChanged callback function fires again,
+		'then this might cause a little flicker effect in the UI
+		'
+		'(Because the edtAdminKey selection Timer will already run it again)
+		'
+		'We can avoid this by detecting whether this function call
+		'is one that was caused by the removal of newlines in
+		'the Admin Key EditText field
+		LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Checking if this function call is because we removed newlines from the Admin Key field in a prior function call..."$, Colors.Blue)
+		If OldTextHasNewlines And Not(NewTextHasNewlines) Then
+			'Newlines are present in the old text but not the new one,
+			'that means this function call is because of the newlines removal
+			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: This function call is because we removed newlines from the Admin Key field in a prior function call"$, Colors.Magenta)
+			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: We don't explicitly run edtAdminKey_ShowSelectionInfo again to avoid visual UI selection label flicker"$, Colors.Magenta)
+			
+		Else
+			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: This function call is not because of newlines removal from a prior function call"$, Colors.Blue)
+			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: So we can run the edtAdminKey_ShowSelectionInfo function again without visual UI selection label flicker"$, Colors.Blue)
+			
+			'The Admin Key field text might be changed even if
+			'the Admin Key field is not focused, such as when
+			'generating a SHA256, SHA512 etc hash while another
+			'field is focused, so the TextChanged event should
+			'also update the Admin Key label too
+			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
+			edtAdminKey_ShowSelectionInfo
+			
+		End If
 		
 	End If
 	
@@ -4667,7 +4536,7 @@ Private Sub btnLockdown_Click
 	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: Sub entry"$, Colors.Blue)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: This is a single-click, so display a short toast notification about how to use this button"$, Colors.Blue)
-	ToastMessageShow("Make Admin key unrevealable by long-clicking this button", Constants.TOAST_DURATION_SHORT)
+	ToastMessageShow("Make Admin key unrevealable by long-pressing this button", Constants.TOAST_DURATION_SHORT)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnLockdown_Click: Sub return"$, Colors.Blue)
 End Sub
