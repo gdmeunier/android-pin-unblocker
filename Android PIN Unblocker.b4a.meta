@@ -1,7 +1,7 @@
 ﻿ModuleBookmarks0=3094,2212,3305,2745,2452,3002,3047,49,3712,1686,2375,2385,1287
 ModuleBookmarks1=2013,2659,2418,878
 ModuleBookmarks10=
-ModuleBookmarks11=525,314,970,109
+ModuleBookmarks11=525,314,1013,109
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=DirectUnblock,SetUiElementsEnabledState,1979,0,Smartcard,Service_Message_NewThread,326,0,MyCryptography,AesEncrypt,380,0,MyCryptography,StringToASCIIHex,349,0,MyCryptography,TripleDesEncrypt,327,0,MyCryptography,NumberToStringHex,366,0,DirectUnblock,SendPinUnblockAPDUSequence,2254,0,DirectUnblock,btnProceedToUnblock_Click,2119,1,Main,mnuDirectUnblock_Click,3052,1,Main,SendPinUnblockAPDUSequence,3149,6
+NavigationStack=MyCryptography,AesEncrypt,380,0,MyCryptography,StringToASCIIHex,349,0,MyCryptography,TripleDesEncrypt,327,0,MyCryptography,NumberToStringHex,366,0,DirectUnblock,SendPinUnblockAPDUSequence,2254,0,DirectUnblock,btnProceedToUnblock_Click,2072,3,Main,mnuDirectUnblock_Click,3023,2,Smartcard,Service_Message_NewThread,307,0,Main,SendPinUnblockAPDUSequence,3149,6,Smartcard,Application_Error,969,0
 SelectedBuild=0
 VisibleModules=1,11,5

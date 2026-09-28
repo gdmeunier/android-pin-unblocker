@@ -947,11 +947,54 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 #End If
 
 #If Java
+import java.io.StringWriter;
+import java.io.PrintWriter;
 public void jObtainSmartcardReader() throws Exception
 {
 	if ( !mReader.isOpened() )
 	{
-		mReader.open(mDevice);
+		try
+		{
+			mReader.open(mDevice);
+		}
+		catch (Exception e)
+		{
+			// Catch the last exception as the first step
+			//
+			StringWriter stackTrace = new StringWriter();
+			e.printStackTrace(new PrintWriter(stackTrace));
+			
+			
+			/* Call the mReader.close() method just incase
+			 * This way we make fully sure that the next
+			 * call to mReader.isOpened() will return false
+			 */
+			try
+			{
+				mReader.close();
+			}
+			catch (Exception e2)
+			{
+				/* Nothing to do here */
+			}
+			
+			/* Clear the current connected device handle
+			 *
+			 * This way the next jObtainUsbDevice call will
+			 * re-acquire a new USB-CCID device
+			 */
+			mDevice = null;
+			
+			iSlotNum = -1;
+			atr = null;
+			
+			iActualState   = Reader.CARD_UNKNOWN;
+			activeProtocol = Reader.PROTOCOL_UNDEFINED;
+			
+			// Re-throw the last exception as the last step
+			//
+			throw new Exception("Smartcard reader failed to connect:\r\n" + stackTrace.toString());
+		}
 		
 		if ( mReader.getNumSlots() > 0 )
 		{

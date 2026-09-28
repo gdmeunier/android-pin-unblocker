@@ -2054,7 +2054,7 @@ Private Sub btnProceedToUnblock_Click
 		DirectUnblockInfoText.PopAll
 		
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: The device does not support USB-OTG, displaying an operation abort message"$, Colors.Magenta)
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Close", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 		Wait For Msgbox_Result(Result As Int)
 		
@@ -2076,7 +2076,7 @@ Private Sub btnProceedToUnblock_Click
 		DirectUnblockInfoText.PopAll
 		
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: displaying the operation abort message"$, Colors.Magenta)
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Close", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 		Wait For Msgbox_Result(Result As Int)
 		

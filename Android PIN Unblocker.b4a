@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 114
-	#VersionName: 5.4.10
+	#VersionCode: 115
+	#VersionName: 5.4.11
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2834,7 +2834,7 @@ Private Sub mnuDirectUnblock_Click
 			
 		Else
 			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device does not support USB-OTG, displaying an operation abort message"$, Colors.Magenta)
-			Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+			Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Close", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 			
 		End If
 		Wait For Msgbox_Result(Result As Int)
