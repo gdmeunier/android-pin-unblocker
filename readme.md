@@ -20,6 +20,12 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 **Android PIN Unblocker** has a very simple set of features, it cans generate the **Response code**, get the **Request code** from a QR code as well as hashing text using **SHA-256** or **SHA-512**.
 
+> [!TIP]
+> **Android PIN Unblocker** now supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate unblock codes for input on a computer, but you can also directly process the PIN unblock **on your phone**.
+> 
+> Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
+> You can either connect over *USB-OTG* a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
+
 <div style="page-break-after: always;"></div>
 
 ## Generate the Unblock code
