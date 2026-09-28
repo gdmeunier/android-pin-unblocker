@@ -778,7 +778,14 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		{
 			UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 			
-			if ( device.getDeviceName().equals(mDevice.getDeviceName()) )
+			/* Added a "mDevice == null" check here incasse
+			 * the device handle might already be null,
+			 * to avoid any potential crash when unplugging
+			 * the smartcard reader / token while the app
+			 * is running and still in the Direct Unblock
+			 * Activity dialog
+			 */
+			if ( mDevice == null || device.getDeviceName().equals(mDevice.getDeviceName()) )
 			{
 				try
 				{
