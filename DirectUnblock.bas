@@ -648,26 +648,26 @@ Sub Process_Globals
 	' - "Select PIN: (Gemalto) - T=0"
 	' - "Select PIN: (ActivID) - T=1"
 	'
-	Private DetectedCardType     As String = "Unknown" 'Gemalto, ActivID [...]
-	Private DetectedCardProtocol As String = "T=?"     'T=0, T=1, T=CL [...]
+	Private DetectedCardType     As String 'No default value ("Gemalto", "ActivID")
+	Private DetectedCardProtocol As String 'No default value ("T=0", "T=1", "T=CL")
 	
 	'Needed because the New PIN label is like:
 	' - "New PIN: (6 chars) - Min: 4 | Max: 16"
 	' - "New PIN: (6 chars) - Min: 4 | Max: 14"
 	'
-	Private DetectedCardMinPINLength As Int = 0
-	Private DetectedCardMaxPINLength As Int = 0
+	Private DetectedCardMinPINLength As Int 'No default value
+	Private DetectedCardMaxPINLength As Int 'No default value
 	
-	Private DetectedAlgorithm As String = Cryptography.ALGORITHM_UNKNOWN
-	Private DetectedAdminKey  As String = ""
+	Private DetectedAlgorithm As String 'No default value
+	Private DetectedAdminKey  As String 'No default value
 	
 	'Needed on some PKI smartcards to logout
-	Private DetectedSelectAppletAPDU As String = ""
+	Private DetectedSelectAppletAPDU As String 'No default value
 	
 	'Card ATR helps detect if the user switches smartcards without
 	'reloading the Activity, which is required before using a different
 	'PKI smartcard for the next PIN unblock process
-	Private DetectedCardATR As String = ""
+	Private DetectedCardATR As String 'No default value
 	
 	'
 	'-----

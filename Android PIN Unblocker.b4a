@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 118
-	#VersionName: 5.4.14
+	#VersionCode: 119
+	#VersionName: 5.4.15
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1049,7 +1049,7 @@ Sub Process_Globals
 	Private DirectUnblockThread As Thread
 	
 	Private DirectUnblockInProgress      As Boolean = False
-	Private DirectUnblockLastDialogCount As Int = 0
+	Private DirectUnblockLastDialogCount As Int     = 0
 	
 	'Because we want to add a delay before being able to click
 	'on the Activity TitleBar's USB & About buttons / menu items,
@@ -1068,26 +1068,26 @@ Sub Process_Globals
 	' - "Select PIN: (Gemalto) - T=0"
 	' - "Select PIN: (ActivID) - T=1"
 	'
-	Public Shared_DetectedCardType     As String 'No default value ("Gemalto", "ActivID")
-	Public Shared_DetectedCardProtocol As String 'No default value ("T=0", "T=1", "T=CL")
+	Public Shared_DetectedCardType     As String = "Unknown" 'Gemalto, ActivID [...]
+	Public Shared_DetectedCardProtocol As String = "T=?"     'T=0, T=1, T=CL [...]
 	
 	'Needed because the New PIN label is like:
 	' - "New PIN: (6 chars) - Min: 4 | Max: 16"
 	' - "New PIN: (6 chars) - Min: 4 | Max: 14"
 	'
-	Public Shared_DetectedCardMinPINLength As Int 'No default value
-	Public Shared_DetectedCardMaxPINLength As Int 'No default value
+	Public Shared_DetectedCardMinPINLength As Int = 0
+	Public Shared_DetectedCardMaxPINLength As Int = 0
 	
-	Public Shared_DetectedAlgorithm As String 'No default value
-	Public Shared_DetectedAdminKey  As String 'No default value
+	Public Shared_DetectedAlgorithm As String = Cryptography.ALGORITHM_UNKNOWN
+	Public Shared_DetectedAdminKey  As String = ""
 	
 	'Needed on some PKI smartcards to logout
-	Public Shared_DetectedSelectAppletAPDU As String 'No default value
+	Public Shared_DetectedSelectAppletAPDU As String = ""
 	
 	'Card ATR helps detect if the user switches smartcards without
 	'reloading the Activity, which is required before using a different
 	'PKI smartcard for the next PIN unblock process
-	Public Shared_DetectedCardATR As String 'No default value
+	Public Shared_DetectedCardATR As String = ""
 	
 	'
 	'-----
