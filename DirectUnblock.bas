@@ -2063,12 +2063,6 @@ Private Sub btnProceedToUnblock_Click
 		
 	End If
 	
-	'Now there's an active Direct Unblock operation in progress
-	DirectUnblockInProgress = True
-	
-	'Disable all this Activity's UI elements
-	SetUiElementsEnabledState(False)
-	
 	Dim UserProvidedNewPIN       As String = edtNewPIN.Text
 	Dim UserSelectedPinID        As Int    = ViewState_LastSelectedPIN
 	Dim UserProvidedNewPINLength As Int    = UserProvidedNewPIN.Length
@@ -2090,6 +2084,12 @@ Private Sub btnProceedToUnblock_Click
 		Return
 		
 	End If
+	
+	'Now there's an active Direct Unblock operation in progress
+	DirectUnblockInProgress = True
+	
+	'Disable all this Activity's UI elements
+	SetUiElementsEnabledState(False)
 	
 	'--------------------------------------------------------------------------------
 	'Set the Activity to always keep the screen on during the process
@@ -2128,6 +2128,9 @@ Private Sub btnProceedToUnblock_Click
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Requesting a JVM garbage collection to discard the sensitive variable contents as soon as possible"$, Colors.Blue)
 	Security.TriggerJvmGarbageCollection
 	
+	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
+	joActivity.RunMethod("jClearKeepScreenOn", Null)
+	
 	DirectUnblockInfoText = btnProceedToUnblock_GetDialogHeader(DeviceHasUsbOtg)
 	
 	If IsSuccessful Then
@@ -2139,7 +2142,7 @@ Private Sub btnProceedToUnblock_Click
 		
 		DirectUnblockInfoText.Append($"Smartcard ${GetSelectedPINAsName(UserSelectedPinID)} unblocked successfully!
 
-Your new ${GetSelectedPINAsName(UserSelectedPinID)} is now "$)
+Your new ${GetSelectedPINAsName(UserSelectedPinID)} code is now "$)
 		DirectUnblockInfoText.Bold
 		DirectUnblockInfoText.Append("the new PIN you provided")
 		DirectUnblockInfoText.Pop 'Pop the Bold node
@@ -2156,13 +2159,7 @@ Your new ${GetSelectedPINAsName(UserSelectedPinID)} is now "$)
 		
 	End If
 	
-	'This allows keeping the screen on until the user
-	'dismisses the dialog window
 	Wait For Msgbox_Result(Result As Int)
-	
-	'--------------------------------------------------------------------------------
-	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
-	joActivity.RunMethod("jClearKeepScreenOn", Null)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
@@ -2211,43 +2208,6 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	Dim LastSentAPDU   As String
 	
 	'--------------------------------------------------------------------------------
-	'
-	'Try selecting the last PKI Applet ID
-	'
-	LastSentAPDU = SelectAppletAPDU
-	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	'
-	'Check whether both applet IDs were not found
-	'If no PKI applet was found then we can't proceed further
-	'
-	If IsSucessful == False Then
-		
-		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
-
-[Sent APDU]
-${CardType} Applet ID:
-${LastSentAPDU}
-
-[Received]
-The smartcard could not find the PKI applet we searched for"$&".")
-		Return
-		
-	End If
-	
-	'--------------------------------------------------------------------------------
 	'Check if we have the same smartcard model still plugged-in (check ATR)
 	'Otherwise the user has to go back to the Main Activity to reload this one
 	
@@ -2290,6 +2250,43 @@ ${CardATR}
 
 [Current card ATR]
 ${ResponseBundle(0)}"$&".")
+		Return
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	'
+	'Try selecting the last PKI Applet ID
+	'
+	LastSentAPDU = SelectAppletAPDU
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object( _
+			LastSentAPDU _
+		) _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	'
+	'Check whether both applet IDs were not found
+	'If no PKI applet was found then we can't proceed further
+	'
+	If IsSucessful == False Then
+		
+		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
+
+[Sent APDU]
+${CardType} Applet ID:
+${LastSentAPDU}
+
+[Received]
+The smartcard could not find the PKI applet we searched for"$&".")
 		Return
 		
 	End If
@@ -2493,7 +2490,7 @@ ${ResponseBundle(0)}"$)
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 		Array As Object( _
-			LastSentAPDU _ 'Send SET REFERENCE DATA APDU for Primary User PIN
+			LastSentAPDU _ 'Send SET REFERENCE DATA APDU for the selected PIN
 		) _
 	)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)

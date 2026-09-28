@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 113
-	#VersionName: 5.4.9
+	#VersionCode: 114
+	#VersionName: 5.4.10
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2979,7 +2979,7 @@ Otherwise do not proceed further and click on Cancel"$&".")
 		'Positive = "Take the Risk"
 		If Result <> DialogResponse.POSITIVE Then
 			ToastMessageShow($"Direct unblock canceled:
-You decided cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
+You decided to cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 			
 			ViewState_mnuDirectUnblock_Visible = False
 			DirectUnblockLastDialogCount = 0
@@ -3091,6 +3091,9 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'This Timer will automatically run in 200ms
 	ActivityTimer_AllowClickingActivityMenuItems.Enabled = True
 	
+	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
+	joActivity.RunMethod("jClearKeepScreenOn", Null)
+	
 	If IsSuccessful == False Then
 		
 		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
@@ -3107,10 +3110,6 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 		Return
 		
 	End If
-	
-	'--------------------------------------------------------------------------------
-	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
-	joActivity.RunMethod("jClearKeepScreenOn", Null)
 	
 	'--------------------------------------------------------------------------------
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Must hide the Admin Key field before launching another Activity"$, Colors.Blue)
@@ -3162,9 +3161,9 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	
 	'For initializing the Direct Unblock Activity
 	Dim Algorithm, AdminKey                As String
+	Dim	CardATR, CardProtocol              As String
 	Dim SelectAppletAPDU, CardType         As String
 	Dim CardMinPINLength, CardMaxPINLength As Int
-	Dim	CardATR, CardProtocol              As String
 	
 	Algorithm = DetectedAlgorithm
 	AdminKey  = SanitizedAdminKey
@@ -3175,6 +3174,64 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'
 	Dim CallerBundle() As Object
 	Dim LastSentAPDU   As String
+	
+	'--------------------------------------------------------------------------------
+	'Get the smartcard's ATR
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object() _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_ATR, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's ATR!
+
+Check if the PKI smartcard is still plugged-in the smartcard reader.
+
+[Received]
+${ResponseBundle(0)}"$&".")
+		Return
+		
+	End If
+	
+	CardATR = ResponseBundle(0)
+	
+	'--------------------------------------------------------------------------------
+	'Get the smartcard's communication protocol
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object() _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_PROTOCOL, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's communication protocol!
+
+Check if the PKI smartcard is still plugged-in the smartcard reader.
+
+[Received]
+${ResponseBundle(0)}"$&".")
+		Return
+		
+	End If
+	
+	CardProtocol = ResponseBundle(0)
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -3247,64 +3304,6 @@ The smartcard could not find the PKI applets we searched for"$&".")
 		CardMaxPINLength = 14
 		
 	End If
-	
-	'--------------------------------------------------------------------------------
-	'Get the smartcard's ATR
-	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object() _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_ATR, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's ATR!
-
-Check if the PKI smartcard is still plugged-in the smartcard reader.
-
-[Received]
-${ResponseBundle(0)}"$&".")
-		Return
-		
-	End If
-	
-	CardATR = ResponseBundle(0)
-	
-	'--------------------------------------------------------------------------------
-	'Get the smartcard's communication protocol
-	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object() _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_PROTOCOL, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	
-	If IsSucessful == False Then
-		
-		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's communication protocol!
-
-Check if the PKI smartcard is still plugged-in the smartcard reader.
-
-[Received]
-${ResponseBundle(0)}"$&".")
-		Return
-		
-	End If
-	
-	CardProtocol = ResponseBundle(0)
 	
 	'--------------------------------------------------------------------------------
 	'
