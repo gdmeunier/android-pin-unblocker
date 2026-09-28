@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 116
-	#VersionName: 5.4.12
+	#VersionCode: 118
+	#VersionName: 5.4.14
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2876,22 +2876,26 @@ Private Sub mnuDirectUnblock_Click
 		DirectUnblockInfoText.Append(CRLF)
 			DirectUnblockInfoText.RelativeSize(0.9)
 				DirectUnblockInfoText.Append("8 bytes (16 characters)")
+				DirectUnblockInfoText.Append(CRLF&CRLF&"0000 0000 0000 0000"&CRLF&CRLF)
 			DirectUnblockInfoText.Pop 'Pop RelativeSize node
-		DirectUnblockInfoText.Append(CRLF&CRLF&"FFFF FFFF FFFF FFFF"&CRLF&CRLF)
 			DirectUnblockInfoText.Bold
 				DirectUnblockInfoText.Append("AES-128 or AES-256")
 			DirectUnblockInfoText.Pop 'Pop Bold node
 		DirectUnblockInfoText.Append(CRLF)
 			DirectUnblockInfoText.RelativeSize(0.9)
 				DirectUnblockInfoText.Append("16 bytes (32 characters)")
+				DirectUnblockInfoText.Append(CRLF&CRLF&"00000000 00000000 00000000 00000000"&CRLF&CRLF)
 			DirectUnblockInfoText.Pop 'Pop RelativeSize node
-		DirectUnblockInfoText.Append(CRLF&CRLF&"FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF"&CRLF&CRLF)
 		DirectUnblockInfoText.Append("The direct unblock process will try unblocking your PIN code to ")
 			DirectUnblockInfoText.Bold
 				DirectUnblockInfoText.Append("a new PIN that you will choose")
 			DirectUnblockInfoText.Pop 'Pop Bold node
 		DirectUnblockInfoText.Append("."&CRLF&CRLF)
-		DirectUnblockInfoText.Append("The Admin key that will be used is the one currently written in the Admin Key field.")
+		DirectUnblockInfoText.Append("The Admin key that will be used is ")
+			DirectUnblockInfoText.Bold
+				DirectUnblockInfoText.Append("the one currently written in the Admin Key field")
+			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Append(".")
 		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Proceed to Unblock", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
@@ -3197,7 +3201,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 Check if the PKI smartcard is still plugged-in the smartcard reader.
 
 [Received]
-${ResponseBundle(0)}"$&".")
+${ResponseBundle(0)}"$)
 		Return
 		
 	End If
@@ -3226,7 +3230,7 @@ ${ResponseBundle(0)}"$&".")
 Check if the PKI smartcard is still plugged-in the smartcard reader.
 
 [Received]
-${ResponseBundle(0)}"$&".")
+${ResponseBundle(0)}"$)
 		Return
 		
 	End If

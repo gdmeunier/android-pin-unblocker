@@ -48,6 +48,39 @@ private static final String TAG = "net.gdmeunier.pinunblocker";
 #End If
 
 '
+'Helper function to replace the acssmc library's patched mReader.isSupported() function
+'
+
+#If Java
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbConstants;
+public static boolean isCCIDCompliant(UsbDevice usbDevice)
+{
+	if ( usbDevice == null )
+	{
+		return false;
+	}
+	
+    if ( usbDevice.getDeviceClass() == UsbConstants.USB_CLASS_CSCID )
+	{
+        return true;
+    }
+	else if ( usbDevice.getDeviceClass() == UsbConstants.USB_CLASS_PER_INTERFACE )
+	{
+        for ( int i = 0; i < usbDevice.getInterfaceCount(); i++ )
+		{
+            if ( usbDevice.getInterface(i).getInterfaceClass() == UsbConstants.USB_CLASS_CSCID )
+			{
+                return true;
+            }
+        }
+    }
+	
+    return false;
+}
+#End If
+
+'
 'PC/SC APDU Exception objects
 '
 

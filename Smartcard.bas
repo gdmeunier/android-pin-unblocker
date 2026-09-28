@@ -123,28 +123,68 @@ public void jService_Create()
                 currState = Reader.CARD_UNKNOWN;
             }
 			
-            iActualState = currState; // 1 = insert card, 2 = a card is inserted
-			
-			/* Notify if necessary about smartcard insert to any
-			 * potentially running wait timer that needs it
-			 *
-			 * Make sure to verify exactly that the state is CARD_PRESENT,
-			 * so that we don't try to notify again when the card gets
-			 * powered on, then yet again when its protocol type is set
-			 *
-			 * Otherwise it would happen 4 times:
-			 * - CARD_PRESENT (2),
-			 * - CARD_POWERED (4),
-			 * - CARD_NEGOCIABLE (5),
-			 * - CARD_SPECIFIC (6)
+			/* Check which smartcard reader slot the change is for
+			 * incase we actually have a multi-slot smartcard reader
 			 */
-			if ( iActualState == Reader.CARD_PRESENT && waitLockSmartcardInsert != null )
+			if ( slotNum == iSlotNum || iSlotNum < 0 )
 			{
-	            synchronized ( waitLockSmartcardInsert )
+				/* If the slot number is not -1 then that means
+				 * it was already initialized prior,
+				 * so we should verify whether the state change
+				 * is actually about the slot number we're connected to
+				 *
+				 * Otherwise ignore the slot number's state change event
+				 * because it's not the one we're connected to
+				 *
+				 * However if the slot number is -1 (less than 0)
+				 * then that means we're not currently connected to
+				 * any specific smartcard reader slot,
+				 * so we can take state change events for any slot number
+				 */
+				if ( iSlotNum >= 0 )
 				{
-	                waitLockSmartcardInsert.notify();
+					/* Only update global state if there's already a valid slot number,
+					 * otherwise don't update it just yet, we will do it in the
+					 * synchronized code block instead, if a smartcard is present now
+					 */
+					iActualState = currState; // 1 = insert card, 2 = a card is inserted
+				}
+				
+				/* Notify if necessary about smartcard insert to any
+				 * potentially running wait timer that needs it
+				 *
+				 * Make sure to verify exactly that the state is CARD_PRESENT,
+				 * so that we don't try to notify again when the card gets
+				 * powered on, then yet again when its protocol type is set
+				 *
+				 * Otherwise it would happen 4 times:
+				 * - CARD_PRESENT (2),
+				 * - CARD_POWERED (4),
+				 * - CARD_NEGOCIABLE (5),
+				 * - CARD_SPECIFIC (6)
+				 */
+				if ( currState == Reader.CARD_PRESENT && waitLockSmartcardInsert != null )
+				{
+		            synchronized ( waitLockSmartcardInsert )
+					{
+						if ( iSlotNum < 0 )
+						{
+							/* If last slot number is -1 then notify
+							 * the code looking for a smartcard that
+							 * the correct slot where one as inserted
+							 * is now the "slotNum" one (write it to "iSlotNum")
+							 */
+							iSlotNum = slotNum;
+							
+							// Copy current state again just incase (in a synchronized code block)
+							iActualState = currState;
+						}
+						
+		                waitLockSmartcardInsert.notify();
+		            }
 	            }
-            }
+				
+			}
         }
     });
 	
@@ -426,36 +466,35 @@ public void jService_Destroy()
 {
 	try
 	{
-		try
-		{
-			mReader.close();
-		}
-		catch (Exception e)
-		{
-			/* Nothing to do here */
-		}
-		
-		mDevice = null;
-		cardReaderProxy = null;
-		
-		if ( detachReceiver != null )
-		{
-			try
-			{
-				unregisterReceiver(detachReceiver);
-			}
-			catch (IllegalArgumentException iae)
-			{
-				Log.i(TAG, "Android claims the receiver isn't registered", iae);
-			}
-			
-			detachReceiver = null;
-		}
+		mReader.close();
 	}
 	catch (Exception e)
 	{
 		/* Nothing to do here */
 	}
+	
+	if ( detachReceiver != null )
+	{
+		try
+		{
+			unregisterReceiver(detachReceiver);
+		}
+		catch (IllegalArgumentException iae)
+		{
+			Log.i(TAG, "Android claims the receiver isn't registered", iae);
+		}
+	}
+	
+	detachReceiver = null;
+	
+	mDevice         = null;
+	cardReaderProxy = null;
+	
+	iSlotNum = -1;
+	atr      = null;
+	
+	iActualState   = Reader.CARD_UNKNOWN;
+	activeProtocol = Reader.PROTOCOL_UNDEFINED;
 	
 	try
 	{
@@ -561,8 +600,8 @@ import com.acs.smartcard.ReaderException;
 
 #If Java
 private static final long USB_TIMEOUT       = 10 * 1000; // 10s
-private static final long SMARTCARD_TIMEOUT =  5 * 1000; // 5s
-private static final long CONFIRM_TIMEOUT   = 30 * 1000; // 30s
+private static final long CONFIRM_TIMEOUT   = 15 * 1000; // 15s
+private static final long SMARTCARD_TIMEOUT = 10 * 1000; // 10s
 
 private UsbManager mManager;
 private UsbDevice  mDevice;
@@ -606,7 +645,7 @@ private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.
 
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
-	if ( mDevice != null && mReader.isSupported(mDevice) )
+	if ( mDevice != null && mysmartcardreader.isCCIDCompliant(mDevice) )
 	{
 		// We already have a connected USB-CCID device
 		// No need to obtain it again
@@ -623,7 +662,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 	{
 		UsbDevice device = deviceIterator.next();
 		
-		if ( mReader.isSupported(device) )
+		if ( mysmartcardreader.isCCIDCompliant(device) )
 		{
 			mDevice = device;
 		}
@@ -661,7 +700,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 			{
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 				
-				if ( mReader.isSupported(device) )
+				if ( mysmartcardreader.isCCIDCompliant(device) )
 				{
 					mDevice = device;
 					
@@ -804,7 +843,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				mDevice = null;
 				
 				iSlotNum = -1;
-				atr = null;
+				atr      = null;
 				
 				iActualState   = Reader.CARD_UNKNOWN;
 				activeProtocol = Reader.PROTOCOL_UNDEFINED;
@@ -963,6 +1002,9 @@ public void jObtainSmartcardReader() throws Exception
 		try
 		{
 			mReader.open(mDevice);
+			
+			// Just incase for consistency
+			iSlotNum = -1;
 		}
 		catch (Exception e)
 		{
@@ -993,7 +1035,7 @@ public void jObtainSmartcardReader() throws Exception
 			mDevice = null;
 			
 			iSlotNum = -1;
-			atr = null;
+			atr      = null;
 			
 			iActualState   = Reader.CARD_UNKNOWN;
 			activeProtocol = Reader.PROTOCOL_UNDEFINED;
@@ -1001,11 +1043,6 @@ public void jObtainSmartcardReader() throws Exception
 			// Re-throw the last exception as the last step
 			//
 			throw new Exception("Smartcard reader failed to connect:\r\n" + stackTrace.toString());
-		}
-		
-		if ( mReader.getNumSlots() > 0 )
-		{
-			iSlotNum = 0;
 		}
 	}
 }
@@ -1033,7 +1070,21 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 	
 	notifyMgr.notify(1, builder.build());
 	
-	iActualState = mReader.getState(iSlotNum);
+	/* Check all card slots for any inserted smartcard
+	 * incase we actually have a multi-slot smartcard reader,
+	 * add if we find any inserted smartcard, then return
+	 * the state of the first slot found with a card inside
+	 */
+	for ( int i = 0; i < mReader.getNumSlots(); i++ )
+	{
+		iActualState = mReader.getState(i);
+		
+		if ( iActualState >= Reader.CARD_PRESENT )
+		{
+			iSlotNum = i;
+			break;
+		}
+	}
 	
 	if ( iActualState < Reader.CARD_PRESENT )
 	{
@@ -1081,7 +1132,33 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 				 */
 				while ( iActualState < Reader.CARD_PRESENT )
 				{
-					iActualState = mReader.getState(iSlotNum);
+					/* iSlotNum will always be -1 here unless something
+					 * worthy was found (smartcard inserted event),
+					 * in which case it will immediately be updated by
+					 * the onStateChanged callback of the acssmc library
+					 * to a proper slot number
+					 *
+					 * So if it's no longer -1 then directly skip the
+					 * for-loop that searches all the slots individually
+					 */
+					if ( iSlotNum < 0 )
+					{
+						/* Check all card slots for any inserted smartcard
+						 * incase we actually have a multi-slot smartcard reader,
+						 * add if we find any inserted smartcard, then return
+						 * the state of the first slot found with a card inside
+						 */
+						for ( int i = 0; i < mReader.getNumSlots(); i++ )
+						{
+							iActualState = mReader.getState(i);
+							
+							if ( iActualState >= Reader.CARD_PRESENT )
+							{
+								iSlotNum = i;
+								break;
+							}
+						}
+					}
 					
 					if ( sleepRounds >= maxSleepRounds || iActualState >= Reader.CARD_PRESENT )
 					{
@@ -1144,7 +1221,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 			throw new mysmartcardreader.AbortException("Smartcard failed to connect:\r\n" + stackTrace.toString());
 		}
 		
-		/* Now check if the smartcard was correct put in operation
+		/* Now check if the smartcard was correctly put in operation
 		 *
 		 * if the smartcard is still not in CARD_SPECIFIC state,
 		 * then there was a problem; the smartcard rejected all the

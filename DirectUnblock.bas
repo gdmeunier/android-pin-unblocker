@@ -648,26 +648,26 @@ Sub Process_Globals
 	' - "Select PIN: (Gemalto) - T=0"
 	' - "Select PIN: (ActivID) - T=1"
 	'
-	Private DetectedCardType     As String 'No default value ("Gemalto", "ActivID")
-	Private DetectedCardProtocol As String 'No default value ("T=0", "T=1", "T=CL")
+	Private DetectedCardType     As String = "Unknown" 'Gemalto, ActivID [...]
+	Private DetectedCardProtocol As String = "T=?"     'T=0, T=1, T=CL [...]
 	
 	'Needed because the New PIN label is like:
 	' - "New PIN: (6 chars) - Min: 4 | Max: 16"
 	' - "New PIN: (6 chars) - Min: 4 | Max: 14"
 	'
-	Private DetectedCardMinPINLength As Int 'No default value
-	Private DetectedCardMaxPINLength As Int 'No default value
+	Private DetectedCardMinPINLength As Int = 0
+	Private DetectedCardMaxPINLength As Int = 0
 	
-	Private DetectedAlgorithm As String 'No default value
-	Private DetectedAdminKey  As String 'No default value
+	Private DetectedAlgorithm As String = Cryptography.ALGORITHM_UNKNOWN
+	Private DetectedAdminKey  As String = ""
 	
 	'Needed on some PKI smartcards to logout
-	Private DetectedSelectAppletAPDU As String 'No default value
+	Private DetectedSelectAppletAPDU As String = ""
 	
 	'Card ATR helps detect if the user switches smartcards without
 	'reloading the Activity, which is required before using a different
 	'PKI smartcard for the next PIN unblock process
-	Private DetectedCardATR As String 'No default value
+	Private DetectedCardATR As String = ""
 	
 	'
 	'-----
@@ -2230,7 +2230,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 Cannot verify that the same PKI smartcard model is still plugged-in the smartcard reader.
 
 [Received]
-${ResponseBundle(0)}"$&".")
+${ResponseBundle(0)}"$)
 		Return
 		
 	End If
@@ -2249,7 +2249,7 @@ When you use a different smartcard model, you have to go back to the Main Activi
 ${CardATR}
 
 [Current card ATR]
-${ResponseBundle(0)}"$&".")
+${ResponseBundle(0)}"$)
 		Return
 		
 	End If
