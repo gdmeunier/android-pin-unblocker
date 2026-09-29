@@ -1,7 +1,7 @@
 ﻿ModuleBookmarks0=3098,2212,3309,2745,2452,3006,3051,49,3716,1686,2375,2385,1287,1034
 ModuleBookmarks1=2013,2659,2418,878,645
 ModuleBookmarks10=
-ModuleBookmarks11=564,354,1057,109
+ModuleBookmarks11=563,353,1056,109
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Main,SendPinUnblockAPDUSequence,3195,6,DirectUnblock,SendPinUnblockAPDUSequence,2485,0,MySmartcardReader,Initialize,72,0,Visual Designer,Main.bal,-100,1,Visual Designer,DirectUnblock.bal,-100,2,DirectUnblock,InitializeActivity,999,0,DirectUnblock,RestoreViewState,1535,0,DirectUnblock,Process_Globals,644,6,Smartcard,Application_Error,723,0,Main,Process_Globals,1006,0,Main,HardenActivityEditTexts,1754,0
+NavigationStack=Visual Designer,Main.bal,-100,1,Visual Designer,DirectUnblock.bal,-100,2,DirectUnblock,InitializeActivity,999,0,DirectUnblock,RestoreViewState,1535,0,DirectUnblock,Process_Globals,644,6,Smartcard,Application_Error,723,0,Main,Process_Globals,1006,0,Main,HardenActivityEditTexts,1754,0,MyCryptography,StringToASCIIHex,351,0,Smartcard,Service_Create,77,0
 SelectedBuild=0
 VisibleModules=1,11,8,5

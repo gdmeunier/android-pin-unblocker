@@ -183,7 +183,6 @@ public void jService_Create()
 		                waitLockSmartcardInsert.notify();
 		            }
 	            }
-				
 			}
         }
     });
@@ -1231,7 +1230,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		
 		if ( iActualState < Reader.CARD_SPECIFIC )
 		{
-			throw new mysmartcardreader.AbortException("Smartcard didn't accept any of the offered communication protocols RAW, T1, T0 & TX.");
+			throw new mysmartcardreader.AbortException("Smartcard didn't accept any of the offered communication protocols RAW, T1, T0.");
 		}
 	}
 }
