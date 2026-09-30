@@ -47,4 +47,16 @@ PostBuild/\[obsolete\]/*
 # Brackets have to be escaped
 Libraries/\[obsolete\]/*
 
+# Don't ignore the local acssmc library mirror
+# Because you know, manufacturers love removing
+# their old download links at a whim,
+# and if we don't backup these files,
+# they will become lost because nobody backed them up
+!Libraries/\[obsolete\]/\[obsolete\].sha256
+!Libraries/\[obsolete\]/acssmc-1.1.8-android12-20251125.zip
+
+# Ignore the obsolete screenshots
+# Brackets have to be escaped
+Screenshots/\[obsolete\]/*
+
 
