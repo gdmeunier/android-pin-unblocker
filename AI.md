@@ -77,11 +77,10 @@ For resetting the PIN of the card (entering the generated **Response value** com
 
 **Android PIN Unblocker** has a very simple set of features; it can compute the **Response value** (sometimes referred to as an unblock/unlock value in the context of vendor-documented PIN administration) with your own legally supplied **Admin/management key**, read the **Request/Challenge value** from a QR code, and generate hashes using **SHA-256** or **SHA-512**.
 
-> [!TIP]
-> **Android PIN Unblocker** now supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
-> 
-> Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
-> You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
+**Android PIN Unblocker** now also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
+
+Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
+You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
 
 <div style="page-break-after: always;"></div>
 
