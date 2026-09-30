@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 121
-	#VersionName: 5.5.0
+	#VersionCode: 122
+	#VersionName: 5.5.1
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -76,14 +76,14 @@ Version=12.5
 	' - 1.1.6 <-> 1.1.8
 	'
 	'Notes: - The .jar file extension is omitted.
-	'       - The file "acssmc-1.1.8-patched-experimental1.jar" should be in the
+	'       - The file "acssmc-1.1.8-patched-v2.jar" should be in the
 	'         Additional Libraries folder of Basic4Android
 	'
 	'The patched version removes the Vendor ID & Product ID checks
 	'that previously restricted the acssmc library to only work
 	'with ACS card readers, now it should work with any card reader
 	'
-	#AdditionalJar: acssmc-1.1.8-patched-experimental1
+	#AdditionalJar: acssmc-1.1.8-patched-v2
 	
 #End Region
 

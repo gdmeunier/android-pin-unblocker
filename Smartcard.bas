@@ -644,7 +644,7 @@ private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.
 
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
-	if ( mDevice != null && mysmartcardreader.isCCIDCompliant(mDevice) )
+	if ( mDevice != null && mReader.isSupported(mDevice) )
 	{
 		// We already have a connected USB-CCID device
 		// No need to obtain it again
@@ -661,7 +661,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 	{
 		UsbDevice device = deviceIterator.next();
 		
-		if ( mysmartcardreader.isCCIDCompliant(device) )
+		if ( mReader.isSupported(device) )
 		{
 			mDevice = device;
 		}
@@ -699,7 +699,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 			{
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 				
-				if ( mysmartcardreader.isCCIDCompliant(device) )
+				if ( mReader.isSupported(device) )
 				{
 					mDevice = device;
 					

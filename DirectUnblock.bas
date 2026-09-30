@@ -2196,10 +2196,9 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'                                              |  |  |  |  |  |           Le
 	'                                              |  |  |  |  |  |           |
 	Dim GET_CHALLENGE_GIDS            As String = "00 87 00 00 04 7C 02 81 00 00"
-	
-	'This one is used for reply verification
-	'Make sure to write it directly without spaces
-	Dim GET_CHALLENGE_CHECK_GIDS      As String = "7C0A81"
+	'                                              |  |  |
+	'This one is used for reply verification       |  |  |
+	Dim GET_CHALLENGE_CHECK_GIDS      As String = "7C 0A 81"
 	
 	'GIDS
 	'----                                          CLA (00 = ISO-7816)
@@ -2439,7 +2438,7 @@ ${LastSentAPDU}
 [Received]
 ${SmartcardReplyAPDU}"$
 		
-		If Not(SmartcardReplyAPDU.StartsWith(GET_CHALLENGE_CHECK_GIDS)) Then
+		If Not(SmartcardReplyAPDU.StartsWith(GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
 			CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"The received APDU reply does not start with a challenge type header that we could recognize."$))
 			Return
 			
@@ -2570,7 +2569,7 @@ ${LastException.Message}"$)
 		'                           ^^ ++ ++ ++ -- ** ** ** ** ** ** ** **
 		'
 		'ChallengeLength is our earlier variable that is still valid
-		LastSentAPDU.Replace("??", Cryptography.NumberToStringHex(3 + 1 + ChallengeLength))
+		LastSentAPDU = LastSentAPDU.Replace("??", Cryptography.NumberToStringHex(3 + 1 + ChallengeLength))
 		
 	End If
 	
