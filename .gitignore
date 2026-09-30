@@ -39,24 +39,15 @@ MyApkTool/*
 !MyApkTool/MyApkTool.7z.003
 !MyApkTool/MyApkTool.exe.sha256
 
-# Ignore the obsolete PostBuild tools
-# Brackets have to be escaped
-PostBuild/\[obsolete\]/*
-
-# Ignore the obsolete libraries
-# Brackets have to be escaped
-Libraries/\[obsolete\]/*
+# Ignore the Obsolete folder
+Obsolete/*
 
 # Don't ignore the local acssmc library mirror
 # Because you know, manufacturers love removing
 # their old download links at a whim,
 # and if we don't backup these files,
 # they will become lost because nobody backed them up
-!Libraries/\[obsolete\]/\[obsolete\].sha256
-!Libraries/\[obsolete\]/acssmc-1.1.8-android12-20251125.zip
-
-# Ignore the obsolete screenshots
-# Brackets have to be escaped
-Screenshots/\[obsolete\]/*
+!Obsolete/Libraries/Libraries.sha256
+!Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip
 
 

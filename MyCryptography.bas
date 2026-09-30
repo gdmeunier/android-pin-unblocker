@@ -341,8 +341,15 @@ public static String jNumberToStringHex(final int number)
 {
 	return Integer.toHexString(number);
 }
+
+// Don't give any "0x" prefix to this function
+public static int jStringHexToNumber(final String hexString)
+{
+	return Integer.parseInt(hexString, 16);
+}
 #End If
 
+'"1234" to "31323334"
 Public Sub StringToASCIIHex(Text As String) As String
 	
 	If Text == Null Then
@@ -357,6 +364,7 @@ Public Sub StringToASCIIHex(Text As String) As String
 	
 End Sub
 
+'15 to "0F"
 Public Sub NumberToStringHex(Number As Int) As String
 	
 	Dim StringHexNumber As String = joClass.RunMethod("jNumberToStringHex", Array(Number))
@@ -371,6 +379,14 @@ Public Sub NumberToStringHex(Number As Int) As String
 	End If
 	
 	Return StringHexNumber
+	
+End Sub
+
+'"0F" to 15
+'Don't give any "0x" prefix to this function
+Public Sub StringHexToNumber(HexString As String) As Int
+	
+	Return joClass.RunMethod("jStringHexToNumber", Array(HexString))
 	
 End Sub
 

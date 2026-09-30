@@ -205,6 +205,9 @@ The tested devices include both **T=0** and **T=1** smartcards and tokens:
 
 Most likely any similar product from these brands are supported.
 
+For generic products such as **GIDS** applets installed on a **Javacard** or similar *GIDS* smartcards, support for them has also been added to Android PIN Unblocker, albeit I cannot formally test its support because I don't myself have a *Javacard* with a GIDS applet yet.\
+However, the support of GIDS smartcard most likely works without errors, since there's no reason for it to fail from my thorough re-reads of the code.
+
 For the smartcard readers, all brands of smartcard readers are supported, using a specifically updated version of ACS's `acssmc` library (supports T0, T1 and TPDU card readers).
 
 <div style="page-break-after: always;"></div>

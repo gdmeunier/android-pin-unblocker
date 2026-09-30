@@ -2166,14 +2166,71 @@ End Sub
 
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)
 	
-	'-----                                         CLA (80 = Proprietary / Management)
+	'GIDS
+	'----                                          CLA (80 = Proprietary / Management)
+	'                                              |  Command (INS)
+	'                                              |  |
+	'                                              |  |  P1 P2
+	'                                              |  |  |  |
+	'                                              |  |  |  |  Lc (3 bytes)
+	'                                              |  |  |  |  |  Template for Security Environment
+	'                                              |  |  |  |  |  |
+	Dim SET_SECURITY_ENVIRONMENT_GIDS As String = "00 22 81 A4 03 83 01 80" 'No Le set
+	
+	'Generic
+	'-------                                       CLA (80 = Proprietary / Management)
 	'                                              |  Command (INS)
 	'                                              |  |
 	'                                              |  |  P1 P2
 	'                                              |  |  |  |
 	Dim GET_CHALLENGE_GENERIC         As String = "80 84 00 00"
 	
-	'-----                                         CLA (80 = Proprietary / Management, 00 = ISO-7816)
+	'GIDS
+	'----                                          CLA (80 = Proprietary / Management)
+	'                                              |  Command (INS)
+	'                                              |  |
+	'                                              |  |  P1 P2
+	'                                              |  |  |  |
+	'                                              |  |  |  |  Lc (4 bytes)
+	'                                              |  |  |  |  |  Get Challenge command
+	'                                              |  |  |  |  |  |           Le
+	'                                              |  |  |  |  |  |           |
+	Dim GET_CHALLENGE_GIDS            As String = "00 87 00 00 04 7C 02 81 00 00"
+	
+	'This one is used for reply verification
+	'Make sure to write it directly without spaces
+	Dim GET_CHALLENGE_CHECK_GIDS      As String = "7C0A81"
+	
+	'GIDS
+	'----                                          CLA (00 = ISO-7816)
+	'                                              |  Command (INS)
+	'                                              |  |
+	'                                              |  |  P1 P2
+	'                                              |  |  |  |
+	Dim EXTERNAL_AUTHENTICATE_GIDS    As String = "00 87 00 00 ?? 7C 0A 82" 'Leave the "??" placeholder as-is
+	'                                              |  |
+	'                                              |  |  P1 P2 (02 80 = User PIN, GIDS)
+	'                                              |  |  |  |
+	Dim SET_REFERENCE_DATA_GIDS       As String = "00 2C 02 80"
+	'                                              |  |
+	'                                              |  |  P1 (00 = Logout)
+	'                                              |  |  |  P2 (82 = Key ID, GIDS)
+	'                                              |  |  |  |
+	Dim EXTERNAL_AUTH_LOGOUT_GIDS     As String = "00 20 00 82"
+	
+	'Note about GIDS:
+	' - The Role #3 for which the GIDS applet claims support,
+	'   the Digital Signature PIN, actually doesn't work on it
+	'
+	' - The Role #3 on a GIDS applet is basically a symlink to
+	'   the GIDS applet's Primary User PIN
+	'
+	' - As such, I consider that the GIDS applet does not have
+	'   additional PKI smartcard PINs / additional roles
+	'
+	
+	'Gemalto
+	'-------                                       CLA (80 = Proprietary / Management, 00 = ISO-7816)
 	'                                              |  Command (INS)
 	'                                              |  |
 	'                                              |  |  P1 P2 (31 = Key ID, Gemalto)
@@ -2189,7 +2246,8 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'                                              |  |  |  |
 	Dim EXTERNAL_AUTH_LOGOUT_GEMALTO  As String = "00 82 FF 31"
 	
-	'-----                                         CLA (80 = Proprietary / Management)
+	'ActivID
+	'-------                                       CLA (80 = Proprietary / Management)
 	'                                              |  Command (INS)
 	'                                              |  |
 	'                                              |  |  P1 P2 (01 = Key ID, ActivID)
@@ -2292,13 +2350,51 @@ The smartcard could not find the PKI applet we searched for"$&".")
 	End If
 	
 	'--------------------------------------------------------------------------------
-	If Algorithm == Cryptography.ALGORITHM_2DES	_
-	Or Algorithm == Cryptography.ALGORITHM_3DES	Then
-		LastSentAPDU = GET_CHALLENGE_GENERIC & " 08" 'Request a challenge code of 8 bytes (0x08 bytes)
+	'
+	'For GIDS: we have to do SET_SECURITY_ENVIRONMENT first
+	'
+	If CardType == "GIDS" Then
+		LastSentAPDU = SET_SECURITY_ENVIRONMENT_GIDS
 		
-	Else If Algorithm == Cryptography.ALGORITHM_AES128 _
-	Or      Algorithm == Cryptography.ALGORITHM_AES256 Then
-		LastSentAPDU = GET_CHALLENGE_GENERIC & " 10" 'Request a challenge code of 16 bytes (0x10 bytes)
+		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+			Array As Object( _
+				LastSentAPDU _
+			) _
+		)
+		
+		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
+		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+		
+		If IsSucessful == False Then
+			
+			CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
+
+[Sent APDU]
+${LastSentAPDU}
+
+[Received]
+${ResponseBundle(0)}"$)
+			Return
+			
+		End If
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	
+	If CardType == "GIDS" Then
+		LastSentAPDU = GET_CHALLENGE_GIDS 'GIDS has a specific GET_CHALLENGE method
+		
+	Else
+		If Algorithm == Cryptography.ALGORITHM_2DES	_
+		Or Algorithm == Cryptography.ALGORITHM_3DES	Then
+			LastSentAPDU = GET_CHALLENGE_GENERIC & " 08" 'Request a challenge code of 8 bytes (0x08 bytes)
+			
+		Else If Algorithm == Cryptography.ALGORITHM_AES128 _
+		Or      Algorithm == Cryptography.ALGORITHM_AES256 Then
+			LastSentAPDU = GET_CHALLENGE_GENERIC & " 10" 'Request a challenge code of 16 bytes (0x10 bytes)
+			
+		End If
 		
 	End If
 	
@@ -2324,6 +2420,65 @@ ${ResponseBundle(0)}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
+	'For GIDS: check if the smartcard's APDU reply correctly begins
+	'          with a challenge type that we support
+	'
+	Dim SmartcardReplyAPDU   As String
+	Dim ErrorMessageIfNeeded As String
+	Dim ChallengeLength      As Int
+	
+	If CardType == "GIDS" Then
+		SmartcardReplyAPDU   = ResponseBundle(0).As(String)
+		ErrorMessageIfNeeded = $"The challenge method provided by the smartcard's ${CardType} applet is unsupported?
+
+ERROR_MESSAGE
+
+[Sent APDU]
+${LastSentAPDU}
+
+[Received]
+${SmartcardReplyAPDU}"$
+		
+		If Not(SmartcardReplyAPDU.StartsWith(GET_CHALLENGE_CHECK_GIDS)) Then
+			CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"The received APDU reply does not start with a challenge type header that we could recognize."$))
+			Return
+			
+		End If
+		
+		'For GIDS: check that the card correctly provides either
+		'          8-bytes (0x08) or 16-bytes (0x10) challenge length
+		'
+		'                        Challenge length
+		'                        |  Challenge code
+		'                        |  |                       Reply SW status (90 00)
+		'                        |  |                       |
+		'Example reply: 7C 0A 81 08 CF D4 62 1D 02 09 A2 0E 90 00
+		'                        ^^
+		'
+		ChallengeLength = Cryptography.StringHexToNumber(SmartcardReplyAPDU.SubString2(6, 8))
+		
+		Select ChallengeLength
+			Case 8
+				If Algorithm <> Cryptography.ALGORITHM_2DES And Algorithm <> Cryptography.ALGORITHM_3DES Then
+					CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					Return
+					
+				End If
+				
+			Case 16
+				If Algorithm <> Cryptography.ALGORITHM_AES128 And Algorithm <> Cryptography.ALGORITHM_AES256 Then
+					CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					Return
+					
+				End If
+				
+			Case Else
+				CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
+				Return
+				
+		End Select
+		
+	End If
 	
 	Dim SmartcardChallengeCode As String = Null
 	Dim SmartcardResponseCode  As String = Null
@@ -2332,13 +2487,25 @@ ${ResponseBundle(0)}"$)
 		If Algorithm == Cryptography.ALGORITHM_2DES	_
 		Or Algorithm == Cryptography.ALGORITHM_3DES	Then
 			'2DES / 3DES
-			SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
+			If CardType == "GIDS" Then
+				'For GIDS: take 24 chars then remove the first 8 chars (16 chars)
+				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(8, 24) '16 chars = 8 bytes
+			Else
+				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
+			End If
+			
 			SmartcardResponseCode  = Cryptography.TripleDesEncrypt(SmartcardChallengeCode, AdminKey)
 			
 		Else If Algorithm == Cryptography.ALGORITHM_AES128 _
 		Or      Algorithm == Cryptography.ALGORITHM_AES256 Then
 			'AES-128 / AES-256
-			SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 32) '32 chars = 16 bytes
+			If CardType == "GIDS" Then
+				'For GIDS: take 40 chars then remove the first 8 chars (32 chars)
+				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(8, 40) '32 chars = 16 bytes
+			Else
+				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 32) '32 chars = 16 bytes
+			End If
+			
 			SmartcardResponseCode  = Cryptography.AesEncrypt(SmartcardChallengeCode, AdminKey)
 			
 		End If
@@ -2369,8 +2536,12 @@ ${LastException.Message}"$)
 		'Specific to ActivID PKI smartcards
 		LastSentAPDU = EXTERNAL_AUTHENTICATE_ACTIVID
 		
+	Else If CardType == "GIDS" Then
+		LastSentAPDU = EXTERNAL_AUTHENTICATE_GIDS
+		
 	End If
 	
+	'Universal append method for all PKI smartcard types
 	If Algorithm == Cryptography.ALGORITHM_2DES	_
 	Or Algorithm == Cryptography.ALGORITHM_3DES	Then
 		'2DES / 3DES (data length 0x08)
@@ -2383,6 +2554,27 @@ ${LastException.Message}"$)
 		
 	End If
 	
+	If CardType == "GIDS" Then
+		'
+		'Specific to GIDS PKI smartcards
+		'
+		'For GIDS: Example APDU sent to the card
+		'
+		'                           Lc: Length of all Data
+		'                           |  Data: Challenge Reply header + Challenge code length + Challenge code
+		'                           |  |
+		'                           |  |        Challenge code length
+		'                           |  |        |  Challenge code
+		'                           |  |        |  |
+		'Example reply: 00 87 00 00 ?? 7C 0A 82 08 DE 8B 58 02 7C 68 63 9D
+		'                           ^^ ++ ++ ++ -- ** ** ** ** ** ** ** **
+		'
+		'ChallengeLength is our earlier variable that is still valid
+		LastSentAPDU.Replace("??", Cryptography.NumberToStringHex(3 + 1 + ChallengeLength))
+		
+	End If
+	
+	'ActivID-only, GIDS doesn't use Le field either (just like Gemalto)
 	If CardType == "ActivID" Then
 		'Specific to ActivID PKI smartcards
 		LastSentAPDU = LastSentAPDU & " 00" 'Le is set to 00 for ActivID PKI smartcards
@@ -2486,6 +2678,25 @@ ${ResponseBundle(0)}"$)
 		'                                               |                         |         |
 		LastSentAPDU = SET_REFERENCE_DATA_ACTIVID &" "& NewPINLengthHexByte &" "& NewPIN &" 00"
 		
+	Else If CardType == "GIDS" Then
+		'
+		'Specific to GIDS PKI smartcards
+		'
+		'GIDS PKI smartcards don't use padding, but they don't use a new PIN try count either
+		'They also don't use the Le field in their SET_REFERENCE_DATA APDU commands
+		'
+		NewPINLength = NewPIN.Length
+		NewPIN       = Cryptography.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
+		
+		'You can send a raw number to NumberToStringHex
+		'Then if you give it e.g. 15, it returns "0F"
+		NewPINLengthHexByte = Cryptography.NumberToStringHex(NewPINLength)
+		
+		'                                            Lc (Length: New PIN)
+		'                                            |                         New PIN (in ASCII Hex)
+		'                                            |                         |
+		LastSentAPDU = SET_REFERENCE_DATA_GIDS &" "& NewPINLengthHexByte &" "& NewPIN 'No Le is set
+		
 	End If
 	
 	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
@@ -2533,23 +2744,39 @@ ${ResponseBundle(0)}"$)
 	'ActivID PKI smartcards only support logout using
 	'SELECT FILE request APDU (selecting the PKI applet again)
 	'to clear the authenticated state
-	If CardType == "Gemalto" Then
-		'
-		'Specific to Gemalto PKI smartcards
-		'
-		LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GEMALTO
+	If CardType == "Gemalto" Or CardType == "GIDS" Then
 		
-		If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
-		Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
-			'2DES / 3DES (data length 0x08)
-			LastSentAPDU = LastSentAPDU & " 08 " & "00 00 00 00 00 00 00 00"
-			
-		Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
-		Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
-			'AES-128 / AES-256 (data length 0x10)
-			LastSentAPDU = LastSentAPDU & " 10 " & "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
-			
-		End If
+		Select CardType
+			Case "Gemalto"
+				'
+				'Specific to Gemalto PKI smartcards
+				'
+				LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GEMALTO
+				
+				If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
+				Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
+					'2DES / 3DES (data length 0x08)
+					LastSentAPDU = LastSentAPDU & " 08 " & "00 00 00 00 00 00 00 00"
+					
+				Else If DetectedAlgorithm == Cryptography.ALGORITHM_AES128 _
+				Or      DetectedAlgorithm == Cryptography.ALGORITHM_AES256 Then
+					'AES-128 / AES-256 (data length 0x10)
+					LastSentAPDU = LastSentAPDU & " 10 " & "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+					
+				End If
+				
+			Case "GIDS"
+				'
+				'Specific to GIDS PKI smartcards
+				'
+				LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GIDS 'Just one single APDU for GIDS to logout
+				
+			Case Else
+				'
+				'Nothing to do here
+				'
+				
+		End Select
 		
 		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 			Array As Object( _

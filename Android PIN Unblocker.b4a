@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 120
-	#VersionName: 5.4.16
+	#VersionCode: 121
+	#VersionName: 5.5.0
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -3157,6 +3157,18 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'                                              |  |  |     |  |                    |
 	Dim SELECT_ACTIVID_PKI_APPLET_ID  As String = "00 A4 04 00 07 A0 00 00 00 79 10 00 00"
 	
+	'----- e.g. GIDS applet from vletoux's open-source project & also Microsoft's
+	'
+	'                                              CLA (00 = ISO-7816)
+	'                                              |  Command SELECT FILE (INS=A4)
+	'                                              |  |  Type APPLET (P1=04 & P2=00)
+	'                                              |  |  |
+	'                                              |  |  |     Length of data / Applet ID (Lc=09)
+	'                                              |  |  |     |  Data / Applet ID
+	'                                              |  |  |     |  |                          Expected Response Data Length (Le=00)
+	'                                              |  |  |     |  |                          |
+	Dim SELECT_GIDS_APPLET_ID         As String = "00 A4 04 00 09 A0 00 00 03 97 42 54 46 59 00"
+	
 	'-------------------------------------------------------
 	'The Gemalto IDPrime 930 v2 T=0 doesn't have a known
 	'Card Manager Applet ID, or it's a different one than
@@ -3241,7 +3253,7 @@ ${ResponseBundle(0)}"$)
 	'
 	'Try selecting each known PKI Applet ID
 	'
-	For Each SelectPKIAppletIDAPDU As String In Array As String(SELECT_GEMALTO_PKI_APPLET_ID, SELECT_ACTIVID_PKI_APPLET_ID)
+	For Each SelectPKIAppletIDAPDU As String In Array As String(SELECT_GEMALTO_PKI_APPLET_ID, SELECT_ACTIVID_PKI_APPLET_ID, SELECT_GIDS_APPLET_ID)
 		
 		LastSentAPDU = SelectPKIAppletIDAPDU
 		
@@ -3287,6 +3299,9 @@ ${SELECT_GEMALTO_PKI_APPLET_ID}
 [2] ActivID:
 ${SELECT_ACTIVID_PKI_APPLET_ID}
 
+[3] GIDS:
+${SELECT_GIDS_APPLET_ID}
+
 [Received]
 The smartcard could not find the PKI applets we searched for"$&".")
 		Return
@@ -3306,6 +3321,13 @@ The smartcard could not find the PKI applets we searched for"$&".")
 		'Default Crescendo C1150 PIN policy
 		CardMinPINLength = 4
 		CardMaxPINLength = 14
+		
+	Else If SelectAppletAPDU == SELECT_GIDS_APPLET_ID Then
+		CardType = "GIDS"
+		
+		'Default GIDS applet PIN policy
+		CardMinPINLength = 4
+		CardMaxPINLength = 8
 		
 	End If
 	
