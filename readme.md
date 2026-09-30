@@ -21,10 +21,10 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 **Android PIN Unblocker** has a very simple set of features, it cans generate the **Response code**, get the **Request code** from a QR code as well as hashing text using **SHA-256** or **SHA-512**.
 
 > [!TIP]
-> **Android PIN Unblocker** now supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate unblock codes for input on a computer, but you can also directly process the PIN unblock **on your phone**.
+> **Android PIN Unblocker** now supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response codes* for input on a computer, but you can also directly process the PIN unblock **on your phone**.
 > 
 > Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
-> You can either connect over *USB-OTG* a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
+> You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
 
 <div style="page-break-after: always;"></div>
 
@@ -126,6 +126,31 @@ You can also type your original text in the `Admin Key` field and directly gener
 
 Long-pressing the *SHA-256* or *SHA-512* buttons actually generates the hash but also makes the `Admin Key` field unrevealable afterwards (a single-click generates the hash normally without making it unrevealable).
 
+It's additionally possible to make the `Admin Key` field unrevealable directly, without generating any text hash first, by long-clicking the `No Visibility` button (barred eye icon) next to the `Hash` one.
+
+<div style="page-break-after: always;"></div>
+
+## Direct unblock over USB-OTG
+
+![Direct Unblock window for an ActivID T=1 smartcard.](/Screenshots/11-direct-unblock-activid-t1.png) ![Direct Unblock window for a Gemalto T=0 smartcard.](/Screenshots/12-direct-unblock-gemalto-t0.png)
+
+It's now possible to directly perform the PIN unblock using any mobile phone with **USB-OTG** support.
+
+You can therefore use a small USB-OTG adapter for your phone (might be *micro-USB* or *USB-C*) and use that to connect a *smartcard reader* (then insert your *smartcard* into the reader), or directly connect any USB *token* to your phone.
+
+The currently supported *smartcard* and USB *token* brands are **Gemalto** (*SafeNet*) and **ActivID** (*HID Global*).\
+*For Gemalto-branded PKI smartcards and USB tokens, it's possible to also unblock any of the additional PINs such as Role#3 to Role #7.*
+
+The tested devices include both **T=0** and **T=1** smartcards and tokens:
+- Gemalto IDPrime 930 `T=0` `smartcard`
+- HID Crescendo C1150 `T=1` `smartcard`
+- SafeNet eToken 5110+ FIPS `T=1` `USB token`
+- SafeNet eToken 5300 `T=1` `USB token`
+
+Most likely any similar product from these brands are supported.
+
+For the smartcard readers, all brands of smartcard readers are supported, using a specially modified version of ACS's `acssmc` library (supports T0, T1 and TPDU card readers).
+
 <div style="page-break-after: always;"></div>
 
 # License
@@ -169,7 +194,7 @@ Asset name | Author | License | Commercial use
 [Google R8](https://r8.googlesource.com/r8/+/refs/heads/main/README.md) | The Android Open Source Project | [Eclipse Distribution License 1.0](https://maven.google.com/web/index.html#com.android.tools:r8:9.1.31) | Allowed
 [ProGuard](https://github.com/Guardsquare/proguard) | Guardsquare | [GPL 2.0](https://github.com/Guardsquare/proguard/blob/master/LICENSE) | Allowed
 [eIDSuite](https://github.com/egelke/eIDSuite) | egelke | [AGPL 3.0](https://github.com/egelke/eIDSuite/blob/master/LICENSE) | Allowed
-Smartcard Mobile Connector (SMC) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
+[Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) [\[1\]](./Libraries/[obsolete]/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
 [MOPP-Android](https://github.com/open-eid/MOPP-Android) | open-eid | [LGPL 2.1](https://github.com/open-eid/MOPP-Android/blob/master/LICENCE.md) | Allowed
 [ApduSenderContact](https://github.com/jmarroyo/ApduSenderContact) | Jose ARROYO | [GPL 3.0](https://github.com/jmarroyo/ApduSenderContact/blob/master/README) | Allowed
 
