@@ -20,7 +20,7 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 **Android PIN Unblocker** has a very simple set of features, it cans generate the **Response code**, get the **Request code** from a QR code as well as hashing text using **SHA-256** or **SHA-512**.
 
-**Android PIN Unblocker** now supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response codes* for input on a computer, but you can also directly process the PIN unblock **on your phone**.
+**Android PIN Unblocker** now also supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response codes* for input on a computer, but you can also directly process the PIN unblock **on your phone**.
 
 Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
 You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
@@ -199,5 +199,6 @@ Asset name | Author | License | Commercial use
 [Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) [\[1\]](./Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
 [MOPP-Android](https://github.com/open-eid/MOPP-Android) | open-eid | [LGPL 2.1](https://github.com/open-eid/MOPP-Android/blob/master/LICENCE.md) | Allowed
 [ApduSenderContact](https://github.com/jmarroyo/ApduSenderContact) | Jose ARROYO | [GPL 3.0](https://github.com/jmarroyo/ApduSenderContact/blob/master/README) | Allowed
+[GidsApplet](https://github.com/vletoux/GidsApplet) | Vincent Letoux | [GPL 3.0](https://github.com/vletoux/GidsApplet/blob/master/LICENSE) | Allowed
 
 

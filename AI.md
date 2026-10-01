@@ -256,5 +256,6 @@ Asset name | Author | License | Commercial use
 [Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) [\[1\]](./Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
 [MOPP-Android](https://github.com/open-eid/MOPP-Android) | open-eid | [LGPL 2.1](https://github.com/open-eid/MOPP-Android/blob/master/LICENCE.md) | Allowed
 [ApduSenderContact](https://github.com/jmarroyo/ApduSenderContact) | Jose ARROYO | [GPL 3.0](https://github.com/jmarroyo/ApduSenderContact/blob/master/README) | Allowed
+[GidsApplet](https://github.com/vletoux/GidsApplet) | Vincent Letoux | [GPL 3.0](https://github.com/vletoux/GidsApplet/blob/master/LICENSE) | Allowed
 
 
