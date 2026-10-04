@@ -60,6 +60,8 @@ Sub Process_Globals
 	private static final int GET_PROTOCOL = 0x300;
 	#End If
 	
+	'For making sure that we don't simultaneously accept
+	'running two service commands at the same time
 	Private ActiveOperationInProgress As Boolean = False
 	
 End Sub
@@ -107,8 +109,24 @@ public void jService_Create()
 {
 	Log.d(TAG, "SmartcardService onCreate "+this);
 	
+	notifyMgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
+	
+	toastThread         = new HandlerThread("SmartcardServiceToastThread",         Process.THREAD_PRIORITY_BACKGROUND);
+	UsbPermissionThread = new HandlerThread("SmartcardServiceUsbPermissionThread", Process.THREAD_PRIORITY_FOREGROUND);
+	broadcastThread     = new HandlerThread("SmartcardServiceBroadcastThread",     Process.THREAD_PRIORITY_BACKGROUND);
+	
+	toastThread.start();
+	UsbPermissionThread.start();
+	broadcastThread.start();
+	
+	toastHandler         = new Handler(toastThread.getLooper());
+	UsbPermissionHandler = new Handler(UsbPermissionThread.getLooper());
+	broadcastHandler     = new Handler(broadcastThread.getLooper());
+	
     mManager = (UsbManager)getSystemService(Context.USB_SERVICE);
-    mReader = new Reader(mManager);
+    mReader  = new Reader(mManager);
+	
     mReader.setOnStateChangeListener(new OnStateChangeListener()
     {
         @Override
@@ -165,36 +183,43 @@ public void jService_Create()
 				 */
 				if ( currState == Reader.CARD_PRESENT && waitLockSmartcardInsert != null )
 				{
-		            synchronized ( waitLockSmartcardInsert )
+					if ( iSlotNum < 0 )
 					{
-						if ( iSlotNum < 0 )
-						{
-							/* If last slot number is -1 then notify
-							 * the code looking for a smartcard that
-							 * the correct slot where one as inserted
-							 * is now the "slotNum" one (write it to "iSlotNum")
-							 */
-							iSlotNum = slotNum;
-							
-							// Copy current state again just incase (in a synchronized code block)
-							iActualState = currState;
-						}
+						/* If last slot number is -1 then notify
+						 * the code looking for a smartcard that
+						 * the correct slot where one as inserted
+						 * is now the "slotNum" one (write it to "iSlotNum")
+						 */
+						iSlotNum = slotNum;
 						
-		                waitLockSmartcardInsert.notify();
-		            }
+						// Copy current state again just incase
+						iActualState = currState;
+					}
+					
+					broadcastHandler.post(
+						new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								/* Since we're just interrupting a wait loop, it's fine if we don't
+								 * interrupt it in a synchronized way (nothing sync-critical is done)
+								 */
+								try
+								{
+				                	waitLockSmartcardInsert.notify();
+								}
+								catch (Exception e)
+								{
+									/* Nothing to do here */
+								}
+							}
+						}
+					);
 	            }
 			}
         }
     });
-	
-	notifyMgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
-	
-	bcThread = new HandlerThread("SmartcardServiceBCThread", Process.THREAD_PRIORITY_BACKGROUND);
-	bcThread.start();
-	
-	uiHandler = new Handler(Looper.getMainLooper());
-	broadcast = new Handler(bcThread.getLooper());
 }
 #End If
 
@@ -495,30 +520,9 @@ public void jService_Destroy()
 	iActualState   = Reader.CARD_UNKNOWN;
 	activeProtocol = Reader.PROTOCOL_UNDEFINED;
 	
-	try
-	{
-		if ( !bcThread.quit() )
-		{
-			Log.w(TAG, "Failed to quit broadcast thread loop");
-		}
-	}
-	catch (Exception e)
-	{
-		/* Nothing to do here */
-	}
-	
-	try
-	{
-		if ( !messageThread.quit() )
-		{
-			Log.w(TAG, "Failed to quit main thread loop");
-		}
-	}
-	catch (Exception e)
-	{
-		/* Nothing to do here */
-	}
-	
+	//
+	// These ones need to be done in order (synchronized)
+	//
     if ( waitLockUsbDevice != null )
 	{
         synchronized ( waitLockUsbDevice )
@@ -542,6 +546,45 @@ public void jService_Destroy()
             waitLockSmartcardInsert.notify();
         }
     }
+	
+	//
+	// Stopping additional threads
+	//
+	try
+	{
+		if ( !toastThread.quit() )
+		{
+			Log.w(TAG, "Failed to quit toast thread loop");
+		}
+	}
+	catch (Exception e)
+	{
+		/* Nothing to do here */
+	}
+	
+	try
+	{
+		if ( !UsbPermissionThread.quit() )
+		{
+			Log.w(TAG, "Failed to quit USB permission thread loop");
+		}
+	}
+	catch (Exception e)
+	{
+		/* Nothing to do here */
+	}
+	
+	try
+	{
+		if ( !broadcastThread.quit() )
+		{
+			Log.w(TAG, "Failed to quit broadcast thread loop");
+		}
+	}
+	catch (Exception e)
+	{
+		/* Nothing to do here */
+	}
 }
 #End If
 
@@ -630,18 +673,19 @@ private Object waitLockSmartcardInsert;
 private BroadcastReceiver detachReceiver;
 
 // Permanent properties
-private Handler uiHandler = null;
-private Handler broadcast = null;
+private Handler toastHandler         = null;
+private Handler UsbPermissionHandler = null;
+private Handler broadcastHandler     = null;
 
-private HandlerThread bcThread;
-private HandlerThread messageThread;
+private HandlerThread toastThread;
+private HandlerThread UsbPermissionThread;
+private HandlerThread broadcastThread;
 
 private static final String TAG = "net.gdmeunier.pinunblocker";
 private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.USB_PERMISSION";
 #End If
 
 #If Java
-
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
 	if ( mDevice != null && mReader.isSupported(mDevice) )
@@ -669,7 +713,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 	
 	if ( mDevice == null )
 	{
-		uiHandler.post(
+		toastHandler.post(
 			new Runnable()
 			{
 				@Override
@@ -708,14 +752,34 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
                         Log.w(TAG, "Obtained USB device without wait handler");
                         return;
                     }
-                    synchronized ( waitLockUsbDevice )
+					else
 					{
-                        waitLockUsbDevice.notify();
-                    }
+						/* Since we're just interrupting a wait loop, it's fine if we don't
+						 * interrupt it in a synchronized way (nothing sync-critical is done)
+						 */
+						broadcastHandler.post(
+							new Runnable()
+							{
+								@Override
+								public void run()
+								{
+									try
+									{
+										waitLockUsbDevice.notify();
+									}
+									catch (Exception e)
+									{
+										/* Nothing to do here */
+									}
+								}
+							}
+						);
+					}
 				}
 				else
 				{
-					uiHandler.post(new Runnable()
+					toastHandler.post(
+						new Runnable()
 						{
 							@Override
 							public void run()
@@ -732,11 +796,11 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		// (Android 13+ is API level 33+)
 		if ( Build.VERSION.SDK_INT >= 33 )
 		{
-			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcast, Context.RECEIVER_EXPORTED);
+			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcastHandler, Context.RECEIVER_EXPORTED);
 		}
 		else
 		{
-			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcast);
+			registerReceiver(attachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED), null, broadcastHandler);
 		}
 		
 		/* This method of sleeping multiple times in 500ms chunks is done
@@ -847,6 +911,9 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				iActualState   = Reader.CARD_UNKNOWN;
 				activeProtocol = Reader.PROTOCOL_UNDEFINED;
 				
+				//
+				// These ones need to be done in order (synchronized)
+				//
 			    if ( waitLockUsbDevice != null )
 				{
                     synchronized ( waitLockUsbDevice )
@@ -878,17 +945,22 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 	// (Android 13+ is API level 33+)
 	if ( Build.VERSION.SDK_INT >= 33 )
 	{
-		registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcast, Context.RECEIVER_EXPORTED);
+		registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcastHandler, Context.RECEIVER_EXPORTED);
 	}
 	else
 	{
-		registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcast);
+		registerReceiver(detachReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED), null, broadcastHandler);
 	}
 }
 #End If
 
 #If Java
-private boolean hasUsbPermission = false;
+/* Android API level 31+ (Android 12+) require explicit FLAG_IMMUTABLE or FLAG_MUTABLE
+ * Initial value below (API level 1+)
+ */
+private int     pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT;
+private boolean hasUsbPermission   = false;
+
 public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 {
 	hasUsbPermission = true;
@@ -911,10 +983,29 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
                     Log.w(TAG, "Obtained USB permission without wait handler");
                     return;
                 }
-                synchronized ( waitLockUsbPermission )
+				else
 				{
-                    waitLockUsbPermission.notify();
-                }
+					/* Since we're just interrupting a wait loop, it's fine if we don't
+					 * interrupt it in a synchronized way (nothing sync-critical is done)
+					 */
+					UsbPermissionHandler.post(
+						new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								try
+								{
+									waitLockUsbPermission.notify();
+								}
+								catch (Exception e)
+								{
+									/* Nothing to do here */
+								}
+							}
+						}
+					);
+				}
 			}
 		};
 		
@@ -922,16 +1013,37 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		// (Android 13+ is API level 33+)
 		if ( Build.VERSION.SDK_INT >= 33 )
 		{
-			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcast, Context.RECEIVER_EXPORTED);
+			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, UsbPermissionHandler, Context.RECEIVER_EXPORTED);
 		}
 		else
 		{
-			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcast);
+			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, UsbPermissionHandler);
 		}
 		
-		mManager.requestPermission(
-			mDevice,
-			PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0)
+		/* Faster USB device permission request:
+		 * Run the permission request on the "UsbPermissionHandler" thread
+		 */
+		UsbPermissionHandler.post(
+			new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					int flags = pendingIntentFlags;
+					
+					// Update the PendingIntent flags if Android 12+
+					if ( Build.VERSION.SDK_INT >= 31 )
+					{
+						/* API level 31+ (Android 12+) */
+						flags |= PendingIntent.FLAG_MUTABLE;
+					}
+					
+					mManager.requestPermission(
+						mDevice,
+						PendingIntent.getBroadcast(smartcard.this, 0, new Intent(ACTION_USB_PERMISSION), flags)
+					);
+				}
+			}
 		);
 		
 		if ( !hasUsbPermission )
@@ -1089,7 +1201,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 	{
 		final String msg = String.format("Insert your smartcard in your %1$s reader...", getProductName(mDevice));
 		
-		uiHandler.post(
+		toastHandler.post(
 			new Runnable()
 			{
 				@Override

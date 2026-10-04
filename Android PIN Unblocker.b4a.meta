@@ -1,7 +1,7 @@
 ﻿ModuleBookmarks0=3098,49,1287,1034
 ModuleBookmarks1=2013,2885,2609,878,645,2161
 ModuleBookmarks10=
-ModuleBookmarks11=563,353,1056,109
+ModuleBookmarks11=606,378,1168,1017,982,751,109
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=MyCryptography,TripleDesEncrypt,345,0,MyCryptography,StringToASCIIHex,360,0,MyCryptography,NumberToStringHex,378,0,MyCryptography,StringHexToNumber,384,0,DirectUnblock,btnProceedToUnblock_Click,2152,0,DirectUnblock,SetSelectedPIN,2820,0,MySmartcardReader,Initialize,42,0,Smartcard,Application_Error,601,0,DirectUnblock,SendPinUnblockAPDUSequence,2567,6,Main,SendPinUnblockAPDUSequence,3294,0,Visual Designer,DirectUnblock.bal,-100,1
+NavigationStack=DirectUnblock,SendPinUnblockAPDUSequence,2567,6,Main,SendPinUnblockAPDUSequence,3294,0,Visual Designer,DirectUnblock.bal,-100,1,Smartcard,Service_Start,234,0,Smartcard,Service_TaskRemoved,575,0,Smartcard,Process_Globals,59,6,Smartcard,Service_Message_NewThread,347,0,Smartcard,Application_Error,732,0,Smartcard,Service_Destroy,580,0,Smartcard,Service_Create,118,6
 SelectedBuild=0
 VisibleModules=1,11,8,5
