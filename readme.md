@@ -25,6 +25,9 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
 You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
 
+**GIDS** applets for **Javacard** are also supported, albeit they haven't been formally tested in real conditions.\
+*Nonetheless, the GIDS support code should work fine as it's based on real APDU communication logs from a Javacard simulator with a real GIDS applet.*
+
 <div style="page-break-after: always;"></div>
 
 ## Generate the Unblock code
@@ -138,7 +141,7 @@ It's now possible to directly perform the PIN unblock using any mobile phone wit
 You can therefore use a small USB-OTG adapter for your phone (might be *micro-USB* or *USB-C*) and use that to connect a *smartcard reader* (then insert your *smartcard* into the reader), or directly connect any USB *token* to your phone.
 
 The currently supported *smartcard* and USB *token* brands are **Gemalto** (*SafeNet*) and **ActivID** (*HID Global*).\
-*For Gemalto-branded PKI smartcards and USB tokens, it's possible to also unblock any of the additional PINs such as Role#3 to Role #7.*
+*For Gemalto-branded PKI smartcards and USB tokens, it's possible to also unblock any of the additional PINs such as Role #3 to Role #7.*
 
 The tested devices include both **T=0** and **T=1** smartcards and tokens:
 - Gemalto IDPrime 930 `T=0` `smartcard`
@@ -148,8 +151,8 @@ The tested devices include both **T=0** and **T=1** smartcards and tokens:
 
 Most likely any similar product from these brands are supported.
 
-For generic products such as **GIDS** applets installed on a **Javacard** or similar *GIDS* smartcards, support for them has also been added to Android PIN Unblocker, albeit I cannot formally test its support because I don't myself have a *Javacard* with a GIDS applet yet.\
-However, the support of GIDS smartcard most likely works without errors, since there's no reason for it to fail from my thorough re-reads of the code.
+For generic products such as **GIDS** applets installed on a **Javacard** or similar *GIDS* smartcards, support for them has also been added to **Android PIN Unblocker**, albeit I cannot formally test its support because I don't myself have a *Javacard* with a GIDS applet yet.\
+*However, the support of GIDS smartcard most likely works without errors, since there's no reason for it to fail from my thorough re-reads of the code.*
 
 For the smartcard readers, all brands of smartcard readers are supported, using a specially modified version of ACS's `acssmc` library (supports T0, T1 and TPDU card readers).
 

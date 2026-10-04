@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 122
-	#VersionName: 5.5.1
+	#VersionCode: 123
+	#VersionName: 5.5.2
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
