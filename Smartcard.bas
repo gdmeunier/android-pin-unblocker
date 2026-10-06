@@ -107,7 +107,7 @@ End Sub
  */
 public void jService_Create()
 {
-	Log.d(TAG, "SmartcardService onCreate "+this);
+	Log.d(TAG, "Smartcard Service onCreate "+this);
 	
 	notifyMgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
@@ -641,9 +641,9 @@ import com.acs.smartcard.ReaderException;
 #End If
 
 #If Java
-private static final long USB_TIMEOUT       = 10 * 1000; // 10s
+private static final long USB_TIMEOUT       = 20 * 1000; // 20s
 private static final long CONFIRM_TIMEOUT   = 15 * 1000; // 15s
-private static final long SMARTCARD_TIMEOUT = 10 * 1000; // 10s
+private static final long SMARTCARD_TIMEOUT = 20 * 1000; // 20s
 
 private UsbManager mManager;
 private UsbDevice  mDevice;
@@ -681,7 +681,10 @@ private HandlerThread toastThread;
 private HandlerThread UsbPermissionThread;
 private HandlerThread broadcastThread;
 
-private static final String TAG = "net.gdmeunier.pinunblocker";
+/* I also use the TAG value as the package name to use in
+ * new Intents that are specifically sent to this application
+ */
+private static final String TAG = "net.gdmeunier.pinunblocker"; // Must match the application's package name
 private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.USB_PERMISSION";
 #End If
 
@@ -958,17 +961,12 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 /* Android API level 31+ (Android 12+) require explicit FLAG_IMMUTABLE or FLAG_MUTABLE
  * Initial value below (API level 1+)
  */
-private int     pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT;
-private boolean hasUsbPermission   = false;
+private int pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT;
 
 public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 {
-	hasUsbPermission = true;
-	
 	if ( !mManager.hasPermission(mDevice) )
 	{
-		hasUsbPermission = false;
-		
 		waitLockUsbPermission = new Object();
 		
 		BroadcastReceiver grantReceiver = new BroadcastReceiver()
@@ -976,8 +974,6 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 			@Override
 			public void onReceive(Context context, Intent intent)
 			{
-				hasUsbPermission = true;
-				
                 if ( waitLockUsbPermission == null )
 				{
                     Log.w(TAG, "Obtained USB permission without wait handler");
@@ -1009,15 +1005,22 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 			}
 		};
 		
-		// Android 13+ require explicitly exporting the receiver
-		// (Android 13+ is API level 33+)
+		/* Android 13+ require explicitly exporting the receiver
+		 * (Android 13+ is API level 33+)
+		 *
+		 * Tryig to improve the USB permission prompt time by
+		 * offloading the broadcast of the grantReceiver to
+		 * "broadcastHandler" instead of "UsbPermissionHandler",
+		 * so that I make sure that it's not the cause of
+		 * slow USB permission prompts on some older devices
+		 */
 		if ( Build.VERSION.SDK_INT >= 33 )
 		{
-			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, UsbPermissionHandler, Context.RECEIVER_EXPORTED);
+			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcastHandler, Context.RECEIVER_EXPORTED);
 		}
 		else
 		{
-			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, UsbPermissionHandler);
+			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcastHandler);
 		}
 		
 		/* Faster USB device permission request:
@@ -1038,40 +1041,51 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 						flags |= PendingIntent.FLAG_MUTABLE;
 					}
 					
+					Intent intent = new Intent(ACTION_USB_PERMISSION);
+					intent.setPackage(TAG); // TAG contains the package name as a String (global variable)
+					
 					mManager.requestPermission(
 						mDevice,
-						PendingIntent.getBroadcast(smartcard.this, 0, new Intent(ACTION_USB_PERMISSION), flags)
+						PendingIntent.getBroadcast(smartcard.this, 0, intent, flags)
 					);
 				}
 			}
 		);
 		
-		if ( !hasUsbPermission )
+		/* It's possible that the device was disconnected during
+		 * the USB permission prompt
+		 *
+		 * For such cases we check if mDevice didn't become null,
+		 * because it gets set to null on the device's detached event
+		 */
+		
+		if ( mDevice != null && !mManager.hasPermission(mDevice) )
 		{
-			/* This method of sleeping multiple times in 500ms chunks is done
+			/* This method of sleeping multiple times in 1000ms chunks is done
 			 * to avoid having the 'Application Not Responding' pop-up (ANR)
 			 * when the application is waiting for the user to do something
 			 *
 			 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
+			 *
+			 * Make sure to never sleep / wait 5000ms or longer,
+			 * because that's when Android thinks that the application
+			 * is no longer responding, and will display the ANR pop-up
 			 */
             synchronized ( waitLockUsbPermission )
 			{
-				int maxSleepRounds = (int)(CONFIRM_TIMEOUT / 1000) * 2; // e.g. 30000ms = 30x 1s = 60x 0.5s
+				int maxSleepRounds = (int)(CONFIRM_TIMEOUT / 1000); // e.g. 30000ms = 30x 1s
 				int sleepRounds    = 0;
 				
 				try
 				{
-					while ( !hasUsbPermission )
+					while ( mDevice != null && !mManager.hasPermission(mDevice) )
 					{
-						if ( sleepRounds >= maxSleepRounds || hasUsbPermission )
+						if ( sleepRounds >= maxSleepRounds )
 						{
 							break;
 						}
 						
-						for ( int i = 1; i <= 25; i++ )
-						{
-							waitLockUsbPermission.wait(20); // Sleep 500ms (25x 20ms)
-						}
+						waitLockUsbPermission.wait(1000); // Sleep 1000ms
 						sleepRounds += 1;
 					}
 					
@@ -1095,7 +1109,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 			Log.i(TAG, "Android claims the receiver isn't registered", iae);
 		}
 		
-		if ( !mManager.hasPermission(mDevice) )
+		if ( mDevice == null || !mManager.hasPermission(mDevice) )
 		{
 			throw new mysmartcardreader.AbortException("No USB permission granted");
 		}

@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 127
-	#VersionName: 5.6.3
+	#VersionCode: 130
+	#VersionName: 5.6.6
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -130,7 +130,7 @@ Version=12.5
 	'   so our new icon file will be stored inside a "mipmap" folder
 	'
 	' - However Basic4Android will mistakenly belive that our application
-	'   has no icon, and will autoamtically try adding one (default B4X icon)
+	'   has no icon, and will automatically try adding one (default B4X icon)
 	'
 	'So we use a #CustomBuildAction macro that automatically deletes it
 	'before Basic4Android compiles the resources of our application

@@ -1,7 +1,7 @@
 ﻿ModuleBookmarks0=3098,49,1287,1034
 ModuleBookmarks1=2013,2885,2609,878,645,2161
 ModuleBookmarks10=
-ModuleBookmarks11=606,378,1168,1017,982,751,109
+ModuleBookmarks11=606,378,1182,1020,978,754,109,1082,681
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=DirectUnblock,SendPinUnblockAPDUSequence,2567,6,Main,SendPinUnblockAPDUSequence,3294,0,Visual Designer,DirectUnblock.bal,-100,1,Smartcard,Service_Start,234,0,Smartcard,Service_TaskRemoved,575,0,Smartcard,Process_Globals,59,6,Smartcard,Service_Message_NewThread,347,0,Smartcard,Application_Error,732,0,Smartcard,Service_Destroy,580,0,Smartcard,Service_Create,118,6
+NavigationStack=DirectUnblock,SendPinUnblockAPDUSequence,2567,6,Main,SendPinUnblockAPDUSequence,3294,0,Visual Designer,DirectUnblock.bal,-100,1,Smartcard,Service_Start,234,0,Smartcard,Process_Globals,59,6,Smartcard,Service_Message_NewThread,374,0,Smartcard,Service_Destroy,541,0,Smartcard,Service_TaskRemoved,592,0,Smartcard,Service_Create,118,6,Smartcard,Application_Error,1035,0
 SelectedBuild=0
 VisibleModules=1,11,8,5
