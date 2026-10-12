@@ -114,7 +114,7 @@ public void jService_Create()
 	
 	toastThread         = new HandlerThread("SmartcardServiceToastThread",         Process.THREAD_PRIORITY_BACKGROUND);
 	UsbPermissionThread = new HandlerThread("SmartcardServiceUsbPermissionThread", Process.THREAD_PRIORITY_FOREGROUND);
-	broadcastThread     = new HandlerThread("SmartcardServiceBroadcastThread",     Process.THREAD_PRIORITY_BACKGROUND);
+	broadcastThread     = new HandlerThread("SmartcardServiceBroadcastThread",     Process.THREAD_PRIORITY_FOREGROUND);
 	
 	toastThread.start();
 	UsbPermissionThread.start();
@@ -520,32 +520,7 @@ public void jService_Destroy()
 	iActualState   = Reader.CARD_UNKNOWN;
 	activeProtocol = Reader.PROTOCOL_UNDEFINED;
 	
-	//
-	// These ones need to be done in order (synchronized)
-	//
-    if ( waitLockUsbDevice != null )
-	{
-        synchronized ( waitLockUsbDevice )
-		{
-            waitLockUsbDevice.notify();
-        }
-    }
-	
-	if ( waitLockUsbPermission != null )
-	{
-        synchronized ( waitLockUsbPermission )
-		{
-            waitLockUsbPermission.notify();
-        }
-    }
-	
-	if ( waitLockSmartcardInsert != null )
-	{
-        synchronized ( waitLockSmartcardInsert )
-		{
-            waitLockSmartcardInsert.notify();
-        }
-    }
+	jNotifyAllWaitLocks();
 	
 	//
 	// Stopping additional threads
@@ -585,6 +560,28 @@ public void jService_Destroy()
 	{
 		/* Nothing to do here */
 	}
+}
+
+private void jNotifyAllWaitLocks()
+{
+	//
+	// These ones need to be done in order (synchronized)
+	//
+    if ( waitLockUsbDevice != null )
+	{
+        synchronized ( waitLockUsbDevice )
+		{
+            waitLockUsbDevice.notify();
+        }
+    }
+	
+	if ( waitLockSmartcardInsert != null )
+	{
+        synchronized ( waitLockSmartcardInsert )
+		{
+            waitLockSmartcardInsert.notify();
+        }
+    }
 }
 #End If
 
@@ -666,7 +663,6 @@ private NotificationManager notifyMgr;
 private PowerManager        powerMgr;
 
 private Object waitLockUsbDevice;
-private Object waitLockUsbPermission;
 private Object waitLockSmartcardInsert;
 
 // Temporary properties
@@ -914,32 +910,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				iActualState   = Reader.CARD_UNKNOWN;
 				activeProtocol = Reader.PROTOCOL_UNDEFINED;
 				
-				//
-				// These ones need to be done in order (synchronized)
-				//
-			    if ( waitLockUsbDevice != null )
-				{
-                    synchronized ( waitLockUsbDevice )
-					{
-                        waitLockUsbDevice.notify();
-                    }
-                }
-				
-			    if ( waitLockUsbPermission != null )
-				{
-                    synchronized ( waitLockUsbPermission )
-					{
-                        waitLockUsbPermission.notify();
-                    }
-                }
-				
-			    if ( waitLockSmartcardInsert != null )
-				{
-                    synchronized ( waitLockSmartcardInsert )
-					{
-                        waitLockSmartcardInsert.notify();
-                    }
-                }
+				jNotifyAllWaitLocks();
 			}
 		}
 	};
@@ -963,47 +934,45 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
  */
 private int pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT;
 
+// e.g. 30000ms = 30x 1s [-> x2] = 60x 500ms [-> x5] = 300x 100ms
+private int maxSleepRoundsUsbPermission = (int)((CONFIRM_TIMEOUT / 1000) * 2) * 5; // 300x 100ms
+private int sleepRoundsUsbPermission    = 0;
+
 public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 {
 	if ( !mManager.hasPermission(mDevice) )
 	{
-		waitLockUsbPermission = new Object();
+		// Reset the sleep rounds counter to initial zero value
+		sleepRoundsUsbPermission = 0;
 		
 		BroadcastReceiver grantReceiver = new BroadcastReceiver()
 		{
 			@Override
 			public void onReceive(Context context, Intent intent)
 			{
-                if ( waitLockUsbPermission == null )
-				{
-                    Log.w(TAG, "Obtained USB permission without wait handler");
-                    return;
-                }
-				else
-				{
-					/* Since we're just interrupting a wait loop, it's fine if we don't
-					 * interrupt it in a synchronized way (nothing sync-critical is done)
-					 */
-					UsbPermissionHandler.post(
-						new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								try
-								{
-									waitLockUsbPermission.notify();
-								}
-								catch (Exception e)
-								{
-									/* Nothing to do here */
-								}
-							}
-						}
-					);
-				}
+				/* Interrupt the USB permission sleep cycle by
+				 * deliberately increasing the sleep rounds counter
+				 * to the maximum number of sleep calls
+				 */
+				sleepRoundsUsbPermission = maxSleepRoundsUsbPermission;
 			}
 		};
+		
+		/* Trying to make the USB permission pop-up faster
+		 * I think making the IntentFilter higher-priority
+		 * will work to improve the delay between
+		 * accepting the USB permission pop-up and
+		 * the application actually knowing that it has
+		 * the USB permission
+		 */
+		IntentFilter intentFilter = new IntentFilter(ACTION_USB_PERMISSION);
+		
+		/* Must be lower  (<) than SYSTEM_HIGH_PRIORITY (1000)
+		 * Must be higher (>) than SYSTEM_LOW_PRIORITY  (-1000)
+		 *
+		 * Default value is 0 (normal priority)
+		 */
+		intentFilter.setPriority((int)IntentFilter.SYSTEM_HIGH_PRIORITY / 2);
 		
 		/* Android 13+ require explicitly exporting the receiver
 		 * (Android 13+ is API level 33+)
@@ -1016,11 +985,11 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		 */
 		if ( Build.VERSION.SDK_INT >= 33 )
 		{
-			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcastHandler, Context.RECEIVER_EXPORTED);
+			registerReceiver(grantReceiver, intentFilter, null, broadcastHandler, Context.RECEIVER_EXPORTED);
 		}
 		else
 		{
-			registerReceiver(grantReceiver, new IntentFilter(ACTION_USB_PERMISSION), null, broadcastHandler);
+			registerReceiver(grantReceiver, intentFilter, null, broadcastHandler);
 		}
 		
 		/* Faster USB device permission request:
@@ -1041,6 +1010,11 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 						flags |= PendingIntent.FLAG_MUTABLE;
 					}
 					
+					/* Specifically target this Intent at this application,
+					 * by specifying the package name
+					 *
+					 * This way the broadcast process is quicker
+					 */
 					Intent intent = new Intent(ACTION_USB_PERMISSION);
 					intent.setPackage(TAG); // TAG contains the package name as a String (global variable)
 					
@@ -1061,44 +1035,35 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		
 		if ( mDevice != null && !mManager.hasPermission(mDevice) )
 		{
-			/* This method of sleeping multiple times in 1000ms chunks is done
+			/* This method of sleeping multiple times in 100ms chunks is done
 			 * to avoid having the 'Application Not Responding' pop-up (ANR)
 			 * when the application is waiting for the user to do something
-			 *
-			 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
 			 *
 			 * Make sure to never sleep / wait 5000ms or longer,
 			 * because that's when Android thinks that the application
 			 * is no longer responding, and will display the ANR pop-up
 			 */
-            synchronized ( waitLockUsbPermission )
+			try
 			{
-				int maxSleepRounds = (int)(CONFIRM_TIMEOUT / 1000); // e.g. 30000ms = 30x 1s
-				int sleepRounds    = 0;
-				
-				try
+				while ( mDevice != null && !mManager.hasPermission(mDevice) )
 				{
-					while ( mDevice != null && !mManager.hasPermission(mDevice) )
+					//
+					// e.g. 30000ms = 30x 1s [-> x2] = 60x 500ms [-> x5] = 300x 100ms
+					//
+					if ( sleepRoundsUsbPermission >= maxSleepRoundsUsbPermission )
 					{
-						if ( sleepRounds >= maxSleepRounds )
-						{
-							break;
-						}
-						
-						waitLockUsbPermission.wait(1000); // Sleep 1000ms
-						sleepRounds += 1;
+						break;
 					}
 					
-					waitLockUsbPermission.notify();
-				}
-				catch (InterruptedException ie)
-				{
-					Log.e(TAG, "Interrupted while waiting for USB permission", ie);
+					Thread.sleep(100); // Sleep the current (Main) thread for 100ms
+					sleepRoundsUsbPermission += 1;
 				}
 			}
+			catch (InterruptedException ie)
+			{
+				Log.e(TAG, "Interrupted while doing Thread sleep for USB permission", ie);
+			}
 		}
-		
-		waitLockUsbPermission = null;
 		
 		try
 		{
@@ -1108,6 +1073,9 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		{
 			Log.i(TAG, "Android claims the receiver isn't registered", iae);
 		}
+		
+		// Reset the sleep rounds counter to initial zero value
+		sleepRoundsUsbPermission = 0;
 		
 		if ( mDevice == null || !mManager.hasPermission(mDevice) )
 		{
