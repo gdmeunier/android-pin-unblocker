@@ -50,4 +50,9 @@ Obsolete/*
 !Obsolete/Libraries/Libraries.sha256
 !Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip
 
+# Some obsolete assets that are no longer used,
+# but perhaps people might like having them preserved
+!Obsolete/Files/usb.png
+!Obsolete/Icons/drawable-*-v9/*
+
 
