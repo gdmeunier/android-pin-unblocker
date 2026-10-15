@@ -53,6 +53,6 @@ Obsolete/*
 # Some obsolete assets that are no longer used,
 # but perhaps people might like having them preserved
 !Obsolete/Files/usb.png
-!Obsolete/Icons/drawable-*-v9/*
+!Obsolete/Icons/drawable-*/*
 
 
