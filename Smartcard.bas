@@ -202,16 +202,19 @@ public void jService_Create()
 							@Override
 							public void run()
 							{
-								/* Since we're just interrupting a wait loop, it's fine if we don't
-								 * interrupt it in a synchronized way (nothing sync-critical is done)
-								 */
-								try
+								if ( waitLockSmartcardInsert != null )
 								{
-				                	waitLockSmartcardInsert.notify();
-								}
-								catch (Exception e)
-								{
-									/* Nothing to do here */
+									try
+									{
+										synchronized ( waitLockSmartcardInsert )
+										{
+					                		waitLockSmartcardInsert.notify();
+										}
+									}
+									catch (Exception e)
+									{
+										/* Nothing to do here */
+									}
 								}
 							}
 						}
@@ -575,6 +578,14 @@ private void jNotifyAllWaitLocks()
         }
     }
 	
+    if ( waitLockUsbPermission != null )
+	{
+        synchronized ( waitLockUsbPermission )
+		{
+            waitLockUsbPermission.notify();
+        }
+    }
+	
 	if ( waitLockSmartcardInsert != null )
 	{
         synchronized ( waitLockSmartcardInsert )
@@ -662,9 +673,6 @@ private mysmartcardreader.SmartcardReader cardReaderProxy = new mysmartcardreade
 private NotificationManager notifyMgr;
 private PowerManager        powerMgr;
 
-private Object waitLockUsbDevice;
-private Object waitLockSmartcardInsert;
-
 // Temporary properties
 private BroadcastReceiver detachReceiver;
 
@@ -685,6 +693,11 @@ private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.
 #End If
 
 #If Java
+int maxSleepRoundsUsbDevice = (int)((USB_TIMEOUT / 1000) * 2) * 5; // e.g. 30000ms = 30x 1s = 60x 0.5s = 300x 0.1s
+int sleepRoundsUsbDevice    = 0;
+
+private Object waitLockUsbDevice;
+
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
 	if ( mDevice != null && mReader.isSupported(mDevice) )
@@ -733,6 +746,9 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		
 		notifyMgr.notify(1, builder.build());
 		
+		// Reset the sleep rounds counter to initial zero value
+		sleepRoundsUsbDevice = 0;
+		
 		waitLockUsbDevice = new Object();
 		
 		final BroadcastReceiver attachReceiver = new BroadcastReceiver()
@@ -746,33 +762,25 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				{
 					mDevice = device;
 					
-                    if ( waitLockUsbDevice == null )
+					/* Interrupt the USB device sleep cycle by
+					 * deliberately increasing the sleep rounds counter
+					 * to the maximum number of sleep calls
+					 */
+					sleepRoundsUsbDevice = maxSleepRoundsUsbDevice;
+					
+	                if ( waitLockUsbDevice != null )
 					{
-                        Log.w(TAG, "Obtained USB device without wait handler");
-                        return;
-                    }
-					else
-					{
-						/* Since we're just interrupting a wait loop, it's fine if we don't
-						 * interrupt it in a synchronized way (nothing sync-critical is done)
-						 */
-						broadcastHandler.post(
-							new Runnable()
+						try
+						{
+							synchronized ( waitLockUsbDevice )
 							{
-								@Override
-								public void run()
-								{
-									try
-									{
-										waitLockUsbDevice.notify();
-									}
-									catch (Exception e)
-									{
-										/* Nothing to do here */
-									}
-								}
+								waitLockUsbDevice.notify();
 							}
-						);
+						}
+						catch (Exception e)
+						{
+							/* Nothing to do here */
+						}
 					}
 				}
 				else
@@ -808,34 +816,31 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		 *
 		 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
 		 */
-        synchronized ( waitLockUsbDevice )
+		try
 		{
-			int maxSleepRounds = (int)(USB_TIMEOUT / 1000) * 2; // e.g. 30000ms = 30x 1s = 60x 0.5s
-			int sleepRounds    = 0;
-			
-			try
+			while ( mDevice == null )
 			{
-				while ( mDevice == null )
+				if ( sleepRoundsUsbDevice >= maxSleepRoundsUsbDevice || mDevice != null )
 				{
-					if ( sleepRounds >= maxSleepRounds || mDevice != null )
-					{
-						break;
-					}
-					
-					for ( int i = 1; i <= 25; i++ )
-					{
-						waitLockUsbDevice.wait(20);
-					}
-					sleepRounds += 1;
+					break;
 				}
 				
+		        synchronized ( waitLockUsbDevice )
+				{
+					waitLockUsbDevice.wait(100);
+				}
+				sleepRoundsUsbDevice += 1;
+			}
+			
+	        synchronized ( waitLockUsbDevice )
+			{
 				waitLockUsbDevice.notify();
 			}
-			catch (InterruptedException ie)
-			{
-				Log.e(TAG, "Interrupted while waiting for USB insert", ie);
-			}
-        }
+		}
+		catch (InterruptedException ie)
+		{
+			/* Nothing to do here */
+		}
 		
 		waitLockUsbDevice = null;
 		
@@ -845,8 +850,11 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		}
 		catch (IllegalArgumentException iae)
 		{
-			Log.i(TAG, "Android claims the receiver isn't registered", iae);
+			/* Nothing to do here */
 		}
+		
+		// Reset the sleep rounds counter to initial zero value
+		sleepRoundsUsbDevice = 0;
 		
 		if ( mDevice == null )
 		{
@@ -938,6 +946,8 @@ private int pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLA
 private int maxSleepRoundsUsbPermission = (int)((CONFIRM_TIMEOUT / 1000) * 2) * 5; // 300x 100ms
 private int sleepRoundsUsbPermission    = 0;
 
+private Object waitLockUsbPermission;
+
 public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 {
 	if ( !mManager.hasPermission(mDevice) )
@@ -945,16 +955,42 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbPermission = 0;
 		
+		waitLockUsbPermission = new Object();
+		
 		BroadcastReceiver grantReceiver = new BroadcastReceiver()
 		{
 			@Override
 			public void onReceive(Context context, Intent intent)
 			{
-				/* Interrupt the USB permission sleep cycle by
-				 * deliberately increasing the sleep rounds counter
-				 * to the maximum number of sleep calls
-				 */
-				sleepRoundsUsbPermission = maxSleepRoundsUsbPermission;
+				broadcastHandler.post(
+					new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							/* Interrupt the USB permission sleep cycle by
+							 * deliberately increasing the sleep rounds counter
+							 * to the maximum number of sleep calls
+							 */
+							sleepRoundsUsbPermission = maxSleepRoundsUsbPermission;
+							
+			                if ( waitLockUsbPermission != null )
+							{
+								try
+								{
+									synchronized ( waitLockUsbPermission )
+									{
+										waitLockUsbPermission.notify();
+									}
+								}
+								catch (Exception e)
+								{
+									/* Nothing to do here */
+								}
+							}
+						}
+					}
+				);
 			}
 		};
 		
@@ -1032,7 +1068,6 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		 * For such cases we check if mDevice didn't become null,
 		 * because it gets set to null on the device's detached event
 		 */
-		
 		if ( mDevice != null && !mManager.hasPermission(mDevice) )
 		{
 			/* This method of sleeping multiple times in 100ms chunks is done
@@ -1055,15 +1090,25 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 						break;
 					}
 					
-					Thread.sleep(100); // Sleep the current (Main) thread for 100ms
+					synchronized ( waitLockUsbPermission )
+					{
+						waitLockUsbPermission.wait(100); // Wait for 100ms
+					}
 					sleepRoundsUsbPermission += 1;
+				}
+				
+				synchronized ( waitLockUsbPermission )
+				{
+					waitLockUsbPermission.notify();
 				}
 			}
 			catch (InterruptedException ie)
 			{
-				Log.e(TAG, "Interrupted while doing Thread sleep for USB permission", ie);
+				/* Nothing to do here */
 			}
 		}
+		
+		waitLockUsbPermission = null;
 		
 		try
 		{
@@ -1071,11 +1116,31 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		}
 		catch (IllegalArgumentException iae)
 		{
-			Log.i(TAG, "Android claims the receiver isn't registered", iae);
+			/* Nothing to do here */
 		}
 		
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbPermission = 0;
+		
+		/* Sleep the current (Main) thread for 250ms
+		 *
+		 * It should fix a false "No USB permission granted" error
+		 * when you wait some time before granting the USB permission,
+		 * by adding one last small delay which lets Android have
+		 * more time to fully register the USB permission as granted
+		 *
+		 * This line might be removed in the future if I find
+		 * a better way of handling late USB permission grants
+		 * from users on the USB permission prompt window
+		 */
+		try
+		{
+			Thread.sleep(250);
+		}
+		catch (InterruptedException ie)
+		{
+			/* Nothing to do here */
+		}
 		
 		if ( mDevice == null || !mManager.hasPermission(mDevice) )
 		{
@@ -1142,6 +1207,8 @@ public void jObtainSmartcardReader() throws Exception
 #End If
 
 #If Java
+private Object waitLockSmartcardInsert;
+
 /* Card state constants:
  * - CARD_UNKNOWN    = 0
  * - CARD_ABSENT     = 1
@@ -1212,65 +1279,65 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		 *
 		 * So don't simplify it with a single "waitLockXXX.wait(XXX_TIMEOUT);"
 		 */
-		synchronized ( waitLockSmartcardInsert )
+		int maxSleepRounds = (int)((SMARTCARD_TIMEOUT / 1000) * 2) * 5; // e.g. 30000ms = 30x 1s = 60x 0.5s = 300x 0.1s
+		int sleepRounds    = 0;
+		
+		try
 		{
-			int maxSleepRounds = (int)(SMARTCARD_TIMEOUT / 1000) * 2; // e.g. 30000ms = 30x 1s = 60x 0.5s
-			int sleepRounds    = 0;
-			
-			try
+			/* If card is already present inside the reader when
+			 * the reader was connected to the phone,
+			 * then no need to wait at all
+			 */
+			while ( iActualState < Reader.CARD_PRESENT )
 			{
-				/* If card is already present inside the reader when
-				 * the reader was connected to the phone,
-				 * then no need to wait at all
+				/* iSlotNum will always be -1 here unless something
+				 * worthy was found (smartcard inserted event),
+				 * in which case it will immediately be updated by
+				 * the onStateChanged callback of the acssmc library
+				 * to a proper slot number
+				 *
+				 * So if it's no longer -1 then directly skip the
+				 * for-loop that searches all the slots individually
 				 */
-				while ( iActualState < Reader.CARD_PRESENT )
+				if ( iSlotNum < 0 )
 				{
-					/* iSlotNum will always be -1 here unless something
-					 * worthy was found (smartcard inserted event),
-					 * in which case it will immediately be updated by
-					 * the onStateChanged callback of the acssmc library
-					 * to a proper slot number
-					 *
-					 * So if it's no longer -1 then directly skip the
-					 * for-loop that searches all the slots individually
+					/* Check all card slots for any inserted smartcard
+					 * incase we actually have a multi-slot smartcard reader,
+					 * add if we find any inserted smartcard, then return
+					 * the state of the first slot found with a card inside
 					 */
-					if ( iSlotNum < 0 )
+					for ( int i = 0; i < mReader.getNumSlots(); i++ )
 					{
-						/* Check all card slots for any inserted smartcard
-						 * incase we actually have a multi-slot smartcard reader,
-						 * add if we find any inserted smartcard, then return
-						 * the state of the first slot found with a card inside
-						 */
-						for ( int i = 0; i < mReader.getNumSlots(); i++ )
+						iActualState = mReader.getState(i);
+						
+						if ( iActualState >= Reader.CARD_PRESENT )
 						{
-							iActualState = mReader.getState(i);
-							
-							if ( iActualState >= Reader.CARD_PRESENT )
-							{
-								iSlotNum = i;
-								break;
-							}
+							iSlotNum = i;
+							break;
 						}
 					}
-					
-					if ( sleepRounds >= maxSleepRounds || iActualState >= Reader.CARD_PRESENT )
-					{
-						break;
-					}
-					
-					for ( int i = 1; i <= 25; i++ )
-					{
-						waitLockSmartcardInsert.wait(20); // Sleep 500ms (25x 20ms)
-					}
-					sleepRounds += 1;
 				}
 				
+				if ( sleepRounds >= maxSleepRounds || iActualState >= Reader.CARD_PRESENT )
+				{
+					break;
+				}
+				
+				synchronized ( waitLockSmartcardInsert )
+				{
+					waitLockSmartcardInsert.wait(100); // Wait 100ms
+				}
+				sleepRounds += 1;
+			}
+			
+			synchronized ( waitLockSmartcardInsert )
+			{
 				waitLockSmartcardInsert.notify();
 			}
-			catch (InterruptedException ie)
-			{
-				Log.e(TAG, "Interrupted while waiting for Smartcard insert", ie);
-			}
+		}
+		catch (InterruptedException ie)
+		{
+			/* Nothing to do here */
 		}
 		
 		waitLockSmartcardInsert = null;
