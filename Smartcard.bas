@@ -11,6 +11,12 @@ Version=9.9
 	
 #End Region
 
+#Region Module File Attributes
+	'Ignore "Sub x is not used" warning (#12)
+	#IgnoreWarnings: 12
+	
+#End Region
+
 '----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
 '
@@ -44,11 +50,18 @@ Sub Process_Globals
 	'For requesting JVM GC clears
 	Private Security As MySecurity
 	
+	'For being able to re-throw exceptions
+	Private Common As MyCommon
+	
 	'For running native Java code
 	Private joService As JavaObject
 	
 	'For doing APDU communications in a separate thread
 	Private ServiceMessageThread As Thread
+	
+	'Yet another thread, perhaps it will help with
+	'the USB permission prompt to make it faster
+	Private SmartcardOperationThread As Thread
 	
 	'List of possible Service messaging values
 	Public Const SEND_APDU    As Int = 0x100
@@ -64,6 +77,18 @@ Sub Process_Globals
 	'running two service commands at the same time
 	Private ActiveOperationInProgress As Boolean = False
 	
+End Sub
+
+Private Sub ServiceMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Nothing to do here
+	'
+End Sub
+
+Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Nothing to do here
+	'
 End Sub
 
 Sub Service_Create
@@ -88,11 +113,18 @@ Sub Service_Create
 	'For requesting JVM GC clears
 	Security.Initialize
 	
+	'For being able to re-throw exceptions
+	Common.Initialize
+	
 	'Initialize the PC/SC stack
 	joService.RunMethod("jService_Create", Null)
 	
 	'For doing APDU communications in a separate thread
 	ServiceMessageThread.Initialize("ServiceMessageThread")
+	
+	'Yet another thread, perhaps it will help with
+	'the USB permission prompt to make it faster
+	SmartcardOperationThread.Initialize("SmartcardOperationThread")
 	
 End Sub
 #If Java
@@ -113,15 +145,15 @@ public void jService_Create()
 	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
 	
 	toastThread         = new HandlerThread("SmartcardServiceToastThread",         Process.THREAD_PRIORITY_BACKGROUND);
-	UsbPermissionThread = new HandlerThread("SmartcardServiceUsbPermissionThread", Process.THREAD_PRIORITY_FOREGROUND);
+	usbPermissionThread = new HandlerThread("SmartcardServiceUsbPermissionThread", Process.THREAD_PRIORITY_FOREGROUND);
 	broadcastThread     = new HandlerThread("SmartcardServiceBroadcastThread",     Process.THREAD_PRIORITY_FOREGROUND);
 	
 	toastThread.start();
-	UsbPermissionThread.start();
+	usbPermissionThread.start();
 	broadcastThread.start();
 	
 	toastHandler         = new Handler(toastThread.getLooper());
-	UsbPermissionHandler = new Handler(UsbPermissionThread.getLooper());
+	usbPermissionHandler = new Handler(usbPermissionThread.getLooper());
 	broadcastHandler     = new Handler(broadcastThread.getLooper());
 	
     mManager = (UsbManager)getSystemService(Context.USB_SERVICE);
@@ -206,7 +238,7 @@ public void jService_Create()
 								{
 									try
 									{
-										synchronized ( waitLockSmartcardInsert )
+										synchronized(waitLockSmartcardInsert)
 										{
 					                		waitLockSmartcardInsert.notify();
 										}
@@ -225,12 +257,6 @@ public void jService_Create()
     });
 }
 #End If
-
-Private Sub ServiceMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
-	'Nothing to do here
-	'
-End Sub
 
 '
 'Smartcard Service Basic code
@@ -286,8 +312,14 @@ Sub Service_Message_NewThread
 				
 				ActiveOperationInProgress = True
 				Try
-					Dim ServiceReply() As Object = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
-					Dim IsSuccessful   As Boolean = True
+					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+					Wait For Service_Message_NewThread_RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
+					
+					If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
+						Common.Throw(ExceptionIfAny)
+					End If
+					
+					Dim IsSuccessful As Boolean = True
 					
 					'The MySmartcardReader class automatically handles APDU
 					'request chaining transparently, so we can just simply
@@ -311,9 +343,14 @@ Sub Service_Message_NewThread
 				
 				ActiveOperationInProgress = True
 				Try
-					Dim ServiceReply() As Object = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
-					Dim IsSuccessful   As Boolean = True
+					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+					Wait For Service_Message_NewThread_RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
 					
+					If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
+						Common.Throw(ExceptionIfAny)
+					End If
+					
+					Dim IsSuccessful As Boolean = True
 					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
 					
 				Catch
@@ -329,9 +366,14 @@ Sub Service_Message_NewThread
 				
 				ActiveOperationInProgress = True
 				Try
-					Dim ServiceReply() As Object = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
-					Dim IsSuccessful   As Boolean = True
+					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+					Wait For Service_Message_NewThread_RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
 					
+					If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
+						Common.Throw(ExceptionIfAny)
+					End If
+					
+					Dim IsSuccessful As Boolean = True
 					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
 					
 				Catch
@@ -352,6 +394,35 @@ Sub Service_Message_NewThread
 	Loop
 	
 End Sub
+'
+'Helper function to make it easier to invoke APDU operations
+'in yet another separate thread, perhaps it will help with
+'the USB permission prompt to make it much faster
+'
+'Sorry that it looks convoluted, that's simply what works
+'to make USB permission prompts instantaneous
+'
+Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
+	
+	'Default initial values just incase
+	Dim ExceptionIfAny As String = ""
+	Dim ServiceReply() As Object = Array As Object(ExceptionIfAny)
+	
+	Try
+		ServiceReply = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
+		
+	Catch
+		ExceptionIfAny = LastException.Message
+		ServiceReply   = Array As Object(ExceptionIfAny)
+		
+	End Try
+	
+	CallSubDelayed3(Me, "Service_Message_NewThread_RunInSmartcardOperationThread_Completed", ExceptionIfAny, ServiceReply)
+	
+End Sub
+'
+'Actual Java native function
+'
 #If Java
 import java.lang.RuntimeException;
 import java.io.StringWriter;
@@ -366,10 +437,10 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	
 	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
 		.setSmallIcon(R.drawable.ic_stat_card)
-		.setContentTitle("Android PIN Unblocker")
-		.setContentText("Accessing smartcard reader...")
+		.setContentTitle(APPLICATION_NAME)
+		.setContentText("New smartcard operation")
 		.setCategory(Notification.CATEGORY_SERVICE);
-	startForeground(1, builder.build());
+	startForeground(NOTIFICATION_ID_START_FOREGROUND, builder.build());
 	
 	Object[] reply = null;
 	
@@ -491,15 +562,6 @@ End Sub
 #If Java
 public void jService_Destroy()
 {
-	try
-	{
-		mReader.close();
-	}
-	catch (Exception e)
-	{
-		/* Nothing to do here */
-	}
-	
 	if ( detachReceiver != null )
 	{
 		try
@@ -508,61 +570,66 @@ public void jService_Destroy()
 		}
 		catch (IllegalArgumentException iae)
 		{
-			Log.i(TAG, "Android claims the receiver isn't registered", iae);
+			/* Nothing to do here */
 		}
+		
+		detachReceiver = null;
 	}
 	
-	detachReceiver = null;
+	jResetSmartcardReaderState();
 	
-	mDevice         = null;
 	cardReaderProxy = null;
-	
-	iSlotNum = -1;
-	atr      = null;
-	
-	iActualState   = Reader.CARD_UNKNOWN;
-	activeProtocol = Reader.PROTOCOL_UNDEFINED;
 	
 	jNotifyAllWaitLocks();
 	
 	//
 	// Stopping additional threads
 	//
-	try
+	ArrayList<HandlerThread> additionalThreadsList = new ArrayList<HandlerThread>(3); // 3 elements inside
+	additionalThreadsList.add(toastThread);
+	additionalThreadsList.add(usbPermissionThread);
+	additionalThreadsList.add(broadcastThread);
+	
+	for (HandlerThread additionalThread : additionalThreadsList)
 	{
-		if ( !toastThread.quit() )
+		try
 		{
-			Log.w(TAG, "Failed to quit toast thread loop");
+			additionalThread.quit();
+		}
+		catch (Exception e)
+		{
+			/* Nothing to do here */
 		}
 	}
-	catch (Exception e)
+}
+
+private void jResetSmartcardReaderState()
+{
+	/* Call the mReader.close() method just incase
+	 * This way we make fully sure that the next
+	 * call to mReader.isOpened() will return false
+	 */
+	try
+	{
+		mReader.close();
+	}
+	catch (Exception e2)
 	{
 		/* Nothing to do here */
 	}
 	
-	try
-	{
-		if ( !UsbPermissionThread.quit() )
-		{
-			Log.w(TAG, "Failed to quit USB permission thread loop");
-		}
-	}
-	catch (Exception e)
-	{
-		/* Nothing to do here */
-	}
+	/* Clear the current connected device handle
+	 *
+	 * This way the next jObtainUsbDevice call will
+	 * re-acquire a new USB-CCID device
+	 */
+	mDevice = null;
 	
-	try
-	{
-		if ( !broadcastThread.quit() )
-		{
-			Log.w(TAG, "Failed to quit broadcast thread loop");
-		}
-	}
-	catch (Exception e)
-	{
-		/* Nothing to do here */
-	}
+	iSlotNum = -1;
+	atr      = null;
+	
+	iActualState   = Reader.CARD_UNKNOWN;
+	activeProtocol = Reader.PROTOCOL_UNDEFINED;
 }
 
 private void jNotifyAllWaitLocks()
@@ -570,29 +637,21 @@ private void jNotifyAllWaitLocks()
 	//
 	// These ones need to be done in order (synchronized)
 	//
-    if ( waitLockUsbDevice != null )
-	{
-        synchronized ( waitLockUsbDevice )
-		{
-            waitLockUsbDevice.notify();
-        }
-    }
+	ArrayList<Object> waitLocksList = new ArrayList<Object>(3); // 3 elements inside
+	waitLocksList.add(waitLockUsbDevice);
+	waitLocksList.add(waitLockUsbPermission);
+	waitLocksList.add(waitLockSmartcardInsert);
 	
-    if ( waitLockUsbPermission != null )
+	for (Object waitLock : waitLocksList)
 	{
-        synchronized ( waitLockUsbPermission )
+	    if ( waitLock != null )
 		{
-            waitLockUsbPermission.notify();
-        }
-    }
-	
-	if ( waitLockSmartcardInsert != null )
-	{
-        synchronized ( waitLockSmartcardInsert )
-		{
-            waitLockSmartcardInsert.notify();
-        }
-    }
+	        synchronized(waitLock)
+			{
+				waitLock.notify();
+			}
+	    }
+	}
 }
 #End If
 
@@ -618,31 +677,35 @@ End Sub
 'General list of all Java native imports for this Service
 'This way no need to figure out which functions need what
 #If Java
-import android.app.Notification;
-import android.app.NotificationManager;
-import androidx.core.app.NotificationCompat;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.app.Service;
+
+import android.app.NotificationManager;
+import android.app.Notification;
+import androidx.core.app.NotificationCompat;
+import android.widget.Toast;
+
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.app.PendingIntent;
+
 import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.net.Uri;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ArrayList;
+
 import android.os.*;
 import android.os.Process; // This one must be explicitly imported
-import android.util.Log;
-import android.widget.Toast;
+
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import android.util.Log;
+
 import net.gdmeunier.pinunblocker.R; // Must match the application's package name
+
 import com.acs.smartcard.Reader;
 import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
@@ -676,27 +739,42 @@ private PowerManager        powerMgr;
 // Temporary properties
 private BroadcastReceiver detachReceiver;
 
+private Object waitLockUsbDevice;
+private Object waitLockUsbPermission;
+private Object waitLockSmartcardInsert;
+
 // Permanent properties
 private Handler toastHandler         = null;
-private Handler UsbPermissionHandler = null;
+private Handler usbPermissionHandler = null;
 private Handler broadcastHandler     = null;
 
 private HandlerThread toastThread;
-private HandlerThread UsbPermissionThread;
+private HandlerThread usbPermissionThread;
 private HandlerThread broadcastThread;
 
 /* I also use the TAG value as the package name to use in
  * new Intents that are specifically sent to this application
  */
-private static final String TAG = "net.gdmeunier.pinunblocker"; // Must match the application's package name
+// Must match the application's package name
+private static final String TAG = "net.gdmeunier.pinunblocker";
 private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.USB_PERMISSION";
+
+// Must match the application's label name
+private static final String APPLICATION_NAME = "Android PIN Unblocker";
+
+//
+// Notification IDs for easier-to-read source code
+//
+private static final int NOTIFICATION_ID_START_FOREGROUND = 1;
+private static final int NOTIFICATION_ID_USB_DEVICE       = 2;
+private static final int NOTIFICATION_ID_USB_PERMISSION   = 3;
+private static final int NOTIFICATION_ID_SMARTCARD_INSERT = 4;
+
 #End If
 
 #If Java
 int maxSleepRoundsUsbDevice = (int)((USB_TIMEOUT / 1000) * 2) * 5; // e.g. 30000ms = 30x 1s = 60x 0.5s = 300x 0.1s
 int sleepRoundsUsbDevice    = 0;
-
-private Object waitLockUsbDevice;
 
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
@@ -725,26 +803,31 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 	
 	if ( mDevice == null )
 	{
+		final String msg = "Connect your smartcard reader";
+		
 		toastHandler.post(
 			new Runnable()
 			{
 				@Override
 				public void run()
 				{
-					Toast.makeText(smartcard.this, "Connect your smartcard reader...", Toast.LENGTH_LONG).show();
+					Toast.makeText(smartcard.this, msg+"...", Toast.LENGTH_LONG).show();
 				}
 			}
 		);
 		
+		/* Notification sound only for the first notification
+		 * to avoid spamming notification sounds
+		 */
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.ic_stat_card)
-				.setContentTitle("Android PIN Unblocker")
-				.setContentText("Connect your smartcard reader")
+				.setContentTitle(APPLICATION_NAME)
+				.setContentText(msg)
 				.setCategory(Notification.CATEGORY_SERVICE)
 				.setPriority(NotificationCompat.PRIORITY_MAX)
 				.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS);
 		
-		notifyMgr.notify(1, builder.build());
+		notifyMgr.notify(NOTIFICATION_ID_USB_DEVICE, builder.build());
 		
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbDevice = 0;
@@ -772,7 +855,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 					{
 						try
 						{
-							synchronized ( waitLockUsbDevice )
+							synchronized(waitLockUsbDevice)
 							{
 								waitLockUsbDevice.notify();
 							}
@@ -818,22 +901,19 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		 */
 		try
 		{
-			while ( mDevice == null )
+			synchronized(waitLockUsbDevice)
 			{
-				if ( sleepRoundsUsbDevice >= maxSleepRoundsUsbDevice || mDevice != null )
+				while ( mDevice == null )
 				{
-					break;
+					if ( sleepRoundsUsbDevice >= maxSleepRoundsUsbDevice || mDevice != null )
+					{
+						break;
+					}
+					
+					waitLockUsbDevice.wait(100);
+					sleepRoundsUsbDevice += 1;
 				}
 				
-		        synchronized ( waitLockUsbDevice )
-				{
-					waitLockUsbDevice.wait(100);
-				}
-				sleepRoundsUsbDevice += 1;
-			}
-			
-	        synchronized ( waitLockUsbDevice )
-			{
 				waitLockUsbDevice.notify();
 			}
 		}
@@ -855,6 +935,9 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbDevice = 0;
+		
+		// Cancel the notification once it's no longer needed
+		notifyMgr.cancel(NOTIFICATION_ID_USB_DEVICE);
 		
 		if ( mDevice == null )
 		{
@@ -896,28 +979,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 			 */
 			if ( mDevice == null || device.getDeviceName().equals(mDevice.getDeviceName()) )
 			{
-				try
-				{
-					mReader.close();
-				}
-				catch (Exception e)
-				{
-					/* Nothing to do here */
-				}
-				
-				/* Clear the current connected device handle
-				 *
-				 * This way the next jObtainUsbDevice call will
-				 * re-acquire a new USB-CCID device
-				 */
-				mDevice = null;
-				
-				iSlotNum = -1;
-				atr      = null;
-				
-				iActualState   = Reader.CARD_UNKNOWN;
-				activeProtocol = Reader.PROTOCOL_UNDEFINED;
-				
+				jResetSmartcardReaderState();
 				jNotifyAllWaitLocks();
 			}
 		}
@@ -946,14 +1008,35 @@ private int pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLA
 private int maxSleepRoundsUsbPermission = (int)((CONFIRM_TIMEOUT / 1000) * 2) * 5; // 300x 100ms
 private int sleepRoundsUsbPermission    = 0;
 
-private Object waitLockUsbPermission;
-
 public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 {
 	if ( !mManager.hasPermission(mDevice) )
 	{
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbPermission = 0;
+		
+		final String msg = "Please grant USB permission";
+		
+		toastHandler.post(
+			new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					Toast.makeText(smartcard.this, msg+"...", Toast.LENGTH_LONG).show();
+				}
+			}
+		);
+		
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+				.setSmallIcon(R.drawable.ic_stat_card)
+				.setContentTitle(APPLICATION_NAME)
+				.setContentText(msg)
+				.setCategory(Notification.CATEGORY_SERVICE)
+				.setPriority(NotificationCompat.PRIORITY_MAX)
+				.setDefaults(Notification.DEFAULT_LIGHTS);
+		
+		notifyMgr.notify(NOTIFICATION_ID_USB_PERMISSION, builder.build());
 		
 		waitLockUsbPermission = new Object();
 		
@@ -978,7 +1061,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 							{
 								try
 								{
-									synchronized ( waitLockUsbPermission )
+									synchronized(waitLockUsbPermission)
 									{
 										waitLockUsbPermission.notify();
 									}
@@ -1015,7 +1098,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		 *
 		 * Tryig to improve the USB permission prompt time by
 		 * offloading the broadcast of the grantReceiver to
-		 * "broadcastHandler" instead of "UsbPermissionHandler",
+		 * "broadcastHandler" instead of "usbPermissionHandler",
 		 * so that I make sure that it's not the cause of
 		 * slow USB permission prompts on some older devices
 		 */
@@ -1029,9 +1112,9 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		}
 		
 		/* Faster USB device permission request:
-		 * Run the permission request on the "UsbPermissionHandler" thread
+		 * Run the permission request on the "usbPermissionHandler" thread
 		 */
-		UsbPermissionHandler.post(
+		usbPermissionHandler.post(
 			new Runnable()
 			{
 				@Override
@@ -1080,25 +1163,22 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 			 */
 			try
 			{
-				while ( mDevice != null && !mManager.hasPermission(mDevice) )
+				synchronized(waitLockUsbPermission)
 				{
-					//
-					// e.g. 30000ms = 30x 1s [-> x2] = 60x 500ms [-> x5] = 300x 100ms
-					//
-					if ( sleepRoundsUsbPermission >= maxSleepRoundsUsbPermission )
+					while ( mDevice != null && !mManager.hasPermission(mDevice) )
 					{
-						break;
+						//
+						// e.g. 30000ms = 30x 1s [-> x2] = 60x 500ms [-> x5] = 300x 100ms
+						//
+						if ( sleepRoundsUsbPermission >= maxSleepRoundsUsbPermission )
+						{
+							break;
+						}
+						
+						waitLockUsbPermission.wait(100); // Wait for 100ms
+						sleepRoundsUsbPermission += 1;
 					}
 					
-					synchronized ( waitLockUsbPermission )
-					{
-						waitLockUsbPermission.wait(100); // Wait for 100ms
-					}
-					sleepRoundsUsbPermission += 1;
-				}
-				
-				synchronized ( waitLockUsbPermission )
-				{
 					waitLockUsbPermission.notify();
 				}
 			}
@@ -1122,25 +1202,8 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbPermission = 0;
 		
-		/* Sleep the current (Main) thread for 250ms
-		 *
-		 * It should fix a false "No USB permission granted" error
-		 * when you wait some time before granting the USB permission,
-		 * by adding one last small delay which lets Android have
-		 * more time to fully register the USB permission as granted
-		 *
-		 * This line might be removed in the future if I find
-		 * a better way of handling late USB permission grants
-		 * from users on the USB permission prompt window
-		 */
-		try
-		{
-			Thread.sleep(250);
-		}
-		catch (InterruptedException ie)
-		{
-			/* Nothing to do here */
-		}
+		// Cancel the notification once it's no longer needed
+		notifyMgr.cancel(NOTIFICATION_ID_USB_PERMISSION);
 		
 		if ( mDevice == null || !mManager.hasPermission(mDevice) )
 		{
@@ -1171,32 +1234,7 @@ public void jObtainSmartcardReader() throws Exception
 			StringWriter stackTrace = new StringWriter();
 			e.printStackTrace(new PrintWriter(stackTrace));
 			
-			
-			/* Call the mReader.close() method just incase
-			 * This way we make fully sure that the next
-			 * call to mReader.isOpened() will return false
-			 */
-			try
-			{
-				mReader.close();
-			}
-			catch (Exception e2)
-			{
-				/* Nothing to do here */
-			}
-			
-			/* Clear the current connected device handle
-			 *
-			 * This way the next jObtainUsbDevice call will
-			 * re-acquire a new USB-CCID device
-			 */
-			mDevice = null;
-			
-			iSlotNum = -1;
-			atr      = null;
-			
-			iActualState   = Reader.CARD_UNKNOWN;
-			activeProtocol = Reader.PROTOCOL_UNDEFINED;
+			jResetSmartcardReaderState();
 			
 			// Re-throw the last exception as the last step
 			//
@@ -1207,8 +1245,6 @@ public void jObtainSmartcardReader() throws Exception
 #End If
 
 #If Java
-private Object waitLockSmartcardInsert;
-
 /* Card state constants:
  * - CARD_UNKNOWN    = 0
  * - CARD_ABSENT     = 1
@@ -1222,14 +1258,6 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 public void jObtainSmartcard() throws mysmartcardreader.AbortException
 {
-	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
-			.setSmallIcon(R.drawable.ic_stat_card)
-			.setContentTitle("Android PIN Unblocker")
-			.setContentText("Accessing your smartcard...")
-			.setCategory(Notification.CATEGORY_SERVICE);
-	
-	notifyMgr.notify(1, builder.build());
-	
 	/* Check all card slots for any inserted smartcard
 	 * incase we actually have a multi-slot smartcard reader,
 	 * add if we find any inserted smartcard, then return
@@ -1248,7 +1276,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 	
 	if ( iActualState < Reader.CARD_PRESENT )
 	{
-		final String msg = String.format("Insert your smartcard in your %1$s reader...", getProductName(mDevice));
+		final String msg = String.format("Insert a smartcard in your %1$s reader", getProductName(mDevice));
 		
 		toastHandler.post(
 			new Runnable()
@@ -1256,20 +1284,20 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 				@Override
 				public void run()
 				{
-					Toast.makeText(smartcard.this, msg, Toast.LENGTH_LONG).show();
+					Toast.makeText(smartcard.this, msg+"...", Toast.LENGTH_LONG).show();
 				}
 			}
 		);
 		
-		builder = new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.ic_stat_card)
-				.setContentTitle("Android PIN Unblocker")
-				.setContentText(msg)
-				.setCategory(Notification.CATEGORY_SERVICE)
-				.setPriority(NotificationCompat.PRIORITY_MAX)
-				.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS);
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+			.setSmallIcon(R.drawable.ic_stat_card)
+			.setContentTitle(APPLICATION_NAME)
+			.setContentText(msg)
+			.setCategory(Notification.CATEGORY_SERVICE)
+			.setPriority(NotificationCompat.PRIORITY_MAX)
+			.setDefaults(Notification.DEFAULT_LIGHTS);
 		
-		notifyMgr.notify(1, builder.build());
+		notifyMgr.notify(NOTIFICATION_ID_SMARTCARD_INSERT, builder.build());
 		
 		waitLockSmartcardInsert = new Object();
 		
@@ -1284,54 +1312,51 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		
 		try
 		{
-			/* If card is already present inside the reader when
-			 * the reader was connected to the phone,
-			 * then no need to wait at all
-			 */
-			while ( iActualState < Reader.CARD_PRESENT )
+			synchronized(waitLockSmartcardInsert)
 			{
-				/* iSlotNum will always be -1 here unless something
-				 * worthy was found (smartcard inserted event),
-				 * in which case it will immediately be updated by
-				 * the onStateChanged callback of the acssmc library
-				 * to a proper slot number
-				 *
-				 * So if it's no longer -1 then directly skip the
-				 * for-loop that searches all the slots individually
+				/* If card is already present inside the reader when
+				 * the reader was connected to the phone,
+				 * then no need to wait at all
 				 */
-				if ( iSlotNum < 0 )
+				while ( iActualState < Reader.CARD_PRESENT )
 				{
-					/* Check all card slots for any inserted smartcard
-					 * incase we actually have a multi-slot smartcard reader,
-					 * add if we find any inserted smartcard, then return
-					 * the state of the first slot found with a card inside
+					/* iSlotNum will always be -1 here unless something
+					 * worthy was found (smartcard inserted event),
+					 * in which case it will immediately be updated by
+					 * the onStateChanged callback of the acssmc library
+					 * to a proper slot number
+					 *
+					 * So if it's no longer -1 then directly skip the
+					 * for-loop that searches all the slots individually
 					 */
-					for ( int i = 0; i < mReader.getNumSlots(); i++ )
+					if ( iSlotNum < 0 )
 					{
-						iActualState = mReader.getState(i);
-						
-						if ( iActualState >= Reader.CARD_PRESENT )
+						/* Check all card slots for any inserted smartcard
+						 * incase we actually have a multi-slot smartcard reader,
+						 * add if we find any inserted smartcard, then return
+						 * the state of the first slot found with a card inside
+						 */
+						for ( int i = 0; i < mReader.getNumSlots(); i++ )
 						{
-							iSlotNum = i;
-							break;
+							iActualState = mReader.getState(i);
+							
+							if ( iActualState >= Reader.CARD_PRESENT )
+							{
+								iSlotNum = i;
+								break;
+							}
 						}
 					}
-				}
-				
-				if ( sleepRounds >= maxSleepRounds || iActualState >= Reader.CARD_PRESENT )
-				{
-					break;
-				}
-				
-				synchronized ( waitLockSmartcardInsert )
-				{
+					
+					if ( sleepRounds >= maxSleepRounds || iActualState >= Reader.CARD_PRESENT )
+					{
+						break;
+					}
+					
 					waitLockSmartcardInsert.wait(100); // Wait 100ms
+					sleepRounds += 1;
 				}
-				sleepRounds += 1;
-			}
-			
-			synchronized ( waitLockSmartcardInsert )
-			{
+				
 				waitLockSmartcardInsert.notify();
 			}
 		}
@@ -1341,6 +1366,9 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		}
 		
 		waitLockSmartcardInsert = null;
+		
+		// Cancel the notification once it's no longer needed
+		notifyMgr.cancel(NOTIFICATION_ID_SMARTCARD_INSERT);
 		
 		if ( iActualState < Reader.CARD_PRESENT || iActualState == Reader.CARD_SWALLOWED )
 		{

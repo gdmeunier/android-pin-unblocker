@@ -54,5 +54,6 @@ Obsolete/*
 # but perhaps people might like having them preserved
 !Obsolete/Files/usb.png
 !Obsolete/Icons/drawable-*/*
+!Obsolete/Scratchpad/*
 
 
