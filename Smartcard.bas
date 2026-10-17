@@ -34,6 +34,8 @@ import android.app.Notification;
 import androidx.core.app.NotificationCompat;
 import android.widget.Toast;
 
+import android.media.AudioManager;
+
 // For Android 8+ support (API level 26+)
 import android.app.NotificationChannel;
 import android.media.AudioAttributes;
@@ -845,6 +847,11 @@ private void jShowToast(final String msg)
 }
 private void jCancelCurrentlyShownToastIfAny()
 {
+    if ( lastShownToast == null )
+	{
+		return;
+	}
+	
 	toastHandler.post(
 		new Runnable()
 		{
@@ -897,17 +904,38 @@ private void jShowNotification(final int notificationID, final String msg, final
 }
 private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp, final boolean useLights)
 {
-	int defaultNotificationFlags = 0;
+	//
+	// Android 3.1+ only (API level 11+)
+	//
+	if ( Build.VERSION.SDK_INT < 11 )
+	{
+		return;
+	}
+	
+	// Cancel currently shown notification if any
+	jCancelAllNotifications(); // This call preserves the core Service notification
+	
+	int defaultNotificationFlags = -0xF; // Alternative to null
+	
+	if ( withSound || useLights )
+	{
+		// Set proper initial value
+		defaultNotificationFlags = 0;
+		
+		if ( withSound )
+		{
+			defaultNotificationFlags |= Notification.DEFAULT_SOUND;
+		}
+		if ( useLights )
+		{
+			defaultNotificationFlags |= Notification.DEFAULT_LIGHTS;
+		}
+	}
+	
 	Uri soundUri = null;
 	
-	if ( useLights )
+	if ( withSound )
 	{
-		defaultNotificationFlags |= Notification.DEFAULT_LIGHTS;
-	}
-	if ( withSound ) // This code works on Android < 8 too (API level < 26)
-	{
-		defaultNotificationFlags |= Notification.DEFAULT_SOUND;
-		
 		// TAG contains the application's package name
 		soundUri = Uri.parse("android.resource://"+TAG+"/"+R.raw.notification_sound);
 	}
@@ -918,58 +946,105 @@ private void jShowNotification(final int notificationID, final String msg, final
 		.setContentTitle(APPLICATION_NAME)
 		.setContentText(msg)
 		.setCategory(Notification.CATEGORY_SERVICE)
-		.setDefaults(defaultNotificationFlags)
 		.setOngoing(true); // Always make Service notifications 'ongoing'
 	
-	if ( withSound )
-	{
-		builder.setSound(soundUri);
-	}
-	
-	/* Android 7.1 and earlier (API levels < 25)
-	 *
-	 * Newer versions Android 8+ (API level 26+)
-	 * don't need this attribute to be set,
-	 * it's set on a notification channel instead
+	/* Android 7.1 and earlier (API levels <= 25):
+	 *  - Newer versions likeAndroid 8+ (API level 26+)
+	 *    don't need these attributes to be set,
+	 *    it's set on a notification channel instead
 	 */
-	if ( Build.VERSION.SDK_INT < 26 )
+	if ( Build.VERSION.SDK_INT <= 25 )
 	{
+		//
+		// Deprecated since API level 26+ (Android 8+)
+		//
 		builder.setPriority(NotificationCompat.PRIORITY_MAX);
+		
+		// -0xF = Alternative to null
+		if ( defaultNotificationFlags != -0xF )
+		{
+			builder.setDefaults(defaultNotificationFlags);
+		}
 	}
 	
-	// For Android 8+ notifications support (API level 26+)
-    if ( Build.VERSION.SDK_INT >= 26 )
+	/* For Android 5+ notifications support (API level 21+):
+	 *  - AudioAttributes is only available on Android 5+ (API level 21+)
+	 */
+	if ( Build.VERSION.SDK_INT >= 21 )
 	{
-		NotificationChannel notifyChannel = new NotificationChannel(
-			notifyChannelId,
-			notifyChannelName,
-			NotificationManager.IMPORTANCE_HIGH
-		);
-	    notifyChannel.setDescription(notifyChannelDesc);
-		notifyChannel.enableLights(useLights);
-		
+		/* For Android 8+ notifications support (API level 26+):
+		 *  - NotificationChannel is only available on Android 8+ (API level 26+)
+		 */
+	    if ( Build.VERSION.SDK_INT >= 26 )
+		{
+			// For the NotificationCompat.Builder Object
+			builder.setChannelId(notifyChannelId);
+			
+			NotificationChannel notifyChannel = new NotificationChannel(
+				notifyChannelId,
+				notifyChannelName,
+				NotificationManager.IMPORTANCE_HIGH
+			);
+		    notifyChannel.setDescription(notifyChannelDesc);
+			notifyChannel.enableLights(useLights);
+			notifyChannel.enableVibration(false);
+			
+		    if ( withSound )
+			{
+				//
+				// Android 8+ (API level 26+)
+				//
+		        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+		            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
+		            .setUsage(AudioAttributes.USAGE_NOTIFICATION) /* USAGE_ALARM or USAGE_NOTIFICATION (preferred) */
+		            .build();
+				
+				notifyChannel.setSound(soundUri, audioAttributes);
+		    }
+			
+			notifyMgr.createNotificationChannel(notifyChannel);
+		}
+		else
+		{
+			//
+			// Android 5+ (API level 21+)
+			//
+		    if ( withSound )
+			{
+				// Android 5 <-> Android 7.1
+				
+				/* ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+				 * Only for Notification.Builder, not NotificationCompat.Builder
+				 *
+				 * CONTENT_TYPE_SONIFICATION is a real Android typo
+				 * USAGE_ALARM or USAGE_NOTIFICATION (preferred)
+				 *
+		        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+		            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+		            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+		            .build();
+				
+				builder.setSound(soundUri, audioAttributes);
+				 *
+				 * ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+				 */
+				// STREAM_ALARM or STREAM_NOTIFICATION (preferred)
+				builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
+		    }
+		}
+	}
+	else
+	{
+		/* Android 4.4.4 and earlier (API levels 19-):
+		 *  - API level 20 was Android 4.4.4W for smartwatches
+		 *    (not actually used in the real world)
+		 */
 		if ( withSound )
 		{
-            AudioAttributes audioAttributes = new AudioAttributes.Builder()
-				/* This is a real Android typo */
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-				/* You have to use USAGE_ALARM (not USAGE_NOTIFICATION)
-				 * otherwise the sound doesn't always work everytime
-				 */
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .build();
-			
-            notifyChannel.setSound(soundUri, audioAttributes);
+			// STREAM_ALARM or STREAM_NOTIFICATION (preferred)
+			builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
 		}
-		
-		notifyMgr.createNotificationChannel(notifyChannel);
-		
-		// For the NotificationCompat.Builder Object
-		builder.setChannelId(notifyChannelId);
-    }
-	
-	// Cancel currently shown notification if any
-	jCancelAllNotifications(); // This call preserves the core Service notification
+	}
 	
 	if ( useHeadsUp ) // If heads-up notification is required
 	{
@@ -996,7 +1071,7 @@ private void jCancelAllNotifications(final boolean includeCoreServiceNotificatio
 	if ( notifyMgr != null )
 	{
 		// The core Service notification is always index 0
-		int startIndex = includeCoreServiceNotification ? 0 : 1;
+		int startIndex = ( includeCoreServiceNotification == true ) ? 0 : 1;
 		
 		for (int i = startIndex; i < notificationsIdArray.length; i++ )
 		{
@@ -1049,8 +1124,8 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		/* Notification sound only for the first notification
 		 * to avoid spamming notification sounds
 		 */
-		// withSound = true, useHeadsUp = true
-		jShowNotification(NOTIFICATION_ID_USB_DEVICE, msg, true, true);
+		// withSound = true
+		jShowNotification(NOTIFICATION_ID_USB_DEVICE, msg, true);
 		
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbDevice = 0;
@@ -1229,9 +1304,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		final String msg = "Please grant USB permission";
 		
 		jShowToast(msg+"...");
-		
-		// withSound = false, useHeadsUp = true
-		jShowNotification(NOTIFICATION_ID_USB_PERMISSION, msg, false, true);
+		jShowNotification(NOTIFICATION_ID_USB_PERMISSION, msg);
 		
 		waitLockUsbPermission = new Object();
 		
@@ -1471,9 +1544,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		final String msg = String.format("Insert a smartcard in your %1$s reader", getProductName(mDevice));
 		
 		jShowToast(msg+"...");
-		
-		// withSound = false, useHeadsUp = true
-		jShowNotification(NOTIFICATION_ID_SMARTCARD_INSERT, msg, false, true);
+		jShowNotification(NOTIFICATION_ID_SMARTCARD_INSERT, msg);
 		
 		waitLockSmartcardInsert = new Object();
 		
