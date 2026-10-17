@@ -38,16 +38,6 @@ Public Sub Initialize
 End Sub
 
 '
-'Class fields etc
-'
-
-#If Java
-
-private static final String TAG = "net.gdmeunier.pinunblocker";
-
-#End If
-
-'
 'PC/SC APDU Exception objects
 '
 
@@ -105,6 +95,13 @@ import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
 public static class SmartcardReader
 {
+	private static String TAG = "mysmartcardreader.SmartcardReader"; // Default initial value
+	
+	public SmartcardReader(final String packageName)
+	{
+		/* Overload function helper */
+		this.TAG = packageName;
+	}
 	public SmartcardReader()
 	{
 		/* Nothing to do here */

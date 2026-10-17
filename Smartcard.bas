@@ -13,7 +13,9 @@ Version=9.9
 
 #Region Module File Attributes
 	'Ignore "Sub x is not used" warning (#12)
-	#IgnoreWarnings: 12
+	'Ignore "Empty Catch block" warning (#19)
+	'Ignore "Object converted to x [...] programming mistake" warning (#7)
+	#IgnoreWarnings: 12,19,7
 	
 #End Region
 
@@ -26,6 +28,9 @@ Version=9.9
 'General list of all Java native imports for this Service
 'This way no need to figure out which functions need what
 #If Java
+// For debugging purposes
+import anywheresoftware.b4a.BA;
+
 import android.content.Context;
 import android.app.Service;
 
@@ -35,6 +40,8 @@ import androidx.core.app.NotificationCompat;
 import android.widget.Toast;
 
 import android.media.AudioManager;
+import android.content.ContentResolver;
+import java.io.File;
 
 // For Android 8+ support (API level 26+)
 import android.app.NotificationChannel;
@@ -65,6 +72,86 @@ import net.gdmeunier.pinunblocker.R; // Must match the application's package nam
 import com.acs.smartcard.Reader;
 import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
+#End If
+
+#If Java
+private String PACKAGE_NAME          = null;
+private String ACTION_USB_PERMISSION = null;
+
+// Must match the application's label name
+private final String APPLICATION_NAME = "Android PIN Unblocker";
+
+private static final long USB_TIMEOUT       = 20 * 1000; // 20s
+private static final long CONFIRM_TIMEOUT   = 15 * 1000; // 15s
+private static final long SMARTCARD_TIMEOUT = 20 * 1000; // 20s
+
+private UsbManager mManager;
+private UsbDevice  mDevice;
+
+private static Reader mReader;
+private String deviceName;
+
+private int iActualState = Reader.CARD_UNKNOWN;
+
+private static int iSlotNum = -1;
+private byte[] atr = null;
+
+private int actionNum          = Reader.CARD_COLD_RESET;
+private int preferredProtocols = Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1 | Reader.PROTOCOL_RAW;
+private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
+
+private mysmartcardreader.SmartcardReader cardReaderProxy = null;
+
+private NotificationManager notifyMgr;
+private PowerManager        powerMgr;
+
+// Temporary properties
+private BroadcastReceiver detachReceiver;
+
+private Object waitLockUsbDevice;
+private Object waitLockUsbPermission;
+private Object waitLockSmartcardInsert;
+
+// Permanent properties
+private Handler toastHandler         = null;
+private Handler usbPermissionHandler = null;
+private Handler broadcastHandler     = null;
+
+private HandlerThread toastThread;
+private HandlerThread usbPermissionThread;
+private HandlerThread broadcastThread;
+
+// To be able to cancel any displayed toast early
+private Toast lastShownToast = null;
+
+//
+// Notification IDs for easier-to-read source code
+//
+private static final int NOTIFICATION_ID_NEW_OPERATION    = 1;
+private static final int NOTIFICATION_ID_USB_DEVICE       = 2;
+private static final int NOTIFICATION_ID_USB_PERMISSION   = 3;
+private static final int NOTIFICATION_ID_SMARTCARD_INSERT = 4;
+
+// Always list NOTIFICATION_ID_NEW_OPERATION first (index 0)
+private static final int[] notificationsIdArray = new int[] {
+	NOTIFICATION_ID_NEW_OPERATION,
+	NOTIFICATION_ID_USB_DEVICE,
+	NOTIFICATION_ID_USB_PERMISSION,
+	NOTIFICATION_ID_SMARTCARD_INSERT
+};
+
+//
+// For Android 8+ notifications support (API level 26+)
+//
+private       String notifyChannelId   = null;
+private final String notifyChannelName = APPLICATION_NAME;
+private final String notifyChannelDesc = "Smartcard Service notifications";
+
+/* For checking whether notifications are allowed (Android 13+ - API level 33+):
+ *  - Do note that notifications from startForeground are always allowed anyway
+ */
+private boolean areNotificationsAllowed = false; // false by default
+
 #End If
 
 #If Java
@@ -111,6 +198,7 @@ Sub Process_Globals
 	Public Const SEND_APDU    As Int = 0x100
 	Public Const GET_ATR      As Int = 0x200
 	Public Const GET_PROTOCOL As Int = 0x300
+	
 	#If Java
 	private static final int SEND_APDU    = 0x100;
 	private static final int GET_ATR      = 0x200;
@@ -135,8 +223,22 @@ End Sub
 
 Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
 	'
-	'Nothing to do here
+	'Better Thread exception handling for the Smartcard service
 	'
+	'Only the Smartcard service currently needs this method of
+	'handling Thread exceptions (such as noClassDefFoundError)
+	'
+	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
+		'
+		'Yes, it's possible to convert Exception to String:
+		' - Exception.As(String)
+		'
+		'Then it returns the error log just like a "LastException.Message"
+		'
+		CallSubDelayed3(Me, "Service_Message_NewThread_RunInSmartcardOperationThread_Completed", SmartcardOperationThread.Exception.As(String), Null)
+		
+	End If
+	
 End Sub
 
 Sub Service_Create
@@ -187,7 +289,15 @@ End Sub
  */
 public void jService_Create()
 {
-	Log.d(TAG, "Smartcard Service onCreate "+this);
+	// Must match the application's package name
+	PACKAGE_NAME          = this.getPackageName();
+	ACTION_USB_PERMISSION = PACKAGE_NAME+".USB_PERMISSION";
+	
+	// Provide the package name directly to the MySmartcardReader class
+	cardReaderProxy = new mysmartcardreader.SmartcardReader(PACKAGE_NAME);
+	
+	// e.g. "net.gdmeunier.pinunblocker$smartcard"
+	notifyChannelId = PACKAGE_NAME+"$smartcard"; 
 	
 	notifyMgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
@@ -363,6 +473,15 @@ Sub Service_Message_NewThread
 			Return
 		End If
 		
+		'Android 13+ only (API level 33+):
+		' - Request the ability to post notifications
+		' - It's not a problem if the user denies it though
+		'
+		CallSub(Main, "RequestPostNotificationsPermission")
+		Wait For Service_Message_NewThread_RequestPostNotificationsPermission_Completed(AreNotificationsAllowed As Boolean)
+		
+		SetNotificationsAllowed(AreNotificationsAllowed)
+		
 		Select DoWhat
 			Case SEND_APDU
 				
@@ -451,6 +570,30 @@ Sub Service_Message_NewThread
 	
 End Sub
 '
+'Helper functions for updating areNotificationsAllowed
+'which is used by Java native code
+'
+Private Sub SetNotificationsAllowed(IsAllowed As Boolean)
+	
+	Try
+		joService.RunMethod("jSetNotificationsAllowed", Array(IsAllowed))
+	Catch
+		'
+		'Nothing to do here
+		'
+	End Try
+	
+End Sub
+'
+'Actual Java native function
+'
+#If Java
+public void jSetNotificationsAllowed(final boolean isAllowed)
+{
+	areNotificationsAllowed = isAllowed;
+}
+#End If
+'
 'Helper function to make it easier to invoke APDU operations
 'in yet another separate thread, perhaps it will help with
 'the USB permission prompt to make it much faster
@@ -488,11 +631,14 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	/* Don't use SCREEN_DIM_WAKE_LOCK:
 	 *  - Many phones lower the USB power output or suspend it on screen dimming
 	 */
-	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PACKAGE_NAME);
 	wl.acquire();
 	
-	// withSound = false, useHeadsUp = true (required), useLights = false
-	jShowNotification(NOTIFICATION_ID_NEW_OPERATION, "New smartcard operation", false, true, false);
+	/* withSound  = false
+	 * useHeadsUp = true [required for this one]
+	 * useLights  = (omitted - automatically set to false)
+	 */
+	jShowNotification(NOTIFICATION_ID_NEW_OPERATION, "New smartcard operation", false, true);
 	
 	Object[] reply = null;
 	
@@ -500,7 +646,6 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	{
 		jObtainUsbDevice();
 		jObtainUsbPermission();
-		
 		jObtainSmartcardReader();
 		jObtainSmartcard();
 		
@@ -564,7 +709,7 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 		// Cancel all notifications
 		jCancelAllNotifications(); // This call preserves the core Service notification
 		
-		Log.e(TAG, "Failed to process message", e);
+		Log.e(PACKAGE_NAME, "Failed to process message", e);
 		throw new RuntimeException(stackTrace.toString());
 	}
 	finally
@@ -745,85 +890,6 @@ End Sub
 '
 
 #If Java
-private static final long USB_TIMEOUT       = 20 * 1000; // 20s
-private static final long CONFIRM_TIMEOUT   = 15 * 1000; // 15s
-private static final long SMARTCARD_TIMEOUT = 20 * 1000; // 20s
-
-private UsbManager mManager;
-private UsbDevice  mDevice;
-
-private static Reader mReader;
-private String deviceName;
-
-private int iActualState = Reader.CARD_UNKNOWN;
-
-private static int iSlotNum = -1;
-private byte[] atr = null;
-
-private int actionNum          = Reader.CARD_COLD_RESET;
-private int preferredProtocols = Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1 | Reader.PROTOCOL_RAW;
-private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
-
-private mysmartcardreader.SmartcardReader cardReaderProxy = new mysmartcardreader.SmartcardReader();
-
-private NotificationManager notifyMgr;
-private PowerManager        powerMgr;
-
-// Temporary properties
-private BroadcastReceiver detachReceiver;
-
-private Object waitLockUsbDevice;
-private Object waitLockUsbPermission;
-private Object waitLockSmartcardInsert;
-
-// Permanent properties
-private Handler toastHandler         = null;
-private Handler usbPermissionHandler = null;
-private Handler broadcastHandler     = null;
-
-private HandlerThread toastThread;
-private HandlerThread usbPermissionThread;
-private HandlerThread broadcastThread;
-
-/* I also use the TAG value as the package name to use in
- * new Intents that are specifically sent to this application
- */
-// Must match the application's package name
-private static final String TAG = "net.gdmeunier.pinunblocker";
-private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.USB_PERMISSION";
-
-// Must match the application's label name
-private static final String APPLICATION_NAME = "Android PIN Unblocker";
-
-// To be able to cancel any displayed toast early
-private Toast lastShownToast = null;
-
-//
-// Notification IDs for easier-to-read source code
-//
-private static final int NOTIFICATION_ID_NEW_OPERATION    = 1;
-private static final int NOTIFICATION_ID_USB_DEVICE       = 2;
-private static final int NOTIFICATION_ID_USB_PERMISSION   = 3;
-private static final int NOTIFICATION_ID_SMARTCARD_INSERT = 4;
-
-// Always list NOTIFICATION_ID_NEW_OPERATION first (index 0)
-private static final int[] notificationsIdArray = new int[] {
-	NOTIFICATION_ID_NEW_OPERATION,
-	NOTIFICATION_ID_USB_DEVICE,
-	NOTIFICATION_ID_USB_PERMISSION,
-	NOTIFICATION_ID_SMARTCARD_INSERT
-};
-
-//
-// For Android 8+ notifications support (API level 26+)
-//
-private static final String notifyChannelId   = TAG+"$smartcard"; // e.g. "net.gdmeunier.pinunblocker$smartcard"
-private static final String notifyChannelName = APPLICATION_NAME;
-private static final String notifyChannelDesc = "Smartcard Service notifications";
-
-#End If
-
-#If Java
 //
 // Toast notification helpers
 //
@@ -839,6 +905,7 @@ private void jShowToast(final String msg)
 			public void run()
 			{
 				// Always using long toast notifications
+				// Use "smartcard.this" here, not directly "this"
 				lastShownToast = Toast.makeText(smartcard.this, msg, Toast.LENGTH_LONG);
 				lastShownToast.show();
 			}
@@ -904,10 +971,10 @@ private void jShowNotification(final int notificationID, final String msg, final
 }
 private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp, final boolean useLights)
 {
-	//
-	// Android 3.1+ only (API level 11+)
-	//
-	if ( Build.VERSION.SDK_INT < 11 )
+	/* Android 3.1+ only (API level 11+)
+	 * Also includes a check to verify if notifications are allowed (if not heads-up one)
+	 */
+	if ( Build.VERSION.SDK_INT < 11 || (!useHeadsUp && !areNotificationsAllowed) )
 	{
 		return;
 	}
@@ -915,38 +982,50 @@ private void jShowNotification(final int notificationID, final String msg, final
 	// Cancel currently shown notification if any
 	jCancelAllNotifications(); // This call preserves the core Service notification
 	
-	int defaultNotificationFlags = Notification.DEFAULT_ALL;
-	
-	if ( withSound || useLights )
-	{
-		// Set proper initial value
-		defaultNotificationFlags = 0;
-		
-		if ( withSound )
-		{
-			defaultNotificationFlags |= Notification.DEFAULT_SOUND;
-		}
-		if ( useLights )
-		{
-			defaultNotificationFlags |= Notification.DEFAULT_LIGHTS;
-		}
-	}
-	
 	Uri soundUri = null;
 	
 	if ( withSound )
 	{
-		// TAG contains the application's package name
-		soundUri = Uri.parse("android.resource://"+TAG+"/"+R.raw.notification_sound);
+		//
+		// API level 1+ (Android Base 1.x)
+		//
+		Uri.Builder soundUriBuilder = new Uri.Builder();
+		            soundUriBuilder.scheme(ContentResolver.SCHEME_ANDROID_RESOURCE);
+		            soundUriBuilder.authority(PACKAGE_NAME);
+		            soundUriBuilder.path("raw/notification_sound");
+		
+		soundUri = soundUriBuilder.build();
 	}
 	
-	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
-		.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(smartcard.this, R.mipmap.ic_launcher))
-		.setSmallIcon(R.drawable.ic_stat_card)
-		.setContentTitle(APPLICATION_NAME)
-		.setContentText(msg)
-		.setCategory(Notification.CATEGORY_SERVICE)
-		.setOngoing(true); // Always make Service notifications 'ongoing'
+	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this);
+	
+	// Large icons didn't exit before Android 5 (API level 21)
+	if ( Build.VERSION.SDK_INT >= 21 )
+	{
+		/* Must be done in a try-catch block,
+		 * otherwise trying to use setLargeIcon on
+		 * some older mobile phone somehow makes the
+		 * Smartcard operation thread die unexpectedly
+		 */
+		try
+		{
+			// Set the large icon first before the small one
+			builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
+		}
+		catch (NoClassDefFoundError|Exception ex)
+		{
+			/* Multiple-exception catches are supported starting with Java 7:
+			 * - https://stackoverflow.com/a/11211334
+			 *
+			 * (Nothing to do here)
+			 */
+		}
+	}
+	builder.setSmallIcon(R.drawable.ic_stat_card);
+	builder.setContentTitle(APPLICATION_NAME);
+	builder.setContentText(msg);
+	builder.setCategory(Notification.CATEGORY_SERVICE);
+	builder.setOngoing(true); // Always make Service notifications 'ongoing'
 	
 	/* Android 7.1 and earlier (API levels <= 25):
 	 *  - Newer versions likeAndroid 8+ (API level 26+)
@@ -959,22 +1038,19 @@ private void jShowNotification(final int notificationID, final String msg, final
 		// Deprecated since API level 26+ (Android 8+)
 		//
 		builder.setPriority(NotificationCompat.PRIORITY_MAX);
-		builder.setDefaults(defaultNotificationFlags);
 		
 	    if ( withSound )
 		{
-			// STREAM_ALARM or STREAM_NOTIFICATION (preferred)
+			// STREAM_ALARM (API level 1+) or STREAM_NOTIFICATION (API level 3+)
 			builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
 	    }
+		if ( useLights )
+		{
+			builder.setDefaults(Notification.DEFAULT_LIGHTS);
+		}
 	}
 	else if ( Build.VERSION.SDK_INT >= 26 )
 	{
-		/* For Android 8+ notifications support (API level 26+):
-		 *  - NotificationChannel is only available on Android 8+ (API level 26+)
-		 */
-		// For the NotificationCompat.Builder Object
-		builder.setChannelId(notifyChannelId);
-		
 		NotificationChannel notifyChannel = new NotificationChannel(
 			notifyChannelId,
 			notifyChannelName,
@@ -988,13 +1064,19 @@ private void jShowNotification(final int notificationID, final String msg, final
 		{
 	        AudioAttributes audioAttributes = new AudioAttributes.Builder()
 	            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
-	            .setUsage(AudioAttributes.USAGE_NOTIFICATION) /* USAGE_ALARM or USAGE_NOTIFICATION (preferred) */
+	            .setUsage(AudioAttributes.USAGE_NOTIFICATION)        /* USAGE_ALARM or USAGE_NOTIFICATION */
 	            .build();
 			
 			notifyChannel.setSound(soundUri, audioAttributes);
 	    }
 		
 		notifyMgr.createNotificationChannel(notifyChannel);
+		
+		/* For Android 8+ notifications support (API level 26+):
+		 *  - NotificationChannel is only available on Android 8+ (API level 26+)
+		 */
+		// For the NotificationCompat.Builder Object
+		builder.setChannelId(notifyChannelId);
 	}
 	
 	if ( useHeadsUp ) // If heads-up notification is required
@@ -1074,8 +1156,11 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		
 		/* Notification sound only for the first notification
 		 * to avoid spamming notification sounds
+		 *
+		 * withSound  = true
+		 * useHeadsUp = (omitted - automatically set to false)
+		 * useLights  = (omitted - automatically set to false)
 		 */
-		// withSound = true
 		jShowNotification(NOTIFICATION_ID_USB_DEVICE, msg, true);
 		
 		// Reset the sleep rounds counter to initial zero value
@@ -1255,7 +1340,12 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		final String msg = "Please grant USB permission";
 		
 		jShowToast(msg+"...");
-		jShowNotification(NOTIFICATION_ID_USB_PERMISSION, msg);
+		
+		/* withSound  = true
+		 * useHeadsUp = (omitted - automatically set to false)
+		 * useLights  = (omitted - automatically set to false)
+		 */
+		jShowNotification(NOTIFICATION_ID_USB_PERMISSION, msg, true);
 		
 		waitLockUsbPermission = new Object();
 		
@@ -1354,7 +1444,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 					 * This way the broadcast process is quicker
 					 */
 					Intent intent = new Intent(ACTION_USB_PERMISSION);
-					intent.setPackage(TAG); // TAG contains the package name as a String (global variable)
+					intent.setPackage(PACKAGE_NAME);
 					
 					mManager.requestPermission(
 						mDevice,
@@ -1495,7 +1585,12 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		final String msg = String.format("Insert a smartcard in your %1$s reader", getProductName(mDevice));
 		
 		jShowToast(msg+"...");
-		jShowNotification(NOTIFICATION_ID_SMARTCARD_INSERT, msg);
+		
+		/* withSound  = true
+		 * useHeadsUp = (omitted - automatically set to false)
+		 * useLights  = (omitted - automatically set to false)
+		 */
+		jShowNotification(NOTIFICATION_ID_SMARTCARD_INSERT, msg, true);
 		
 		waitLockSmartcardInsert = new Object();
 		
