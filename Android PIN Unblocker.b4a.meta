@@ -1,7 +1,7 @@
 ﻿ModuleBookmarks0=3107,49,1296,1043
 ModuleBookmarks1=2013,2609,878,645,2161
 ModuleBookmarks10=
-ModuleBookmarks11=508,189,786,1291,1518,22
+ModuleBookmarks11=508,189,786,1242,1469,22
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Smartcard,Process_Globals,117,6,Smartcard,SmartcardOperationThread_Ended,130,0,Smartcard,Service_Start,315,6,MyCryptography,TripleDesEncrypt,259,0,MySmartcardReader,Class_Globals,23,0,Smartcard,Service_Destroy,667,1,MySmartcardReader,Initialize,496,0,MyAdvanced,Initialize,94,0,Smartcard,RunInSmartcardOperationThread,488,0,Smartcard,Application_Error,998,0
+NavigationStack=Smartcard,Process_Globals,117,6,Smartcard,SmartcardOperationThread_Ended,130,0,Smartcard,Service_Start,315,6,MyCryptography,TripleDesEncrypt,259,0,MySmartcardReader,Class_Globals,23,0,Smartcard,Service_Destroy,667,1,MySmartcardReader,Initialize,496,0,MyAdvanced,Initialize,94,0,Smartcard,RunInSmartcardOperationThread,488,0,Smartcard,Application_Error,963,0
 SelectedBuild=0
 VisibleModules=1,11,8,2

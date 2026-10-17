@@ -915,7 +915,7 @@ private void jShowNotification(final int notificationID, final String msg, final
 	// Cancel currently shown notification if any
 	jCancelAllNotifications(); // This call preserves the core Service notification
 	
-	int defaultNotificationFlags = -0xF; // Alternative to null
+	int defaultNotificationFlags = Notification.DEFAULT_ALL;
 	
 	if ( withSound || useLights )
 	{
@@ -940,8 +940,8 @@ private void jShowNotification(final int notificationID, final String msg, final
 		soundUri = Uri.parse("android.resource://"+TAG+"/"+R.raw.notification_sound);
 	}
 	
-	NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-		.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher))
+	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
+		.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(smartcard.this, R.mipmap.ic_launcher))
 		.setSmallIcon(R.drawable.ic_stat_card)
 		.setContentTitle(APPLICATION_NAME)
 		.setContentText(msg)
@@ -959,91 +959,42 @@ private void jShowNotification(final int notificationID, final String msg, final
 		// Deprecated since API level 26+ (Android 8+)
 		//
 		builder.setPriority(NotificationCompat.PRIORITY_MAX);
+		builder.setDefaults(defaultNotificationFlags);
 		
-		// -0xF = Alternative to null
-		if ( defaultNotificationFlags != -0xF )
+	    if ( withSound )
 		{
-			builder.setDefaults(defaultNotificationFlags);
-		}
+			// STREAM_ALARM or STREAM_NOTIFICATION (preferred)
+			builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
+	    }
 	}
-	
-	/* For Android 5+ notifications support (API level 21+):
-	 *  - AudioAttributes is only available on Android 5+ (API level 21+)
-	 */
-	if ( Build.VERSION.SDK_INT >= 21 )
+	else if ( Build.VERSION.SDK_INT >= 26 )
 	{
 		/* For Android 8+ notifications support (API level 26+):
 		 *  - NotificationChannel is only available on Android 8+ (API level 26+)
 		 */
-	    if ( Build.VERSION.SDK_INT >= 26 )
+		// For the NotificationCompat.Builder Object
+		builder.setChannelId(notifyChannelId);
+		
+		NotificationChannel notifyChannel = new NotificationChannel(
+			notifyChannelId,
+			notifyChannelName,
+			NotificationManager.IMPORTANCE_HIGH
+		);
+	    notifyChannel.setDescription(notifyChannelDesc);
+		notifyChannel.enableLights(useLights);
+		notifyChannel.enableVibration(false);
+		
+	    if ( withSound )
 		{
-			// For the NotificationCompat.Builder Object
-			builder.setChannelId(notifyChannelId);
+	        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+	            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
+	            .setUsage(AudioAttributes.USAGE_NOTIFICATION) /* USAGE_ALARM or USAGE_NOTIFICATION (preferred) */
+	            .build();
 			
-			NotificationChannel notifyChannel = new NotificationChannel(
-				notifyChannelId,
-				notifyChannelName,
-				NotificationManager.IMPORTANCE_HIGH
-			);
-		    notifyChannel.setDescription(notifyChannelDesc);
-			notifyChannel.enableLights(useLights);
-			notifyChannel.enableVibration(false);
-			
-		    if ( withSound )
-			{
-				//
-				// Android 8+ (API level 26+)
-				//
-		        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-		            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
-		            .setUsage(AudioAttributes.USAGE_NOTIFICATION) /* USAGE_ALARM or USAGE_NOTIFICATION (preferred) */
-		            .build();
-				
-				notifyChannel.setSound(soundUri, audioAttributes);
-		    }
-			
-			notifyMgr.createNotificationChannel(notifyChannel);
-		}
-		else
-		{
-			//
-			// Android 5+ (API level 21+)
-			//
-		    if ( withSound )
-			{
-				// Android 5 <-> Android 7.1
-				
-				/* ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-				 * Only for Notification.Builder, not NotificationCompat.Builder
-				 *
-				 * CONTENT_TYPE_SONIFICATION is a real Android typo
-				 * USAGE_ALARM or USAGE_NOTIFICATION (preferred)
-				 *
-		        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-		            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-		            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-		            .build();
-				
-				builder.setSound(soundUri, audioAttributes);
-				 *
-				 * ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-				 */
-				// STREAM_ALARM or STREAM_NOTIFICATION (preferred)
-				builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
-		    }
-		}
-	}
-	else
-	{
-		/* Android 4.4.4 and earlier (API levels 19-):
-		 *  - API level 20 was Android 4.4.4W for smartwatches
-		 *    (not actually used in the real world)
-		 */
-		if ( withSound )
-		{
-			// STREAM_ALARM or STREAM_NOTIFICATION (preferred)
-			builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
-		}
+			notifyChannel.setSound(soundUri, audioAttributes);
+	    }
+		
+		notifyMgr.createNotificationChannel(notifyChannel);
 	}
 	
 	if ( useHeadsUp ) // If heads-up notification is required
