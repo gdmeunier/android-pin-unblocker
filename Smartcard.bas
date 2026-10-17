@@ -473,14 +473,24 @@ Sub Service_Message_NewThread
 			Return
 		End If
 		
-		'Android 13+ only (API level 33+):
-		' - Request the ability to post notifications
-		' - It's not a problem if the user denies it though
+		'Check that the Main Activity isn't paused already
 		'
-		CallSub(Main, "RequestPostNotificationsPermission")
-		Wait For Service_Message_NewThread_RequestPostNotificationsPermission_Completed(AreNotificationsAllowed As Boolean)
-		
-		SetNotificationsAllowed(AreNotificationsAllowed)
+		'If it's paused then that means we were already
+		'able to call it before during the Direct Unblock
+		'introducy message, so no need to redo it again then
+		'
+		If Not(IsPaused(Main)) Then
+			'
+			'Android 13+ only (API level 33+):
+			' - Request the ability to post notifications
+			' - It's not a problem if the user denies it though
+			'
+			CallSub(Main, "RequestPostNotificationsPermission")
+			Wait For Service_Message_NewThread_RequestPostNotificationsPermission_Completed(AreNotificationsAllowed As Boolean)
+			
+			SetNotificationsAllowed(AreNotificationsAllowed)
+			
+		End If
 		
 		Select DoWhat
 			Case SEND_APDU

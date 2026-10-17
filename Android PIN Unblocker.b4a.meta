@@ -1,7 +1,7 @@
 ﻿ModuleBookmarks0=3107,49,1296,1043,3334
 ModuleBookmarks1=2013,2609,878,645,2161
 ModuleBookmarks10=
-ModuleBookmarks11=653,299,1327,1559,24
+ModuleBookmarks11=663,299,1337,1569,24
 ModuleBookmarks2=
 ModuleBookmarks3=
 ModuleBookmarks4=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=DirectUnblock,btnProceedToUnblock_GetDialogHeader,1998,0,Main,RequestPostNotificationsPermission,3334,0,MyAdvanced,Initialize,75,0,Smartcard,Service_Create,257,0,Smartcard,ServiceMessageThread_Ended,212,0,Smartcard,Service_Message_NewThread,553,6,Smartcard,SetNotificationsAllowed,567,5,Smartcard,SmartcardOperationThread_Ended,232,6,Smartcard,RunInSmartcardOperationThread,631,0,Smartcard,Application_Error,1550,0
+NavigationStack=DirectUnblock,btnProceedToUnblock_GetDialogHeader,1998,0,Main,RequestPostNotificationsPermission,3334,0,MyAdvanced,Initialize,75,0,Smartcard,Service_Create,257,0,Smartcard,ServiceMessageThread_Ended,212,0,Smartcard,SetNotificationsAllowed,567,5,Smartcard,SmartcardOperationThread_Ended,232,6,Smartcard,RunInSmartcardOperationThread,631,0,Smartcard,Application_Error,1545,0,Smartcard,Service_Message_NewThread,484,6
 SelectedBuild=0
 VisibleModules=1,11,8,2
