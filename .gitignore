@@ -47,13 +47,12 @@ Obsolete/*
 # their old download links at a whim,
 # and if we don't backup these files,
 # they will become lost because nobody backed them up
-!Obsolete/Libraries/Libraries.sha256
-!Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip
+!Obsolete/Libraries/*
 
 # Some obsolete assets that are no longer used,
 # but perhaps people might like having them preserved
-!Obsolete/Files/usb.png
-!Obsolete/Icons/drawable-*/*
+!Obsolete/Files/*
+!Obsolete/Icons/*
 !Obsolete/Scratchpad/*
 
 

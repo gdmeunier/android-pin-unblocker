@@ -38,8 +38,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 136
-	#VersionName: 5.8.1
+	#VersionCode: 137
+	#VersionName: 5.9.0
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -148,6 +148,15 @@ Version=12.5
 	'             such as if the file is already deleted prior
 	'
 	#CustomBuildAction: folders ready, %WINDIR%\System32\cmd.exe, /c DEL ".\res\drawable\icon.png" /F /Q & exit 0
+	
+	'Copy raw audio resources too during the build process
+	' - For Android 8+ notifications support (API level 26+)
+	'
+	'The contents of this folder will be copied to the temporary
+	'build diretory's "res" folder
+	'
+	'You can use multiple #AdditionalRes directives
+	#AdditionalRes: ../Audio
 	
 #End Region
 

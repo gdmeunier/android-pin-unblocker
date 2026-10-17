@@ -23,6 +23,48 @@ Version=9.9
 'Java native code
 '
 
+'General list of all Java native imports for this Service
+'This way no need to figure out which functions need what
+#If Java
+import android.content.Context;
+import android.app.Service;
+
+import android.app.NotificationManager;
+import android.app.Notification;
+import androidx.core.app.NotificationCompat;
+import android.widget.Toast;
+
+// For Android 8+ support (API level 26+)
+import android.app.NotificationChannel;
+import android.media.AudioAttributes;
+import android.net.Uri;
+
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.app.PendingIntent;
+
+import android.hardware.usb.UsbConstants;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ArrayList;
+
+import android.os.*;
+import android.os.Process; // This one must be explicitly imported
+
+import java.io.IOException;
+import android.util.Log;
+
+import net.gdmeunier.pinunblocker.R; // Must match the application's package name
+
+import com.acs.smartcard.Reader;
+import com.acs.smartcard.Reader.OnStateChangeListener;
+import com.acs.smartcard.ReaderException;
+#End If
+
 #If Java
 //
 // This part is used by joService.RunMethod calls
@@ -76,6 +118,10 @@ Sub Process_Globals
 	'For making sure that we don't simultaneously accept
 	'running two service commands at the same time
 	Private ActiveOperationInProgress As Boolean = False
+	
+	'Just incase to prevent any potential
+	'duplicate Service_Start calls from Android
+	Private ServiceAlreadyStarted As Boolean = False
 	
 End Sub
 
@@ -268,6 +314,14 @@ public void jService_Create()
 
 Sub Service_Start(StartingIntent As Intent)
 	
+	'Just incase Android might want to
+	'call Service_Start multiple times
+	If ServiceAlreadyStarted Then
+		Return
+	Else
+		ServiceAlreadyStarted = True
+	End If
+	
 	'Starter service can start in the foreground state in some edge cases
 	Service.StopAutomaticForeground
 	
@@ -435,12 +489,8 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 	wl.acquire();
 	
-	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this)
-		.setSmallIcon(R.drawable.ic_stat_card)
-		.setContentTitle(APPLICATION_NAME)
-		.setContentText("New smartcard operation")
-		.setCategory(Notification.CATEGORY_SERVICE);
-	startForeground(NOTIFICATION_ID_START_FOREGROUND, builder.build());
+	// withSound = false, useHeadsUp = true (required), useLights = false
+	jShowNotification(NOTIFICATION_ID_NEW_OPERATION, "New smartcard operation", false, true, false);
 	
 	Object[] reply = null;
 	
@@ -451,6 +501,10 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 		
 		jObtainSmartcardReader();
 		jObtainSmartcard();
+		
+		// Clear any currently shown toast if any
+		jCancelCurrentlyShownToastIfAny();
+		jCancelAllNotifications(); // This call preserves the core Service notification
 		
 		switch ( doWhat )
 		{
@@ -501,6 +555,12 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	{
 		StringWriter stackTrace = new StringWriter();
 		e.printStackTrace(new PrintWriter(stackTrace));
+		
+		// Clear any currently shown toast if any
+		jCancelCurrentlyShownToastIfAny();
+		
+		// Cancel all notifications
+		jCancelAllNotifications(); // This call preserves the core Service notification
 		
 		Log.e(TAG, "Failed to process message", e);
 		throw new RuntimeException(stackTrace.toString());
@@ -558,6 +618,8 @@ Sub Service_Destroy
 	ServiceMessageThread.Interrupt
 	joService.RunMethod("jService_Destroy", Null)
 	
+	ServiceAlreadyStarted = False
+	
 End Sub
 #If Java
 public void jService_Destroy()
@@ -601,6 +663,12 @@ public void jService_Destroy()
 			/* Nothing to do here */
 		}
 	}
+	
+	// Clear any currently shown toast if any
+	jCancelCurrentlyShownToastIfAny();
+	
+	// Cancel all notifications on Service_Destroy (include NOTIFICATION_ID_NEW_OPERATION = true)
+	jCancelAllNotifications(true);
 }
 
 private void jResetSmartcardReaderState()
@@ -674,43 +742,6 @@ End Sub
 'Java native code
 '
 
-'General list of all Java native imports for this Service
-'This way no need to figure out which functions need what
-#If Java
-import android.content.Context;
-import android.app.Service;
-
-import android.app.NotificationManager;
-import android.app.Notification;
-import androidx.core.app.NotificationCompat;
-import android.widget.Toast;
-
-import android.content.BroadcastReceiver;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.app.PendingIntent;
-
-import android.hardware.usb.UsbConstants;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ArrayList;
-
-import android.os.*;
-import android.os.Process; // This one must be explicitly imported
-
-import java.io.IOException;
-import android.util.Log;
-
-import net.gdmeunier.pinunblocker.R; // Must match the application's package name
-
-import com.acs.smartcard.Reader;
-import com.acs.smartcard.Reader.OnStateChangeListener;
-import com.acs.smartcard.ReaderException;
-#End If
-
 #If Java
 private static final long USB_TIMEOUT       = 20 * 1000; // 20s
 private static final long CONFIRM_TIMEOUT   = 15 * 1000; // 15s
@@ -762,19 +793,227 @@ private static final String ACTION_USB_PERMISSION = "net.gdmeunier.pinunblocker.
 // Must match the application's label name
 private static final String APPLICATION_NAME = "Android PIN Unblocker";
 
+// To be able to cancel any displayed toast early
+private Toast lastShownToast = null;
+
 //
 // Notification IDs for easier-to-read source code
 //
-private static final int NOTIFICATION_ID_START_FOREGROUND = 1;
+private static final int NOTIFICATION_ID_NEW_OPERATION    = 1;
 private static final int NOTIFICATION_ID_USB_DEVICE       = 2;
 private static final int NOTIFICATION_ID_USB_PERMISSION   = 3;
 private static final int NOTIFICATION_ID_SMARTCARD_INSERT = 4;
 
+// Always list NOTIFICATION_ID_NEW_OPERATION first (index 0)
+private static final int[] notificationsIdArray = new int[] {
+	NOTIFICATION_ID_NEW_OPERATION,
+	NOTIFICATION_ID_USB_DEVICE,
+	NOTIFICATION_ID_USB_PERMISSION,
+	NOTIFICATION_ID_SMARTCARD_INSERT
+};
+
+//
+// For Android 8+ notifications support (API level 26+)
+//
+private static final String notifyChannelId   = TAG+"$smartcard"; // e.g. "net.gdmeunier.pinunblocker$smartcard"
+private static final String notifyChannelName = APPLICATION_NAME;
+private static final String notifyChannelDesc = "Smartcard Service notifications";
+
 #End If
 
 #If Java
-int maxSleepRoundsUsbDevice = (int)((USB_TIMEOUT / 1000) * 2) * 5; // e.g. 30000ms = 30x 1s = 60x 0.5s = 300x 0.1s
-int sleepRoundsUsbDevice    = 0;
+//
+// Toast notification helpers
+//
+private void jShowToast(final String msg)
+{
+	// Cancel currently displayed toast if any
+    jCancelCurrentlyShownToastIfAny();
+	
+	toastHandler.post(
+		new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				// Always using long toast notifications
+				lastShownToast = Toast.makeText(smartcard.this, msg, Toast.LENGTH_LONG);
+				lastShownToast.show();
+			}
+		}
+	);
+}
+private void jCancelCurrentlyShownToastIfAny()
+{
+	toastHandler.post(
+		new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				// Cancel currently displayed toast if any
+			    if ( lastShownToast != null )
+				{
+					try
+					{
+						lastShownToast.cancel();
+					}
+					catch (Exception e)
+					{
+						/* Nothing to do here */
+					}
+				}
+			}
+		}
+	);
+}
+
+//
+// System notification helpers
+//
+private void jShowNotification(final int notificationID, final String msg)
+{
+	/* Overload helper function:
+	 *  - withSound  = false,
+	 *  - useHeadsUp = false,
+	 *  - useLights  = false
+	 */
+	jShowNotification(notificationID, msg, false, false, false);
+}
+private void jShowNotification(final int notificationID, final String msg, final boolean withSound)
+{
+	/* Overload helper function:
+	 *  - useHeadsUp = false,
+	 *  - useLights  = false
+	 */
+	jShowNotification(notificationID, msg, withSound, false, false);
+}
+private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp)
+{
+	/* Overload helper function:
+	 *  - useLights  = false
+	 */
+	jShowNotification(notificationID, msg, withSound, useHeadsUp, false);
+}
+private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp, final boolean useLights)
+{
+	int defaultNotificationFlags = 0;
+	Uri soundUri = null;
+	
+	if ( useLights )
+	{
+		defaultNotificationFlags |= Notification.DEFAULT_LIGHTS;
+	}
+	if ( withSound ) // This code works on Android < 8 too (API level < 26)
+	{
+		defaultNotificationFlags |= Notification.DEFAULT_SOUND;
+		
+		// TAG contains the application's package name
+		soundUri = Uri.parse("android.resource://"+TAG+"/"+R.raw.notification_sound);
+	}
+	
+	NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+		.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher))
+		.setSmallIcon(R.drawable.ic_stat_card)
+		.setContentTitle(APPLICATION_NAME)
+		.setContentText(msg)
+		.setCategory(Notification.CATEGORY_SERVICE)
+		.setDefaults(defaultNotificationFlags)
+		.setOngoing(true); // Always make Service notifications 'ongoing'
+	
+	if ( withSound )
+	{
+		builder.setSound(soundUri);
+	}
+	
+	/* Android 7.1 and earlier (API levels < 25)
+	 *
+	 * Newer versions Android 8+ (API level 26+)
+	 * don't need this attribute to be set,
+	 * it's set on a notification channel instead
+	 */
+	if ( Build.VERSION.SDK_INT < 26 )
+	{
+		builder.setPriority(NotificationCompat.PRIORITY_MAX);
+	}
+	
+	// For Android 8+ notifications support (API level 26+)
+    if ( Build.VERSION.SDK_INT >= 26 )
+	{
+		NotificationChannel notifyChannel = new NotificationChannel(
+			notifyChannelId,
+			notifyChannelName,
+			NotificationManager.IMPORTANCE_HIGH
+		);
+	    notifyChannel.setDescription(notifyChannelDesc);
+		notifyChannel.enableLights(useLights);
+		
+		if ( withSound )
+		{
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+				/* This is a real Android typo */
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+				/* You have to use USAGE_ALARM (not USAGE_NOTIFICATION)
+				 * otherwise the sound doesn't always work everytime
+				 */
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .build();
+			
+            notifyChannel.setSound(soundUri, audioAttributes);
+		}
+		
+		notifyMgr.createNotificationChannel(notifyChannel);
+		
+		// For the NotificationCompat.Builder Object
+		builder.setChannelId(notifyChannelId);
+    }
+	
+	// Cancel currently shown notification if any
+	jCancelAllNotifications(); // This call preserves the core Service notification
+	
+	if ( useHeadsUp ) // If heads-up notification is required
+	{
+		/* startForeground makes notifications become
+		 * heads-up notifications
+		 */
+		startForeground(notificationID, builder.build());
+	}
+	else
+	{
+		notifyMgr.notify(notificationID, builder.build());
+	}
+}
+
+private void jCancelAllNotifications()
+{
+	/* Overload helper function:
+	 *  - includeCoreServiceNotification = false
+	 */
+	jCancelAllNotifications(false);
+}
+private void jCancelAllNotifications(final boolean includeCoreServiceNotification)
+{
+	if ( notifyMgr != null )
+	{
+		// The core Service notification is always index 0
+		int startIndex = includeCoreServiceNotification ? 0 : 1;
+		
+		for (int i = startIndex; i < notificationsIdArray.length; i++ )
+		{
+			try
+			{
+				notifyMgr.cancel(notificationsIdArray[i]);
+			}
+			catch (Exception e)
+			{
+				/* Nothing to do here */
+			}
+		}
+	}
+}
+
+private final int maxSleepRoundsUsbDevice = (int)((USB_TIMEOUT / 1000) * 2) * 5; // e.g. 30000ms = 30x 1s = 60x 0.5s = 300x 0.1s
+private       int sleepRoundsUsbDevice    = 0;
 
 public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 {
@@ -805,29 +1044,13 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 	{
 		final String msg = "Connect your smartcard reader";
 		
-		toastHandler.post(
-			new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(smartcard.this, msg+"...", Toast.LENGTH_LONG).show();
-				}
-			}
-		);
+		jShowToast(msg+"...");
 		
 		/* Notification sound only for the first notification
 		 * to avoid spamming notification sounds
 		 */
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.ic_stat_card)
-				.setContentTitle(APPLICATION_NAME)
-				.setContentText(msg)
-				.setCategory(Notification.CATEGORY_SERVICE)
-				.setPriority(NotificationCompat.PRIORITY_MAX)
-				.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS);
-		
-		notifyMgr.notify(NOTIFICATION_ID_USB_DEVICE, builder.build());
+		// withSound = true, useHeadsUp = true
+		jShowNotification(NOTIFICATION_ID_USB_DEVICE, msg, true, true);
 		
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbDevice = 0;
@@ -868,16 +1091,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				}
 				else
 				{
-					toastHandler.post(
-						new Runnable()
-						{
-							@Override
-							public void run()
-							{
-								Toast.makeText(smartcard.this, String.format("The connected device (%1$s) is not recognized", getProductName(device)), Toast.LENGTH_LONG).show();
-							}
-						}
-					);
+					jShowToast(String.format("The connected device (%1$s) is not recognized", getProductName(device)));
 				}
 			}
 		};
@@ -935,9 +1149,6 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbDevice = 0;
-		
-		// Cancel the notification once it's no longer needed
-		notifyMgr.cancel(NOTIFICATION_ID_USB_DEVICE);
 		
 		if ( mDevice == null )
 		{
@@ -1005,8 +1216,8 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 private int pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT;
 
 // e.g. 30000ms = 30x 1s [-> x2] = 60x 500ms [-> x5] = 300x 100ms
-private int maxSleepRoundsUsbPermission = (int)((CONFIRM_TIMEOUT / 1000) * 2) * 5; // 300x 100ms
-private int sleepRoundsUsbPermission    = 0;
+private final int maxSleepRoundsUsbPermission = (int)((CONFIRM_TIMEOUT / 1000) * 2) * 5; // 300x 100ms
+private       int sleepRoundsUsbPermission    = 0;
 
 public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 {
@@ -1017,26 +1228,10 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		
 		final String msg = "Please grant USB permission";
 		
-		toastHandler.post(
-			new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(smartcard.this, msg+"...", Toast.LENGTH_LONG).show();
-				}
-			}
-		);
+		jShowToast(msg+"...");
 		
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-				.setSmallIcon(R.drawable.ic_stat_card)
-				.setContentTitle(APPLICATION_NAME)
-				.setContentText(msg)
-				.setCategory(Notification.CATEGORY_SERVICE)
-				.setPriority(NotificationCompat.PRIORITY_MAX)
-				.setDefaults(Notification.DEFAULT_LIGHTS);
-		
-		notifyMgr.notify(NOTIFICATION_ID_USB_PERMISSION, builder.build());
+		// withSound = false, useHeadsUp = true
+		jShowNotification(NOTIFICATION_ID_USB_PERMISSION, msg, false, true);
 		
 		waitLockUsbPermission = new Object();
 		
@@ -1202,9 +1397,6 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		// Reset the sleep rounds counter to initial zero value
 		sleepRoundsUsbPermission = 0;
 		
-		// Cancel the notification once it's no longer needed
-		notifyMgr.cancel(NOTIFICATION_ID_USB_PERMISSION);
-		
 		if ( mDevice == null || !mManager.hasPermission(mDevice) )
 		{
 			throw new mysmartcardreader.AbortException("No USB permission granted");
@@ -1278,26 +1470,10 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 	{
 		final String msg = String.format("Insert a smartcard in your %1$s reader", getProductName(mDevice));
 		
-		toastHandler.post(
-			new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					Toast.makeText(smartcard.this, msg+"...", Toast.LENGTH_LONG).show();
-				}
-			}
-		);
+		jShowToast(msg+"...");
 		
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-			.setSmallIcon(R.drawable.ic_stat_card)
-			.setContentTitle(APPLICATION_NAME)
-			.setContentText(msg)
-			.setCategory(Notification.CATEGORY_SERVICE)
-			.setPriority(NotificationCompat.PRIORITY_MAX)
-			.setDefaults(Notification.DEFAULT_LIGHTS);
-		
-		notifyMgr.notify(NOTIFICATION_ID_SMARTCARD_INSERT, builder.build());
+		// withSound = false, useHeadsUp = true
+		jShowNotification(NOTIFICATION_ID_SMARTCARD_INSERT, msg, false, true);
 		
 		waitLockSmartcardInsert = new Object();
 		
@@ -1366,9 +1542,6 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		}
 		
 		waitLockSmartcardInsert = null;
-		
-		// Cancel the notification once it's no longer needed
-		notifyMgr.cancel(NOTIFICATION_ID_SMARTCARD_INSERT);
 		
 		if ( iActualState < Reader.CARD_PRESENT || iActualState == Reader.CARD_SWALLOWED )
 		{

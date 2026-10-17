@@ -48,7 +48,8 @@ public static int TOAST_LONG_DURATION_LENGTH  = 3500;
 // For caching purposes
 // Their respective imports are located at the top their method
 //
-private Bitmap            cachedDynamicCensorThumbnail   = null;
+private static Bitmap     cachedDummyPlaceholderBitmap   = null;
+private        Bitmap     cachedDynamicCensorThumbnail   = null;
 
 private Resources         cachedContextResources         = null;
 private Resources         cachedSystemResources          = null;
@@ -69,6 +70,105 @@ private WindowManager     cachedSystemWindowService      = null;
 #End If
 
 #If Java
+//
+// Class methods (generic helpers methods)
+//
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.content.res.Resources;
+import android.graphics.BitmapFactory;
+public Bitmap jGetBitmapFromResourceId(Context ctx, final int resId)
+{
+	// Don't cache this information
+	Bitmap bitmapFromResourceId;
+	
+	if ( ctx == null )
+	{
+		bitmapFromResourceId = jGetDummyPlaceholderBitmap();
+	}
+	else
+	{
+		Resources ctxRes;
+		
+		if ( cachedContextResources != null )
+		{
+			ctxRes = cachedContextResources;
+		}
+		else
+		{
+			ctxRes = ctx.getResources();
+			cachedContextResources = ctxRes;
+		}
+		
+		/* Don't cache this information
+		 *
+		 * resId = e.g.: 
+		 *  - R.mipmap.ic_launcher,
+		 *  - R.drawable.icon,
+		 *  - [...]
+		 */
+		try
+		{
+			bitmapFromResourceId = BitmapFactory.decodeResource(ctxRes, resId);
+		}
+		catch (Exception e)
+		{
+			// Incase we have a failed Bitmap decode (e.g. invalid resId)
+			bitmapFromResourceId = jGetDummyPlaceholderBitmap();
+		}
+	}
+	
+	return bitmapFromResourceId;
+}
+private static Bitmap jGetDummyPlaceholderBitmap()
+{
+	if ( cachedDummyPlaceholderBitmap == null )
+	{
+		// Very small, monochrome 1-bit bitmap (1x1 black pixel)
+		// 68 bytes (136 chars)
+		byte[] dummyPlaceholderBitmap = jHexBytesFromString("424D42000000000000003E000000280000000100000001000000010001000000000004000000C30E0000C30E0000020000000200000000000000FFFFFF0000000000");
+		cachedDummyPlaceholderBitmap  = BitmapFactory.decodeByteArray(dummyPlaceholderBitmap, 0, dummyPlaceholderBitmap.length);
+	}
+	
+	return cachedDummyPlaceholderBitmap;
+}
+private static byte[] jHexBytesFromString(final String string)
+{
+	final int    length = string.length();
+	final byte[] array  = new byte[(length + 1) / 2];
+	
+	int i = 0;
+	int n = 0;
+	
+	if ( length % 2 == 1 )
+	{
+		array[n++] = (byte)jHexBytesFromDigit(string.charAt(i++));
+	}
+	while ( i < length )
+	{
+		array[n++] = (byte)(jHexBytesFromDigit(string.charAt(i++)) << 4 | jHexBytesFromDigit(string.charAt(i++)));
+	}
+	
+	return array;
+}
+private static int jHexBytesFromDigit(final char c)
+{
+	if ( c >= '0' && c <= '9' )
+	{
+		return c - '0';      // 0x30
+	}
+	if ( c >= 'A' && c <= 'F' )
+	{
+		return c - 'A' + 10; // 0x41
+	}
+	if ( c >= 'a' && c <= 'f' )
+	{
+		return c - 'a' + 10; // 0x61
+	}
+	
+	return 0;
+}
+
 //
 // Class methods (for helping Activities have smaller codebases)
 //
