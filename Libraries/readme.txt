@@ -12,10 +12,6 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 - Threading.jar
 - Threading.xml
 
-- LightRuntimePermissions.jar
-- LightRuntimePermissions.xml
-- LightRuntimePermissions-AndroidX.aar
-
 - acssmc-1.1.8-patched-v2.jar
 
  [i] Create this folder structure if it doesn't already exist

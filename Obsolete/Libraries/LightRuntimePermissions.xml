@@ -198,12 +198,17 @@ This method can only be called from an Activity.</comment>
 		</field>
 	</class>
 	<!-- Increase the version number by one major version -->
-	<version>2.0</version>
+	<version>2.1</version>
+	<!-- Dependencies of the trimmed AndroidX itself below
+	     No need to add .jar to the filename (for JAR files)
+	-->
+	<dependsOn>Trimmed-JetBrains-annotations-26.1.0</dependsOn>
+	<dependsOn>Trimmed-Kotlin-1.6.0</dependsOn>
 	<!-- Depends on my custom trimmed AndroidX library
 	     
 	     It's a specially crafted & debloated AAR library
 	     file of AndroidX, with all unnecessary resources,
 	     R attributes, and so on contents removed from it
 	-->
-	<dependsOn>LightRuntimePermissions-AndroidX.aar</dependsOn>
+	<dependsOn>Trimmed-AndroidX-1.9.0.aar</dependsOn>
 </root>

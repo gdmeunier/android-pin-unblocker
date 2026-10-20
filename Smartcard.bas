@@ -28,9 +28,6 @@ Version=9.9
 'General list of all Java native imports for this Service
 'This way no need to figure out which functions need what
 #If Java
-// For debugging purposes
-import anywheresoftware.b4a.BA;
-
 import android.content.Context;
 import android.app.Service;
 
@@ -297,7 +294,7 @@ public void jService_Create()
 	cardReaderProxy = new mysmartcardreader.SmartcardReader(PACKAGE_NAME);
 	
 	// e.g. "net.gdmeunier.pinunblocker$smartcard"
-	notifyChannelId = PACKAGE_NAME+"$smartcard"; 
+	notifyChannelId = PACKAGE_NAME+"$smartcard";
 	
 	notifyMgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
@@ -871,9 +868,16 @@ private void jNotifyAllWaitLocks()
 	{
 	    if ( waitLock != null )
 		{
-	        synchronized(waitLock)
+			try
 			{
-				waitLock.notify();
+		        synchronized(waitLock)
+				{
+					waitLock.notify();
+				}
+			}
+			catch (Exception e)
+			{
+				/* Nothing to do here */
 			}
 	    }
 	}
@@ -1014,7 +1018,7 @@ private void jShowNotification(final int notificationID, final String msg, final
 	{
 		/* Must be done in a try-catch block,
 		 * otherwise trying to use setLargeIcon on
-		 * some older mobile phone somehow makes the
+		 * some older mobile phones somehow makes the
 		 * Smartcard operation thread die unexpectedly
 		 */
 		try
@@ -1252,7 +1256,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				waitLockUsbDevice.notify();
 			}
 		}
-		catch (InterruptedException ie)
+		catch (Exception e) /* InterruptedException -> Exception */
 		{
 			/* Nothing to do here */
 		}
@@ -1501,7 +1505,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 					waitLockUsbPermission.notify();
 				}
 			}
-			catch (InterruptedException ie)
+			catch (Exception e) /* InterruptedException -> Exception */
 			{
 				/* Nothing to do here */
 			}
@@ -1663,7 +1667,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 				waitLockSmartcardInsert.notify();
 			}
 		}
-		catch (InterruptedException ie)
+		catch (Exception e) /* InterruptedException -> Exception */
 		{
 			/* Nothing to do here */
 		}

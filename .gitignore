@@ -5,11 +5,11 @@
 # Auto-backups
 AutoBackups/*
 
-# APK generator
-Objects/*
-
 # Don't ignore pre-configured App icon
 !Objects/res/drawable/icon.png
+
+# APK generator
+Objects/*
 
 # APK files
 *.apk
@@ -30,17 +30,14 @@ Releases/*
 # Recaf program folder
 Recaf/*
 
-# MyApkTool Pro program folder
-MyApkTool/*
-
 # Don't ignore the MyApkTool EXE file only
 !MyApkTool/MyApkTool.7z.001
 !MyApkTool/MyApkTool.7z.002
 !MyApkTool/MyApkTool.7z.003
 !MyApkTool/MyApkTool.exe.sha256
 
-# Ignore the Obsolete folder
-Obsolete/*
+# MyApkTool Pro program folder
+MyApkTool/*
 
 # Don't ignore the local acssmc library mirror
 # Because you know, manufacturers love removing
@@ -54,5 +51,8 @@ Obsolete/*
 !Obsolete/Files/*
 !Obsolete/Icons/*
 !Obsolete/Scratchpad/*
+
+# Ignore the Obsolete folder
+Obsolete/*
 
 
