@@ -1,0 +1,26 @@
+
+How to solve NoClassDefFound & NoSuchField errors:
+--------------------------------------------------
+
+If you have any of these errors when you create
+trimmed versions of AndroidX (or any other library),
+then it's a problem related to the R class of it
+
+That means there are some fields that are required
+in the R class, but that you probably removed from
+your modified AAR bundles (".aar" files)
+
+So try using the original full library,
+then use ProGuard on it and it will tell generate
+an output JAR file with the same R class,
+but with only the fields that were needed by the app
+
+Then you can look it up with e.g. Recaf (JAR & class editor)
+in order to figure out which R class fields are required
+to be included in your trimmed library versions
+
+Usually all "dimen" values and R fields are required,
+they should never be removed as they will be sought for
+by Android itself directly, even if e.g. Recaf doesn't show
+any other class in your dex2jar file file that 'needs it'
+

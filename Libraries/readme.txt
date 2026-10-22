@@ -14,6 +14,13 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 
 - acssmc-1.1.8-patched-v2.jar
 
+- LightRuntimePermissions.jar
+- LightRuntimePermissions.xml
+
+- apu-androidx-versionedparcelable-1.1.1.aar
+- apu-androidx-collection-1.2.0.jar
+- apu-androidx-core-1.9.0.aar
+
  [i] Create this folder structure if it doesn't already exist
 
 Now copy the below core library mods to this folder:

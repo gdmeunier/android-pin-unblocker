@@ -80,16 +80,10 @@ public static class AbortException extends Exception
 '
 
 #If Java
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
-import android.os.SystemClock;
 import android.util.Log;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.Map;
 import com.acs.smartcard.Reader;
 import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;

@@ -4,7 +4,7 @@
 	<class>
 		<!-- Keep the class & shortname the same values as original -->
 		<!-- It's perfectly possible to have one library name then different class names
-		     
+
 		     You can for example have this library named "LightRuntimePermissions"
 		     then it still provides a "RuntimePermissions" Object anyway
 		-->
@@ -198,17 +198,16 @@ This method can only be called from an Activity.</comment>
 		</field>
 	</class>
 	<!-- Increase the version number by one major version -->
-	<version>2.1</version>
-	<!-- Dependencies of the trimmed AndroidX itself below
-	     No need to add .jar to the filename (for JAR files)
+	<version>2.2</version>
+	<!-- Depends on my custom trimmed AndroidX libraries
+
+	     They are specially crafted & debloated AAR & JAR libraries
+	     of AndroidX, with all unnecessary resources, R attributes,
+	     and so on contents removed from it
+
+	     (You don't need to specify the .jar extension for JAR files)
 	-->
-	<dependsOn>Trimmed-JetBrains-annotations-26.1.0</dependsOn>
-	<dependsOn>Trimmed-Kotlin-1.6.0</dependsOn>
-	<!-- Depends on my custom trimmed AndroidX library
-	     
-	     It's a specially crafted & debloated AAR library
-	     file of AndroidX, with all unnecessary resources,
-	     R attributes, and so on contents removed from it
-	-->
-	<dependsOn>Trimmed-AndroidX-1.9.0.aar</dependsOn>
+	<dependsOn>apu-androidx-versionedparcelable-1.1.1.aar</dependsOn>
+	<dependsOn>apu-androidx-collection-1.2.0</dependsOn>
+	<dependsOn>apu-androidx-core-1.9.0.aar</dependsOn>
 </root>

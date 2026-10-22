@@ -96,6 +96,10 @@
     *;
 }
 
+# AndroidX support library
+-keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.**
+-keep,allowshrinking,includedescriptorclasses,includecode class androidx.**
+
 # ----- Shrinking Options
 #
 # For AndroidX and its dependencies, we want to
@@ -106,40 +110,6 @@
 #
 
 #-dontshrink
-
-#
-# Using more generic & broad class selectors instead of
-# the more detailed and specific ones (just incase)
-#
--keep,allowshrinking,includedescriptorclasses,includecode class org.jetbrains.annotations.*
--keep,allowshrinking,includedescriptorclasses,includecode class kotlin.annotation.*
--keep,allowshrinking,includedescriptorclasses,includecode class kotlin.jvm.*
--keep,allowshrinking,includedescriptorclasses,includecode class kotlin.*
--keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.**
--keep,allowshrinking,includedescriptorclasses,includecode class androidx.**
-
-# JetBrains annotations
-#-keep,allowshrinking,includedescriptorclasses,includecode class org.jetbrains.annotations.NotNull
-
-# Kotlin (stdlib)
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.annotation.*
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.jvm.JvmName
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.Deprecated
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.DeprecationLevel
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.Metadata$DefaultImpls
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.Metadata
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.ReplaceWith
-#-keep,allowshrinking,includedescriptorclasses,includecode class kotlin.SinceKotlin
-
-# AndroidX (Android support v4)
-#-keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.app.*
-#-keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.graphics.**
-
-# AndroidX (AndroidX core)
-#-keep,allowshrinking,includedescriptorclasses,includecode class androidx.annotation.*
-#-keep,allowshrinking,includedescriptorclasses,includecode class androidx.collection.*
-#-keep,allowshrinking,includedescriptorclasses,includecode class androidx.core.**
-#-keep,allowshrinking,includedescriptorclasses,includecode class androidx.versionedparcelable.*
 
 # ----- Optimization Options
 
@@ -201,46 +171,9 @@
 -keeppackagenames com.acs.smartcard
 -keeppackagenames com.acs.smartcard.ccid
 
-#
-# Simpler version for below packages:
-#  - AndroidX, support-v4, Kotlin, JetBrains-annotations
-#
-
+# AndroidX support library
 -keeppackagenames android.support.v4.**
 -keeppackagenames androidx.**
--keeppackagenames kotlin.**
--keeppackagenames kotlin
--keeppackagenames org.jetbrains.annotations
-
-# AndroidX (Android support v4)
-#-keeppackagenames android.support.v4.app
-#-keeppackagenames android.support.v4.graphics.drawable
-
-# AndroidX (AndroidX core)
-#-keeppackagenames androidx.annotation
-#-keeppackagenames androidx.collection
-#-keeppackagenames androidx.core.app
-#-keeppackagenames androidx.core.content
-#-keeppackagenames androidx.core.content.pm
-#-keeppackagenames androidx.core.content.res
-#-keeppackagenames androidx.core.graphics
-#-keeppackagenames androidx.core.graphics.drawable
-#-keeppackagenames androidx.core.math
-#-keeppackagenames androidx.core.net
-#-keeppackagenames androidx.core.os
-#-keeppackagenames androidx.core.provider
-#-keeppackagenames androidx.core.text
-#-keeppackagenames androidx.core.util
-#-keeppackagenames androidx.core.view
-#-keeppackagenames androidx.versionedparcelable
-
-# Kotlin (stdlib annotations)
-#-keeppackagenames kotlin
-#-keeppackagenames kotlin.annotation
-#-keeppackagenames kotlin.jvm
-
-# JetBrains annotations
-#-keeppackagenames org.jetbrains.annotations
 
 -keepattributes *
 -keepparameternames

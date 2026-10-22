@@ -1024,9 +1024,13 @@ Private Sub LoadActivityLayout
 	'
 	'However you can create your own temporary ones
 	
-	'Load the base layout (contains a ScrollView)
-	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Loading the base Activity layout which contains a ScrollView only..."$, Colors.Blue)
-	Activity.LoadLayout("Base")
+	'Removing any potentially already initialized views
+	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Removing any already initialized views if any before loading proper ${ActivityName} Activity layout..."$, Colors.Blue)
+	Activity.RemoveAllViews
+	
+	'
+	'The ScrollView is a dynamic Object declared in "Globals"
+	'
 	
 	'Initialize the ScrollView
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity's ScrollView"$, Colors.Blue)

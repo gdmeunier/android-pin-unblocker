@@ -14,8 +14,7 @@ Version=9.9
 #Region Module File Attributes
 	'Ignore "Sub x is not used" warning (#12)
 	'Ignore "Empty Catch block" warning (#19)
-	'Ignore "Object converted to x [...] programming mistake" warning (#7)
-	#IgnoreWarnings: 12,19,7
+	#IgnoreWarnings: 12,19
 	
 #End Region
 
@@ -226,13 +225,7 @@ Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As Stri
 	'handling Thread exceptions (such as noClassDefFoundError)
 	'
 	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
-		'
-		'Yes, it's possible to convert Exception to String:
-		' - Exception.As(String)
-		'
-		'Then it returns the error log just like a "LastException.Message"
-		'
-		CallSubDelayed3(Me, "Service_Message_NewThread_RunInSmartcardOperationThread_Completed", SmartcardOperationThread.Exception.As(String), Null)
+		CallSubDelayed3(Me, "Service_Message_NewThread_RunInSmartcardOperationThread_Completed", SmartcardOperationThread.Error, Null)
 		
 	End If
 	
@@ -1013,27 +1006,14 @@ private void jShowNotification(final int notificationID, final String msg, final
 	
 	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this);
 	
-	// Large icons didn't exit before Android 5 (API level 21)
+	/* Large icons didn't exit before Android 5 (API level 21):
+	 *  - Before Android 5 (Lollipop) the large notification icon
+	 *    was directly set with "setSmallIcon" and a Bitmap of 64x64
+	 */
 	if ( Build.VERSION.SDK_INT >= 21 )
 	{
-		/* Must be done in a try-catch block,
-		 * otherwise trying to use setLargeIcon on
-		 * some older mobile phones somehow makes the
-		 * Smartcard operation thread die unexpectedly
-		 */
-		try
-		{
-			// Set the large icon first before the small one
-			builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
-		}
-		catch (NoClassDefFoundError|Exception ex)
-		{
-			/* Multiple-exception catches are supported starting with Java 7:
-			 * - https://stackoverflow.com/a/11211334
-			 *
-			 * (Nothing to do here)
-			 */
-		}
+		// Set the large icon first before the small one
+		builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
 	}
 	builder.setSmallIcon(R.drawable.ic_stat_card);
 	builder.setContentTitle(APPLICATION_NAME);
@@ -1168,10 +1148,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		
 		jShowToast(msg+"...");
 		
-		/* Notification sound only for the first notification
-		 * to avoid spamming notification sounds
-		 *
-		 * withSound  = true
+		/* withSound  = true
 		 * useHeadsUp = (omitted - automatically set to false)
 		 * useLights  = (omitted - automatically set to false)
 		 */
