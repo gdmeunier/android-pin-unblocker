@@ -73,6 +73,7 @@ private WindowManager     cachedSystemWindowService      = null;
 //
 // Class methods (generic helpers methods)
 //
+/* ***** Not shipping this code yet (I need to test it first) ***** *
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
@@ -85,9 +86,9 @@ public boolean jIsTabletDevice(Context ctx)
 	// Default tablet detection value (fallback)
 	boolean isTablet = false;
 	
-	/* The "Resources.getBoolean(int id)" method requires
-	 * Android API level 3+
-	 */
+	// The "Resources.getBoolean(int id)" method requires
+	// Android API level 3+
+	//
 	if ( ctx == null || Build.VERSION.SDK_INT < 3 )
 	{
 		return isTablet; // Return the default fallback value
@@ -124,7 +125,7 @@ public boolean jIsTabletDevice(Context ctx)
 	}
 	catch (Exception e)
 	{
-		/* Incase we have a botched value */
+		// Incase we have a botched value
 		isTablet = false;
 	}
 	
@@ -281,6 +282,7 @@ public int jGetDisplayOrientation(Context ctx)
 	
 	return displayOrientation;
 }
+ * ***** ---------------------------------------------------- ***** */
 
 import android.view.Menu;
 import android.os.Build;

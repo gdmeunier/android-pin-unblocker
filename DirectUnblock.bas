@@ -37,6 +37,13 @@ private BroadcastReceiver DeviceIdleDetectionReceiver;
 //
 import android.content.Context;
 import android.app.Activity;
+public float jGetDisplayScale()
+{
+	return myadvancedInstance.jGetDisplayScale(this);
+}
+
+import android.content.Context;
+import android.app.Activity;
 public boolean jDeviceHasUsbOtgSupport()
 {
 	return myadvancedInstance.jDeviceHasUsbOtgSupport(this);
@@ -65,13 +72,7 @@ public void jClearKeepScreenOn()
 //
 // Tablet device & landscape orientation detection
 //
-import android.content.Context;
-import android.app.Activity;
-public float jGetDisplayScale()
-{
-	return myadvancedInstance.jGetDisplayScale(this);
-}
-
+/* ***** Not shipping this code yet (I need to test it first) ***** *
 public boolean jIsTabletDevice()
 {
 	return myadvancedInstance.jIsTabletDevice(this);
@@ -83,6 +84,7 @@ public int jGetDisplayOrientation()
 {
 	return myadvancedInstance.jGetDisplayOrientation(this);
 }
+ * ***** ---------------------------------------------------- ***** */
 #End If
 
 #If Java
@@ -1302,18 +1304,20 @@ Private Sub InitializeActivityLayout
 	'Note:
 	' - This is only for devices with a display scale of atleast 1.0
 	'
-	Dim DisplayScale As Float
-	DisplayScale = joActivity.RunMethod("jGetDisplayScale", Null)
-	
-	Dim IsTabletDevice, IsLandscapeOrientation As Boolean
-	IsTabletDevice         = joActivity.RunMethod("jIsTabletDevice", Null)
-	IsLandscapeOrientation = (Constants.ORIENTATION_LANDSCAPE == joActivity.RunMethod("jGetDisplayOrientation", Null))
-	
-	If DisplayScale >= 1.0 And IsTabletDevice And IsLandscapeOrientation Then
-		'---------------------Left, Top, Width, Height
-		scvActivity.SetLayout(20%x, 0dip, 60%x, 100%y)
-		
-	End If
+	'----- Not enabled yet because I don't have a real tablet to test this code yet -----
+	'Dim DisplayScale As Float
+	'DisplayScale = joActivity.RunMethod("jGetDisplayScale", Null)
+	'
+	'Dim IsTabletDevice, IsLandscapeOrientation As Boolean
+	'IsTabletDevice         = joActivity.RunMethod("jIsTabletDevice", Null)
+	'IsLandscapeOrientation = (Constants.ORIENTATION_LANDSCAPE == joActivity.RunMethod("jGetDisplayOrientation", Null))
+	'
+	'If DisplayScale >= 1.0 And IsTabletDevice And IsLandscapeOrientation Then
+	'	'---------------------Left, Top, Width, Height
+	'	scvActivity.SetLayout(20%x, 0dip, 60%x, 100%y)
+	'	
+	'End If
+	'^^^^^ Not enabled yet because I don't have a real tablet to test this code yet ^^^^^
 	
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Sub return"$, Colors.Blue)
 End Sub
@@ -1338,10 +1342,8 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	'then I conclude that the soft keyboard is open
 	If NewHeight < OldHeight Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
-		
 	Else If NewHeight > OldHeight Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
-		
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Fixing the height of the Activity's ScrollView..."$, Colors.Blue)

@@ -1,0 +1,577 @@
+
+#
+# This file has been modified for use with Android PIN Unblocker.
+# This is not the original proguard-android-app-optimize.txt file.
+#
+# This file is configured to strip what the specific Android app
+# Android PIN Unblocker doesn't use or doesn't need.
+#
+# It currently removes all logging from release builds of the APK.
+#
+# Big thanks to:
+#  - https://craigrussell.io/2017/10/30/stripping-log-statements-using-proguard
+#  - https://www.guardsquare.com/manual/configuration/usage
+#  - https://developer.ravelin.com/psp/libraries-and-sdks/android/3ds-sdk/proguard-rules/
+#  - https://www.guardsquare.com/manual/configuration/examples#logging
+#  - https://www.zacsweers.dev/android-proguard-rules/
+#  - https://www.guardsquare.com/manual/configuration/usage
+#
+
+# ----- General Options
+
+-verbose
+
+# Suppress duplicate warning for system classes; Blaze is passing android.jar
+# to proguard multiple times.
+-dontnote **
+
+# Stop warnings about missing unused classes
+-dontwarn **
+
+# ----- Input/Output Options
+
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+
+# ----- Keep Options (Shrinking / Optimization)
+
+#
+# If you want to keep all classes & members
+#
+# Add the "allowobfuscation" if you want
+# to use obfuscation for whatever reason
+#-keep,allowoptimization,includedescriptorclasses,includecode class **
+#-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class * {
+#    *;
+#}
+#
+
+# Must have the application's entry point kept
+#
+# Otherwise ProGuard doesn't know if there's
+# even an entry point in the JAR, which is
+# actually an Android app without "MANIFEST.MF"
+#
+# In such cases it avoids ProGuard removing
+# everything because it would think all cans
+# be removed then throw a warning about it
+#
+# Also don't shrink it (no allowshrinking here)
+# However it cans be optimized though
+-keep,allowoptimization,includedescriptorclasses,includecode class net.gdmeunier.pinunblocker.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class net.gdmeunier.pinunblocker.** {
+    *;
+}
+
+# This one also must not be shrunk at all
+# But it cans be optimized
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.** {
+    *;
+}
+
+# This one is referred to in BAL layout files
+# It must never be removed, but may be optimized
+#
+# It also must not be subject to shrinking
+-keep,allowoptimization,includedescriptorclasses,includecode class newqrcodereaderviewwrapper.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class newqrcodereaderviewwrapper.** {
+    *;
+}
+-keep,allowoptimization,includedescriptorclasses,includecode class com.dlazaro66.qrcodereaderview.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.dlazaro66.qrcodereaderview.** {
+    *;
+}
+
+# Google ZXing QR code library
+-keep,allowoptimization,includedescriptorclasses,includecode class com.google.zxing.**
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class com.google.zxing.** {
+    *;
+}
+
+# acssmc library (smartcard)
+# Seemingly it somehow must not be optimized (if library version is older than 1.1.6)
+-keep class com.acs.smartcard.**
+-keepclassmembers class com.acs.smartcard.** {
+    *;
+}
+
+# AndroidX support library
+-keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.**
+-keep,allowshrinking,includedescriptorclasses,includecode class androidx.**
+
+# ----- Shrinking Options
+#
+# For AndroidX and its dependencies, we want to
+# allow shrinking it ("allowshrinking" flag)
+#
+# When we want to allow shrinking, no need to
+# specify the "-keepclassmembers" directives
+#
+
+#-dontshrink
+
+# ----- Optimization Options
+
+#-dontoptimize
+
+# 4 passes because it's the 4th pass that is
+# the last useful one (proper value)
+-optimizationpasses 4
+
+# This is one of the very few (manually-tweaked)
+# optimization configurations that work with
+# Basic4Android apps, other ones usually crash
+# B4X applications (B4A, B4I, B4J etc)
+-optimizations library/*,!class/*,!field/*,!method/*,!code/merging,code/simplification/variable,!code/simplification/arithmetic,code/simplification/cast,code/simplification/field,code/simplification/branch,code/simplification/string,!code/simplification/math,code/simplification/advanced,code/removal/advanced,code/removal/simple,!code/removal/variable,code/removal/exception,code/allocation/*
+
+# Specifies that the access modifiers of classes and class members may be broadened during optimization
+-allowaccessmodification
+
+# ----- Obfuscation Options
+
+# If you want to just keep all package names anyway
+#-keeppackagenames **
+
+# This app's package name + designer scripts
+# Designer scripts are for the BAL layout files
+-keeppackagenames net.gdmeunier.pinunblocker
+-keeppackagenames net.gdmeunier.pinunblocker.designerscripts
+
+# Basic4Android itself's package names
+-keeppackagenames anywheresoftware.b4a
+-keeppackagenames anywheresoftware.b4a.keywords
+-keeppackagenames anywheresoftware.b4a.keywords.constants
+-keeppackagenames anywheresoftware.b4a.objects
+-keeppackagenames anywheresoftware.b4a.objects.collections
+-keeppackagenames anywheresoftware.b4a.objects.drawable
+-keeppackagenames anywheresoftware.b4a.objects.streams
+-keeppackagenames anywheresoftware.b4j.object
+
+# The Threading library too
+-keeppackagenames anywheresoftware.b4a.agraham.threading
+
+# Layout BAL files refer to the exact class names
+# And the NewQRCodeReaderView must keep its names
+-keeppackagenames newqrcodereaderviewwrapper
+-keeppackagenames com.dlazaro66.qrcodereaderview
+
+# Google ZXing QR code library
+-keeppackagenames com.google.zxing.client.android.camera
+-keeppackagenames com.google.zxing.client.android.camera.open
+-keeppackagenames com.google.zxing
+-keeppackagenames com.google.zxing.common
+-keeppackagenames com.google.zxing.common.detector
+-keeppackagenames com.google.zxing.common.reedsolomon
+-keeppackagenames com.google.zxing.qrcode
+-keeppackagenames com.google.zxing.qrcode.decoder
+-keeppackagenames com.google.zxing.qrcode.detector
+
+# acssmc library (smartcard)
+-keeppackagenames com.acs.smartcard
+-keeppackagenames com.acs.smartcard.ccid
+
+# AndroidX support library
+-keeppackagenames android.support.v4.**
+-keeppackagenames androidx.**
+
+-keepattributes *
+-keepparameternames
+
+-dontobfuscate
+
+#-useuniqueclassmembernames
+#-dontusemixedcaseclassnames
+#-adaptclassstrings
+#-adaptresourcefilenames
+#-adaptresourcefilecontents
+
+# ----- Preverification Options
+
+#-dontpreverify
+-android
+
+# ----- Target compatibility options
+
+-target 1.7
+
+# ----- Fully remove builtin Android logging
+
+# In the optimization step, ProGuard will then remove calls to such methods
+# if it can determine that the return values aren't used.
+#
+#  - "..." = match any parameters signature
+#
+# Some people online say that "println" might cause
+# problems for a sizeable number of Android apps
+#
+# If you have any problems you might want to remove it
+#
+-assumenosideeffects class android.util.Log {
+    public static int wtf(...);
+    public static int e(...);
+    public static int w(...);
+    public static int i(...);
+    public static int v(...);
+    public static int d(...);
+    public static java.lang.String getStackTraceString(java.lang.Throwable);
+    public static int println(int, java.lang.String, java.lang.String);
+    public static boolean isLoggable(java.lang.String, int);
+}
+
+# ----- Fully remove Basic4Android logging (release build)
+
+-assumenosideeffects public class anywheresoftware.b4a.BA {
+    public static void Log(java.lang.String);
+    public static void LogError(java.lang.String);
+    public static void LogInfo(java.lang.String);
+    public static void addLogPrefix(java.lang.String, java.lang.String);
+}
+-assumenoexternalsideeffects public class anywheresoftware.b4a.BA {
+    public static void Log(java.lang.String);
+    public static void LogError(java.lang.String);
+    public static void LogInfo(java.lang.String);
+    public static void addLogPrefix(java.lang.String, java.lang.String);
+}
+
+-assumenosideeffects public class anywheresoftware.b4a.keywords.Common {
+    public static void Log(java.lang.String);
+    public static void LogColor(java.lang.String, int);
+    public static void LogImpl(java.lang.String, java.lang.String, int);
+    public static int Rnd(int, int);
+    public static java.lang.String SmartStringFormatter(java.lang.String, java.lang.Object);
+}
+-assumenoexternalsideeffects public class anywheresoftware.b4a.keywords.Common {
+    public static void Log(java.lang.String);
+    public static void LogColor(java.lang.String, int);
+    public static void LogImpl(java.lang.String, java.lang.String, int);
+    public static int Rnd(int, int);
+    public static java.lang.String SmartStringFormatter(java.lang.String, java.lang.Object);
+}
+
+# ----- Help remove unnecessary logging string variables too
+
+-assumenoexternalsideeffects class java.lang.StringBuilder {
+    public java.lang.StringBuilder();
+    public java.lang.StringBuilder(int);
+    public java.lang.StringBuilder(java.lang.String);
+    public java.lang.StringBuilder append(java.lang.Object);
+    public java.lang.StringBuilder append(java.lang.String);
+    public java.lang.StringBuilder append(java.lang.StringBuffer);
+    public java.lang.StringBuilder append(char[]);
+    public java.lang.StringBuilder append(char[], int, int);
+    public java.lang.StringBuilder append(boolean);
+    public java.lang.StringBuilder append(char);
+    public java.lang.StringBuilder append(int);
+    public java.lang.StringBuilder append(long);
+    public java.lang.StringBuilder append(float);
+    public java.lang.StringBuilder append(double);
+    public java.lang.String toString();
+}
+
+-assumenoexternalreturnvalues public final class java.lang.StringBuilder {
+    public java.lang.StringBuilder append(java.lang.Object);
+    public java.lang.StringBuilder append(java.lang.String);
+    public java.lang.StringBuilder append(java.lang.StringBuffer);
+    public java.lang.StringBuilder append(char[]);
+    public java.lang.StringBuilder append(char[], int, int);
+    public java.lang.StringBuilder append(boolean);
+    public java.lang.StringBuilder append(char);
+    public java.lang.StringBuilder append(int);
+    public java.lang.StringBuilder append(long);
+    public java.lang.StringBuilder append(float);
+    public java.lang.StringBuilder append(double);
+}
+
+# ----- General logging removal (not Android-specific)
+
+# Remove - System method calls. Remove all invocations of System
+# methods without side effects whose return values are not used.
+-assumenosideeffects public class java.lang.System {
+    public static long currentTimeMillis();
+    static java.lang.Class getCallerClass();
+    public static int identityHashCode(java.lang.Object);
+    public static java.lang.SecurityManager getSecurityManager();
+    public static java.util.Properties getProperties();
+    public static java.lang.String getProperty(java.lang.String);
+    public static java.lang.String getenv(java.lang.String);
+    public static java.lang.String mapLibraryName(java.lang.String);
+    public static java.lang.String getProperty(java.lang.String,java.lang.String);
+}
+
+# Remove - Math method calls. Remove all invocations of Math
+# methods without side effects whose return values are not used.
+-assumenosideeffects public class java.lang.Math {
+    public static double sin(double);
+    public static double cos(double);
+    public static double tan(double);
+    public static double asin(double);
+    public static double acos(double);
+    public static double atan(double);
+    public static double toRadians(double);
+    public static double toDegrees(double);
+    public static double exp(double);
+    public static double log(double);
+    public static double log10(double);
+    public static double sqrt(double);
+    public static double cbrt(double);
+    public static double IEEEremainder(double,double);
+    public static double ceil(double);
+    public static double floor(double);
+    public static double rint(double);
+    public static double atan2(double,double);
+    public static double pow(double,double);
+    public static int round(float);
+    public static long round(double);
+    public static double random();
+    public static int abs(int);
+    public static long abs(long);
+    public static float abs(float);
+    public static double abs(double);
+    public static int max(int,int);
+    public static long max(long,long);
+    public static float max(float,float);
+    public static double max(double,double);
+    public static int min(int,int);
+    public static long min(long,long);
+    public static float min(float,float);
+    public static double min(double,double);
+    public static double ulp(double);
+    public static float ulp(float);
+    public static double signum(double);
+    public static float signum(float);
+    public static double sinh(double);
+    public static double cosh(double);
+    public static double tanh(double);
+    public static double hypot(double,double);
+    public static double expm1(double);
+    public static double log1p(double);
+}
+
+# Remove - Number method calls. Remove all invocations of Number
+# methods without side effects whose return values are not used.
+-assumenosideeffects public class java.lang.* extends java.lang.Number {
+    public static java.lang.String toString(byte);
+    public static java.lang.Byte valueOf(byte);
+    public static byte parseByte(java.lang.String);
+    public static byte parseByte(java.lang.String,int);
+    public static java.lang.Byte valueOf(java.lang.String,int);
+    public static java.lang.Byte valueOf(java.lang.String);
+    public static java.lang.Byte decode(java.lang.String);
+    public int compareTo(java.lang.Byte);
+    public static java.lang.String toString(short);
+    public static short parseShort(java.lang.String);
+    public static short parseShort(java.lang.String,int);
+    public static java.lang.Short valueOf(java.lang.String,int);
+    public static java.lang.Short valueOf(java.lang.String);
+    public static java.lang.Short valueOf(short);
+    public static java.lang.Short decode(java.lang.String);
+    public static short reverseBytes(short);
+    public int compareTo(java.lang.Short);
+    public static java.lang.String toString(int,int);
+    public static java.lang.String toHexString(int);
+    public static java.lang.String toOctalString(int);
+    public static java.lang.String toBinaryString(int);
+    public static java.lang.String toString(int);
+    public static int parseInt(java.lang.String,int);
+    public static int parseInt(java.lang.String);
+    public static java.lang.Integer valueOf(java.lang.String,int);
+    public static java.lang.Integer valueOf(java.lang.String);
+    public static java.lang.Integer valueOf(int);
+    public static java.lang.Integer getInteger(java.lang.String);
+    public static java.lang.Integer getInteger(java.lang.String,int);
+    public static java.lang.Integer getInteger(java.lang.String,java.lang.Integer);
+    public static java.lang.Integer decode(java.lang.String);
+    public static int highestOneBit(int);
+    public static int lowestOneBit(int);
+    public static int numberOfLeadingZeros(int);
+    public static int numberOfTrailingZeros(int);
+    public static int bitCount(int);
+    public static int rotateLeft(int,int);
+    public static int rotateRight(int,int);
+    public static int reverse(int);
+    public static int signum(int);
+    public static int reverseBytes(int);
+    public int compareTo(java.lang.Integer);
+    public static java.lang.String toString(long,int);
+    public static java.lang.String toHexString(long);
+    public static java.lang.String toOctalString(long);
+    public static java.lang.String toBinaryString(long);
+    public static java.lang.String toString(long);
+    public static long parseLong(java.lang.String,int);
+    public static long parseLong(java.lang.String);
+    public static java.lang.Long valueOf(java.lang.String,int);
+    public static java.lang.Long valueOf(java.lang.String);
+    public static java.lang.Long valueOf(long);
+    public static java.lang.Long decode(java.lang.String);
+    public static java.lang.Long getLong(java.lang.String);
+    public static java.lang.Long getLong(java.lang.String,long);
+    public static java.lang.Long getLong(java.lang.String,java.lang.Long);
+    public static long highestOneBit(long);
+    public static long lowestOneBit(long);
+    public static int numberOfLeadingZeros(long);
+    public static int numberOfTrailingZeros(long);
+    public static int bitCount(long);
+    public static long rotateLeft(long,int);
+    public static long rotateRight(long,int);
+    public static long reverse(long);
+    public static int signum(long);
+    public static long reverseBytes(long);
+    public int compareTo(java.lang.Long);
+    public static java.lang.String toString(float);
+    public static java.lang.String toHexString(float);
+    public static java.lang.Float valueOf(java.lang.String);
+    public static java.lang.Float valueOf(float);
+    public static float parseFloat(java.lang.String);
+    public static boolean isNaN(float);
+    public static boolean isInfinite(float);
+    public static int floatToIntBits(float);
+    public static int floatToRawIntBits(float);
+    public static float intBitsToFloat(int);
+    public static int compare(float,float);
+    public boolean isNaN();
+    public boolean isInfinite();
+    public int compareTo(java.lang.Float);
+    public static java.lang.String toString(double);
+    public static java.lang.String toHexString(double);
+    public static java.lang.Double valueOf(java.lang.String);
+    public static java.lang.Double valueOf(double);
+    public static double parseDouble(java.lang.String);
+    public static boolean isNaN(double);
+    public static boolean isInfinite(double);
+    public static long doubleToLongBits(double);
+    public static long doubleToRawLongBits(double);
+    public static double longBitsToDouble(long);
+    public static int compare(double,double);
+    public boolean isNaN();
+    public boolean isInfinite();
+    public int compareTo(java.lang.Double);
+    public byte byteValue();
+    public short shortValue();
+    public int intValue();
+    public long longValue();
+    public float floatValue();
+    public double doubleValue();
+    public int compareTo(java.lang.Object);
+    public boolean equals(java.lang.Object);
+    public int hashCode();
+    public java.lang.String toString();
+}
+
+# Remove - String method calls. Remove all invocations of String
+# methods without side effects whose return values are not used.
+-assumenosideeffects public class java.lang.String {
+    public static java.lang.String copyValueOf(char[]);
+    public static java.lang.String copyValueOf(char[],int,int);
+    public static java.lang.String valueOf(boolean);
+    public static java.lang.String valueOf(char);
+    public static java.lang.String valueOf(char[]);
+    public static java.lang.String valueOf(char[],int,int);
+    public static java.lang.String valueOf(double);
+    public static java.lang.String valueOf(float);
+    public static java.lang.String valueOf(int);
+    public static java.lang.String valueOf(java.lang.Object);
+    public static java.lang.String valueOf(long);
+    public boolean contentEquals(java.lang.StringBuffer);
+    public boolean endsWith(java.lang.String);
+    public boolean equalsIgnoreCase(java.lang.String);
+    public boolean equals(java.lang.Object);
+    public boolean matches(java.lang.String);
+    public boolean regionMatches(boolean,int,java.lang.String,int,int);
+    public boolean regionMatches(int,java.lang.String,int,int);
+    public boolean startsWith(java.lang.String);
+    public boolean startsWith(java.lang.String,int);
+    public byte[] getBytes();
+    public byte[] getBytes(java.lang.String);
+    public char charAt(int);
+    public char[] toCharArray();
+    public int compareToIgnoreCase(java.lang.String);
+    public int compareTo(java.lang.Object);
+    public int compareTo(java.lang.String);
+    public int hashCode();
+    public int indexOf(int);
+    public int indexOf(int,int);
+    public int indexOf(java.lang.String);
+    public int indexOf(java.lang.String,int);
+    public int lastIndexOf(int);
+    public int lastIndexOf(int,int);
+    public int lastIndexOf(java.lang.String);
+    public int lastIndexOf(java.lang.String,int);
+    public int length();
+    public java.lang.CharSequence subSequence(int,int);
+    public java.lang.String concat(java.lang.String);
+    public java.lang.String replaceAll(java.lang.String,java.lang.String);
+    public java.lang.String replace(char,char);
+    public java.lang.String replaceFirst(java.lang.String,java.lang.String);
+    public java.lang.String[] split(java.lang.String);
+    public java.lang.String[] split(java.lang.String,int);
+    public java.lang.String substring(int);
+    public java.lang.String substring(int,int);
+    public java.lang.String toLowerCase();
+    public java.lang.String toLowerCase(java.util.Locale);
+    public java.lang.String toString();
+    public java.lang.String toUpperCase();
+    public java.lang.String toUpperCase(java.util.Locale);
+    public java.lang.String trim();
+}
+
+# Remove - StringBuffer method calls. Remove all invocations of StringBuffer
+# methods without side effects whose return values are not used.
+-assumenosideeffects public class java.lang.StringBuffer {
+    public java.lang.String toString();
+    public char charAt(int);
+    public int capacity();
+    public int codePointAt(int);
+    public int codePointBefore(int);
+    public int indexOf(java.lang.String,int);
+    public int lastIndexOf(java.lang.String);
+    public int lastIndexOf(java.lang.String,int);
+    public int length();
+    public java.lang.String substring(int);
+    public java.lang.String substring(int,int);
+}
+
+# Remove - StringBuilder method calls. Remove all invocations of StringBuilder
+# methods without side effects whose return values are not used.
+-assumenosideeffects public class java.lang.StringBuilder {
+    public java.lang.String toString();
+    public char charAt(int);
+    public int capacity();
+    public int codePointAt(int);
+    public int codePointBefore(int);
+    public int indexOf(java.lang.String,int);
+    public int lastIndexOf(java.lang.String);
+    public int lastIndexOf(java.lang.String,int);
+    public int length();
+    public java.lang.String substring(int);
+    public java.lang.String substring(int,int);
+}
+
+# Remove debugging - Throwable_printStackTrace calls. Remove all invocations of
+# Throwable.printStackTrace().
+-assumenosideeffects public class java.lang.Throwable {
+    public void printStackTrace();
+}
+
+# Remove debugging - Thread_dumpStack calls. Remove all invocations of
+# Thread.dumpStack().
+-assumenosideeffects public class java.lang.Thread {
+    public static void dumpStack();
+}
+
+# Remove debugging - All logging API calls. Remove all invocations of the
+# logging API whose return values are not used.
+-assumenosideeffects public class java.util.logging.* {
+    <methods>;
+}
+
+# Remove debugging - All Log4j API calls. Remove all invocations of the
+# Log4j API whose return values are not used.
+#
+# Android PIN Unblocker currently doesn't use log4j at all
+#
+#-assumenosideeffects public class org.apache.log4j.** {
+#    <methods>;
+#}
+
+

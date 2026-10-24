@@ -63,10 +63,31 @@
     *;
 }
 
-# This one also must not be shrunk at all
-# But it cans be optimized
--keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.**
--keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.** {
+# These ones also must not be shrunk at all
+# But they can be optimized
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.*
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.* {
+    *;
+}
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.debug.*
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.debug.* {
+    *;
+}
+# Always preserve drawable classes in whole,
+# otherwise transparency will not work for colors
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.drawable.*
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.drawable.* {
+    *;
+}
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4j.object.*
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4j.object.* {
+    *;
+}
+
+# Basic4Android Threading library
+# Must not be shrunk at all, but cans be optimized
+-keep,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.agraham.threading.*
+-keepclassmembers,allowoptimization,includedescriptorclasses,includecode class anywheresoftware.b4a.agraham.threading.* {
     *;
 }
 
@@ -96,10 +117,6 @@
     *;
 }
 
-# AndroidX support library
--keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.**
--keep,allowshrinking,includedescriptorclasses,includecode class androidx.**
-
 # ----- Shrinking Options
 #
 # For AndroidX and its dependencies, we want to
@@ -110,6 +127,37 @@
 #
 
 #-dontshrink
+
+# AndroidX support library
+-keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.**
+-keep,allowshrinking,includedescriptorclasses,includecode class androidx.**
+
+# Only Basic4Android "objects" and "keywords" can be shrunk,
+# nothing else to avoid any potential crashes
+#
+# Basic4Android also requires keeping all class members,
+# but they can be optimized though:
+#  - If the class is fully unneeded, it's removed (shrunk)
+#  - If parts of it are still needed, then it must stay whole
+#
+# Also don't include "anywheresoftware.b4a.objects.drawable.*" here,
+# otherwise color transparency will not work (only full opacity colors)
+-keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.*
+-keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.* {
+    *;
+}
+-keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.streams.*
+-keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.streams.* {
+    *;
+}
+-keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.collections.*
+-keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.collections.* {
+    *;
+}
+-keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.keywords.**
+-keepclassmembers,allowoptimization class anywheresoftware.b4a.keywords.** {
+    *;
+}
 
 # ----- Optimization Options
 
