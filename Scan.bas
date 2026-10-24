@@ -888,16 +888,18 @@ Private Sub LoadActivityLayout
 	'Initialize the ScrollView
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity's ScrollView"$, Colors.Blue)
 	scvActivity.Initialize(Activity.Height) 'Default initial height for its Panel
-	scvActivity.Height = Activity.Height    'Must set an explit height on the ScrollView
-	scvActivity.Width  = Activity.Width     'Must set an explit width on the ScrollView
-	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: scvActivity height = ${scvActivity.Height} & width = ${scvActivity.Width}"$, Colors.Blue)
+	'
+	'Don't set any explit height / width on the ScrollView:
+	' - This is already handled by XML styles for it,
+	'   with the "android:fillViewport" attribute
+	'
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Activity height = ${Activity.Height} & width = ${Activity.Width}"$, Colors.Blue)
 	
 	'Initialize the ScrollView panel
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity ScrollView's inner panel"$, Colors.Blue)
 	scvActivity.Panel.Initialize("scvActivityPanel")
-	scvActivity.Panel.Height = scvActivity.Height 'Must set an height before loading layouts
-	scvActivity.Panel.Width  = scvActivity.Width  'Must set a width before loading layouts
+	scvActivity.Panel.Height = Activity.Height 'Must set an height before loading layouts
+	scvActivity.Panel.Width  = Activity.Width  'Must set a width before loading layouts
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: scvActivity Panel height = ${scvActivity.Panel.Height} & width = ${scvActivity.Panel.Width}"$, Colors.Blue)
 	
 	'Load the Activity layout into the ScrollView's panel
@@ -1022,7 +1024,7 @@ Private Sub LoadActivityLayout
 	
 	'Add the ScrollView itself to the Activity View (must be done explicitly)
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Adding the ScrollView's View to the Activity (must be done explicitly in code)"$, Colors.Blue)
-	Activity.AddView(scvActivity, 0, 0, scvActivity.Width, scvActivity.Height)
+	Activity.AddView(scvActivity, 0, 0, Activity.Width, Activity.Height)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Sub return"$, Colors.Blue)
 End Sub
@@ -1045,23 +1047,15 @@ Private Sub FixVariantSpecificLayouts(ActivityMargins() As Int, BottomMostElemen
 	'    It's lblQRCodeReaderBg / qrvQRCodeReaderView that are the bottom-most ones
 	'
 	'[0] Left, [1] Top, [2] Right, [3] Bottom
-	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Setting the ScrollView's inner panel height to bottom-most element's top(${(BottomMostElement.Top / 1dip).As(Int)}dip) + height(${(BottomMostElement.Height / 1dip).As(Int)}dip) and the layout's bottom margin(${(ActivityMargins(3) / 1dip).As(Int)}dip) too"$, Colors.Blue)
-	scvActivity.Panel.Height = BottomMostElement.Top + BottomMostElement.Height + ActivityMargins(3)
+	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Setting the ScrollView's inner panel height to bottom-most element's top(${(BottomMostElement.Top / 1dip).As(Int)}dip) + height(${(BottomMostElement.Height / 1dip).As(Int)}dip) and the layout's bottom margin(${(ActivityMargins(3) / 1dip).As(Int)}dip) if necessary"$, Colors.Blue)
+	Dim OptimalPanelHeight As Int = BottomMostElement.Top + BottomMostElement.Height + ActivityMargins(3)
 	
-	'Fix the ScrollView panel's height if it was created
-	'but not given the proper height automatically
-	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: The ScrollView's panel should always fully cover the Activity view, so that modal background shades fully cover the screen"$, Colors.Blue)
-	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Checking if the ScrollView's inner panel is somehow smaller than the Activity view's height..."$, Colors.Blue)
-	If scvActivity.Panel.Height < Activity.Height Then
-		LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: The ScrollView's inner panel height is somehow smaller than the Activity view height"$, Colors.Magenta)
-		
-		LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Increasing the ScrollView's inner panel height to match the Activity view height"$, Colors.Magenta)
-		scvActivity.Panel.Height = Activity.Height
-		
-	Else
-		LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: The ScrollView's inner panel height is equal or greater than the Activity view's height"$, Colors.Blue)
-		LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Alright, so no need to fix its height"$, Colors.Blue)
-		
+	'scvActivity.Panel is already at height = Activity.Height
+	'
+	'So only apply the OptimalPanelHeight value if it's better
+	'than Activity.Height (if it's a greater value)
+	If OptimalPanelHeight > Activity.Height Then
+		scvActivity.Panel.Height = OptimalPanelHeight
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] FixVariantSpecificLayouts: Sub return"$, Colors.Blue)

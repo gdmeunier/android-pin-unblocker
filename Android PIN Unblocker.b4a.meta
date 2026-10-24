@@ -1,5 +1,5 @@
-﻿ModuleBookmarks0=3111,49,1296,1043,3338,1428
-ModuleBookmarks1=2017,2613,878,645,2165,1022
+﻿ModuleBookmarks0=3105,49,1317,1064,3332,1441
+ModuleBookmarks1=2011,2607,878,645,2159,1022
 ModuleBookmarks10=875
 ModuleBookmarks11=653,289,1318,1550,23,973,214
 ModuleBookmarks2=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Smartcard,ServiceMessageThread_Ended,218,0,Smartcard,SmartcardOperationThread_Ended,230,1,Smartcard,Process_Globals,209,0,Scan,LoadActivityLayout,874,0,DirectUnblock,LoadActivityLayout,1021,6,Smartcard,Service_Create,254,1,Main,LoadActivityLayout,1425,6,Smartcard,Service_Message_NewThread,481,0,MySmartcardReader,Initialize,95,0,Smartcard,Application_Error,1011,0
+NavigationStack=Main,Activity_Create,1424,0,Main,LoadActivityLayout,1549,6,DirectUnblock,LoadActivityLayout,1130,0,Main,DirectUnblockThread_Ended,1431,0,Main,FixVariantSpecificLayouts,1563,0,Main,InitializeActivityLayout,1708,6,DirectUnblock,InitializeActivityLayout,1257,0,Visual Designer,Scan.bal,-100,6,MyAdvanced,Initialize,90,0,Main,FixMonospaceEditTexts,1823,0
 SelectedBuild=0
-VisibleModules=1,11,8,10
+VisibleModules=1,11,8,10,2

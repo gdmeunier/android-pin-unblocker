@@ -73,6 +73,32 @@ private WindowManager     cachedSystemWindowService      = null;
 //
 // Class methods (generic helpers methods)
 //
+import android.view.Menu;
+import android.os.Build;
+import android.view.MenuItem;
+public static void jSetActivityOptionsMenuState(final boolean enabledOrDisabled, Menu optionsMenu)
+{
+	if ( optionsMenu == null )
+	{
+		return;
+	}
+	
+	for ( int i = 0; i < optionsMenu.size(); i++ )
+	{
+		try
+		{
+			MenuItem menuItem = optionsMenu.getItem(i);
+			
+			menuItem.setEnabled(enabledOrDisabled);
+			menuItem.setVisible(enabledOrDisabled);
+		}
+		catch (Exception e)
+		{
+			/* Nothing to do here */
+		}
+	}
+}
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.content.res.Resources;
