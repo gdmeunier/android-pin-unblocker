@@ -658,6 +658,10 @@ Sub Globals
 		HandleCameraServiceException
 	End Try
 	
+	'This Object allows the Activity view to be scrolled
+	'even when the soft keyboard is open
+	Private imeActivity As IME
+	
 End Sub
 
 '----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -884,6 +888,11 @@ Sub Activity_Create(FirstTime As Boolean)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Calling InitializeActivityLayout to initialize the loaded layout..."$, Colors.Blue)
 	InitializeActivityLayout
 	
+	'Initialize the Activity's IME Object only after
+	'the Activity layout has been fully initialized
+	imeActivity.Initialize("Activity") 'The "Activity" prefix for e.g. "Activity_HeightChanged"
+	imeActivity.AddHeightChangedEvent  'Must explicitly enable the "HeightChanged" event
+	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
 
@@ -1046,7 +1055,7 @@ Private Sub LoadActivityLayout
 	
 	'Add the ScrollView itself to the Activity View (must be done explicitly)
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Adding the ScrollView's View to the Activity (must be done explicitly in code)"$, Colors.Blue)
-	Activity.AddView(scvActivity, 0dip, 0dip, Activity.Width, Activity.Height)
+	Activity.AddView(scvActivity, 0dip, 0dip, 100%x, 100%y)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Sub return"$, Colors.Blue)
 End Sub
@@ -1134,12 +1143,55 @@ Sub InitializeActivityLayout
 	
 	If DisplayScale >= 1.0 And IsTabletDevice And IsLandscapeOrientation Then
 		'---------------------Left, Top, Width, Height
-		scvActivity.SetLayout(20%x, 0dip, 60%x, Activity.Height)
+		scvActivity.SetLayout(20%x, 0dip, 60%x, 100%y)
 		
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Sub return"$, Colors.Blue)
 End Sub
+
+'For being able to scroll the Activity view
+'even when the soft keyboard is open
+'
+'This event fires when the keyboard appears
+'or disappears, and "NewHeight" is the real
+'actually visible screen area that isn't
+'covered by the keyboard
+Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub entry (NewHeight = ${NewHeight}, OldHeight = ${OldHeight})"$, Colors.Blue)
+	
+	'I want to remove approx. 16dip of bottom margin
+	'of the ScrollView's internal Panel when the
+	'Android soft keyboard is open, and I restore it
+	'when the keyboard becomes hidden again
+	'
+	'If the new height is smaller than before,
+	'then I conclude that the soft keyboard is open
+	'
+	'Note:
+	' - Specifically for this Scan Activity,
+	'   because it has 16dip of bottom margin when
+	'   in landscape mode instead of always 32dip,
+	'   I don't apply this adjustments unless I
+	'   confirm that we're not in landscape mode
+	'
+	Dim IsLandscapeOrientation As Boolean = (Constants.ORIENTATION_LANDSCAPE == joActivity.RunMethod("jGetDisplayOrientation", Null))
+	
+	If NewHeight < OldHeight And Not(IsLandscapeOrientation) Then
+		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
+		
+	Else If NewHeight > OldHeight And Not(IsLandscapeOrientation) Then
+		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
+		
+	End If
+	
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Fixing the height of the Activity's ScrollView..."$, Colors.Blue)
+	scvActivity.Height = NewHeight
+	
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return"$, Colors.Blue)
+End Sub
+
 Private Sub InitializeQRCodeReaderView
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeQRCodeReaderView: Sub entry"$, Colors.Blue)

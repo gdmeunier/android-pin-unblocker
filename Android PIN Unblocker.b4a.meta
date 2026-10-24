@@ -1,6 +1,6 @@
-﻿ModuleBookmarks0=3149,49,1332,1079,3376,1456,1748
-ModuleBookmarks1=2055,2651,893,660,2203,1037
-ModuleBookmarks10=897
+﻿ModuleBookmarks0=3190,49,1336,1079,3417,1465,1757
+ModuleBookmarks1=2096,2692,897,660,2244,1046
+ModuleBookmarks10=906
 ModuleBookmarks11=653,289,1318,1550,23,973,214
 ModuleBookmarks2=
 ModuleBookmarks3=
@@ -34,6 +34,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=DirectUnblock,FixVariantSpecificLayouts,1162,3,Main,ResetViewState,1650,0,Scan,FixVariantSpecificLayouts,1073,0,Scan,InitializeActivityLayout,1131,0,DirectUnblock,InitializeActivityLayout,1299,6,MyAdvanced,Initialize,78,0,Visual Designer,Main.bal,-100,1,Main,LoadActivityLayout,1476,6,Main,FixVariantSpecificLayouts,1632,0,Main,InitializeActivityLayout,1751,6
+NavigationStack=Main,LoadActivityLayout,1565,0,Scan,LoadActivityLayout,1052,0,DirectUnblock,LoadActivityLayout,1149,2,DirectUnblock,HardenActivityEditTexts,1329,0,Scan,InitializeActivityLayout,1136,0,DirectUnblock,InitializeActivityLayout,1313,0,Scan,Activity_HeightChanged,1180,6,DirectUnblock,Activity_HeightChanged,1337,6,Main,InitializeActivityLayout,1759,6,Main,Activity_HeightChanged,1795,6
 SelectedBuild=0
 VisibleModules=10,1,11,8,2
