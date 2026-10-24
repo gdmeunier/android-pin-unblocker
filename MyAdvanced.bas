@@ -73,6 +73,215 @@ private WindowManager     cachedSystemWindowService      = null;
 //
 // Class methods (generic helpers methods)
 //
+import android.content.Context;
+import android.app.Activity;
+import android.os.Build;
+import android.content.res.Resources;
+import java.lang.Class;              // For Reflection
+import java.lang.reflect.Field;      // For Reflection
+import net.gdmeunier.pinunblocker.R; // Must match the application's package name
+public boolean jIsTabletDevice(Context ctx)
+{
+	// Default tablet detection value (fallback)
+	boolean isTablet = false;
+	
+	/* The "Resources.getBoolean(int id)" method requires
+	 * Android API level 3+
+	 */
+	if ( ctx == null || Build.VERSION.SDK_INT < 3 )
+	{
+		return isTablet; // Return the default fallback value
+	}
+	
+	Resources ctxRes;
+	
+	if ( cachedContextResources != null )
+	{
+		ctxRes = cachedContextResources;
+	}
+	else
+	{
+		ctxRes = ctx.getResources();
+		cachedContextResources = ctxRes;
+	}
+	
+	// Get the Activity's isTablet XML bool attribute
+	try
+	{
+		//
+		// Use Reflection to get it 5x faster (thanks to the Internet for this)
+		//
+		Class boolClass = R.bool.class;
+		Field boolField = boolClass.getField("isTablet");
+		int   boolResId = boolField.getInt(null); // Even bools in R classes are stored as int references!
+		//
+		// Don't cache this information
+		//
+		if ( boolResId > 0 )
+		{
+			isTablet = ctxRes.getBoolean(boolResId);
+		}
+	}
+	catch (Exception e)
+	{
+		/* Incase we have a botched value */
+		isTablet = false;
+	}
+	
+	return isTablet;
+}
+
+import android.os.Build;
+import android.content.res.Configuration;
+import android.content.Context;
+import android.view.WindowManager;
+import android.view.WindowMetrics;
+import android.view.Display;
+import android.content.res.Resources;
+import android.view.Surface;
+public int jGetDisplayOrientation(Context ctx)
+{
+	// Configuration - API level 1+:
+	//  - ORIENTATION_UNDEFINED = 0 (0x00000000)
+	//  - ORIENTATION_PORTRAIT  = 1 (0x00000001)
+	//  - ORIENTATION_LANDSCAPE = 2 (0x00000002)
+	//  - ORIENTATION_SQUARE    = 3 (0x00000003) /!\ deprecated since API level 16
+	//
+	// WindowManager - API level 1+:
+	//  - Surface.ROTATION_0   = 0 (portrait)
+	//  - Surface.ROTATION_90  = 1 (landscape)
+	//  - Surface.ROTATION_180 = 2 (reverse portrait)
+	//  - Surface.ROTATION_270 = 3 (reverse landscape)
+	//
+	
+	// Default value is unknown
+	// Better initially set a safe bet by saying that we don't know
+	//
+	int displayOrientation = Configuration.ORIENTATION_UNDEFINED;
+	
+	if ( ctx == null )
+	{
+		return displayOrientation;
+	}
+	
+	try
+	{
+		if ( Build.VERSION.SDK_INT  >= 31) // Android 11+
+		{
+			//
+			// Don't cache this information
+			//
+			Configuration cfg = new Configuration();
+			int   orientation = cfg.orientation;
+			
+			switch ( orientation )
+			{
+				case Configuration.ORIENTATION_LANDSCAPE:
+					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
+					break;
+					
+				case Configuration.ORIENTATION_PORTRAIT:
+					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
+					break;
+					
+				default:
+					//
+					// Ignore any other orientation values
+					//
+					break;
+			}
+		}
+		else if ( Build.VERSION.SDK_INT >= 17 ) // Android 4.2+
+		{
+			WindowManager wm;
+			
+			if ( cachedSystemWindowService != null )
+			{
+				wm = cachedSystemWindowService;
+			}
+			else
+			{
+				wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
+				cachedSystemWindowService = wm;
+			}
+			//
+			// Don't cache this information
+			//
+			Display  display = wm.getDefaultDisplay();
+			int  orientation = display.getOrientation();
+			
+			switch ( orientation )
+			{
+				case Surface.ROTATION_0:
+					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
+					break;
+					
+				case Surface.ROTATION_90:
+					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
+					break;
+					
+				case Surface.ROTATION_180: // Reverse-portrait
+					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
+					break;
+					
+				case Surface.ROTATION_270: // Reverse-landscape
+					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
+					break;
+					
+				default:
+					//
+					// Ignore any other orientation values
+					//
+					break;
+			}
+		}
+		else // Android 4.1-
+		{
+			Resources sysRes;
+			
+			if ( cachedSystemResources != null )
+			{
+				sysRes = cachedSystemResources;
+			}
+			else
+			{
+				sysRes = Resources.getSystem();
+				cachedSystemResources = sysRes;
+			}
+			//
+			// Don't cache this information
+			//
+			int orientation = sysRes.getConfiguration().orientation;
+			
+			switch ( orientation )
+			{
+				case Configuration.ORIENTATION_LANDSCAPE:
+					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
+					break;
+					
+				case Configuration.ORIENTATION_PORTRAIT:
+					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
+					break;
+					
+				default:
+					//
+					// Ignore any other orientation values
+					//
+					break;
+			}
+		}
+	}
+	catch (Exception e)
+	{
+		// If this function fails (very old device?) then just claim that
+		// the display orientation is actually unknown (the safer option)
+		//
+		displayOrientation = Configuration.ORIENTATION_UNDEFINED;
+	}
+	
+	return displayOrientation;
+}
+
 import android.view.Menu;
 import android.os.Build;
 import android.view.MenuItem;
@@ -1404,159 +1613,6 @@ public static int jGetDeviceCamerasCount()
 	
 	return camerasCount;
 }
-
-/*
-import android.os.Build;
-import android.content.res.Configuration;
-import android.content.Context;
-import android.view.WindowManager;
-import android.view.WindowMetrics;
-import android.view.Display;
-import android.content.res.Resources;
-import android.view.Surface;
-public int jGetDisplayOrientation(Context ctx)
-{
-	// Configuration - API level 1+:
-	//  - ORIENTATION_UNDEFINED = 0 (0x00000000)
-	//  - ORIENTATION_PORTRAIT  = 1 (0x00000001)
-	//  - ORIENTATION_LANDSCAPE = 2 (0x00000002)
-	//  - ORIENTATION_SQUARE    = 3 (0x00000003) /!\ deprecated since API level 16
-	//
-	// WindowManager - API level 1+:
-	//  - Surface.ROTATION_0   = 0 (portrait)
-	//  - Surface.ROTATION_90  = 1 (landscape)
-	//  - Surface.ROTATION_180 = 2 (reverse portrait)
-	//  - Surface.ROTATION_270 = 3 (reverse landscape)
-	//
-	
-	// Default value is unknown
-	// Better initially set a safe bet by saying that we don't know
-	//
-	int displayOrientation = Configuration.ORIENTATION_UNDEFINED;
-	
-	if ( ctx == null )
-	{
-		return displayOrientation;
-	}
-	
-	try
-	{
-		if ( Build.VERSION.SDK_INT  >= 31) // Android 11+
-		{
-			//
-			// Don't cache this information
-			//
-			Configuration cfg = new Configuration();
-			int   orientation = cfg.orientation;
-			
-			switch ( orientation )
-			{
-				case Configuration.ORIENTATION_LANDSCAPE:
-					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
-					break;
-					
-				case Configuration.ORIENTATION_PORTRAIT:
-					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
-					break;
-					
-				default:
-					//
-					// Ignore any other orientation values
-					//
-					break;
-			}
-		}
-		else if ( Build.VERSION.SDK_INT >= 17 ) // Android 4.2+
-		{
-			WindowManager wm;
-			
-			if ( cachedSystemWindowService != null )
-			{
-				wm = cachedSystemWindowService;
-			}
-			else
-			{
-				wm = (WindowManager)ctx.getSystemService(Context.WINDOW_SERVICE);
-				cachedSystemWindowService = wm;
-			}
-			//
-			// Don't cache this information
-			//
-			Display  display = wm.getDefaultDisplay();
-			int  orientation = display.getOrientation();
-			
-			switch ( orientation )
-			{
-				case Surface.ROTATION_0:
-					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
-					break;
-					
-				case Surface.ROTATION_90:
-					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
-					break;
-					
-				case Surface.ROTATION_180: // Reverse-portrait
-					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
-					break;
-					
-				case Surface.ROTATION_270: // Reverse-landscape
-					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
-					break;
-					
-				default:
-					//
-					// Ignore any other orientation values
-					//
-					break;
-			}
-		}
-		else // Android 4.1-
-		{
-			Resources sysRes;
-			
-			if ( cachedSystemResources != null )
-			{
-				sysRes = cachedSystemResources;
-			}
-			else
-			{
-				sysRes = Resources.getSystem();
-				cachedSystemResources = sysRes;
-			}
-			//
-			// Don't cache this information
-			//
-			int orientation = sysRes.getConfiguration().orientation;
-			
-			switch ( orientation )
-			{
-				case Configuration.ORIENTATION_LANDSCAPE:
-					displayOrientation = Configuration.ORIENTATION_LANDSCAPE;
-					break;
-					
-				case Configuration.ORIENTATION_PORTRAIT:
-					displayOrientation = Configuration.ORIENTATION_PORTRAIT;
-					break;
-					
-				default:
-					//
-					// Ignore any other orientation values
-					//
-					break;
-			}
-		}
-	}
-	catch (Exception e)
-	{
-		// If this function fails (very old device?) then just claim that
-		// the display orientation is actually unknown (the safer option)
-		//
-		displayOrientation = Configuration.ORIENTATION_UNDEFINED;
-	}
-	
-	return displayOrientation;
-}
-*/
 
 import android.os.Build;
 import android.content.res.Configuration;

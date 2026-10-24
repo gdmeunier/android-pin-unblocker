@@ -37,13 +37,6 @@ private BroadcastReceiver DeviceIdleDetectionReceiver;
 //
 import android.content.Context;
 import android.app.Activity;
-public float jGetDisplayScale()
-{
-	return myadvancedInstance.jGetDisplayScale(this);
-}
-
-import android.content.Context;
-import android.app.Activity;
 public boolean jDeviceHasUsbOtgSupport()
 {
 	return myadvancedInstance.jDeviceHasUsbOtgSupport(this);
@@ -67,6 +60,28 @@ import android.view.WindowManager.LayoutParams;
 public void jClearKeepScreenOn()
 {
 	this.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+}
+
+//
+// Tablet device & landscape orientation detection
+//
+import android.content.Context;
+import android.app.Activity;
+public float jGetDisplayScale()
+{
+	return myadvancedInstance.jGetDisplayScale(this);
+}
+
+public boolean jIsTabletDevice()
+{
+	return myadvancedInstance.jIsTabletDevice(this);
+}
+
+import android.content.Context;
+import android.app.Activity;
+public int jGetDisplayOrientation()
+{
+	return myadvancedInstance.jGetDisplayOrientation(this);
 }
 #End If
 
@@ -1044,7 +1059,7 @@ Private Sub LoadActivityLayout
 	
 	'Initialize the ScrollView panel
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity ScrollView's inner panel"$, Colors.Blue)
-	scvActivity.Panel.Initialize("scvActivityPanel")
+	scvActivity.Panel.Initialize("") 'Pass empty EventName prefix because we don't need it
 	scvActivity.Panel.Height = Activity.Height 'Must set an height before loading layouts
 	scvActivity.Panel.Width  = Activity.Width  'Must set a width before loading layouts
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: scvActivity Panel height = ${scvActivity.Panel.Height} & width = ${scvActivity.Panel.Width}"$, Colors.Blue)
@@ -1125,7 +1140,7 @@ Private Sub LoadActivityLayout
 	
 	'Add the ScrollView itself to the Activity View (must be done explicitly)
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Adding the ScrollView's View to the Activity (must be done explicitly in code)"$, Colors.Blue)
-	Activity.AddView(scvActivity, 0, 0, Activity.Width, Activity.Height)
+	Activity.AddView(scvActivity, 0dip, 0dip, Activity.Width, Activity.Height)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Sub return"$, Colors.Blue)
 End Sub
@@ -1259,6 +1274,35 @@ Private Sub InitializeActivityLayout
 		
 	Else
 		LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: The New PIN field is already locked-down, no need to display the Lockdown button"$, Colors.Blue)
+		
+	End If
+	
+	'Must be done in InitializeActivityLayout,
+	'because that's when joActivity is available
+	'
+	'Added tablet device detection to make it easier to
+	'use the application on such large screens,
+	'that typically use landscape mode by default
+	'
+	'On such tablet devices, I shrink the left & right
+	'margins of the Activity ScrollView's Panel by 20%,
+	'so that it only extends up to 60% of the screen width
+	'
+	'I also horizontally center the Activity ScrollView's Panel
+	'
+	'Note:
+	' - This is only for devices with a display scale of atleast 1.0
+	'
+	Dim DisplayScale As Float
+	DisplayScale = joActivity.RunMethod("jGetDisplayScale", Null)
+	
+	Dim IsTabletDevice, IsLandscapeOrientation As Boolean
+	IsTabletDevice         = joActivity.RunMethod("jIsTabletDevice", Null)
+	IsLandscapeOrientation = (Constants.ORIENTATION_LANDSCAPE == joActivity.RunMethod("jGetDisplayOrientation", Null))
+	
+	If DisplayScale >= 1.0 And IsTabletDevice And IsLandscapeOrientation Then
+		'---------------------Left, Top, Width, Height
+		scvActivity.SetLayout(20%x, 0dip, 60%x, Activity.Height)
 		
 	End If
 	

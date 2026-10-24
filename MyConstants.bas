@@ -94,6 +94,12 @@ Sub Class_Globals
 	Public Const EDITTEXT_SPECIFIC_ONE    As Boolean  = True
 	Public Const EDITTEXT_NO_SPECIFIC_ONE As Boolean  = False
 	
+	'Same constants as Android built-in ones
+	Public Const ORIENTATION_UNDEFINED As Int = 0x0
+	Public Const ORIENTATION_PORTRAIT  As Int = 0x1
+	Public Const ORIENTATION_LANDSCAPE As Int = 0x2
+	Public Const ORIENTATION_SQUARE    As Int = 0x3 'Deprecated since API level 16
+	
 End Sub
 
 'Initializes the object
