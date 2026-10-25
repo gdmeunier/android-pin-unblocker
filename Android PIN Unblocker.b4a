@@ -12,33 +12,37 @@ FileGroup4=Layouts
 FileGroup5=Icons
 Group=Activities
 Library1=core
-Library2=javaobject
-Library3=lightruntimepermissions
-Library4=newqrcodereaderview
-Library5=threading
-Library6=ime
+Library2=ime
+Library3=javaobject
+Library4=lightruntimepermissions
+Library5=newqrcodereaderview
+Library6=threading
+Library7=clipboard
 ManifestCode='~\n~'Android PIN Unblocker's application manifest file~\n~'~\n~~\n~'This application supports Android 2.3.2 and higher (API level 9+)~\n~'This application guarantees compliance with Android up to Android 13 (API level 33)~\n~'~\n~'This application requires atleast Android 2.3.2 (API level 9) for:~\n~' - Camera-related functions~\n~'~\n~'Basic4Android itself officially claims to support API level 9+ too,~\n~'so even if I would like to support even older versions,~\n~'probably the older versions of Androdi are incompatible with B4A itself~\n~AddManifestText(<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="33" />)~\n~~\n~'This application makes use of Camera hardware and Flashlight~\n~'However this is not strictly required to run this application~\n~'~\n~'Features used for:~\n~' - Scanning QR codes~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.camera"           android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.front"     android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.any"       android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />~\n~<uses-feature android:name="android.hardware.camera.flash"     android:required="false" />)~\n~~\n~'This application makes use of USB-OTG (On-The-Go)~\n~'However this is not strictly required to run this application~\n~'~\n~'Feature used for:~\n~' - Unblocking smartcards over USB~\n~'~\n~AddManifestText(~\n~<uses-feature android:name="android.hardware.usb.host"         android:required="false" />)~\n~~\n~'This application supports all screen sizes & densities~\n~AddManifestText(~\n~<supports-screens android:smallScreens="true"~\n~                  android:normalScreens="true"~\n~                  android:largeScreens="true"~\n~                  android:xlargeScreens="true"~\n~                  android:anyDensity="true" />)~\n~~\n~'This application cans broadcast Intents:~\n~' - Opening HTTP or HTTPS links~\n~'~\n~'This requirement was introduced starting with Android 11 (API level 30)~\n~AddManifestText(~\n~<queries>~\n~    <intent>~\n~        <action   android:name="android.intent.action.VIEW" />~\n~        <category android:name="android.intent.category.BROWSABLE" />~\n~        <data android:scheme="https" />~\n~        <data android:scheme="http" />~\n~    </intent>~\n~</queries>)~\n~~\n~'~\n~'Camera and Flashlight permissions are automatically inserted when using~\n~'the NewQRCodeReaderView library~\n~'~\n~~\n~'For being able to post notifications on Android 13+ (API level 33+)~\n~AddPermission(android.permission.POST_NOTIFICATIONS)~\n~~\n~'~\n~'Don't add the imaginary USB_PERMISSION to this application's manifest:~\n~' - The "android.permission.USB_PERMISSION" one~\n~'~\n~'This permission doesn't actually exist anywhere in the Android codebase,~\n~'and is nothing more than the Internet's collective false news~\n~'about a supposed 'USB permission' which would be added~\n~'to application manifest files~\n~'~\n~'This is fabricated, because USB_PERMISSION only exists during runtime,~\n~'not in the application manifest, and is always requested dynamically~\n~'~\n~'Even seemingly professional websites will tell you to add this fictious~\n~'Android permission to your application manifest file,~\n~'but it literally does nothing at all~\n~'~\n~~\n~'Application identity (automatically inserted)~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'Application icon (uses a mipmap instead of a drawable)~\n~SetApplicationAttribute(android:icon, "@mipmap/ic_launcher")~\n~~\n~'Application theme (this app uses a custom theme)~\n~SetApplicationAttribute(android:theme, "@style/AppTheme")~\n~~\n~'Application's task affinity (this application refuses to share affinity with other ones):~\n~' - Always detach this application's Activities from the task stack of other apps~\n~' - We do this by clearing its task affinity attribute (setting it to "")~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> covers all Activities~\n~'~\n~'This is done for security reasons, so that other applications cannot do~\n~'task reparenting attacks on it (known as StrandHogg vulnerability)~\n~SetApplicationAttribute("android:taskAffinity", "")~\n~~\n~'This application wishes to benefit from hardware acceleration:~\n~' - Performance optimization for the Camera preview (QR code scanning)~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'We wish to benefit from it for all this application's Activities~\n~SetApplicationAttribute(android:hardwareAccelerated, "true")~\n~~\n~'Security hardening for this application's Smartcard service~\n~'~\n~'Other applications shouldn't be able to launch this application's~\n~'Smartcard service or communicate with it in any way,~\n~'so we mark the Smartcard service as private (exported = false)~\n~SetServiceAttribute(Smartcard, "android:exported", false)~\n~~\n~'Also mark its corresponding receiver as private,~\n~'because this Service uses separate USB receivers generated from~\n~'Java code at runtime, whenever they are needed,~\n~'and not the one declared in its manifest file~\n~SetReceiverAttribute(Smartcard, "android:exported", false)~\n~~\n~'The running state of this application should never be preserved across reboots:~\n~' - Don't let Android persist this application's state across device reboots and on shutdown~\n~' - We don't want the user having leftovers (forensic traces) from Activities across reboots~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(Scan, "android:persistableMode", "persistNever")~\n~SetActivityAttribute(DirectUnblock, "android:persistableMode", "persistNever")~\n~~\n~'This application's Activities when started by a specific user,~\n~'should only be visible for this user and other ones on the device:~\n~' - We don't want to let one Android user launch one of this application's Activities,~\n~'   then have other Android users on the same device being able to see~\n~'   this user's own Activities in their task history (for security reasons)~\n~'~\n~' - Each Android user account on a device should~\n~'   launch their own Activities if they want to~\n~'   see those in their own task histories~\n~'~\n~'This attribute was introduced starting with Android 6 (API level 23)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:showForAllUsers", "false")~\n~SetActivityAttribute(Scan, "android:showForAllUsers", "false")~\n~SetActivityAttribute(DirectUnblock, "android:showForAllUsers", "false")~\n~~\n~'Mark the Main Activity as exported~\n~'~\n~'Newer versions of Android require that Activities with <intent-filters /> must~\n~'explicitly be marked as exported for security reasons~\n~'~\n~'This requirement was introduced starting with Android 12 (API level 32)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:exported", "true")~\n~~\n~'Mark the Scan & Direct Unblock Activities as unexported (private):~\n~' - Android applications should always mark as unexported all Activities that~\n~'   are not explicitly made open to other ones~\n~'~\n~'We mark all Activities that are not explicitly callable from other applications as~\n~'unexported for security reasons (as a security precaution)~\n~'~\n~'Set it for all Activities that you don't wish to explicitly offer to other applications~\n~SetActivityAttribute(Scan, "android:exported", "false")~\n~SetActivityAttribute(DirectUnblock, "android:exported", "false")~\n~~\n~'Exclude the Scan & Direct Unblock Activities from the Android Recent Apps panel:~\n~' - Only the Main Activity (entry point) should appear in it~\n~'~\n~'Add all Activities other than the Main one here~\n~SetActivityAttribute(Scan, "android:excludeFromRecents", "true")~\n~SetActivityAttribute(DirectUnblock, "android:excludeFromRecents", "true")~\n~~\n~'Make the Main Activity automatically disappear form the Recent Apps panel when finished:~\n~' - This Activity will only be visible until the user intentionally exits the application,~\n~'   then it will disappear from the Recent Apps panel to avoid leaving traces of use~\n~'~\n~'This attribute was introduced starting with Android 5.0 (API level 21)~\n~SetActivityAttribute(Main, "android:autoRemoveFromRecents", "true")~\n~~\n~'Set the Main Activity's launch mode to singleTop:~\n~' - Atleast a singleTop or singleTask launch mode is required to receive~\n~'   onNewIntent Activity callbacks~\n~'~\n~'Attribute used for:~\n~' - Receiving Admin key texts shared to this application~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:launchMode", "singleTop")~\n~~\n~'Enforce stricter Intent matching rules for sending Intents to the Main Activity:~\n~' - Explicit Intents must match this application's exact component name~\n~' - Intents without any ACTION type don't match this application~\n~'~\n~'This attribute cans be set for either in <activity /> or <application /> tags~\n~' - Setting it for the <application /> tag covers all Activities~\n~'~\n~'This attribute was introduced starting with Android 16 (API level 36)~\n~'~\n~'Set it for Activities that can receive Intents in this application~\n~SetActivityAttribute(Main, "android:intentMatchingFlags", "enforceIntentFilter")~\n~~\n~'Add a Share To Intent filter to the Main Activity:~\n~' - Allow sharing Admin key texts from other applications to this one~\n~'~\n~'Used attributes:~\n~' - "android:autoVerify": Introduced starting with Android 6 (API level 23)~\n~'~\n~'                         It's some useless thing that's used for verifying~\n~'                         Digital Asset Links JSON files on remote websites~\n~'~\n~' - "android:order":      Introduced starting with Android 9 (API level 28)~\n~'~\n~'                         This is the priority order of Intent filters~\n~'                         The higher the number the higher the priority~\n~'~\n~'                         It only sets the priority of this application's own~\n~'                         Intent filters~\n~'~\n~'Note:~\n~' - I don't want to use the "android:priority" Intent filter attribute since it would~\n~'   interfere with other applications' own Intent filter offers, by taking priority over~\n~'   their own offers when you want to share text to a different application instead of this one~\n~'~\n~' - So out of courtesy for other applications, we only use the "android:order" Intent filter attribute~\n~'   instead of the "android:priority" one~\n~'~\n~AddActivityText(Main,~\n~<intent-filter android:label="Share Admin Key"~\n~               android:autoVerify="false"~\n~               android:order="1">~\n~	<action   android:name="android.intent.action.SEND" />~\n~	<category android:name="android.intent.category.DEFAULT" />~\n~	<data     android:mimeType="text/plain" />~\n~</intent-filter>)~\n~~\n~'Mark Picture-in-Picture mode (PiP) as unsupported:~\n~' - we don't want to support it for security reasons~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(Scan, "android:supportsPictureInPicture", "false")~\n~SetActivityAttribute(DirectUnblock, "android:supportsPictureInPicture", "false")~\n~~\n~'Ask the connected display not to perform graphical post-processing for~\n~'this application (minimal post-processing):~\n~' - Some new-technology displays might try to improve the graphics and colors of this application,~\n~'   but we don't need any such graphical enhancements here~\n~'~\n~'This attribute was introduced starting with Android 11 (API level 30)~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(Scan, "android:preferMinimalPostProcessing", "true")~\n~SetActivityAttribute(DirectUnblock, "android:preferMinimalPostProcessing", "true")~\n~~\n~'Opt-out of predictive animations in this application's Activities:~\n~' - We don't use any animations in this application for performance reasons,~\n~'   because we just don't need fancy animations in a technical application~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(Scan, "android:enableOnBackInvokedCallback", "false")~\n~SetActivityAttribute(DirectUnblock, "android:enableOnBackInvokedCallback", "false")~\n~~\n~'Intercept mundane device configuration change events to deliberately ignore them:~\n~' - Tell Android that we will handle these configuration change events, but we will actually~\n~'   simply ignore them, so that Android doesn't destroy then re-create this application's Activities for~\n~'   mundane device configuration changes that are not even related to the device display or its orientation~\n~'~\n~'Real display-related configuration change events are:~\n~' - orientation~\n~' - screenSize~\n~' - smallestScreenSize~\n~' - uiMode (unrelated size-based configuration changes)~\n~'~\n~'These ones are also display-related configuration change events,~\n~'but I don't want to re-create the entire Activity just for these:~\n~' - keyboard~\n~' - keyboardHidden~\n~'~\n~'So we hook all the ones below to simply ignore them~\n~'~\n~'Add all this application's Activities here~\n~SetActivityAttribute(Main, "android:configChanges", "colorMode|grammaticalGender|locale|mcc|mnc|keyboard|keyboardHidden|navigation|touchscreen")~\n~SetActivityAttribute(Scan, "android:configChanges", "colorMode|grammaticalGender|locale|mcc|mnc|keyboard|keyboardHidden|navigation|touchscreen")~\n~SetActivityAttribute(DirectUnblock, "android:configChanges", "colorMode|grammaticalGender|locale|mcc|mnc|keyboard|keyboardHidden|navigation|touchscreen")~\n~~\n~'Tell Android that it cans resize our application's Activities if necessary:~\n~' - When it shows the keyboard, the keyboard should not cover Activity content~\n~' - This attribute tells Android that it cans resize the Activity if necessary~\n~'~\n~'The "adjustResize" part is the important one~\n~'Basic4Android explicitly sets by default a windowSoftInputMode value of "stateHidden"~\n~'~\n~'So we have to override Basic4Android's default value with our own instead~\n~'~\n~'We also want to prevent Android from automatically setting~\n~'the focus on the first Activity UI element on application resume,~\n~'because we already handle this on our own in our ViewState management functions~\n~'~\n~'So we also use "stateAlwaysHidden" too instead of just using "stateHidden":~\n~' - "By default, Android will automatically assign initial focus~\n~'    to the first EditText or focusable control in your Activity.~\n~'	 [...]~\n~'    The windowSoftInputMode attribute in AndroidManifest.xml,~\n~'    when set to stateAlwaysHidden, instructs the keyboard to~\n~'    ignore this automatically-assigned initial focus.~\n~'    [...]~\n~'    Therefore, stateAlwaysHidden is VERY poorly named indeed.~\n~'    It should perhaps be called ignoreInitialFocus instead."~\n~'~\n~'Add all Activities that have input fields here~\n~SetActivityAttribute(Main, "android:windowSoftInputMode", "adjustResize|stateAlwaysHidden")~\n~SetActivityAttribute(DirectUnblock, "android:windowSoftInputMode", "adjustResize|stateAlwaysHidden")~\n~~\n~'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----~\n~~\n~'~\n~'This part is for creating the application's resources~\n~'~\n~~\n~'~\n~' - Application themes -~\n~'~\n~~\n~'Android 8.0+ -> DeviceDefault parent theme~\n~CreateResource(values-v26, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV26" />~\n~	<style name="MyThemeV26" parent="@android:style/Theme.DeviceDefault">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV26</item>~\n~		<item name="android:scrollViewStyle">@style/MyScrollViewStyleV14</item>~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV26" parent="@style/MyEditTextStyleV23">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen|flagNoPersonalizedLearning</item>~\n~		<item name="android:importantForAutofill">noExcludeDescendants</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 6-7.1~\n~CreateResource(values-v23, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV23" />~\n~	<style name="MyThemeV23" parent="@style/MyThemeV21">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV23</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV23" parent="@style/MyEditTextStyleV11">~\n~		<item name="android:allowUndo">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 5.0-5.1.1 -> Material parent theme~\n~CreateResource(values-v21, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV21" />~\n~	<style name="MyThemeV21" parent="@android:style/Theme.Material">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:scrollViewStyle">@style/MyScrollViewStyleV14</item>~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~		<item name="android:windowActivityTransitions">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 4.0.1-4.0.2 -> (ScrollView styles only)~\n~CreateResource(values-v14, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV14" />~\n~	<style name="MyThemeV14" parent="@style/MyThemeV11">~\n~		<item name="android:scrollViewStyle">@style/MyScrollViewStyleV14</item>~\n~	</style>~\n~	<style name="MyScrollViewStyleV14" parent="@style/MyScrollViewStyleV3">~\n~		<item name="android:fitsSystemWindows">true</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 3.0-4.4.4 -> Holo parent theme~\n~CreateResource(values-v11, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV11" />~\n~	<style name="MyThemeV11" parent="@android:style/Theme.Holo">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV11</item>~\n~		<item name="android:scrollViewStyle">@style/MyScrollViewStyleV3</item>~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV11" parent="@style/MyEditTextStyleV5">~\n~		<item name="android:imeOptions">flagNoExtractUi|flagNoFullscreen</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.3.3-2.3.7~\n~CreateResource(values-v10, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV10" />~\n~	<style name="MyThemeV10" parent="@style/MyThemeV5">~\n~		<item name="android:windowShowWallpaper">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 2.0-2.3.2~\n~CreateResource(values-v5, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV5" />~\n~	<style name="MyThemeV5" parent="@style/MyThemeV3">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV5</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV5" parent="@style/MyEditTextStyleV3">~\n~		<item name="android:inputType">textVisiblePassword|textNoSuggestions</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.5-1.6~\n~CreateResource(values-v3, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyThemeV3" />~\n~	<style name="MyThemeV3" parent="@style/MyTheme">~\n~		<item name="android:editTextStyle">@style/MyEditTextStyleV3</item>~\n~		<item name="android:scrollViewStyle">@style/MyScrollViewStyleV3</item>~\n~	</style>~\n~	<style name="MyEditTextStyleV3" parent="@android:style/Widget.EditText">~\n~		<item name="android:inputType">textVisiblePassword</item>~\n~		<item name="android:imeOptions">flagNoExtractUi</item>~\n~	</style>~\n~	<style name="MyScrollViewStyleV3" parent="@style/MyScrollViewStyle">~\n~		<item name="android:isScrollContainer">true</item>~\n~	</style>~\n~</resources>)~\n~~\n~'Android 1.0-1.1 -> Theme parent theme~\n~CreateResource(values, styles.xml,~\n~<resources>~\n~	<style name="AppTheme" parent="@style/MyTheme" />~\n~	<style name="MyTheme" parent="@android:style/Theme">~\n~		<item name="android:scrollViewStyle">@style/MyScrollViewStyle</item>~\n~		<item name="android:windowBackground">@color/MyWindowBackground</item>~\n~	</style>~\n~	<style name="MyScrollViewStyle" parent="@android:style/Widget.ScrollView">~\n~		<item name="android:fillViewport">false</item>~\n~	</style>~\n~</resources>)~\n~~\n~'~\n~' - Default Activity & application colors -~\n~'~\n~~\n~'Android version doesn't matter (all versions need to pick the same color)~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~	<color name="MyWindowBackground">#1C1C1C</color>~\n~</resources>)~\n~~\n~'~\n~' - Resources-based tablet / smartphone detection -~\n~'~\n~'----- Not enabled yet because it's not used yet in the application -----~\n~'Non-tablet devices (default)~\n~'CreateResource(values, bools.xml,~\n~'<resources>~\n~'	<bool name="isTablet">false</bool>~\n~'</resources>)~\n~'~\n~'Tablet devices (most specific wins)~\n~'CreateResource(values-sw600dp, bools.xml,~\n~'<resources>~\n~'	<bool name="isTablet">true</bool>~\n~'</resources>)~\n~'^^^^^ ------------------------------------------------------------ ^^^^^~\n~~\n~~\n~
 Module1=DirectUnblock
-Module10=Scan
-Module11=Smartcard
+Module10=MySecurity
+Module11=MySmartcardReader
+Module12=MySynchronousSleep
+Module13=Scan
+Module14=Smartcard
 Module2=MyAdvanced
 Module3=MyCommon
 Module4=MyConstants
-Module5=MyCryptography
-Module6=MyLifecycleTracking
-Module7=MySecurity
-Module8=MySmartcardReader
-Module9=MySynchronousSleep
+Module5=MyConverters
+Module6=MyCryptography
+Module7=MyDialogs
+Module8=MyExceptions
+Module9=MyLifecycleTracking
 NumberOfFiles=5
-NumberOfLibraries=6
-NumberOfModules=11
+NumberOfLibraries=7
+NumberOfModules=14
 Version=12.5
 @EndOfDesignText@
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 199
-	#VersionName: 5.13.3
+	#VersionCode: 203
+	#VersionName: 5.14.2
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -170,7 +174,6 @@ Version=12.5
 private String activityName = "main";
 
 private myadvanced myadvancedInstance = new myadvanced();
-private mycommon   mycommonInstance   = new mycommon();
 
 private BroadcastReceiver DeviceIdleDetectionReceiver;
 
@@ -214,7 +217,7 @@ import android.content.Context;
 import android.app.Activity;
 public float jGetUserFontScale()
 {
-	return mycommonInstance.jGetUserFontScale(this);
+	return myadvancedInstance.jGetUserFontScale(this);
 }
 
 import android.content.Context;
@@ -1077,6 +1080,11 @@ Sub Process_Globals
 	'For getting Phone library functions without bundling the big Phone library
 	Private Common As MyCommon
 	
+	'For converting between numbers, Hex, etc
+	Private Converters As MyConverters
+	
+	Private Dialogs As MyDialogs
+	
 	'For generating text hashes & encryption (response codes)
 	Private Cryptography As MyCryptography
 	
@@ -1425,6 +1433,12 @@ Sub Activity_Create(FirstTime As Boolean)
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Common Class (MyCommon class)"$, Colors.Blue)
 		Common.Initialize
 		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Converters Class (MyConverters class)"$, Colors.Blue)
+		Converters.Initialize
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Dialogs Class (MyDialogs class)"$, Colors.Blue)
+		Dialogs.Initialize
+		
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Cryptography Class (MyCryptography class)"$, Colors.Blue)
 		Cryptography.Initialize
 		
@@ -1753,6 +1767,15 @@ Private Sub InitializeActivityLayout
 	LogColor($"[${ActivityName}-${LogContextId}] InitializeActivityLayout: Otherwise some older Android devices see these EditTexts as not being monospace"$, Colors.Blue)
 	FixMonospaceEditTexts(Constants.EDITTEXT_SPECIFIC_ONE, edtAdminKey)
 	
+	'Only for the Admin Key field:
+	' - No generic wrapper like e.g. FixMonospaceEditTexts
+	'
+	' - I might make all EditTexts monospace in the future,
+	'   but I for sure know that only the Admin Key field,
+	'   actually needs to force-correct its Next keyboard button
+	'
+	Common.ForceCorrectEditorActionToNext(edtAdminKey)
+	
 	'The new Admin key Lockdown button isn't visible by default
 	'So we make it visible when the Admin Key field isn't already
 	'locked-down, but it disappears after a lockdown
@@ -1819,11 +1842,11 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	'Android soft keyboard is open, and I restore it
 	'when the keyboard becomes hidden again
 	'
-	'If the new height is smaller than before,
+	'If the new height is smaller than the Activity's,
 	'then I conclude that the soft keyboard is open
-	If NewHeight < OldHeight Then
+	If NewHeight < Activity.Height Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
-	Else If NewHeight > OldHeight Then
+	Else If NewHeight > Activity.Height Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
 	End If
 	
@@ -2439,7 +2462,7 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 	'32 = AES-128 / 2DES (DES-EDE2)
 	LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Checking whether the shared Admin Key text (or hash) is valid"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: It must be a string representing Hex bytes and be atleast 32 chars"$, Colors.Blue)
-	If Cryptography.IsTextHexBytes(ReceivedText) And ReceivedText.Length >= 32 Then
+	If Converters.IsTextHexBytes(ReceivedText) And ReceivedText.Length >= 32 Then
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is actually valid"$, Colors.Blue)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Locking down the Admin Key field to unrevealable password mode"$, Colors.Blue)
@@ -2841,30 +2864,23 @@ Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
 	edtResponse.Enabled = TrueOrFalse
 	btnShareTo.Enabled  = TrueOrFalse
 	
+	'Do this one below as the last one, because it's not the
+	'most important one to do quickly, since "DirectUnblockInProgress"
+	'has already been set prior to calling this function when the
+	'Direct Unblock process starts
+	'
+	'Allow / Disallow clicking Activity menu items
+	joActivity.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
+	
 End Sub
 
-'Small helper function to avoid having to rewrite
-'this function code multiple times in the code
-Private Sub mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
+Private Sub GetDirectUnblockDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
 	
-	Dim DirectUnblockInfoText As CSBuilder
-	DirectUnblockInfoText.Initialize
-	
-	DirectUnblockInfoText.Bold
-	DirectUnblockInfoText.Append(Application.LabelName&CRLF)
-	DirectUnblockInfoText.Pop
-	DirectUnblockInfoText.RelativeSize(0.9)
 	If DeviceHasUsbOtg Then
-		DirectUnblockInfoText.Append("Direct unblock over USB-OTG"&CRLF)
-	Else
-		DirectUnblockInfoText.Append("Device has no USB-OTG support"&CRLF)
+		Return Dialogs.GetBaseDialogTextHeader("Direct Unblock", "Direct unblock over USB-OTG")
 	End If
-	DirectUnblockInfoText.PopAll
 	
-	DirectUnblockInfoText.Append(CRLF)
-	DirectUnblockInfoText.PopAll
-	
-	Return DirectUnblockInfoText
+	Return Dialogs.GetBaseDialogTextHeader("Direct Unblock", "Device has no USB-OTG support")
 	
 End Sub
 
@@ -2897,15 +2913,10 @@ Private Sub mnuDirectUnblock_Click
 	'on Activity pause & Activity destroy
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Prepare introductory Activity dialogs about this function..."$, Colors.Blue)
-	Dim DirectUnblockIcon As Bitmap = Application.Icon
+	Dim DirectUnblockIcon As Bitmap = Dialogs.GetIdeallySizedDialogIcon(Application.Icon)
 	
-	Dim SquareIcoSize As Int = Common.GetSquareIconSizeForDisplayScale
-	
-	If DirectUnblockIcon.Height <> SquareIcoSize Then
-		DirectUnblockIcon = DirectUnblockIcon.Resize(SquareIcoSize, SquareIcoSize, Constants.BITMAP_RESIZE_KEEP_ASPECT_RATIO)
-	End If
-	
-	Dim DirectUnblockInfoText As CSBuilder = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+	Dim DirectUnblockInfoText As CSBuilder = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+	DirectUnblockInfoText.Append(CRLF & CRLF)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Setting the ViewState Visible attribute of the dialog window to True"$, Colors.Blue)
 	ViewState_mnuDirectUnblock_Visible = True
@@ -2914,17 +2925,20 @@ Private Sub mnuDirectUnblock_Click
 	
 	If DirectUnblockLastDialogCount < 1 Then
 		If DeviceHasUsbOtg Then
-			DirectUnblockInfoText.Append("You will be asked to connect your smartcard reader then insert your PKI smartcard into the reader."&CRLF)
-			DirectUnblockInfoText.Append(CRLF)
-				DirectUnblockInfoText.Color(Colors.Yellow)
-					DirectUnblockInfoText.RelativeSize(0.9)
-						DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully and don't retry to unblock the same card with this app again.")
-					DirectUnblockInfoText.Pop 'Pop RelativeSize node
-				DirectUnblockInfoText.Pop 'Pop Color node
+			DirectUnblockInfoText.Append("You will be asked to connect your smartcard reader then insert your PKI smartcard into the reader.")
+			
+			DirectUnblockInfoText.Append(CRLF & CRLF)
+			
+			DirectUnblockInfoText.Color(Colors.Yellow)
+				DirectUnblockInfoText.RelativeSize(0.9)
+					DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully and don't retry to unblock the same card with this app again.")
+				DirectUnblockInfoText.Pop
+			DirectUnblockInfoText.Pop
+			
 		Else
 			DirectUnblockInfoText.Append("Direct unblocking of smartcard PINs requires a device with USB-OTG support but your device claimed that it doesn't support it.")
+			
 		End If
-		DirectUnblockInfoText.PopAll
 		
 		If DeviceHasUsbOtg Then
 			'Positive action = Proceed
@@ -2937,20 +2951,6 @@ Private Sub mnuDirectUnblock_Click
 			
 		End If
 		Wait For Msgbox_Result(Result As Int)
-		
-		If Result <> DialogResponse.POSITIVE And DeviceHasUsbOtg Then
-			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
-			'The Return statement is in "If Result <> DialogResponse.POSITIVE Or Not(DeviceHasUsbOtg) Then"
-			
-		End If
-		
-		If Not(DeviceHasUsbOtg) Then
-			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: The device does not support OTG so cannot proceed further"$, Colors.Magenta)
-			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: So we don't care about checking the result of the operation abort dialog"$, Colors.Magenta)
-			
-			LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Magenta)
-			
-		End If
 		
 		If Result <> DialogResponse.POSITIVE Or Not(DeviceHasUsbOtg) Then
 			ViewState_mnuDirectUnblock_Visible = False
@@ -2967,35 +2967,46 @@ Private Sub mnuDirectUnblock_Click
 	'## Dialog count: Dialog 2 ##
 	
 	If DirectUnblockLastDialogCount < 2 Then
-		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-		DirectUnblockInfoText.Append("Enter a dummy challenge code that matches the challenge length of your card in the challenge field."&CRLF&CRLF)
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("3DES or 2DES")
-			DirectUnblockInfoText.Pop 'Pop Bold node
-		DirectUnblockInfoText.Append(CRLF)
-			DirectUnblockInfoText.RelativeSize(0.9)
-				DirectUnblockInfoText.Append("8 bytes (16 characters)")
-				DirectUnblockInfoText.Append(CRLF&CRLF&"0000 0000 0000 0000"&CRLF&CRLF)
-			DirectUnblockInfoText.Pop 'Pop RelativeSize node
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("AES-128 or AES-256")
-			DirectUnblockInfoText.Pop 'Pop Bold node
-		DirectUnblockInfoText.Append(CRLF)
-			DirectUnblockInfoText.RelativeSize(0.9)
-				DirectUnblockInfoText.Append("16 bytes (32 characters)")
-				DirectUnblockInfoText.Append(CRLF&CRLF&"00000000 00000000 00000000 00000000"&CRLF&CRLF)
-			DirectUnblockInfoText.Pop 'Pop RelativeSize node
+		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Append("Enter a dummy challenge code that matches the challenge length of your card in the challenge field.")
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("3DES or 2DES")
+			DirectUnblockInfoText.Append(CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append("8 bytes (16 characters)"&CRLF)
+			DirectUnblockInfoText.Append("0000 0000 0000 0000")
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("AES-128 or AES-256")
+			DirectUnblockInfoText.Append(CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append("16 bytes (32 characters)"&CRLF)
+			DirectUnblockInfoText.Append("00000000 00000000 00000000 00000000")
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
 		DirectUnblockInfoText.Append("The direct unblock process will try unblocking your PIN code to ")
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("a new PIN that you will choose")
-			DirectUnblockInfoText.Pop 'Pop Bold node
-		DirectUnblockInfoText.Append("."&CRLF&CRLF)
-		DirectUnblockInfoText.Append("The Admin key that will be used is ")
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("the one currently written in the Admin Key field")
-			DirectUnblockInfoText.Pop 'Pop Bold node
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("a new PIN that you will choose")
+		DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Append(".")
-		DirectUnblockInfoText.PopAll
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Append("The Admin key that will be used is ")
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("the one in the Admin Key field")
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Append(".")
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Proceed to Unblock", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
@@ -3046,35 +3057,42 @@ Unblock algorithm is undetermined"$, Constants.TOAST_DURATION_SHORT)
 	'## Dialog count: Dialog 3 ##
 	
 	If DirectUnblockLastDialogCount < 3 Then
-		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-		DirectUnblockInfoText.Append("Please confirm your smartcard's properties."&CRLF&CRLF)
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("Challenge Algorithm")
-			DirectUnblockInfoText.Pop 'Pop Bold node
-		DirectUnblockInfoText.Append(CRLF)
-			DirectUnblockInfoText.RelativeSize(0.9)
-				DirectUnblockInfoText.Append(DetectedAlgorithm)
-			DirectUnblockInfoText.Pop 'Pop RelativeSize node
-		DirectUnblockInfoText.Append(CRLF&CRLF)
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("Challenge Length")
-			DirectUnblockInfoText.Pop 'Pop Bold node
-		DirectUnblockInfoText.Append(CRLF)
-			DirectUnblockInfoText.RelativeSize(0.9)
-				DirectUnblockInfoText.Append($"${(SanitizedChallenge.Length / 2).As(Int)} bytes (${SanitizedChallenge.Length} chars)"$)
-			DirectUnblockInfoText.Pop 'Pop RelativeSize node
-		DirectUnblockInfoText.Append(CRLF&CRLF)
-			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("Admin Key")
-			DirectUnblockInfoText.Pop 'Pop Bold node
-		DirectUnblockInfoText.Append(CRLF)
-			DirectUnblockInfoText.RelativeSize(0.9)
-				DirectUnblockInfoText.Append($"${(SanitizedAdminKey.Length / 2).As(Int)} bytes (${SanitizedAdminKey.Length} chars)"$)
-			DirectUnblockInfoText.Pop 'Pop RelativeSize node
-		DirectUnblockInfoText.Append(CRLF&CRLF)
+		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Append("Please confirm your smartcard's properties.")
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("Challenge Algorithm"&CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append(DetectedAlgorithm)
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("Challenge Length"&CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append($"${(SanitizedChallenge.Length / 2).As(Int)} bytes (${SanitizedChallenge.Length} chars)"$)
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("Admin Key"&CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append($"${(SanitizedAdminKey.Length / 2).As(Int)} bytes (${SanitizedAdminKey.Length} chars)"$)
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
 		DirectUnblockInfoText.Append($"Is this correct? If yes you can click on Take the Risk.
 Otherwise do not proceed further and click on Cancel"$&".")
-		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
@@ -3101,25 +3119,29 @@ You decided to cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 	'
 	'Ask them to confirm that they Admin key is really 48 zeroes
 	If SanitizedAdminKey == DEFAULT_ZEROES_ADMIN_KEY Then
+		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
-		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
-			DirectUnblockInfoText.Color(Colors.Yellow)
-				DirectUnblockInfoText.Append("The entered Admin key you provided is still the ")
-				DirectUnblockInfoText.Bold
-					DirectUnblockInfoText.Append("default 48-zeroes Admin key")
-				DirectUnblockInfoText.Pop 'Pop the Bold node
-				DirectUnblockInfoText.Append(".")
-			DirectUnblockInfoText.Pop 'Pop the Color node
-		DirectUnblockInfoText.Append(CRLF&CRLF)
-		DirectUnblockInfoText.Append("Are you sure that you did not just forget to write your Admin key?"&CRLF)
-		DirectUnblockInfoText.Append("If yes then click on Cancel and input a proper Admin key first."&CRLF)
-		DirectUnblockInfoText.Append(CRLF)
-		DirectUnblockInfoText.Append("If your Admin key is ")
+		DirectUnblockInfoText.Color(Colors.Yellow)
+			DirectUnblockInfoText.Append("The entered Admin key you provided is still the ")
 			DirectUnblockInfoText.Bold
-				DirectUnblockInfoText.Append("really")
-			DirectUnblockInfoText.Pop 'Pop the Bold node
+				DirectUnblockInfoText.Append("default 48-zeroes Admin key")
+			DirectUnblockInfoText.Pop
+			DirectUnblockInfoText.Append(".")
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Append("Are you sure that you did not just forget to write your Admin key?"&CRLF)
+		DirectUnblockInfoText.Append("If yes then click on Cancel and input a proper Admin key first.")
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Append("If your Admin key is ")
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("really")
+		DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Append(" 48-zeroes then you can click on Take the Risk again.")
-		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Take the Risk", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
@@ -3153,9 +3175,6 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'Disable all this Activity's UI elements
 	SetUiElementsEnabledState(False)
 	
-	'Disallow clicking Activity menu items
-	joActivity.RunMethod("jSetActivityOptionsMenuState", Array(False))
-	
 	'--------------------------------------------------------------------------------
 	'Set the Activity to always keep the screen on during the process
 	'
@@ -3181,7 +3200,7 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'--------------------------------------------------------------------------------
 	
 	DirectUnblockThread.Start(Me, "SendPinUnblockAPDUSequence", Array(SanitizedAdminKey, DetectedAlgorithm))
-	Wait For mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
+	Wait For SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
 	
 	'Direct Unblock operation completed (either successfully or failed)
 	DirectUnblockInProgress = False
@@ -3190,18 +3209,31 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'Has built-in checks against re-enabling chkHideAdminKey after locking it down
 	SetUiElementsEnabledState(True)
 	
-	'Re-allow clicking Activity menu items
-	joActivity.RunMethod("jSetActivityOptionsMenuState", Array(True))
-	
 	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
 	joActivity.RunMethod("jClearKeepScreenOn", Null)
 	
 	If IsSuccessful == False Then
+		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
-		DirectUnblockInfoText = mnuDirectUnblock_GetDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Color(Colors.Yellow)
+			DirectUnblockInfoText.Append("There was a problem while initializing the Direct Unblock process.")
+		DirectUnblockInfoText.Pop
 		
-		DirectUnblockInfoText.Append(ErrorIfAny)
-		DirectUnblockInfoText.PopAll
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("Exception Details"&CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Clickable("CopyLogHyperlink", ErrorIfAny)
+			DirectUnblockInfoText.Append("Copy Log")
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append(ErrorIfAny)
+		DirectUnblockInfoText.Pop
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
@@ -3230,48 +3262,14 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
 
+Private Sub CopyLogHyperlink_Click(Logs As Object)
+	
+	Dim Clipboard As BClipboard
+	Clipboard.setText(Logs)
+	
+End Sub
+
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
-	
-	'----- e.g. Gemalto IDPrime 830, IDPrime 930, eToken 5300 & eToken 5110+
-	'
-	'                                              CLA (00 = ISO-7816)
-	'                                              |  Command SELECT FILE (INS=A4)
-	'                                              |  |  Type APPLET (P1=04 & P2=00)
-	'                                              |  |  |
-	'                                              |  |  |     Length of data / Applet ID (Lc=0B)
-	'                                              |  |  |     |  Data / Applet ID
-	'                                              |  |  |     |  |
-	Dim SELECT_GEMALTO_PKI_APPLET_ID  As String = "00 A4 04 00 0B A0 00 00 00 18 80 00 00 00 06 62" 'No Le set
-	
-	'----- e.g. HID Crescendo C1150 & similar cards from HID Global
-	'
-	'                                              CLA (00 = ISO-7816)
-	'                                              |  Command SELECT FILE (INS=A4)
-	'                                              |  |  Type APPLET (P1=04 & P2=00)
-	'                                              |  |  |
-	'                                              |  |  |     Length of data / Applet ID (Lc=07)
-	'                                              |  |  |     |  Data / Applet ID
-	'                                              |  |  |     |  |                    Expected Response Data Length (Le=00)
-	'                                              |  |  |     |  |                    |
-	Dim SELECT_ACTIVID_PKI_APPLET_ID  As String = "00 A4 04 00 07 A0 00 00 00 79 10 00 00"
-	
-	'----- e.g. GIDS applet from vletoux's open-source project & also Microsoft's
-	'
-	'                                              CLA (00 = ISO-7816)
-	'                                              |  Command SELECT FILE (INS=A4)
-	'                                              |  |  Type APPLET (P1=04 & P2=00)
-	'                                              |  |  |
-	'                                              |  |  |     Length of data / Applet ID (Lc=09)
-	'                                              |  |  |     |  Data / Applet ID
-	'                                              |  |  |     |  |                          Expected Response Data Length (Le=00)
-	'                                              |  |  |     |  |                          |
-	Dim SELECT_GIDS_APPLET_ID         As String = "00 A4 04 00 09 A0 00 00 03 97 42 54 46 59 00"
-	
-	'-------------------------------------------------------
-	'The Gemalto IDPrime 930 v2 T=0 doesn't have a known
-	'Card Manager Applet ID, or it's a different one than
-	'the usual "A0 00 00 00 03 00 00" for a PKI smartcard
-	'-------------------------------------------------------
 	
 	'For initializing the Direct Unblock Activity
 	Dim Algorithm, AdminKey                As String
@@ -3290,6 +3288,48 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	Dim LastSentAPDU   As String
 	
 	'--------------------------------------------------------------------------------
+	'Find the smartcard reader
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object() _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.FIND_SMARTCARDREADER, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+		Return
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	'Find the smartcard
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object() _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.FIND_SMARTCARD, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+		Return
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
 	'Get the smartcard's ATR
 	
 	'CallerBundle(0) = Caller       - Object
@@ -3302,16 +3342,10 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		
 		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's ATR!
-
-Check if the PKI smartcard is still plugged-in the smartcard reader.
-
-[Received]
-${ResponseBundle(0)}"$)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
 		Return
 		
 	End If
@@ -3331,16 +3365,10 @@ ${ResponseBundle(0)}"$)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		
 		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's communication protocol!
-
-Check if the PKI smartcard is still plugged-in the smartcard reader.
-
-[Received]
-${ResponseBundle(0)}"$)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
 		Return
 		
 	End If
@@ -3351,7 +3379,7 @@ ${ResponseBundle(0)}"$)
 	'
 	'Try selecting each known PKI Applet ID
 	'
-	For Each SelectPKIAppletIDAPDU As String In Array As String(SELECT_GEMALTO_PKI_APPLET_ID, SELECT_ACTIVID_PKI_APPLET_ID, SELECT_GIDS_APPLET_ID)
+	For Each SelectPKIAppletIDAPDU As String In Array As String(Constants.APDU_SELECT_GEMALTO_PKI_APPLET_ID, Constants.APDU_SELECT_ACTIVID_PKI_APPLET_ID, Constants.APDU_SELECT_GIDS_APPLET_ID)
 		
 		LastSentAPDU = SelectPKIAppletIDAPDU
 		
@@ -3365,11 +3393,9 @@ ${ResponseBundle(0)}"$)
 		)
 		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
 		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-		'
+		
 		'Check if the current Applet ID selection worked
-		'
 		If IsSucessful Then
-			
 			'Save this PKI Applet ID selection APDU as the one that worked
 			SelectAppletAPDU = LastSentAPDU
 			
@@ -3379,48 +3405,44 @@ ${ResponseBundle(0)}"$)
 		End If
 		
 	Next
-	'
+	
 	'Check whether both applet IDs were not found
 	'If no PKI applet was found then we can't proceed further
-	'
 	If IsSucessful == False Then
-		
 		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
 
-[Sent APDUs]
 [1] Gemalto:
-${SELECT_GEMALTO_PKI_APPLET_ID}
+${Constants.APDU_SELECT_GEMALTO_PKI_APPLET_ID}
 
 [2] ActivID:
-${SELECT_ACTIVID_PKI_APPLET_ID}
+${Constants.APDU_SELECT_ACTIVID_PKI_APPLET_ID}
 
 [3] GIDS:
-${SELECT_GIDS_APPLET_ID}
+${Constants.APDU_SELECT_GIDS_APPLET_ID}
 
-[Received]
 The smartcard could not find the PKI applets we searched for"$&".")
 		Return
 		
 	End If
 	
-	If SelectAppletAPDU == SELECT_GEMALTO_PKI_APPLET_ID Then
+	If SelectAppletAPDU == Constants.APDU_SELECT_GEMALTO_PKI_APPLET_ID Then
 		CardType = "Gemalto"
 		
 		'Default IDPrime 930 PIN policy
 		CardMinPINLength = 4
 		CardMaxPINLength = 16
 		
-	Else If SelectAppletAPDU == SELECT_ACTIVID_PKI_APPLET_ID Then
+	Else If SelectAppletAPDU == Constants.APDU_SELECT_ACTIVID_PKI_APPLET_ID Then
 		CardType = "ActivID"
 		
 		'Default Crescendo C1150 PIN policy
 		CardMinPINLength = 4
 		CardMaxPINLength = 14
 		
-	Else If SelectAppletAPDU == SELECT_GIDS_APPLET_ID Then
+	Else If SelectAppletAPDU == Constants.APDU_SELECT_GIDS_APPLET_ID Then
 		CardType = "GIDS"
 		
 		'Default GIDS applet PIN policy
@@ -3430,9 +3452,8 @@ The smartcard could not find the PKI applets we searched for"$&".")
 	End If
 	
 	'--------------------------------------------------------------------------------
-	'
 	'Initializing the Direct Unblock Activity's settings
-	'
+	
 	Shared_DetectedCardType     = CardType
 	Shared_DetectedCardProtocol = CardProtocol
 	
@@ -3450,16 +3471,16 @@ The smartcard could not find the PKI applets we searched for"$&".")
 	'Tell the mnuDirectUnblock_Click function that the task is completed (success)
 	' - IsSuccessful = True
 	' - ErrorIAny    = (empty string)
-	CallSubDelayed3(Me, "mnuDirectUnblock_Click_SendPinUnblockAPDUSequence_Completed", True, "")
+	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
 	
 End Sub
 
 'This functions is called from the Smartcard service,
 'and it's located here because it cans only be called
 'from an Activity (not a Service)
-Public Sub RequestPostNotificationsPermission
+Public Sub RequestPostNotificationsPermissions
 	
-	Dim AreNotificationsAllowed As Boolean = False 'False by default
+	Dim AreNotificationsAllowed As Boolean = True
 	
 	If Common.GetAndroidApiLevel >= 33 Then
 		'
@@ -3468,28 +3489,14 @@ Public Sub RequestPostNotificationsPermission
 		' - It's not a problem if the user denies it though
 		'
 		Dim RuntimePerms As RuntimePermissions
+		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)
 		
-		If Not(RuntimePerms.Check(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)) Then
-			
-			RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)
-			
-			Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
-			AreNotificationsAllowed = HavePermission
-			
-		Else
-			AreNotificationsAllowed = True
-			
-		End If
-		
-	Else
-		'
-		'Older versions of Android don't need this permission
-		'
-		AreNotificationsAllowed = True
+		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
+		AreNotificationsAllowed = HavePermission
 		
 	End If
 	
-	CallSubDelayed2(Smartcard, "Service_Message_NewThread_RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
+	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermissions_Completed", AreNotificationsAllowed)
 	
 End Sub
 
@@ -3514,105 +3521,42 @@ Private Sub mnuAbout_Click
 	'on Activity pause & Activity destroy
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Displaying the About MessageBox with the proper App icon and button options"$, Colors.Blue)
-	Dim AboutIcon As Bitmap = Application.Icon
 	
-	'Get better-adapted About icons according to screen DPI & scale
-	Dim SquareIcoSize As Int = Common.GetSquareIconSizeForDisplayScale
-	
-	If AboutIcon.Height <> SquareIcoSize Then
-		AboutIcon = AboutIcon.Resize(SquareIcoSize, SquareIcoSize, Constants.BITMAP_RESIZE_KEEP_ASPECT_RATIO)
-	End If
-	
-	'CSBuilder (CharSequenceBuilder) allows building CharSequence-based strings
-	'Such char sequences can contain better formatting options for strings
-	'
-	'More info:
-	' - https://www.b4x.com/android/forum/threads/charsequence-csbuilder-tutorial.76226/
-	'
-	'About Pop & PopAll:
-	' - "Calling Pop ends the last span that was added (and not ended yet).
-	'    Calling PopAll ends all open spans.
-	'    It's convenient to always call PopAll at the end to ensure that all spans are closed."
-	Dim AboutInfoText As CSBuilder
-	AboutInfoText.Initialize
-	
-	'Make the app name bold
-	AboutInfoText.Bold
-	'Basic4Android's CRLF is actually a LF char
-	'In its source code, CRLF resolves to "\n"
-	AboutInfoText.Append(Application.LabelName&CRLF) 'App name + newline
-	'Pop only the last app name span attribute (Bold)
-	AboutInfoText.Pop
-	'Make this app version text 10% smaller
-	AboutInfoText.RelativeSize(0.9) '10% is 0.10, so decrease its size by 0.10 (1.00 -> 0.90)
-	'Different version text between the
-	'FLAG_SECURE and NO_FLAG_SECURE builds
-	AboutInfoText.Append("Version "&Application.VersionName) 'App version (no CRLF char)
+	Dim AboutInfoText As CSBuilder = Dialogs.GetBaseDialogTextHeader(Application.LabelName, "Version "&Application.VersionName)
 	#If OBFUSCATED
-	'If it's obfuscated, then add a friendly warning
-	'to highlight that the app should not be obfuscated
-	'
-	'The OBFUSCATED conditional symbol is a valid one
-	'but will not be highlighted in the Basic4Android IDE,
-	'it's only set at compile time but it does work
-		
-	'Add a space to the app version text
 		AboutInfoText.Append(" ")
+		Dialogs.AddTextBadgeToDialogText(AboutInfoText, "OBFUSCATED", Colors.White, Colors.Red, LoadedLayout.Scale)
 		
-	'Set the caution label text to "OBFUSCATED"
-	'Set a white color for the warning label text
-	'Set a red color for the warning label background
-		mnuAbout_AddVersionLabel(AboutInfoText, "OBFUSCATED", Colors.White, Colors.Red)
 	#End If
 	#If NO_FLAG_SECURE
-	'Inform the user if they use an insecure build
-	'
-	'Insecure builds don't always warn the user
-	'on startup with a toast notification,
-	'as long as blocking the Recent Apps thumbnails
-	'without using FLAG_SECURE is possible
-	'
-	'Nonetheless, it's nice to know which build you have
-	'incase you're curious, rather than having to use an
-	'older device to get the warning toast notifications
-	'
-	' - (Android 12 & earlier, API levels 32 and below)
-	'
-	'Even the very legacy devices up to 4.0.2 will not
-	'show warning notifications on startup because
-	'it's possible to block Recent Apps thumbnails
-	'on these older Android versions without FLAG_SECURE
-		
-	'Add a space to the app version text
+		'Inform the user if they use an insecure build
+		'
+		'Insecure builds don't always warn the user
+		'on startup with a toast notification,
+		'as long as blocking the Recent Apps thumbnails
+		'without using FLAG_SECURE is possible
+		'
+		'Nonetheless, it's nice to know which build you have
+		'incase you're curious, rather than having to use an
+		'older device to get the warning toast notifications
+		'
+		' - (Android 12 & earlier, API levels 32 and below)
+		'
+		'Even the very legacy devices up to 4.0.2 will not
+		'show warning notifications on startup because
+		'it's possible to block Recent Apps thumbnails
+		'on these older Android versions without FLAG_SECURE
 		AboutInfoText.Append(" ")
+		Dialogs.AddTextBadgeToDialogText(AboutInfoText, "INSECURE", Colors.Black, Colors.Yellow, LoadedLayout.Scale)
 		
-	'Set the warning label text to "INSECURE"
-	'Set a black color for the warning label text
-	'Set a yellow color for the warning label background
-		mnuAbout_AddVersionLabel(AboutInfoText, "INSECURE", Colors.Black, Colors.Yellow)
 	#End If
-	AboutInfoText.Append(CRLF) 'Now we can add the CRLF char
 	
-	'End the App name & version span
-	AboutInfoText.PopAll
-	
-	'Make sure to leave one empty line between
-	'the app name / version info and the description
-	'
-	'Adding it as its own span (Append CRLF then PopAll)
-	AboutInfoText.Append(CRLF)
-	AboutInfoText.PopAll
+	AboutInfoText.Append(CRLF & CRLF)
 	
 	'App description now
-	AboutInfoText.Append("This app generates unblock codes for cryptographic PKI smartcards such as Yubikey & IDPrime, eToken."&CRLF)
-	AboutInfoText.PopAll
+	AboutInfoText.Append("This app generates unblock codes for cryptographic PKI smartcards such as GIDS & IDPrime, eToken.")
 	
-	'Make sure to leave one empty line between
-	'the app description and the copyleft notice
-	'
-	'Adding it as its own span (Append CRLF then PopAll)
-	AboutInfoText.Append(CRLF)
-	AboutInfoText.PopAll
+	AboutInfoText.Append(CRLF & CRLF)
 	
 	'Copyleft notice (bonus)
 	'
@@ -3621,24 +3565,23 @@ Private Sub mnuAbout_Click
 	'Basic4Android then resolves the layout alignment constant
 	'automatically without having to create any Alignment Object
 	AboutInfoText.Alignment("ALIGN_CENTER")
-	'Make this copyleft notice 10% smaller
-	AboutInfoText.RelativeSize(0.9) '10% is 0.10, so decrease its size by 0.10 (1.00 -> 0.90)
-	AboutInfoText.Append("Copyleft ")
-	'Copyleft icon (custom addition to MaterialIcons)
-	AboutInfoText.VerticalAlign(2dip * LoadedLayout.Scale) 'Push the copyleft icon 2dip further below (calibrated value)
-	AboutInfoText.Typeface(Typeface.MATERIALICONS)
-	AboutInfoText.Append(Constants.COPYLEFT_ICON)
-	'Pop only the last copyleft icon span attributes (VerticalAlign & Typeface)
-	AboutInfoText.Pop 'Pop Typeface
-	AboutInfoText.Pop 'Pop VerticalAlign
-	'No CRLF needed for the last line
-	AboutInfoText.Append(" "&Constants.APPLICATION_LICENSE) 'No CRLF for the last text line
-	'End the last span too always
-	AboutInfoText.PopAll
+		'Make this copyleft notice 10% smaller
+		AboutInfoText.RelativeSize(0.9) '10% is 0.10, so decrease its size by 0.10 (1.00 -> 0.90)
+			AboutInfoText.Append("Copyleft ")
+			
+			'Copyleft icon (custom addition to MaterialIcons)
+			AboutInfoText.VerticalAlign(2dip * LoadedLayout.Scale) 'Push the copyleft icon 2dip further below (calibrated value)
+				AboutInfoText.Typeface(Typeface.MATERIALICONS)
+					AboutInfoText.Append(Constants.COPYLEFT_ICON)
+				AboutInfoText.Pop
+			AboutInfoText.Pop
+			
+			AboutInfoText.Append(" "&Constants.APPLICATION_LICENSE)
+	AboutInfoText.Pop
 	
 	'Positive button is 'Homepage'
 	'Cancel   button is 'Dismiss'
-	Msgbox2Async(AboutInfoText, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, AboutIcon, Constants.MSGBOX_CANCELLABLE)
+	Msgbox2Async(AboutInfoText, "About", Constants.APPLICATION_HOMEPAGE_NAME, "Dismiss", Constants.MSGBOX_HIDE_NEGATIVE, Dialogs.GetIdeallySizedDialogIcon(Application.Icon), Constants.MSGBOX_CANCELLABLE)
 	
 	'The ViewState visibility status of
 	'the About window is to be saved here
@@ -3676,44 +3619,6 @@ Private Sub mnuAbout_Click
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Sub return"$, Colors.Blue)
 End Sub
-
-#If NO_FLAG_SECURE OR OBFUSCATED
-'Helper function to add more than
-'one version label without writing
-'the same code twice (no redundancy)
-Private Sub mnuAbout_AddVersionLabel(AboutVersionText As CSBuilder, LabelText As String, LabelColor As Int, LabelBackgroundColor As Int)
-	'You don't need to add logging in a simple
-	'very small helper function like this one
-	'Set yellow color for the warning label background
-	
-	'Set the background color for the version label
-	AboutVersionText.BackgroundColor(LabelBackgroundColor)
-	
-	'Set the text color for the version label text
-	AboutVersionText.Color(LabelColor)
-	
-	'25% smaller than the previous text
-	AboutVersionText.RelativeSize(0.75)
-	
-	'Vertically align the version label text
-	'by adjusting the offset, to be more
-	'visually pleasing aka. better-aligned
-	'for the Human eye when the user sees it
-	AboutVersionText.VerticalAlign(-1dip * LoadedLayout.Scale) '-1dip higher (negative value - calibrated value)
-	
-	'Append the version label
-	'
-	'Notice the spaces before & after in order to
-	'have left & right padding in the warning label
-	AboutVersionText.Append(" "&LabelText&" ")
-	
-	AboutVersionText.Pop 'Pop the -1dip VerticalAlign span
-	AboutVersionText.Pop 'Pop the 25% (plus 10%) smaller RelativeSize span
-	AboutVersionText.Pop 'Pop the text color span
-	AboutVersionText.Pop 'Pop the background color span
-	
-End Sub
-#End If
 
 Private Sub edtChallenge_FocusChanged(HasFocus As Boolean)
 	Dim LogContextId As Int = Rnd(1000, 9999)
@@ -4530,9 +4435,8 @@ Private Sub GetSanitizedUserInputs(ChallengeCode As String, AdminKey As String) 
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Both inputs have been verified as not being empty, verifying if they are valid strings representing Hex bytes"$, Colors.Blue)
-	If	Not(Cryptography.IsTextHexBytes(SanitizedChallenge))     _
-		Or Not(Cryptography.IsTextHexBytes(SanitizedAdminKey))   _
-	Then
+	If Not(Converters.IsTextHexBytes(SanitizedChallenge)) _
+	Or Not(Converters.IsTextHexBytes(SanitizedAdminKey))  Then
 		LogColor($"[${ActivityName}-${LogContextId}] GetSanitizedUserInputs: Atleast one of the inputs is not a correct string representing Hex bytes, returning False validity status & the appropriate invalidity reason"$, Colors.Magenta)
 		Return Array As String(False, "Input(s) must be Hex bytes")
 		

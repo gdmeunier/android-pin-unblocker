@@ -102,6 +102,144 @@ Sub Class_Globals
 	'Public Const ORIENTATION_SQUARE    As Int = 0x3 'Deprecated since API level 16
 	'^^^^^ ------------------------------------------------------------ ^^^^^
 	
+	'
+	'The constants below are critical for Smartcard operations
+	'
+	
+	'-------------------------------------------------------
+	'
+	'The Gemalto IDPrime 930 v2 T=0 doesn't have a known
+	'Card Manager Applet ID, or it's a different one than
+	'the usual "A0 00 00 00 03 00 00" for a PKI smartcard
+	'
+	'-------------------------------------------------------
+	
+	'----- e.g. Gemalto IDPrime 830, IDPrime 930, eToken 5300 & eToken 5110+
+	'
+	'                                                            CLA (00 = ISO-7816)
+	'                                                            |  Command SELECT FILE (INS=A4)
+	'                                                            |  |  Type APPLET (P1=04 & P2=00)
+	'                                                            |  |  |
+	'                                                            |  |  |     Length of data / Applet ID (Lc=0B)
+	'                                                            |  |  |     |  Data / Applet ID
+	'                                                            |  |  |     |  |
+	Public Const APDU_SELECT_GEMALTO_PKI_APPLET_ID  As String = "00 A4 04 00 0B A0 00 00 00 18 80 00 00 00 06 62" 'No Le set
+	
+	'----- e.g. HID Crescendo C1150 & similar cards from HID Global
+	'
+	'                                                            CLA (00 = ISO-7816)
+	'                                                            |  Command SELECT FILE (INS=A4)
+	'                                                            |  |  Type APPLET (P1=04 & P2=00)
+	'                                                            |  |  |
+	'                                                            |  |  |     Length of data / Applet ID (Lc=07)
+	'                                                            |  |  |     |  Data / Applet ID
+	'                                                            |  |  |     |  |                    Expected Response Data Length (Le=00)
+	'                                                            |  |  |     |  |                    |
+	Public Const APDU_SELECT_ACTIVID_PKI_APPLET_ID  As String = "00 A4 04 00 07 A0 00 00 00 79 10 00 00"
+	
+	'----- e.g. GIDS applet from vletoux's open-source project & also Microsoft's
+	'
+	'                                                            CLA (00 = ISO-7816)
+	'                                                            |  Command SELECT FILE (INS=A4)
+	'                                                            |  |  Type APPLET (P1=04 & P2=00)
+	'                                                            |  |  |
+	'                                                            |  |  |     Length of data / Applet ID (Lc=09)
+	'                                                            |  |  |     |  Data / Applet ID
+	'                                                            |  |  |     |  |                          Expected Response Data Length (Le=00)
+	'                                                            |  |  |     |  |                          |
+	Public Const APDU_SELECT_GIDS_APPLET_ID         As String = "00 A4 04 00 09 A0 00 00 03 97 42 54 46 59 00"
+	
+	'GIDS
+	'----                                                        CLA (80 = Proprietary / Management)
+	'                                                            |  Command (INS)
+	'                                                            |  |
+	'                                                            |  |  P1 P2
+	'                                                            |  |  |  |
+	'                                                            |  |  |  |  Lc (3 bytes)
+	'                                                            |  |  |  |  |  Template for Security Environment
+	'                                                            |  |  |  |  |  |
+	Public Const APDU_SET_SECURITY_ENVIRONMENT_GIDS As String = "00 22 81 A4 03 83 01 80" 'No Le set
+	
+	'Generic
+	'-------                                                     CLA (80 = Proprietary / Management)
+	'                                                            |  Command (INS)
+	'                                                            |  |
+	'                                                            |  |  P1 P2
+	'                                                            |  |  |  |
+	Public Const APDU_GET_CHALLENGE_GENERIC         As String = "80 84 00 00"
+	
+	'GIDS
+	'----                                                        CLA (80 = Proprietary / Management)
+	'                                                            |  Command (INS)
+	'                                                            |  |
+	'                                                            |  |  P1 P2
+	'                                                            |  |  |  |
+	'                                                            |  |  |  |  Lc (4 bytes)
+	'                                                            |  |  |  |  |  Get Challenge command
+	'                                                            |  |  |  |  |  |           Le
+	'                                                            |  |  |  |  |  |           |
+	Public Const APDU_GET_CHALLENGE_GIDS            As String = "00 87 00 00 04 7C 02 81 00 00"
+	'                                                            |  |  |
+	'This one is used for reply verification                     |  |  |
+	Public Const APDU_GET_CHALLENGE_CHECK_GIDS      As String = "7C 0A 81"
+	
+	'GIDS
+	'----                                                        CLA (00 = ISO-7816)
+	'                                                            |  Command (INS)
+	'                                                            |  |
+	'                                                            |  |  P1 P2
+	'                                                            |  |  |  |
+	Public Const APDU_EXTERNAL_AUTHENTICATE_GIDS    As String = "00 87 00 00 ?? 7C 0A 82" 'Leave the "??" placeholder as-is
+	'                                                            |  |
+	'                                                            |  |  P1 P2 (02 80 = User PIN, GIDS)
+	'                                                            |  |  |  |
+	Public Const APDU_SET_REFERENCE_DATA_GIDS       As String = "00 2C 02 80"
+	'                                                            |  |
+	'                                                            |  |  P1 (00 = Logout)
+	'                                                            |  |  |  P2 (82 = Key ID, GIDS)
+	'                                                            |  |  |  |
+	Public Const APDU_EXTERNAL_AUTH_LOGOUT_GIDS     As String = "00 20 00 82"
+	
+	'Note about GIDS:
+	' - The Role #3 for which the GIDS applet claims support,
+	'   the Digital Signature PIN, actually doesn't work on it
+	'
+	' - The Role #3 on a GIDS applet is basically a symlink to
+	'   the GIDS applet's Primary User PIN
+	'
+	' - As such, I consider that the GIDS applet does not have
+	'   additional PKI smartcard PINs / additional roles
+	'
+	
+	'Gemalto
+	'-------                                                     CLA (80 = Proprietary / Management, 00 = ISO-7816)
+	'                                                            |  Command (INS)
+	'                                                            |  |
+	'                                                            |  |  P1 P2 (31 = Key ID, Gemalto)
+	'                                                            |  |  |  |
+	Public Const APDU_EXTERNAL_AUTHENTICATE_GEMALTO As String = "00 82 00 31"
+	'                                                            |  |
+	'                                                            |  |  P1 P2 (11 = User PIN, 8X = Role #X, Gemalto)
+	'                                                            |  |  |  |
+	Public Const APDU_SET_REFERENCE_DATA_GEMALTO    As String = "80 2C 90 ??" 'Leave the "??" placeholder as-is
+	'                                                            |  |
+	'                                                            |  |  P1 (FF = Logout)
+	'                                                            |  |  |  P2 (31 = Key ID, Gemalto)
+	'                                                            |  |  |  |
+	Public Const APDU_EXTERNAL_AUTH_LOGOUT_GEMALTO  As String = "00 82 FF 31"
+	
+	'ActivID
+	'-------                                                     CLA (80 = Proprietary / Management)
+	'                                                            |  Command (INS)
+	'                                                            |  |
+	'                                                            |  |  P1 P2 (01 = Key ID, ActivID)
+	'                                                            |  |  |  |
+	Public Const APDU_EXTERNAL_AUTHENTICATE_ACTIVID As String = "80 82 00 01"
+	'                                                            |  |
+	'                                                            |  |  P1 P2 (02 00 = User PIN, ActivID)
+	'                                                            |  |  |  |
+	Public Const APDU_SET_REFERENCE_DATA_ACTIVID    As String = "80 2C 02 00"
+	
 End Sub
 
 'Initializes the object

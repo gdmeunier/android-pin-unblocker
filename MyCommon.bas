@@ -5,22 +5,6 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-'
-'Important notice:
-'
-'We want each class in this application to be standalone, so that they don't
-'rely on other ones and create dependencies with eachother:
-' - So don't hesitate do write two or more times the same function
-'   across many classes that need it
-'
-'I want that people be able to easily extract specific classes from
-'this application and reuse them in their own
-'
-'So all classes should have self-contained functions (not depending on eachother)
-'
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-
 '
 'This class uses a mix of Java native and Basic-code
 '
@@ -39,16 +23,11 @@ Sub Class_Globals
 	'For running Java native code
 	Private joClass As JavaObject
 	
-	'To ensure correct running functions order'
+	'To ensure correct running functions order:
+	' - (Variable SynchronousSleepClass cannot have
+	'    the same name as the SynchronousSleep Sub)
 	'
-	'Using SynchronousSleep2 as the name because
-	'Basic4Android doesn't allow the SynchronousSleep name
-	'to be the same as the SynchronousSleep2 Sub's name
-	'
-	' - (Variable SynchronousSleep2 cannot have the same name
-	'    as the SynchronousSleep Sub)
-	'
-	Private SynchronousSleep2 As MySynchronousSleep
+	Private SynchronousSleepClass As MySynchronousSleep
 	
 End Sub
 
@@ -61,26 +40,13 @@ Public Sub Initialize
 	joClass = Me.As(JavaObject)
 	
 	'To ensure correct running functions order
-	SynchronousSleep2.Initialize
+	SynchronousSleepClass.Initialize
 	
 End Sub
-
-Public Sub Throw(Message As String)
-	
-	joClass.RunMethod("jThrow", Array(Message))
-	
-End Sub
-#If Java
-import java.lang.RuntimeException;
-public static void jThrow(final String message) throws RuntimeException
-{
-	throw new RuntimeException(message);
-}
-#End If
 
 Public Sub SynchronousSleep(Milliseconds As Int, OriginActivityCaller As Object, SubName As String)
 	
-	SynchronousSleep2.SynchronousSleep_Start(Milliseconds, Me, "SynchronousSleep")
+	SynchronousSleepClass.SynchronousSleep_Start(Milliseconds, Me, "SynchronousSleep")
 	Wait For SynchronousSleep_SynchronousSleep_Completed
 	
 	CallSubDelayed(OriginActivityCaller, "SynchronousSleep_"&SubName&"_Completed")
@@ -131,51 +97,6 @@ public static int jGetDeviceCamerasCount()
 }
 #End If
 
-Public Sub GetSquareIconSizeForDisplayScale As Int
-	'
-	'Get better-adapted icons according to device's display scale
-	'
-	Dim DisplayScale   As Float = GetDeviceLayoutValues.Scale
-	Dim SquareIconSize As Int   = Application.Icon.Height
-	
-	If DisplayScale < 1.0 Then
-		'If the display scale is 0.75 (120dpi / ldpi) etc
-		SquareIconSize = 36 'Or 32
-		
-	Else If DisplayScale < 1.5 Then
-		'If the display scale is 1.0 (160dpi / mdpi) etc
-		SquareIconSize = 48
-		
-	Else If DisplayScale < 2.0 Then
-		'If the display scale is 1.5 (240dpi / hdpi) etc
-		SquareIconSize = 72 'or 64
-		
-	Else If DisplayScale < 3.0 Then
-		'If the display scale is 2.0 (320dpi / xhdpi) etc
-		SquareIconSize = 96
-		
-	Else If DisplayScale < 4.0 Then
-		'If the display scale is 3.0 (480dpi / xxhdpi) etc
-		SquareIconSize = 144
-		
-	Else If DisplayScale < 5.0 Then
-		'If the display scale is 4.0 (640dpi / xxxhdpi) etc
-		SquareIconSize = 192
-		
-	End If
-	
-	'If device scale is 5.0 or higher?
-	'
-	'Who knows, perhaps mobile devices in 2030 will have insane
-	'display scales like that, but then you probably want to atleast
-	'have the actual icon size as the recommended square icon for your display
-	'
-	'Let's hope that theapplication's current 256px size is enough
-	'for your future 8K mobile phone displays I guess
-	Return SquareIconSize
-	
-End Sub
-
 'For correcting the flawed monospace font implementation of Android which
 'does not correctly make the EditTexts monospace on some older devices
 Public Sub ForceCorrectMonospaceFont(MyEditText As EditText)
@@ -183,7 +104,6 @@ Public Sub ForceCorrectMonospaceFont(MyEditText As EditText)
 End Sub
 #If Java
 import android.widget.EditText;
-import android.widget.TextView;
 import android.graphics.Typeface;
 public static void jForceCorrectMonospaceFont(EditText myEditText)
 {
@@ -201,7 +121,6 @@ End Sub
 #If Java
 import android.widget.EditText;
 import android.os.Build;
-import android.widget.TextView;
 public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 {
 	// Android 5.0 or higher only (API level 21+)
@@ -210,6 +129,35 @@ public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 	if ( Build.VERSION.SDK_INT >= 21 ) /* Android 5.0+ */
 	{
 		myEditText.setFontFeatureSettings("tnum");
+	}
+}
+#End If
+
+'For forcing the multiline EditText fields to have
+'the Next action button instead of the Enter one,
+'incase we filter the newlines anyway (e.g. Admin key field)
+Public Sub ForceCorrectEditorActionToNext(MyEditText As EditText)
+	joClass.RunMethod("jForceCorrectEditorActionToNext", Array(MyEditText))
+End Sub
+#If Java
+import android.widget.EditText;
+import android.os.Build;
+import android.view.inputmethod.EditorInfo;
+public static void jForceCorrectEditorActionToNext(EditText myEditText)
+{
+	/* IME_FLAG_NO_ENTER_ACTION, IME_MASK_ACTION & IME_ACTION_NEXT
+	 * are only available on Android 1.5+ (API level 3+):
+	 *  - Same thing for "setImeActionLabel" (API level 3+)
+	 */
+	if ( Build.VERSION.SDK_INT >= 3 ) /* Android 1.5+ */
+	{
+		int imeOptions = myEditText.getImeOptions();
+		
+		imeOptions = imeOptions & ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+		imeOptions = imeOptions |  EditorInfo.IME_MASK_ACTION | EditorInfo.IME_ACTION_NEXT;
+		
+		myEditText.setImeOptions(imeOptions);
+		myEditText.setImeActionLabel("Next", EditorInfo.IME_ACTION_NEXT);
 	}
 }
 #End If
@@ -251,36 +199,5 @@ Public Sub GetTextDisplayHeight(Text As String, TextSize As Int, MaxContainerWid
 	Return TextHeight
 	
 End Sub
-#If Java
-//
-// For caching purposes
-// Their respective imports are located at the top their method
-//
-private Resources cachedContextResources = null;
-
-import android.content.Context;
-import android.app.Activity;
-import android.content.res.Resources;
-import android.content.res.Configuration;
-public float jGetUserFontScale(Context ctx)
-{
-	Resources ctxRes;
-	
-	if ( cachedContextResources != null )
-	{
-		ctxRes = cachedContextResources;
-	}
-	else
-	{
-		ctxRes = ctx.getResources();
-		cachedContextResources = ctxRes;
-	}
-	//
-	// Don't cache this information
-	//
-	Configuration cfg = ctxRes.getConfiguration();
-	return cfg.fontScale; // API level 1+
-}
-#End If
 
 

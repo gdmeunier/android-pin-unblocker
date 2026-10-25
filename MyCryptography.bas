@@ -9,22 +9,6 @@ Version=12.5
 '
 'Important notice:
 '
-'We want each class in this application to be standalone, so that they don't
-'rely on other ones and create dependencies with eachother:
-' - So don't hesitate do write two or more times the same function
-'   across many classes that need it
-'
-'I want that people be able to easily extract specific classes from
-'this application and reuse them in their own
-'
-'So all classes should have self-contained functions (not depending on eachother)
-'
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-'
-'Important notice:
-'
 'This MyCryptography class contains encryption functions that are only intended for the
 'generation of smartcard challenge-response unblock codes, and are not fit for any other
 'potentially sensitive usage, because the cryptographic algorithms and their modes of
@@ -63,6 +47,12 @@ Sub Class_Globals
 	'For running Java native code
 	Private joClass As JavaObject
 	
+	'For throwing Exceptions
+	Private Exceptions As MyExceptions
+	
+	'For converting between numbers, Hex, etc
+	Private Converters As MyConverters
+	
 End Sub
 
 'Initializes the object
@@ -73,19 +63,26 @@ Public Sub Initialize
 	' - Self-initialization as a JavaObject with its current instance
 	joClass = Me.As(JavaObject)
 	
+	'For throwing Exceptions
+	Exceptions.Initialize
+	
+	'For converting between numbers, Hex, etc
+	Converters.Initialize
+	
 End Sub
+
 Public Sub HashText(Plaintext As String, HashType As String) As String
 	
 	If Plaintext == Null Or HashType == Null Then
-		Throw("One of the provided parameters is Null")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_HASHING, "One of the provided parameters is Null")
 	End If
 	
 	If HashType == "" Then
-		Throw("The requested hash type parameter is an empty string")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_HASHING, "The requested hash type parameter is an empty string")
 	End If
 	
 	If HashType <> ALGORITHM_SHA256 And HashType <> ALGORITHM_SHA512 Then
-		Throw("The requested hash type is not a supported hashing algorithm")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_HASHING, "The requested hash type is not a supported hashing algorithm")
 	End If
 	
 	'
@@ -98,62 +95,38 @@ Public Sub HashText(Plaintext As String, HashType As String) As String
 	Try
 		TextHash = joClass.RunMethod("jHashText", Array(Plaintext, HashType))
 	Catch
-		Throw($"The hashing of the provided plaintext failed:
-		${LastException}"$)
+		Exceptions.ThrowException(Exceptions.EXCEPTION_HASHING, "The hashing of the provided plaintext failed")
 	End Try
 	
 	Return TextHash
 	
 End Sub
 #If Java
-import java.lang.RuntimeException;
+import net.gdmeunier.pinunblocker.myexceptions.HashingException;
 import java.security.MessageDigest;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public static String jHashText(final String plaintext, final String hashType) throws RuntimeException
+public static String jHashText(final String plaintext, final String hashType) throws HashingException
 {
 	String textHash;
 	
 	try
 	{
-		byte[] plaintextBytes = plaintext.getBytes();
-		MessageDigest md = MessageDigest.getInstance(hashType);
+		byte[]        plaintextBytes = plaintext.getBytes();
+		MessageDigest md             = MessageDigest.getInstance(hashType);
 		
 		byte[] textHashBytes = md.digest(plaintextBytes);
-		textHash = jBytesToHexString(textHashBytes);
+		
+		textHash = myconverters.jBytesToHexString(textHashBytes);
 	}
 	catch (Exception e)
 	{
-		StringWriter stackTrace = new StringWriter();
-		e.printStackTrace(new PrintWriter(stackTrace));
-		
-		throw new RuntimeException(stackTrace.toString());
+		throw new HashingException(
+			String.format("Failed to generate a %s hash for the provided plaintext",
+				hashType
+			)
+		);
 	}
 	
 	return textHash;
-}
-
-import java.math.BigInteger;
-private static String jBytesToHexString(final byte[] bytes)
-{
-	BigInteger bigInt = new BigInteger(1, bytes);
-	
-	// "X" = UPPERCASE hash
-	// "x" = lowercase hash
-	return String.format("%0"+(bytes.length << 1)+"X", bigInt);
-}
-#End If
-
-Private Sub Throw(Message As String)
-	
-	joClass.RunMethod("jThrow", Array(Message))
-	
-End Sub
-#If Java
-import java.lang.RuntimeException;
-public static void jThrow(final String message) throws RuntimeException
-{
-	throw new RuntimeException(message);
 }
 #End If
 
@@ -162,25 +135,25 @@ public static void jThrow(final String message) throws RuntimeException
 Public Sub TripleDesEncrypt(PlaintextBytesString As String, KeyBytesString As String) As String
 	
 	If PlaintextBytesString == Null Or KeyBytesString == Null Then
-		Throw("One of the provided parameters is Null")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "One of the provided parameters is Null")
 	End If
 	
-	If PlaintextBytesString == ""   Or KeyBytesString == "" Then
-		Throw("One of the provided parameters is an empty string")
+	If PlaintextBytesString == "" Or KeyBytesString == "" Then
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "One of the provided parameters is an empty string")
 	End If
 	
-	If Not(IsTextHexBytes(PlaintextBytesString) And IsTextHexBytes(KeyBytesString)) Then
-		Throw("One of the provided parameters is not an key bytes string")
+	If Not(Converters.IsTextHexBytes(PlaintextBytesString) And Converters.IsTextHexBytes(KeyBytesString)) Then
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "One of the provided parameters is not an key bytes string")
 	End If
 	
 	If KeyBytesString.Length <> 48 And KeyBytesString.Length <> 32 Then
-		Throw("The provided key bytes string is not a valid TripleDES key length")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "The provided key bytes string is not a valid TripleDES key length")
 	End If
 	
 	'DES-EDE2 & DES-EDE3 block sizes are 8 bytes for both (16 Hex chars)
 	'Since we use ECB without padding, length must match the block size
 	If PlaintextBytesString.Length Mod 16 <> 0 Then
-		Throw("The provided plaintext bytes string is not a length multiple of 8 bytes (16 chars)")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "The provided plaintext bytes string is not a length multiple of 8 bytes (16 chars)")
 	End If
 	
 	Dim CiphertextBytesString As String
@@ -188,32 +161,25 @@ Public Sub TripleDesEncrypt(PlaintextBytesString As String, KeyBytesString As St
 	Try
 		CiphertextBytesString = joClass.RunMethod("jTripleDesEncrypt", Array(PlaintextBytesString, KeyBytesString))
 	Catch
-		Throw($"The TripleDES encryption operation with the provided parameters failed:
-		${LastException}"$)
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "The TripleDES encryption operation with the provided parameters failed")
 	End Try
 	
 	Return CiphertextBytesString
 	
 End Sub
 #If Java
-import java.lang.RuntimeException;
-import java.security.spec.InvalidParameterSpecException;
+import net.gdmeunier.pinunblocker.myexceptions.EncryptionException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.DESedeKeySpec;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.AlgorithmParameterGenerator;
 import java.security.AlgorithmParameters;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
 import javax.crypto.Cipher;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public static String jTripleDesEncrypt(final String plaintextBytesString, final String keyBytesString) throws RuntimeException
+public static String jTripleDesEncrypt(final String plaintextBytesString, final String keyBytesString) throws EncryptionException
 {
-	byte[] keyBytes = jHexBytesFromString(keyBytesString);
+	byte[] keyBytes = myconverters.jHexBytesFromString(keyBytesString);
 	
 	// Specifically for 2DES (DES-EDE2)
 	if ( keyBytesString.length() == 32 )
@@ -241,7 +207,7 @@ public static String jTripleDesEncrypt(final String plaintextBytesString, final 
 		keyBytes = tmpKeyBytes;
 	}
 	
-	byte[] plaintextBytes = jHexBytesFromString(plaintextBytesString);
+	byte[] plaintextBytes = myconverters.jHexBytesFromString(plaintextBytesString);
 	byte[] ciphertextBytes;
 	
 	try
@@ -256,172 +222,38 @@ public static String jTripleDesEncrypt(final String plaintextBytesString, final 
 	}
 	catch (Exception e)
 	{
-		StringWriter stackTrace = new StringWriter();
-		e.printStackTrace(new PrintWriter(stackTrace));
-		
-		throw new RuntimeException(stackTrace.toString());
+		throw new EncryptionException("Failed to perform the 3DES/2DES operation (ECB mode)");
 	}
 	
-	return jHexStringFromBytes(ciphertextBytes);
+	return myconverters.jHexStringFromBytes(ciphertextBytes);
 }
 
-private static byte[] jHexBytesFromString(final String string)
-{
-	final int    length = string.length();
-	final byte[] array  = new byte[(length + 1) / 2];
-	
-	int i = 0;
-	int n = 0;
-	
-	if ( length % 2 == 1 )
-	{
-		array[n++] = (byte)jHexBytesFromDigit(string.charAt(i++));
-	}
-	while ( i < length )
-	{
-		array[n++] = (byte)(jHexBytesFromDigit(string.charAt(i++)) << 4 | jHexBytesFromDigit(string.charAt(i++)));
-	}
-	
-	return array;
-}
-
-private static int jHexBytesFromDigit(final char c)
-{
-	if ( c >= '0' && c <= '9' )
-	{
-		return c - '0';      // 0x30
-	}
-	if ( c >= 'A' && c <= 'F' )
-	{
-		return c - 'A' + 10; // 0x41
-	}
-	if ( c >= 'a' && c <= 'f' )
-	{
-		return c - 'a' + 10; // 0x61
-	}
-	
-	return 0;
-}
-
-private static String jHexStringFromBytes(final byte[] array)
-{
-	return jHexStringFromBytesTwo(array, 0, array.length);
-}
-
-private static String jHexStringFromBytesTwo(final byte[] array, final int n, final int n2)
-{
-	char[] hexDigits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-	
-	final char[] hexChars = new char[n2 * 2];
-	int n3 = 0;
-	
-	for ( int i = n; i < n + n2; ++i )
-	{
-		final byte b = array[i];
-		hexChars[n3++] = hexDigits[b >>> 4 & 0xF];
-		hexChars[n3++] = hexDigits[b & 0xF];
-	}
-	
-	return new String(hexChars);
-}
-
-public static String jStringToASCIIHex(final String string)
-{
-    char[]        chars = string.toCharArray();
-    StringBuilder hex   = new StringBuilder();
-	
-    for (char ch : chars) {
-        hex.append(Integer.toHexString((int)ch));
-    }
-	
-    return hex.toString();
-}
-
-public static String jNumberToStringHex(final int number)
-{
-	return Integer.toHexString(number);
-}
-
-// Don't give any "0x" prefix to this function
-public static int jStringHexToNumber(final String hexString)
-{
-	return Integer.parseInt(hexString, 16);
-}
 #End If
-
-'"1234" to "31323334"
-Public Sub StringToASCIIHex(Text As String) As String
-	
-	If Text == Null Then
-		Throw("The provided text is Null")
-	End If
-	
-	If Text == "" Then
-		Throw("The provided text is an empty string")
-	End If
-	
-	Return joClass.RunMethod("jStringToASCIIHex", Array(Text))
-	
-End Sub
-
-'15 to "0F"
-Public Sub NumberToStringHex(Number As Int) As String
-	
-	Dim StringHexNumber As String = joClass.RunMethod("jNumberToStringHex", Array(Number))
-	
-	'Check if the length is even, if not add 0 padding at start of string
-	If StringHexNumber.Length < 2 Or StringHexNumber.Length Mod 2 <> 0 Then
-		Do While StringHexNumber.Length < 2 Or StringHexNumber.Length Mod 2 <> 0
-			StringHexNumber = "0" & StringHexNumber
-			
-		Loop
-		
-	End If
-	
-	Return StringHexNumber
-	
-End Sub
-
-'"0F" to 15
-'Don't give any "0x" prefix to this function
-Public Sub StringHexToNumber(HexString As String) As Int
-	
-	Return joClass.RunMethod("jStringHexToNumber", Array(HexString))
-	
-End Sub
-
-Public Sub IsTextHexBytes(Text As String) As Boolean
-	
-	Return Text.Length >= 2       And _
-		   Text.Length Mod 2 == 0 And _
-		   Regex.IsMatch2("^[0-9A-F]+$", Regex.CASE_INSENSITIVE, Text)
-	
-End Sub
 
 'This encryption function uses ECB mode without padding
 'That means the length of the plaintext must match the key's
 Public Sub AesEncrypt(PlaintextBytesString As String, KeyBytesString As String) As String
 	
 	If PlaintextBytesString == Null Or KeyBytesString == Null Then
-		Throw("One of the provided parameters is Null")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "One of the provided parameters is Null")
 	End If
 	
-	If PlaintextBytesString == ""   Or KeyBytesString == "" Then
-		Throw("One of the provided parameters is an empty string")
+	If PlaintextBytesString == "" Or KeyBytesString == "" Then
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "One of the provided parameters is an empty string")
 	End If
 	
-	If Not(IsTextHexBytes(PlaintextBytesString) And IsTextHexBytes(KeyBytesString)) Then
-		Throw("One of the provided parameters is not an key bytes string")
+	If Not(Converters.IsTextHexBytes(PlaintextBytesString) And Converters.IsTextHexBytes(KeyBytesString)) Then
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "One of the provided parameters is not an key bytes string")
 	End If
 	
 	If KeyBytesString.Length <> 32 And KeyBytesString.Length <> 64 Then
-		Throw("The provided key bytes string is not a supported AES key length")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "The provided key bytes string is not a supported AES key length")
 	End If
 	
 	'AES-128 & AES-256 block sizes are 16 bytes for both (32 Hex chars)
 	'Since we use ECB without padding, length must match the block size
 	If PlaintextBytesString.Length Mod 32 <> 0 Then
-		Throw("The provided plaintext bytes string is not a length multiple of 16 bytes (32 chars)")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "The provided plaintext bytes string is not a length multiple of 16 bytes (32 chars)")
 	End If
 	
 	Dim CiphertextBytesString As String
@@ -429,30 +261,23 @@ Public Sub AesEncrypt(PlaintextBytesString As String, KeyBytesString As String) 
 	Try
 		CiphertextBytesString = joClass.RunMethod("jAesEncrypt", Array(PlaintextBytesString, KeyBytesString))
 	Catch
-		Throw($"The AES encryption operation with the provided parameters failed:
-		${LastException}"$)
+		Exceptions.ThrowException(Exceptions.EXCEPTION_ENCRYPTION, "The AES encryption operation with the provided parameters failed")
 	End Try
 	
 	Return CiphertextBytesString
 	
 End Sub
 #If Java
-import java.lang.RuntimeException;
-import java.security.spec.InvalidParameterSpecException;
-import java.security.InvalidAlgorithmParameterException;
+import net.gdmeunier.pinunblocker.myexceptions.EncryptionException;
 import java.security.AlgorithmParameterGenerator;
 import java.security.AlgorithmParameters;
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public static String jAesEncrypt(final String plaintextBytesString, final String keyBytesString) throws RuntimeException
+public static String jAesEncrypt(final String plaintextBytesString, final String keyBytesString) throws EncryptionException
 {
-	byte[] keyBytes       = jHexBytesFromString(keyBytesString);
-	byte[] plaintextBytes = jHexBytesFromString(plaintextBytesString);
+	byte[] keyBytes       = myconverters.jHexBytesFromString(keyBytesString);
+	byte[] plaintextBytes = myconverters.jHexBytesFromString(plaintextBytesString);
 	
 	byte[] ciphertextBytes;
 	
@@ -467,13 +292,10 @@ public static String jAesEncrypt(final String plaintextBytesString, final String
 	}
 	catch (Exception e)
 	{
-		StringWriter stackTrace = new StringWriter();
-		e.printStackTrace(new PrintWriter(stackTrace));
-		
-		throw new RuntimeException(stackTrace.toString());
+		throw new EncryptionException("Failed to perform the AES-128/AES-256 operation (ECB mode)");
 	}
 	
-	return jHexStringFromBytes(ciphertextBytes);
+	return myconverters.jHexStringFromBytes(ciphertextBytes);
 }
 #End If
 

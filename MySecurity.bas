@@ -5,22 +5,6 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-'
-'Important notice:
-'
-'We want each class in this application to be standalone, so that they don't
-'rely on other ones and create dependencies with eachother:
-' - So don't hesitate do write two or more times the same function
-'   across many classes that need it
-'
-'I want that people be able to easily extract specific classes from
-'this application and reuse them in their own
-'
-'So all classes should have self-contained functions (not depending on eachother)
-'
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-
 '
 'This class uses a mix of Java native and Basic-code
 '
@@ -65,17 +49,20 @@ Sub Class_Globals
 	'
 	
 	'We need a safe algorithm for the purpose of preventing hash collisions (as much as possible)
-	Private TruncatedRehashAlgorithm As String = "SHA-512"
+	Private Const TruncatedRehashAlgorithm As String = "SHA-512"
 	
 	'Make sure that trying to crack the truncated text rehashes is even harder
 	'in cases of extracted memory dumps analysis from a mobile device
-	Private TruncatedRehashRounds As Int = Rnd(10, 50) 'Sensitive value
+	Private Const TruncatedRehashRounds As Int = Rnd(10, 50) 'Sensitive value
 	
 	'Make sure that text rehashes cannot be the same across two application lifecycles:
 	' - This makes sure that it's not possible to get the same value across relaunches
 	'   of the application, so that a new 'seed' is provided upon every run
 	'
-	Private TruncatedRehashSalt As String = Rnd(1000000000, 2147483646).As(String) 'Sensitive value
+	Private Const TruncatedRehashSalt As String = Rnd(1000000000, 2147483646).As(String) 'Sensitive value
+	
+	'For throwing Exceptions
+	Private Exceptions As MyExceptions
 	
 End Sub
 
@@ -86,6 +73,9 @@ Public Sub Initialize
 	'For running Java native code:
 	' - Self-initialization as a JavaObject with its current instance
 	joClass = Me.As(JavaObject)
+	
+	'For throwing Exceptions
+	Exceptions.Initialize
 	
 End Sub
 
@@ -101,10 +91,11 @@ public static void jTriggerJvmGarbageCollection()
 	System.gc();
 }
 #End If
+
 Public Sub GenerateTruncatedTextRehash(Plaintext As String) As String
 	
 	If Plaintext == Null Then
-		Throw("The plaintext to generate a truncated text rehash for is Null")
+		Exceptions.ThrowException(Exceptions.EXCEPTION_HASHING, "The plaintext to generate a truncated text rehash for is Null")
 	End If
 	
 	'
@@ -119,62 +110,36 @@ Public Sub GenerateTruncatedTextRehash(Plaintext As String) As String
 			GeneratedTruncatedTextRehash = joClass.RunMethod("jGenerateTruncatedTextRehash", Array(GeneratedTruncatedTextRehash&TruncatedRehashSalt, TruncatedRehashAlgorithm))
 		Next
 	Catch
-		Throw($"The generation of a truncated text rehash for the provided plaintext failed:
-		${LastException}"$)
+		Exceptions.ThrowException(Exceptions.EXCEPTION_HASHING, "The generation of a truncated text rehash for the provided plaintext failed")
 	End Try
 	
 	Return GeneratedTruncatedTextRehash.SubString2(0, (GeneratedTruncatedTextRehash.Length / 2).As(Int))
 	
 End Sub
 #If Java
-import java.lang.RuntimeException;
+import net.gdmeunier.pinunblocker.myexceptions.HashingException;
 import java.security.MessageDigest;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public static String jGenerateTruncatedTextRehash(final String plaintext, final String hashType) throws RuntimeException
+public static String jGenerateTruncatedTextRehash(final String plaintext, final String hashType) throws HashingException
 {
 	String truncatedTextRehash;
 	
 	try
 	{
-		byte[] plaintextBytes = plaintext.getBytes();
-		MessageDigest md = MessageDigest.getInstance(hashType);
+		byte[]        plaintextBytes = plaintext.getBytes();
+		MessageDigest md             = MessageDigest.getInstance(hashType);
 		
 		byte[] truncatedTextRehashBytes = md.digest(plaintextBytes);
-		truncatedTextRehash = jBytesToHexString(truncatedTextRehashBytes);
+		
+		truncatedTextRehash = myconverters.jBytesToHexString(truncatedTextRehashBytes);
 	}
 	catch (Exception e)
 	{
-		StringWriter stackTrace = new StringWriter();
-		e.printStackTrace(new PrintWriter(stackTrace));
-		
-		throw new RuntimeException(stackTrace.toString());
+		throw new HashingException(
+			String.format("Failed to generate a %s truncated text rehash", hashType)
+		);
 	}
 	
 	return truncatedTextRehash;
-}
-
-import java.math.BigInteger;
-private static String jBytesToHexString(final byte[] bytes)
-{
-	BigInteger bigInt = new BigInteger(1, bytes);
-	
-	// "X" = UPPERCASE hash
-	// "x" = lowercase hash
-	return String.format("%0"+(bytes.length << 1)+"X", bigInt);
-}
-#End If
-
-Private Sub Throw(Message As String)
-	
-	joClass.RunMethod("jThrow", Array(Message))
-	
-End Sub
-#If Java
-import java.lang.RuntimeException;
-public static void jThrow(final String message) throws RuntimeException
-{
-	throw new RuntimeException(message);
 }
 #End If
 

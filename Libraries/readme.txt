@@ -21,6 +21,9 @@ C:\Program Files\Anywhere Software\B4A\AdditionalLibraries\B4A
 - apu-androidx-collection-1.2.0.jar
 - apu-androidx-core-1.9.0.aar
 
+- Clipboard.jar
+- Clipboard.xml
+
  [i] Create this folder structure if it doesn't already exist
 
 Now copy the below core library mods to this folder:

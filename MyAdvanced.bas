@@ -5,22 +5,6 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-'
-'Important notice:
-'
-'We want each class in this application to be standalone, so that they don't
-'rely on other ones and create dependencies with eachother:
-' - So don't hesitate do write two or more times the same function
-'   across many classes that need it
-'
-'I want that people be able to easily extract specific classes from
-'this application and reuse them in their own
-'
-'So all classes should have self-contained functions (not depending on eachother)
-'
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-
 '
 'This is a Java-only class, it does not offer Basic-code:
 ' - Functions that require a Context must not be static
@@ -283,6 +267,30 @@ public int jGetDisplayOrientation(Context ctx)
 	return displayOrientation;
 }
  * ***** ---------------------------------------------------- ***** */
+
+import android.content.Context;
+import android.app.Activity;
+import android.content.res.Resources;
+import android.content.res.Configuration;
+public float jGetUserFontScale(Context ctx)
+{
+	Resources ctxRes;
+	
+	if ( cachedContextResources != null )
+	{
+		ctxRes = cachedContextResources;
+	}
+	else
+	{
+		ctxRes = ctx.getResources();
+		cachedContextResources = ctxRes;
+	}
+	//
+	// Don't cache this information
+	//
+	Configuration cfg = ctxRes.getConfiguration();
+	return cfg.fontScale; // API level 1+
+}
 
 import android.view.Menu;
 import android.os.Build;

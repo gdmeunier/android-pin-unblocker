@@ -5,22 +5,6 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-'
-'Important notice:
-'
-'We want each class in this application to be standalone, so that they don't
-'rely on other ones and create dependencies with eachother:
-' - So don't hesitate do write two or more times the same function
-'   across many classes that need it
-'
-'I want that people be able to easily extract specific classes from
-'this application and reuse them in their own
-'
-'So all classes should have self-contained functions (not depending on eachother)
-'
-'----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
-
 '
 'This is a Java-only class, it does not offer Basic-code:
 ' - Functions that require a Context must not be static
@@ -38,64 +22,21 @@ Public Sub Initialize
 End Sub
 
 '
-'PC/SC APDU Exception objects
-'
-
-#If Java
-import java.io.IOException;
-public static class APDUException extends IOException
-{
-	private byte SW1;
-	private byte SW2;
-	
-	public APDUException(String msg, byte SW1, byte SW2)
-	{
-		super(msg);
-		this.SW1 = SW1;
-		this.SW2 = SW2;
-	}
-	
-	public byte getSW1()
-	{
-		return SW1;
-	}
-	
-	public byte getSW2()
-	{
-		return SW2;
-	}
-}
-
-public static class AbortException extends Exception
-{
-	public AbortException(String msg)
-	{
-		super(msg);
-	}
-}
-#End If
-
-'
 'PC/SC Smartcard class code
 '
 
 #If Java
-import android.util.Log;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import com.acs.smartcard.Reader;
-import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
+import com.acs.smartcard.Reader.OnStateChangeListener;
+import com.acs.smartcard.Reader;
+import net.gdmeunier.pinunblocker.myexceptions.SmartcardReaderException;
+import net.gdmeunier.pinunblocker.myexceptions.SmartcardException;
+import net.gdmeunier.pinunblocker.myexceptions.ApduException;
+import net.gdmeunier.pinunblocker.myexceptions.ApduReplyException;
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 public static class SmartcardReader
 {
-	private static String TAG = "mysmartcardreader.SmartcardReader"; // Default initial value
-	
-	public SmartcardReader(final String packageName)
-	{
-		/* Overload function helper */
-		this.TAG = packageName;
-	}
 	public SmartcardReader()
 	{
 		/* Nothing to do here */
@@ -104,71 +45,59 @@ public static class SmartcardReader
 	// More info:
 	//  - https://www.eftlab.com.au/index.php/site-map/knowledge-base/118-apdu-response-list
 	//
-	private static enum ApduSwCode
+	private static enum ApduSwCode /* Only the unimportant aka. non-critical error codes */
 	{
 		OK,
-		OkGetRsp,
 		OkMoreExpected,
-		VerifyFail,
-		MemoryUnchanged,
-		CommandTimeout,
-		SecConNotSatisfied,
-		AuthBlocked,
-		WrongParamP1P2,
+		OkGetRsp,
 		BadLengthLeCorrectIsXX,
-		InitialSwCode, /* Just a default value so that "status" variable isn't null on init */
-		CondOfUseNotSatisfied,
-		SelFileNotFound
+		InitialSwCode /* Just a default value so that "status" variable isn't null on init */
 	}
 	
-	//
-	//                                          CLA          INS         P1----------P2          Lc
-	//                                          |            |           |           |           |
-	private static final byte[] GET_RESPONSE = { (byte)0x00, (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00}; /* Don't remove the last 0x00 byte */	
-	/* ^^ Don't remove the last 0x00 byte even if GET_RESPONSE should be 4 bytes,
-	 *    it's just so that we get a 5-bytes array length to request specific
-	 *    length of data from the card later when there are more bytes available
+	/* - Don't remove the last 0x00 byte even if GET_RESPONSE should be 4 bytes,
+	 *   it's just so that we get a 5-bytes array length to request specific
+	 *   length of data from the card later when there are more bytes available
 	 */
+	//                                           CLA         INS         P1----------P2          Lc
+	//                                           |           |           |           |           |
+	private static final byte[] GET_RESPONSE = { (byte)0x00, (byte)0xC0, (byte)0x00, (byte)0x00, (byte)0x00}; /* Don't remove the last 0x00 byte */	
 	
-	private boolean isCardReady(Reader mReader, int iSlotNum)
+	private boolean isCardReady(Reader mReader, final int iSlotNum)
 	{
-		int iCurrentState = mReader.getState(iSlotNum);
-		return iCurrentState == Reader.CARD_SPECIFIC;
+		return mReader.getState(iSlotNum) == Reader.CARD_SPECIFIC;
 	}
 	
 	/* For sending any APDU that we wish to send to the smartcards:
 	 *  - It's for sending arbitrary APDUs
 	 */
-	public String sendSpecificAPDU(String apduHexString, Reader mReader, int iSlotNum) throws IOException
+	public String sendSpecificAPDU(String apduHexString, Reader mReader, final int iSlotNum) throws SmartcardReaderException, SmartcardException, ApduException, ApduReplyException
 	{
 		if ( !isCardReady(mReader, iSlotNum) )
 		{
-			throw new IOException("No Smartcard ready");
+			throw new SmartcardException("No smartcard was ready to receive APDUs");
 		}
 		
 		// Remove spaces from the APDU Hex string if any
 		apduHexString = apduHexString.replaceAll(" ", "");
 		
-		if ( !jIsTextHexBytes(apduHexString) )
+		if ( !myconverters.jIsTextHexBytes(apduHexString) )
 		{
-			throw new IOException("Your APDU string is not valid (not Hex bytes string of even length and 0-9 A-F chars)");
+			throw new ApduException("The APDU string is invalid (not Hex bytes string, uneven length, or contains characters that are not 0-9 and A-F)");
 		}
 		
-		byte[] cmd  = jHexBytesFromString(apduHexString);
-		
-		byte[]     rsp    = new byte[0];              // Just so that the Java compiler is happy
-		ApduSwCode status = ApduSwCode.InitialSwCode; // Just so that it's not null at first
+		byte[]     cmd    = myconverters.jHexBytesFromString(apduHexString);
+		byte[]     rsp    = new byte[0];              /* Just so that the Java compiler is happy */
+		ApduSwCode status = ApduSwCode.InitialSwCode; /* Just so that it's not null at first     */
 		
 		ByteArrayOutputStream rspOut = new ByteArrayOutputStream();
 		
-		// Incase we get SW status 63F1 (More Data Expected)
-		int offset = 0;
+		int offset = 0; /* Incase we get SW status 63F1 (More Data Expected) */
 		
 		int currentCLA;
 		int currentP1;
 		int currentP2;
 		
-		byte[] responseBuffer = new byte[0]; // Just so that the Java compiler is happy
+		byte[] responseBuffer = new byte[0]; /* Just so that the Java compiler is happy */
 		int    responseLength = 0;
 		
 		do
@@ -183,9 +112,9 @@ public static class SmartcardReader
 					// This function returns only the response length
 					responseLength = mReader.transmit(iSlotNum, cmd, cmd.length, responseBuffer, responseBuffer.length);
 				}
-				catch (ReaderException re)
+				catch (Exception e)
 				{
-					throw new IOException("Card reader transmit error (before smartcard) [sendSpecificAPDU]");
+					throw new SmartcardReaderException("Failed to transmit the provided APDU to the smartcard");
 				}
 				
 				// The real response object "rsp" gets only correct bytes length copied (responseLength)
@@ -302,7 +231,11 @@ public static class SmartcardReader
 					break;
 					
 				default:
-					throw new APDUException("The card returned an error: "+jHexStringFromBytes(rsp), rsp[0], rsp[1]);
+					throw new ApduReplyException(
+						String.format("APDU response indicates failure (%s)",
+							myconverters.jHexStringFromBytes(new byte[] {rsp[rsp.length - 2], rsp[rsp.length - 1]})
+						)
+					);
 			}
 		}
 		while
@@ -310,12 +243,16 @@ public static class SmartcardReader
 			status == ApduSwCode.BadLengthLeCorrectIsXX || status == ApduSwCode.OkGetRsp || status == ApduSwCode.OkMoreExpected
 		);
 		
-		Log.d(TAG, String.format("Response APDU received (len %d)", rspOut.toByteArray().length));
-		return jHexStringFromBytes(rspOut.toByteArray());
+		return myconverters.jHexStringFromBytes(rspOut.toByteArray());
 	}
 	
-	private byte[] getResponse(int len, Reader mReader, int iSlotNum) throws IOException
+	private byte[] getResponse(int len, Reader mReader, final int iSlotNum) throws SmartcardReaderException, SmartcardException, ApduReplyException
 	{
+		if ( !isCardReady(mReader, iSlotNum) )
+		{
+			throw new SmartcardException("No smartcard was ready to receive APDUs");
+		}
+		
 		byte[] cmd = Arrays.copyOf(GET_RESPONSE, GET_RESPONSE.length);
 		
 		// Check if requested byte length is 256 bytes
@@ -342,9 +279,9 @@ public static class SmartcardReader
 			// This function returns only the response length
 			responseLength = mReader.transmit(iSlotNum, cmd, cmd.length, responseBuffer, responseBuffer.length);
 		}
-		catch (ReaderException re)
+		catch (Exception e)
 		{
-			throw new IOException("Card reader transmit error (before smartcard) [GetResponse]");
+			throw new SmartcardReaderException("Failed to transmit the provided APDU to the smartcard");
 		}
 		
 		// The real response object "rsp" gets only correct bytes length copied (responseLength)
@@ -359,174 +296,86 @@ public static class SmartcardReader
 				return rsp;
 				
 			default:
-				throw new APDUException("The card returned an error: "+jHexStringFromBytes(rsp), rsp[0], rsp[1]);
+				throw new ApduReplyException(
+					String.format("APDU response indicates failure (%s)",
+						myconverters.jHexStringFromBytes(new byte[] {rsp[rsp.length - 2], rsp[rsp.length - 1]})
+					)
+				);
 		}
 	}
 	
-	private ApduSwCode validateResponse(byte[] rsp) throws IOException
+	private ApduSwCode validateResponse(final byte[] rsp) throws ApduReplyException
 	{
-		if ( rsp.length < 2 )
+		if ( rsp.length >= 2 )
 		{
-			Log.e(TAG, "APDU command did not return atleast 2 bytes: "+rsp.length);
-			throw new IOException("The card returned an invalid response");
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x90 &&
-				  rsp[rsp.length - 1] == 0x00 )
-		{
-			return ApduSwCode.OK;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x61 ) /* T=0 protocol only */
-		{
-			Log.d(TAG, String.format("(T=0 protocol) APDU OK, still %X bytes available", rsp[rsp.length-1]));
-			return ApduSwCode.OkGetRsp;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x63 &&
-				  rsp[rsp.length - 1] == (byte)0xF1 )
-		{
-			Log.d(TAG, "(T=1 protocol) APDU OK, more bytes expected");
-			return ApduSwCode.OkMoreExpected;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x63 &&
-				  (rsp[rsp.length - 1] & 0xF0) == 0xC0 )
-		{
-			Log.i(TAG, String.format("Verify fail, %X tries left.", rsp[1] & 0x0F));
-			return ApduSwCode.VerifyFail;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x64 &&
-				  (rsp[rsp.length -1] == 0x00) )
-		{
-			Log.i(TAG, "Memory Unchanged");
-			return ApduSwCode.MemoryUnchanged;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x64 &&
-				  (rsp[rsp.length -1] == 0x01) )
-		{
-			Log.i(TAG, "Command timeout");
-			return ApduSwCode.CommandTimeout;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x69 &&
-				  rsp[rsp.length - 1] == (byte)0x82 )
-		{
-			Log.w(TAG, "Security condition not satisfied");
-			return ApduSwCode.SecConNotSatisfied;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x69 &&
-				  rsp[rsp.length - 1] == (byte)0x83 )
-		{
-			Log.w(TAG, "Authentication method blocked");
-			return ApduSwCode.AuthBlocked;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x69 &&
-				  rsp[rsp.length - 1] == (byte)0x85 )
-		{
-			Log.w(TAG, "Conditions of use not satisfied");
-			return ApduSwCode.CondOfUseNotSatisfied;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x6B &&
-				  rsp[rsp.length - 1] == 0x00 )
-		{
-			Log.w(TAG, "APDU wrong parameter(s) P1-P2");
-			return ApduSwCode.WrongParamP1P2;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x6C )
-		{
-			Log.d(TAG,
-				String.format("APDU Bad length value in Le; 'xx' is the correct exact Le",
-					rsp[rsp.length-1]
-				)
-			);
-			return ApduSwCode.BadLengthLeCorrectIsXX;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x6A &&
-				  rsp[rsp.length - 1] == 0x82 )
-		{
-			Log.d(TAG, "Selected File ID not found (SELECT FILE)");
-			return ApduSwCode.SelFileNotFound;
-		}
-		else if ( rsp[rsp.length - 2] == (byte)0x6A &&
-				  rsp[rsp.length - 1] == 0x86 )
-		{
-			Log.d(TAG, "Incorrect parameters (P1:P2)");
-			return ApduSwCode.WrongParamP1P2;
+			if ( rsp[rsp.length - 2] == (byte)0x90 &&
+			     rsp[rsp.length - 1] == (byte)0x00 )
+			{
+				return ApduSwCode.OK;
+			}
+			else if ( rsp[rsp.length - 2] == (byte)0x61 )
+			{
+				/* T=0 protocol only */
+				return ApduSwCode.OkGetRsp;
+			}
+			else if ( rsp[rsp.length - 2] == (byte)0x63 &&
+			          rsp[rsp.length - 1] == (byte)0xF1 )
+			{
+				/* T=1 protocol only */
+				return ApduSwCode.OkMoreExpected;
+			}
+			else if ( rsp[rsp.length - 2] == (byte)0x6C )
+			{
+				return ApduSwCode.BadLengthLeCorrectIsXX;
+			}
 		}
 		else
 		{
-			Log.w(TAG,
-				String.format("APDU command failed: %X %X",
-					rsp[rsp.length - 2], rsp[rsp.length - 1]
-				)
-			);
-			throw new APDUException("The card returned an error: "+jHexStringFromBytes(rsp), rsp[rsp.length - 2], rsp[rsp.length - 1]);
+			throw new ApduReplyException("APDU response is not atleast 2 bytes (length = "+rsp.length+" bytes)");
 		}
+		
+		/* Anything else is considered as APDU reply error
+		 * even if the APDU SW status code considers some
+		 * SW status code ranges as warnings only
+		 *
+		 * "How are APDU status word ranges organised?
+		 *
+		 *  SW1 partitions the space:
+		 *   - 90 is success,
+		 *   - 61 is success with data pending,
+		 *   - 62 and 63 are warnings (distinguishing non-volatile memory unchanged from changed)
+		 *   - 64 through 66 are execution errors,
+		 *   - 67 is wrong length,
+		 *   - 68 marks functions in the class byte that are not supported,
+		 *   - 69 means the command is not allowed,
+		 *   - 6A indicates wrong P1-P2 parameters,
+		 *   - 6B through 6F cover the remaining error conditions."
+		 *
+		 * Thanks to: https://smartcardfyi.com/glossary/apdu-response-codes/
+		 */
+		
+		ApduReplyException apduEx = new ApduReplyException(
+			String.format("APDU response indicates failure (%s)",
+				myconverters.jHexStringFromBytes(new byte[] {rsp[rsp.length - 2], rsp[rsp.length - 1]})
+			)
+		);
+		apduEx.setSwStatusCode(rsp);
+		
+		if ( rsp[rsp.length - 2]         == (byte)0x63 &&
+		    (rsp[rsp.length - 1] & 0xF0) == (byte)0xC0 )
+		{
+			apduEx.prependLineToLogs(String.format("Verify failed (63Cx): %X tries left", rsp[rsp.length - 1] & 0x0F));
+		}
+		else if ( rsp[rsp.length - 2] == (byte)0x69 &&
+		          rsp[rsp.length - 1] == (byte)0x83 )
+		{
+			apduEx.prependLineToLogs("Authentication blocked (6983)");
+		}
+		
+		throw apduEx;
 	}
 }
 
-private static boolean jIsTextHexBytes(final String string)
-{
-	return string.length()     >= 2 &&
-	       string.length() % 2 == 0 &&
-		   string.matches("^[0-9a-fA-F]+$");
-}
-
-private static byte[] jHexBytesFromString(final String string)
-{
-	final int    length = string.length();
-	final byte[] array  = new byte[(length + 1) / 2];
-	
-	int i = 0;
-	int n = 0;
-	
-	if ( length % 2 == 1 )
-	{
-		array[n++] = (byte)jHexBytesFromDigit(string.charAt(i++));
-	}
-	while ( i < length )
-	{
-		array[n++] = (byte)(jHexBytesFromDigit(string.charAt(i++)) << 4 | jHexBytesFromDigit(string.charAt(i++)));
-	}
-	
-	return array;
-}
-
-private static int jHexBytesFromDigit(final char c)
-{
-	if ( c >= '0' && c <= '9' )
-	{
-		return c - '0';      // 0x30
-	}
-	if ( c >= 'A' && c <= 'F' )
-	{
-		return c - 'A' + 10; // 0x41
-	}
-	if ( c >= 'a' && c <= 'f' )
-	{
-		return c - 'a' + 10; // 0x61
-	}
-	
-	return 0;
-}
-
-private static String jHexStringFromBytes(final byte[] array)
-{
-	return jHexStringFromBytesTwo(array, 0, array.length);
-}
-
-private static String jHexStringFromBytesTwo(final byte[] array, final int n, final int n2)
-{
-	char[] hexDigits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-	
-	final char[] hexChars = new char[n2 * 2];
-	int n3 = 0;
-	
-	for ( int i = n; i < n + n2; ++i )
-	{
-		final byte b = array[i];
-		hexChars[n3++] = hexDigits[b >>> 4 & 0xF];
-		hexChars[n3++] = hexDigits[b & 0xF];
-	}
-	
-	return new String(hexChars);
-}
 #End If
 
 

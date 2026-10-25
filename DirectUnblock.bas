@@ -28,7 +28,6 @@ Version=12.5
 private String activityName = "directunblock";
 
 private myadvanced myadvancedInstance = new myadvanced();
-private mycommon   mycommonInstance   = new mycommon();
 
 private BroadcastReceiver DeviceIdleDetectionReceiver;
 
@@ -648,6 +647,11 @@ Sub Process_Globals
 	'For getting Phone library functions without bundling the big Phone library
 	Private Common As MyCommon
 	
+	Private Dialogs As MyDialogs
+	
+	'For converting between numbers, Hex, etc
+	Private Converters As MyConverters
+	
 	'For generating text hashes & encryption (response codes)
 	Private Cryptography As MyCryptography
 	
@@ -948,6 +952,12 @@ Sub Activity_Create(FirstTime As Boolean)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Common Class (MyCommon class)"$, Colors.Blue)
 		Common.Initialize
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Dialogs Class (MyDialogs class)"$, Colors.Blue)
+		Dialogs.Initialize
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Converters Class (MyConverters class)"$, Colors.Blue)
+		Converters.Initialize
 		
 		LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Initialize the Cryptography Class (MyCryptography class)"$, Colors.Blue)
 		Cryptography.Initialize
@@ -1338,11 +1348,11 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	'Android soft keyboard is open, and I restore it
 	'when the keyboard becomes hidden again
 	'
-	'If the new height is smaller than before,
+	'If the new height is smaller than the Activity's,
 	'then I conclude that the soft keyboard is open
-	If NewHeight < OldHeight Then
+	If NewHeight < Activity.Height Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
-	Else If NewHeight > OldHeight Then
+	Else If NewHeight > Activity.Height Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
 	End If
 	
@@ -2076,28 +2086,13 @@ Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
 	
 End Sub
 
-'Small helper function to avoid having to rewrite
-'this function code multiple times in the code
-Private Sub btnProceedToUnblock_GetDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
+Private Sub GetDirectUnblockDialogHeader(DeviceHasUsbOtg As Boolean) As CSBuilder
 	
-	Dim DirectUnblockInfoText As CSBuilder
-	DirectUnblockInfoText.Initialize
-	
-	DirectUnblockInfoText.Bold
-	DirectUnblockInfoText.Append(Application.LabelName&CRLF)
-	DirectUnblockInfoText.Pop
-	DirectUnblockInfoText.RelativeSize(0.9)
 	If DeviceHasUsbOtg Then
-		DirectUnblockInfoText.Append("Direct unblock over USB-OTG"&CRLF)
-	Else
-		DirectUnblockInfoText.Append("Device has no USB-OTG support"&CRLF)
+		Return Dialogs.GetBaseDialogTextHeader("Direct Unblock", "Direct unblock over USB-OTG")
 	End If
-	DirectUnblockInfoText.PopAll
 	
-	DirectUnblockInfoText.Append(CRLF)
-	DirectUnblockInfoText.PopAll
-	
-	Return DirectUnblockInfoText
+	Return Dialogs.GetBaseDialogTextHeader("Direct Unblock", "Device has no USB-OTG support")
 	
 End Sub
 
@@ -2123,20 +2118,14 @@ Private Sub btnProceedToUnblock_Click
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Get the USB OTG support status of this device..."$, Colors.Blue)
 	Dim DeviceHasUsbOtg As Boolean = joActivity.RunMethod("jDeviceHasUsbOtgSupport", Null)
 	
-	Dim DirectUnblockInfoText As CSBuilder
-	Dim DirectUnblockIcon     As Bitmap = Application.Icon
-	Dim SquareIcoSize         As Int    = Common.GetSquareIconSizeForDisplayScale
+	Dim DirectUnblockInfoText As CSBuilder = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+	DirectUnblockInfoText.Append(CRLF & CRLF)
 	
-	If DirectUnblockIcon.Height <> SquareIcoSize Then
-		DirectUnblockIcon = DirectUnblockIcon.Resize(SquareIcoSize, SquareIcoSize, Constants.BITMAP_RESIZE_KEEP_ASPECT_RATIO)
-	End If
+	Dim DirectUnblockIcon As Bitmap = Dialogs.GetIdeallySizedDialogIcon(Application.Icon)
 	
 	If Not(DeviceHasUsbOtg) Then
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Device has no USB-OTG function, displaying an error dialog..."$, Colors.Magenta)
-		DirectUnblockInfoText = btnProceedToUnblock_GetDialogHeader(DeviceHasUsbOtg)
-		
 		DirectUnblockInfoText.Append("Direct unblocking of smartcard PINs requires a device with USB-OTG support but your device claimed that it doesn't support it.")
-		DirectUnblockInfoText.PopAll
 		
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: The device does not support USB-OTG, displaying an operation abort message"$, Colors.Magenta)
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Close", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
@@ -2155,10 +2144,10 @@ Private Sub btnProceedToUnblock_Click
 	'Check if the provided new PIN fits within the required length limits
 	If UserProvidedNewPINLength < DetectedCardMinPINLength Or UserProvidedNewPINLength > DetectedCardMaxPINLength Then
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: The provided new PIN is not within the length restrictions, displaying an error dialog..."$, Colors.Magenta)
-		DirectUnblockInfoText = btnProceedToUnblock_GetDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
 		DirectUnblockInfoText.Append($"The new PIN you provided is not within the required length constraints of being atleast ${DetectedCardMinPINLength} chars and not being more than ${DetectedCardMaxPINLength} chars."$)
-		DirectUnblockInfoText.PopAll
 		
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: displaying the operation abort message"$, Colors.Magenta)
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Close", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
@@ -2201,7 +2190,7 @@ Private Sub btnProceedToUnblock_Click
 	'--------------------------------------------------------------------------------
 	
 	DirectUnblockThread.Start(Me, "SendPinUnblockAPDUSequence", Array(DetectedAdminKey, DetectedAlgorithm, DetectedCardType, DetectedSelectAppletAPDU, DetectedCardATR, UserProvidedNewPIN, UserSelectedPinID))
-	Wait For btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
+	Wait For SendPinUnblockAPDUSequence_Completed(IsSuccessful As Boolean, ErrorIfAny As String)
 	
 	'Direct Unblock operation completed (either successfully or failed)
 	DirectUnblockInProgress = False
@@ -2216,29 +2205,45 @@ Private Sub btnProceedToUnblock_Click
 	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
 	joActivity.RunMethod("jClearKeepScreenOn", Null)
 	
-	DirectUnblockInfoText = btnProceedToUnblock_GetDialogHeader(DeviceHasUsbOtg)
+	DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
+	DirectUnblockInfoText.Append(CRLF & CRLF)
 	
 	If IsSuccessful Then
-		'
 		'Now we tell the user about the successful PIN unblock operation,
 		'and what their new PIN code is whatever they chose
-		'
 		ToastMessageShow("New PIN was successfully set", Constants.TOAST_DURATION_LONG)
 		
-		DirectUnblockInfoText.Append($"Smartcard ${GetSelectedPINAsName(UserSelectedPinID)} unblocked successfully!
-
-Your new ${GetSelectedPINAsName(UserSelectedPinID)} code is now "$)
+		DirectUnblockInfoText.Append($"Smartcard ${GetSelectedPINAsName(UserSelectedPinID)} unblocked successfully!"$)
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Append($"Your new ${GetSelectedPINAsName(UserSelectedPinID)} code is now "$)
 		DirectUnblockInfoText.Bold
-		DirectUnblockInfoText.Append("the new PIN you provided")
-		DirectUnblockInfoText.Pop 'Pop the Bold node
+			DirectUnblockInfoText.Append("the new PIN you provided")
+		DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Append(".")
-		DirectUnblockInfoText.PopAll
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
 	Else
-		DirectUnblockInfoText.Append(ErrorIfAny)
-		DirectUnblockInfoText.PopAll
+		DirectUnblockInfoText.Color(Colors.Yellow)
+			DirectUnblockInfoText.Append("There was a problem while performing the Direct Unblock process.")
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append("Exception Details"&CRLF)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Clickable("CopyLogHyperlink", ErrorIfAny)
+			DirectUnblockInfoText.Append("Copy Log")
+		DirectUnblockInfoText.Pop
+		
+		DirectUnblockInfoText.Append(CRLF & CRLF)
+		
+		DirectUnblockInfoText.RelativeSize(0.9)
+			DirectUnblockInfoText.Append(ErrorIfAny)
+		DirectUnblockInfoText.Pop
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
@@ -2249,98 +2254,14 @@ Your new ${GetSelectedPINAsName(UserSelectedPinID)} code is now "$)
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
 
+Private Sub CopyLogHyperlink_Click(Logs As Object)
+	
+	Dim Clipboard As BClipboard
+	Clipboard.setText(Logs)
+	
+End Sub
+
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)
-	
-	'GIDS
-	'----                                          CLA (80 = Proprietary / Management)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2
-	'                                              |  |  |  |
-	'                                              |  |  |  |  Lc (3 bytes)
-	'                                              |  |  |  |  |  Template for Security Environment
-	'                                              |  |  |  |  |  |
-	Dim SET_SECURITY_ENVIRONMENT_GIDS As String = "00 22 81 A4 03 83 01 80" 'No Le set
-	
-	'Generic
-	'-------                                       CLA (80 = Proprietary / Management)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2
-	'                                              |  |  |  |
-	Dim GET_CHALLENGE_GENERIC         As String = "80 84 00 00"
-	
-	'GIDS
-	'----                                          CLA (80 = Proprietary / Management)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2
-	'                                              |  |  |  |
-	'                                              |  |  |  |  Lc (4 bytes)
-	'                                              |  |  |  |  |  Get Challenge command
-	'                                              |  |  |  |  |  |           Le
-	'                                              |  |  |  |  |  |           |
-	Dim GET_CHALLENGE_GIDS            As String = "00 87 00 00 04 7C 02 81 00 00"
-	'                                              |  |  |
-	'This one is used for reply verification       |  |  |
-	Dim GET_CHALLENGE_CHECK_GIDS      As String = "7C 0A 81"
-	
-	'GIDS
-	'----                                          CLA (00 = ISO-7816)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTHENTICATE_GIDS    As String = "00 87 00 00 ?? 7C 0A 82" 'Leave the "??" placeholder as-is
-	'                                              |  |
-	'                                              |  |  P1 P2 (02 80 = User PIN, GIDS)
-	'                                              |  |  |  |
-	Dim SET_REFERENCE_DATA_GIDS       As String = "00 2C 02 80"
-	'                                              |  |
-	'                                              |  |  P1 (00 = Logout)
-	'                                              |  |  |  P2 (82 = Key ID, GIDS)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTH_LOGOUT_GIDS     As String = "00 20 00 82"
-	
-	'Note about GIDS:
-	' - The Role #3 for which the GIDS applet claims support,
-	'   the Digital Signature PIN, actually doesn't work on it
-	'
-	' - The Role #3 on a GIDS applet is basically a symlink to
-	'   the GIDS applet's Primary User PIN
-	'
-	' - As such, I consider that the GIDS applet does not have
-	'   additional PKI smartcard PINs / additional roles
-	'
-	
-	'Gemalto
-	'-------                                       CLA (80 = Proprietary / Management, 00 = ISO-7816)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2 (31 = Key ID, Gemalto)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTHENTICATE_GEMALTO As String = "00 82 00 31"
-	'                                              |  |
-	'                                              |  |  P1     P2 (11 = User PIN, 8X = Role #X, Gemalto)
-	'                                              |  |  |      |
-	Dim SET_REFERENCE_DATA_GEMALTO    As String = "80 2C 90 " & GetSelectedPINAsGemaltoByteString(PinIdentifier)
-	'                                              |  |
-	'                                              |  |  P1 (FF = Logout)
-	'                                              |  |  |  P2 (31 = Key ID, Gemalto)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTH_LOGOUT_GEMALTO  As String = "00 82 FF 31"
-	
-	'ActivID
-	'-------                                       CLA (80 = Proprietary / Management)
-	'                                              |  Command (INS)
-	'                                              |  |
-	'                                              |  |  P1 P2 (01 = Key ID, ActivID)
-	'                                              |  |  |  |
-	Dim EXTERNAL_AUTHENTICATE_ACTIVID As String = "80 82 00 01"
-	'                                              |  |
-	'                                              |  |  P1 P2 (02 00 = User PIN, ActivID)
-	'                                              |  |  |  |
-	Dim SET_REFERENCE_DATA_ACTIVID    As String = "80 2C 02 00"
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -2348,6 +2269,48 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'
 	Dim CallerBundle() As Object
 	Dim LastSentAPDU   As String
+	
+	'--------------------------------------------------------------------------------
+	'Find the smartcard reader
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object() _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.FIND_SMARTCARDREADER, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+		Return
+		
+	End If
+	
+	'--------------------------------------------------------------------------------
+	'Find the smartcard
+	
+	'CallerBundle(0) = Caller       - Object
+	'CallerBundle(1) = SubName      - String
+	'CallerBundle(2) = Parameters() - Object()
+	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
+		Array As Object() _
+	)
+	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.FIND_SMARTCARD, CallerBundle)
+	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	
+	If IsSucessful == False Then
+		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
+		' - IsSuccessful = False
+		' - ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+		Return
+		
+	End If
 	
 	'--------------------------------------------------------------------------------
 	'Check if we have the same smartcard model still plugged-in (check ATR)
@@ -2363,34 +2326,27 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		
 		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to get the smartcard's ATR!
-
-Cannot verify that the same PKI smartcard model is still plugged-in the smartcard reader.
-
-[Received]
-${ResponseBundle(0)}"$)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
 		Return
 		
 	End If
 	
 	'The smartcard ATR will be in ResponseBundle(0) (as String)
 	If ResponseBundle(0) <> CardATR Then
-		
 		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"The smartcard isn't the same model as the previously connected one!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"The smartcard is not the same model as the previously connected one!
 
 When you use a different smartcard model, you have to go back to the Main Activity then reload this page.
 
-[Previous card ATR]
+Previous card ATR:
 ${CardATR}
 
-[Current card ATR]
+Current card ATR:
 ${ResponseBundle(0)}"$)
 		Return
 		
@@ -2417,17 +2373,14 @@ ${ResponseBundle(0)}"$)
 	'If no PKI applet was found then we can't proceed further
 	'
 	If IsSucessful == False Then
-		
 		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
 
-[Sent APDU]
 ${CardType} Applet ID:
 ${LastSentAPDU}
 
-[Received]
 The smartcard could not find the PKI applet we searched for"$&".")
 		Return
 		
@@ -2438,7 +2391,7 @@ The smartcard could not find the PKI applet we searched for"$&".")
 	'For GIDS: we have to do SET_SECURITY_ENVIRONMENT first
 	'
 	If CardType == "GIDS" Then
-		LastSentAPDU = SET_SECURITY_ENVIRONMENT_GIDS
+		LastSentAPDU = Constants.APDU_SET_SECURITY_ENVIRONMENT_GIDS
 		
 		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
 			Array As Object( _
@@ -2450,13 +2403,12 @@ The smartcard could not find the PKI applet we searched for"$&".")
 		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 		
 		If IsSucessful == False Then
-			
-			CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
+			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
 
-[Sent APDU]
+Sent APDU:
 ${LastSentAPDU}
 
-[Received]
+Received:
 ${ResponseBundle(0)}"$)
 			Return
 			
@@ -2467,16 +2419,16 @@ ${ResponseBundle(0)}"$)
 	'--------------------------------------------------------------------------------
 	
 	If CardType == "GIDS" Then
-		LastSentAPDU = GET_CHALLENGE_GIDS 'GIDS has a specific GET_CHALLENGE method
+		LastSentAPDU = Constants.APDU_GET_CHALLENGE_GIDS 'GIDS has a specific GET_CHALLENGE method
 		
 	Else
 		If Algorithm == Cryptography.ALGORITHM_2DES	_
 		Or Algorithm == Cryptography.ALGORITHM_3DES	Then
-			LastSentAPDU = GET_CHALLENGE_GENERIC & " 08" 'Request a challenge code of 8 bytes (0x08 bytes)
+			LastSentAPDU = Constants.APDU_GET_CHALLENGE_GENERIC & " 08" 'Request a challenge code of 8 bytes (0x08 bytes)
 			
 		Else If Algorithm == Cryptography.ALGORITHM_AES128 _
 		Or      Algorithm == Cryptography.ALGORITHM_AES256 Then
-			LastSentAPDU = GET_CHALLENGE_GENERIC & " 10" 'Request a challenge code of 16 bytes (0x10 bytes)
+			LastSentAPDU = Constants.APDU_GET_CHALLENGE_GENERIC & " 10" 'Request a challenge code of 16 bytes (0x10 bytes)
 			
 		End If
 		
@@ -2491,13 +2443,12 @@ ${ResponseBundle(0)}"$)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to request a ${DetectedAlgorithm} challenge code!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to request the ${DetectedAlgorithm} challenge code!
 
-[Sent APDU]
+Sent APDU:
 ${LastSentAPDU}
 
-[Received]
+Received:
 ${ResponseBundle(0)}"$)
 		Return
 		
@@ -2517,14 +2468,14 @@ ${ResponseBundle(0)}"$)
 
 ERROR_MESSAGE
 
-[Sent APDU]
+Sent APDU:
 ${LastSentAPDU}
 
-[Received]
+Received:
 ${SmartcardReplyAPDU}"$
 		
-		If Not(SmartcardReplyAPDU.StartsWith(GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
-			CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"The received APDU reply does not start with a challenge type header that we could recognize."$))
+		If Not(SmartcardReplyAPDU.StartsWith(Constants.APDU_GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
+			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", "The received APDU reply does not start with a challenge type header that we could recognize."))
 			Return
 			
 		End If
@@ -2539,25 +2490,25 @@ ${SmartcardReplyAPDU}"$
 		'Example reply: 7C 0A 81 08 CF D4 62 1D 02 09 A2 0E 90 00
 		'                        ^^
 		'
-		ChallengeLength = Cryptography.StringHexToNumber(SmartcardReplyAPDU.SubString2(6, 8))
+		ChallengeLength = Converters.StringHexToNumber(SmartcardReplyAPDU.SubString2(6, 8))
 		
 		Select ChallengeLength
 			Case 8
 				If Algorithm <> Cryptography.ALGORITHM_2DES And Algorithm <> Cryptography.ALGORITHM_3DES Then
-					CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
 					Return
 					
 				End If
 				
 			Case 16
 				If Algorithm <> Cryptography.ALGORITHM_AES128 And Algorithm <> Cryptography.ALGORITHM_AES256 Then
-					CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
 					Return
 					
 				End If
 				
 			Case Else
-				CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
+				CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
 				Return
 				
 		End Select
@@ -2594,15 +2545,15 @@ ${SmartcardReplyAPDU}"$
 			
 		End If
 	Catch
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
 
-[Algorithm]
+Algorithm:
 ${Algorithm} / ECB / NoPadding
 
-[Challenge]
+Challenge:
 ${SmartcardChallengeCode}
 
-[Exception]
+Exception:
 ${LastException.Message}"$)
 		Return
 		
@@ -2614,14 +2565,14 @@ ${LastException.Message}"$)
 	
 	If CardType == "Gemalto" Then
 		'Specific to Gemalto PKI smartcards
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_GEMALTO
+		LastSentAPDU = Constants.APDU_EXTERNAL_AUTHENTICATE_GEMALTO
 		
 	Else If CardType == "ActivID" Then
 		'Specific to ActivID PKI smartcards
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_ACTIVID
+		LastSentAPDU = Constants.APDU_EXTERNAL_AUTHENTICATE_ACTIVID
 		
 	Else If CardType == "GIDS" Then
-		LastSentAPDU = EXTERNAL_AUTHENTICATE_GIDS
+		LastSentAPDU = Constants.APDU_EXTERNAL_AUTHENTICATE_GIDS
 		
 	End If
 	
@@ -2654,7 +2605,7 @@ ${LastException.Message}"$)
 		'                           ^^ ++ ++ ++ -- ** ** ** ** ** ** ** **
 		'
 		'ChallengeLength is our earlier variable that is still valid
-		LastSentAPDU = LastSentAPDU.Replace("??", Cryptography.NumberToStringHex(3 + 1 + ChallengeLength))
+		LastSentAPDU = LastSentAPDU.Replace("??", Converters.NumberToStringHex(3 + 1 + ChallengeLength))
 		
 	End If
 	
@@ -2674,22 +2625,21 @@ ${LastException.Message}"$)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
-		
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
 
-[Algorithm]
+Algorithm:
 ${Algorithm} / ECB / NoPadding
 
-[Challenge]
+Challenge:
 ${SmartcardChallengeCode}
 
-[Response]
+Response:
 ${SmartcardResponseCode}
 
-[Sent APDU]
+Sent APDU:
 ${LastSentAPDU}
 
-[Received]
+Received:
 ${ResponseBundle(0)}"$)
 		Return
 		
@@ -2719,17 +2669,19 @@ ${ResponseBundle(0)}"$)
 		'      for the new PIN, even if it's smaller than 8 bytes
 		'
 		NewPINLength = NewPIN.Length + 1 'Add 1 for the New PIN Try Count
-		NewPIN       = Cryptography.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
+		NewPIN       = Converters.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
 		
 		'You can send a raw number to NumberToStringHex
 		'Then if you give it e.g. 15, it returns "0F"
-		NewPINLengthHexByte = Cryptography.NumberToStringHex(NewPINLength)
+		NewPINLengthHexByte = Converters.NumberToStringHex(NewPINLength)
 		
-		'                                               Lc (Length: New PIN Try Count + New PIN)
-		'                                               |                      New PIN Try Count (3 tries, 1 byte)
-		'                                               |                      |    New PIN (in ASCII Hex)
-		'                                               |                      |    |
-		LastSentAPDU = SET_REFERENCE_DATA_GEMALTO &" "& NewPINLengthHexByte &" 03 "&NewPIN 'No Le is set
+		LastSentAPDU = Constants.APDU_SET_REFERENCE_DATA_GEMALTO.Replace("??", GetSelectedPINAsGemaltoByteString(PinIdentifier))
+		
+		'                                 Lc (Length: New PIN Try Count + New PIN)
+		'                                 |                      New PIN Try Count (3 tries, 1 byte)
+		'                                 |                      |    New PIN (in ASCII Hex)
+		'                                 |                      |    |
+		LastSentAPDU = LastSentAPDU &" "& NewPINLengthHexByte &" 03 "&NewPIN 'No Le is set
 		
 	Else If CardType == "ActivID" Then
 		'
@@ -2739,7 +2691,7 @@ ${ResponseBundle(0)}"$)
 		'      if the PIN is shorter then you must pad it with 0xFF bytes
 		'      until it reaches 8 bytes (must be atleast 8 bytes or more)
 		'
-		NewPIN = Cryptography.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
+		NewPIN = Converters.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
 		
 		If NewPIN.Length < (8 * 2) Then      'Check if we need to add padding (8 bytes = 16 chars)
 			Do While NewPIN.Length < (8 * 2) 'Add necessary 0xFF padding
@@ -2753,14 +2705,14 @@ ${ResponseBundle(0)}"$)
 		
 		'You can send a raw number to NumberToStringHex
 		'Then if you give it e.g. 15, it returns "0F"
-		NewPINLengthHexByte = Cryptography.NumberToStringHex(NewPINLength)
+		NewPINLengthHexByte = Converters.NumberToStringHex(NewPINLength)
 		
-		'                                               Lc (Length: New PIN + padding if any, atleast 8 bytes)
-		'                                               |                         New PIN (in ASCII Hex)
-		'                                               |                         |
-		'                                               |                         |         Le is set to 00
-		'                                               |                         |         |
-		LastSentAPDU = SET_REFERENCE_DATA_ACTIVID &" "& NewPINLengthHexByte &" "& NewPIN &" 00"
+		'                                                         Lc (Length: New PIN + padding if any, atleast 8 bytes)
+		'                                                         |                         New PIN (in ASCII Hex)
+		'                                                         |                         |
+		'                                                         |                         |         Le is set to 00
+		'                                                         |                         |         |
+		LastSentAPDU = Constants.APDU_SET_REFERENCE_DATA_ACTIVID &" "& NewPINLengthHexByte &" "& NewPIN &" 00"
 		
 	Else If CardType == "GIDS" Then
 		'
@@ -2770,16 +2722,16 @@ ${ResponseBundle(0)}"$)
 		'They also don't use the Le field in their SET_REFERENCE_DATA APDU commands
 		'
 		NewPINLength = NewPIN.Length
-		NewPIN       = Cryptography.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
+		NewPIN       = Converters.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
 		
 		'You can send a raw number to NumberToStringHex
 		'Then if you give it e.g. 15, it returns "0F"
-		NewPINLengthHexByte = Cryptography.NumberToStringHex(NewPINLength)
+		NewPINLengthHexByte = Converters.NumberToStringHex(NewPINLength)
 		
-		'                                            Lc (Length: New PIN)
-		'                                            |                         New PIN (in ASCII Hex)
-		'                                            |                         |
-		LastSentAPDU = SET_REFERENCE_DATA_GIDS &" "& NewPINLengthHexByte &" "& NewPIN 'No Le is set
+		'                                                      Lc (Length: New PIN)
+		'                                                      |                         New PIN (in ASCII Hex)
+		'                                                      |                         |
+		LastSentAPDU = Constants.APDU_SET_REFERENCE_DATA_GIDS &" "& NewPINLengthHexByte &" "& NewPIN 'No Le is set
 		
 	End If
 	
@@ -2792,18 +2744,16 @@ ${ResponseBundle(0)}"$)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
 	If IsSucessful == False Then
+		'Remember that since the new PINs are now user-defined,
+		'you have to never disclose what the APDU data was
 		'
-		'Remember then when new PINs will be user-defined,
-		'you will have to never disclose what the APDU data was
-		'
-		'(Showing only generic info such as 'The Gemalto SET_REFERENCE_DATA APDU for the new PIN failed'
-		'
-		CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with the provided new PIN value (sensitive parameter)!
+		'(Show only generic info such as 'The Gemalto SET_REFERENCE_DATA APDU for the new PIN failed')
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with the provided new PIN value (sensitive parameter)!
 
-[Sent APDU]
+Sent APDU:
 SET_REFERENCE_DATA for ${CardType}
 
-[Received]
+Received:
 ${ResponseBundle(0)}"$)
 		Return
 		
@@ -2835,7 +2785,7 @@ ${ResponseBundle(0)}"$)
 				'
 				'Specific to Gemalto PKI smartcards
 				'
-				LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GEMALTO
+				LastSentAPDU = Constants.APDU_EXTERNAL_AUTH_LOGOUT_GEMALTO
 				
 				If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
 				Or DetectedAlgorithm == Cryptography.ALGORITHM_3DES	Then
@@ -2853,7 +2803,7 @@ ${ResponseBundle(0)}"$)
 				'
 				'Specific to GIDS PKI smartcards
 				'
-				LastSentAPDU = EXTERNAL_AUTH_LOGOUT_GIDS 'Just one single APDU for GIDS to logout
+				LastSentAPDU = Constants.APDU_EXTERNAL_AUTH_LOGOUT_GIDS 'Just one single APDU for GIDS to logout
 				
 			Case Else
 				'
@@ -2870,6 +2820,10 @@ ${ResponseBundle(0)}"$)
 		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
 		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 		
+		'
+		'No Specific exception handling here
+		'
+		
 	End If
 	
 	'--------------------------------------------------------------------------------
@@ -2884,12 +2838,16 @@ ${ResponseBundle(0)}"$)
 	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
 	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
 	
+	'
+	'No Specific exception handling here
+	'
+	
 	'--------------------------------------------------------------------------------
 	
 	'Tell the btnProceedToUnblock_Click function that the task is completed (success)
 	' - IsSuccessful = True
 	' - ErrorIAny    = (empty string)
-	CallSubDelayed3(Me, "btnProceedToUnblock_Click_SendPinUnblockAPDUSequence_Completed", True, "")
+	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
 	
 End Sub
 

@@ -27,22 +27,33 @@ Version=9.9
 'General list of all Java native imports for this Service
 'This way no need to figure out which functions need what
 #If Java
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.app.Service;
+
+import android.os.*;
+import android.os.Process; // This one must be explicitly imported
+
+import net.gdmeunier.pinunblocker.R; // Must match the application's package name
+
+// For Android 8+ notifications support (API level 26+)
+import android.app.NotificationChannel;
 
 import android.app.NotificationManager;
 import android.app.Notification;
 import androidx.core.app.NotificationCompat;
-import android.widget.Toast;
 
 import android.media.AudioManager;
 import android.content.ContentResolver;
-import java.io.File;
 
-// For Android 8+ support (API level 26+)
-import android.app.NotificationChannel;
+// For Android 5+ notifications support (API level 21+)
 import android.media.AudioAttributes;
 import android.net.Uri;
+
+import android.widget.Toast;
 
 import android.content.BroadcastReceiver;
 import android.content.Intent;
@@ -53,21 +64,18 @@ import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.ArrayList;
-
-import android.os.*;
-import android.os.Process; // This one must be explicitly imported
-
-import java.io.IOException;
-import android.util.Log;
-
-import net.gdmeunier.pinunblocker.R; // Must match the application's package name
-
 import com.acs.smartcard.Reader;
 import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
+
+import net.gdmeunier.pinunblocker.myexceptions.GenericException;
+import net.gdmeunier.pinunblocker.myexceptions.NotificationException;
+import net.gdmeunier.pinunblocker.myexceptions.UsbDeviceException;
+import net.gdmeunier.pinunblocker.myexceptions.UsbPermisionException;
+import net.gdmeunier.pinunblocker.myexceptions.SmartcardReaderException;
+import net.gdmeunier.pinunblocker.myexceptions.SmartcardException;
+import net.gdmeunier.pinunblocker.myexceptions.ApduException;
+import net.gdmeunier.pinunblocker.myexceptions.ApduReplyException;
 #End If
 
 #If Java
@@ -85,18 +93,18 @@ private UsbManager mManager;
 private UsbDevice  mDevice;
 
 private static Reader mReader;
-private String deviceName;
+private        String deviceName;
 
 private int iActualState = Reader.CARD_UNKNOWN;
 
-private static int iSlotNum = -1;
-private byte[] atr = null;
+private static int    iSlotNum = -1;
+private        byte[] atr      = null;
 
 private int actionNum          = Reader.CARD_COLD_RESET;
 private int preferredProtocols = Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1 | Reader.PROTOCOL_RAW;
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
-private mysmartcardreader.SmartcardReader cardReaderProxy = null;
+private mysmartcardreader.SmartcardReader SmartcardReaderProxy = null;
 
 private NotificationManager notifyMgr;
 private PowerManager        powerMgr;
@@ -177,28 +185,31 @@ Sub Process_Globals
 	'For requesting JVM GC clears
 	Private Security As MySecurity
 	
-	'For being able to re-throw exceptions
-	Private Common As MyCommon
+	'For throwing Exceptions
+	Private Exceptions As MyExceptions
 	
 	'For running native Java code
 	Private joService As JavaObject
 	
 	'For doing APDU communications in a separate thread
-	Private ServiceMessageThread As Thread
-	
-	'Yet another thread, perhaps it will help with
-	'the USB permission prompt to make it faster
 	Private SmartcardOperationThread As Thread
 	
 	'List of possible Service messaging values
-	Public Const SEND_APDU    As Int = 0x100
-	Public Const GET_ATR      As Int = 0x200
-	Public Const GET_PROTOCOL As Int = 0x300
+	Public Const FIND_SMARTCARDREADER As Int = 0x100 'Range 0x100 (FIND)
+	Public Const FIND_SMARTCARD       As Int = 0x101
 	
+	Public Const GET_ATR              As Int = 0x200 'Range 0x200 (GET)
+	Public Const GET_PROTOCOL         As Int = 0x201
+	
+	Public Const SEND_APDU            As Int = 0x300 'Range 0x300 (SEND)
 	#If Java
-	private static final int SEND_APDU    = 0x100;
-	private static final int GET_ATR      = 0x200;
-	private static final int GET_PROTOCOL = 0x300;
+	private static final int FIND_SMARTCARDREADER = 0x100; // Range 0x100 (FIND)
+	private static final int FIND_SMARTCARD       = 0x101;
+	
+	private static final int GET_ATR              = 0x200; // Range 0x200 (GET)
+	private static final int GET_PROTOCOL         = 0x201;
+	
+	private static final int SEND_APDU            = 0x300; // Range 0x300 (SEND)
 	#End If
 	
 	'For making sure that we don't simultaneously accept
@@ -209,12 +220,10 @@ Sub Process_Globals
 	'duplicate Service_Start calls from Android
 	Private ServiceAlreadyStarted As Boolean = False
 	
-End Sub
-
-Private Sub ServiceMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
-	'Nothing to do here
-	'
+	'To avoid repeating the same Strings multiple times
+	Private Const THREAD_START_FAILED            As String = "Failed to start the Smartcard operation thread"
+	Private Const THREAD_TERMINATED_UNEXPECTEDLY As String = "The Smartcard operated thread started correctly then terminated unexpectedly"
+	
 End Sub
 
 Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
@@ -225,8 +234,7 @@ Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As Stri
 	'handling Thread exceptions (such as noClassDefFoundError)
 	'
 	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
-		CallSubDelayed3(Me, "Service_Message_NewThread_RunInSmartcardOperationThread_Completed", SmartcardOperationThread.Error, Null)
-		
+		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", SmartcardOperationThread.Error, Null)
 	End If
 	
 End Sub
@@ -253,17 +261,13 @@ Sub Service_Create
 	'For requesting JVM GC clears
 	Security.Initialize
 	
-	'For being able to re-throw exceptions
-	Common.Initialize
+	'For throwing Exceptions
+	Exceptions.Initialize
 	
 	'Initialize the PC/SC stack
 	joService.RunMethod("jService_Create", Null)
 	
 	'For doing APDU communications in a separate thread
-	ServiceMessageThread.Initialize("ServiceMessageThread")
-	
-	'Yet another thread, perhaps it will help with
-	'the USB permission prompt to make it faster
 	SmartcardOperationThread.Initialize("SmartcardOperationThread")
 	
 End Sub
@@ -284,7 +288,7 @@ public void jService_Create()
 	ACTION_USB_PERMISSION = PACKAGE_NAME+".USB_PERMISSION";
 	
 	// Provide the package name directly to the MySmartcardReader class
-	cardReaderProxy = new mysmartcardreader.SmartcardReader(PACKAGE_NAME);
+	SmartcardReaderProxy = new mysmartcardreader.SmartcardReader();
 	
 	// e.g. "net.gdmeunier.pinunblocker$smartcard"
 	notifyChannelId = PACKAGE_NAME+"$smartcard";
@@ -436,143 +440,159 @@ Sub Service_Start(StartingIntent As Intent)
 		
 	End If
 	
-	ServiceMessageThread.Start(Me, "Service_Message_NewThread", Null)
-	
 End Sub
 
 'Inter-communication between the Service and Activities:
 ' - It's for letting this Service receive messages from
 '   this application's Activities to this Service only
 '
-Sub Service_Message_NewThread
-	
+Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
 	Dim Caller       As Object
 	Dim SubName      As String
 	Dim Parameters() As Object
 	
-	Do While True
-		Wait For Service_Message_To_NewThread(DoWhat As Int, CallerBundle() As Object)
+	Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
+	SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
+	Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
+	
+	'Avoid getting potential race condition calls
+	If ActiveOperationInProgress Then
+		CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object("An ongoing Smartcard operation is already in progress"))
+		Return
 		
-		Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
-		SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
-		Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
-		
-		'Avoid getting potential race condition calls
-		If ActiveOperationInProgress Then
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object("An ongoing Smartcard operation is already in progress"))
-			Return
-		End If
-		
-		'Check that the Main Activity isn't paused already
+	End If
+	
+	Select DoWhat
 		'
-		'If it's paused then that means we were already
-		'able to call it before during the Direct Unblock
-		'introducy message, so no need to redo it again then
+		'Need to request notifications permission for "FIND_" & "SEND_" commands
 		'
-		If Not(IsPaused(Main)) Then
-			'
-			'Android 13+ only (API level 33+):
-			' - Request the ability to post notifications
-			' - It's not a problem if the user denies it though
-			'
-			CallSub(Main, "RequestPostNotificationsPermission")
-			Wait For Service_Message_NewThread_RequestPostNotificationsPermission_Completed(AreNotificationsAllowed As Boolean)
+		Case FIND_SMARTCARDREADER
+		Case FIND_SMARTCARD
+			ActiveOperationInProgress = True
 			
-			SetNotificationsAllowed(AreNotificationsAllowed)
+			RequestNotificationsPermissions
+			Wait For RequestNotificationsPermissions_Finished
 			
-		End If
-		
-		Select DoWhat
-			Case SEND_APDU
-				
-				ActiveOperationInProgress = True
+			Try
 				Try
 					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-					Wait For Service_Message_NewThread_RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
-					
-					If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
-						Common.Throw(ExceptionIfAny)
-					End If
-					
-					Dim IsSuccessful As Boolean = True
-					
-					'The MySmartcardReader class automatically handles APDU
-					'request chaining transparently, so we can just simply
-					'check for a 90 00 status code
-					If Not(ServiceReply(0).As(String).EndsWith("9000")) Then
-						IsSuccessful = False
-					End If
-					
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
-					
 				Catch
-					Log(LastException)
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
-					
+					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_START_FAILED)
 				End Try
-				ActiveOperationInProgress = False
 				
-				Exit
+				Wait For RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
 				
-			Case GET_ATR
+				If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
+					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_TERMINATED_UNEXPECTEDLY)
+				End If
 				
-				ActiveOperationInProgress = True
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				
+			Catch
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				
+			End Try
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case GET_ATR
+		Case GET_PROTOCOL
+			ActiveOperationInProgress = True
+			
+			Try
 				Try
 					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-					Wait For Service_Message_NewThread_RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
-					
-					If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
-						Common.Throw(ExceptionIfAny)
-					End If
-					
-					Dim IsSuccessful As Boolean = True
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
-					
 				Catch
-					Log(LastException)
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
-					
+					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_START_FAILED)
 				End Try
-				ActiveOperationInProgress = False
 				
-				Exit
+				Wait For RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
 				
-			Case GET_PROTOCOL
+				If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
+					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_TERMINATED_UNEXPECTEDLY)
+				End If
 				
-				ActiveOperationInProgress = True
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				
+			Catch
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				
+			End Try
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case SEND_APDU
+			ActiveOperationInProgress = True
+			
+			RequestNotificationsPermissions
+			Wait For RequestNotificationsPermissions_Finished
+			
+			Try
 				Try
 					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-					Wait For Service_Message_NewThread_RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
-					
-					If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
-						Common.Throw(ExceptionIfAny)
-					End If
-					
-					Dim IsSuccessful As Boolean = True
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", IsSuccessful, ServiceReply)
-					
 				Catch
-					Log(LastException)
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
-					
+					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_START_FAILED)
 				End Try
-				ActiveOperationInProgress = False
 				
-				Exit
+				Wait For RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
 				
-			Case Else
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"Unknown message type ${DoWhat} sent to this Service"$))
-				Exit
+				If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
+					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_TERMINATED_UNEXPECTEDLY)
+				End If
 				
-		End Select
-		
-	Loop
+				'The MySmartcardReader class automatically handles APDU
+				'request chaining transparently, so we can just simply
+				'check for a 90 00 status code
+				If Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+					Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, "The Smartcard replied with an APDU SW status code that indicates failure")
+				End If
+				
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				
+			Catch
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				
+			End Try
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case Else
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"An unknown message type ${DoWhat} was sent to this Service"$))
+			Exit
+			
+	End Select
 	
 End Sub
-'
+
 'Helper functions for updating areNotificationsAllowed
 'which is used by Java native code
-'
+Private Sub RequestNotificationsPermissions
+	'Check that the Main Activity isn't paused already
+	'
+	'If it's paused then that means we were already
+	'able to call it before during the Direct Unblock
+	'introducy message, so no need to redo it again then
+	'
+	If Not(IsPaused(Main)) Then
+		'
+		'Android 13+ only (API level 33+):
+		' - Request the ability to post notifications
+		' - It's not a problem if the user denies it though
+		'
+		CallSub(Main, "RequestPostNotificationsPermissions")
+		Wait For RequestPostNotificationsPermissions_Completed(AreNotificationsAllowed As Boolean)
+		
+		SetNotificationsAllowed(AreNotificationsAllowed)
+		
+	End If
+	
+	CallSub(Me, "RequestNotificationsPermissions_Finished")
+	
+End Sub
+
 Private Sub SetNotificationsAllowed(IsAllowed As Boolean)
 	
 	Try
@@ -584,23 +604,19 @@ Private Sub SetNotificationsAllowed(IsAllowed As Boolean)
 	End Try
 	
 End Sub
-'
-'Actual Java native function
-'
 #If Java
 public void jSetNotificationsAllowed(final boolean isAllowed)
 {
 	areNotificationsAllowed = isAllowed;
 }
 #End If
-'
+
 'Helper function to make it easier to invoke APDU operations
 'in yet another separate thread, perhaps it will help with
 'the USB permission prompt to make it much faster
 '
 'Sorry that it looks convoluted, that's simply what works
 'to make USB permission prompts instantaneous
-'
 Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 	
 	'Default initial values just incase
@@ -608,7 +624,7 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 	Dim ServiceReply() As Object = Array As Object(ExceptionIfAny)
 	
 	Try
-		ServiceReply = joService.RunMethod("jService_Message_NewThread", Array(DoWhat, Parameters))
+		ServiceReply = joService.RunMethod("jRunInSmartcardOperationThread", Array(DoWhat, Parameters))
 		
 	Catch
 		ExceptionIfAny = LastException.Message
@@ -616,17 +632,11 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 		
 	End Try
 	
-	CallSubDelayed3(Me, "Service_Message_NewThread_RunInSmartcardOperationThread_Completed", ExceptionIfAny, ServiceReply)
+	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", ExceptionIfAny, ServiceReply)
 	
 End Sub
-'
-'Actual Java native function
-'
 #If Java
-import java.lang.RuntimeException;
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) throws RemoteException, IOException, RuntimeException
+public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] parameters) throws GenericException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException
 {
 	/* Don't use SCREEN_DIM_WAKE_LOCK:
 	 *  - Many phones lower the USB power output or suspend it on screen dimming
@@ -638,82 +648,88 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 	 * useHeadsUp = true [required for this one]
 	 * useLights  = (omitted - automatically set to false)
 	 */
-	jShowNotification(NOTIFICATION_ID_NEW_OPERATION, "New smartcard operation", false, true);
+	jShowNotification(NOTIFICATION_ID_NEW_OPERATION, "Smartcard service operation", false, true);
 	
 	Object[] reply = null;
 	
 	try
 	{
-		jObtainUsbDevice();
-		jObtainUsbPermission();
-		jObtainSmartcardReader();
-		jObtainSmartcard();
-		
-		// Clear any currently shown toast if any
-		jCancelCurrentlyShownToastIfAny();
-		jCancelAllNotifications(); // This call preserves the core Service notification
-		
 		switch ( doWhat )
 		{
-			case SEND_APDU:
-				reply = new Object[] { cardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0]), mReader, iSlotNum) };
+			case FIND_SMARTCARDREADER:
+				jObtainUsbDevice();
+				jObtainUsbPermission();
+				jObtainSmartcardReader();
+				
+				break;
+				
+			case FIND_SMARTCARD:
+				jObtainUsbDevice();
+				jObtainUsbPermission();
+				jObtainSmartcardReader();
+				jObtainSmartcard();
+				
 				break;
 				
 			case GET_ATR:
 				if ( atr == null )
 				{
-					throw new RuntimeException("Couldn't get the smartcard's ATR because the smartcard is not connected.");
+					throw new SmartcardException("Could not get the smartcard ATR because the smartcard is not connected");
 				}
 				
-				reply = new Object[] { jBytesToHexString(atr) };
+				reply = new Object[] { myconverters.jBytesToHexString(atr) };
+				
 				break;
 				
 			case GET_PROTOCOL:
 				if ( activeProtocol == Reader.PROTOCOL_UNDEFINED )
 				{
-					throw new RuntimeException("Couldn't get the smartcard's communication protocol because the smartcard is not connected.");
+					throw new SmartcardException("Could not get the smartcard protocol because the smartcard is not connected");
 				}
 				
 				reply = new Object[] { "T=?" };
 				
 				if ( activeProtocol == Reader.PROTOCOL_T0 )
 				{
-					reply = new Object[] { "T=0" };
+					reply[0] = "T=0";
 				}
-				if ( activeProtocol == Reader.PROTOCOL_T1 )
+				else if ( activeProtocol == Reader.PROTOCOL_T1 )
 				{
-					reply = new Object[] { "T=1" };
+					reply[0] = "T=1";
 				}
-				if ( activeProtocol == Reader.PROTOCOL_RAW )
+				else if ( activeProtocol == Reader.PROTOCOL_RAW )
 				{
-					reply = new Object[] { "T=R" };
+					reply[0] = "T=RAW";
 				}
-				if ( activeProtocol == Reader.PROTOCOL_TX )
+				else if ( activeProtocol == Reader.PROTOCOL_TX )
 				{
-					reply = new Object[] { "T=X" };
+					reply[0] = "T=TX";
 				}
+				
+				break;
+				
+			case SEND_APDU: /* This command cans be used in one go directly too */
+				jObtainUsbDevice();
+				jObtainUsbPermission();
+				jObtainSmartcardReader();
+				jObtainSmartcard();
+				
+				reply = new Object[] { SmartcardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0]), mReader, iSlotNum) };
+				
 				break;
 				
 			default:
-				throw new RuntimeException("You requested a message type that this Service does not know nor support");
+				throw new GenericException("You requested a message type that this Service does not know nor support");
 		}
 	}
-	catch (Exception e)
+	finally
 	{
-		StringWriter stackTrace = new StringWriter();
-		e.printStackTrace(new PrintWriter(stackTrace));
-		
 		// Clear any currently shown toast if any
 		jCancelCurrentlyShownToastIfAny();
 		
 		// Cancel all notifications
 		jCancelAllNotifications(); // This call preserves the core Service notification
 		
-		Log.e(PACKAGE_NAME, "Failed to process message", e);
-		throw new RuntimeException(stackTrace.toString());
-	}
-	finally
-	{
 		if ( wl != null && wl.isHeld() )
 		{
 			try
@@ -725,29 +741,13 @@ public Object[] jService_Message_NewThread(int doWhat, Object[] parameters) thro
 				/* Nothing to do here */
 			}
 		}
+		
 		stopForeground(true);
 	}
 	
 	return reply;
 }
-
-import java.math.BigInteger;
-private static String jBytesToHexString(final byte[] bytes)
-{
-	BigInteger bigInt = new BigInteger(1, bytes);
-	
-	// "X" = UPPERCASE hash
-	// "x" = lowercase hash
-	return String.format("%0"+(bytes.length << 1)+"X", bigInt);
-}
 #End If
-
-Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
-	
-	'Send all requests to the dedicated background thread
-	CallSubDelayed3(Me, "Service_Message_To_NewThread", DoWhat, CallerBundle)
-	
-End Sub
 
 Sub Service_Destroy
 	
@@ -762,8 +762,11 @@ Sub Service_Destroy
 		
 	End If
 	
-	ServiceMessageThread.Interrupt
 	joService.RunMethod("jService_Destroy", Null)
+	
+	If Not(SmartcardOperationThread.IsInterrupted) Then
+		SmartcardOperationThread.Interrupt
+	End If
 	
 	ServiceAlreadyStarted = False
 	
@@ -777,7 +780,7 @@ public void jService_Destroy()
 		{
 			unregisterReceiver(detachReceiver);
 		}
-		catch (IllegalArgumentException iae)
+		catch (Exception e)
 		{
 			/* Nothing to do here */
 		}
@@ -787,7 +790,7 @@ public void jService_Destroy()
 	
 	jResetSmartcardReaderState();
 	
-	cardReaderProxy = null;
+	SmartcardReaderProxy = null;
 	
 	jNotifyAllWaitLocks();
 	
@@ -828,7 +831,7 @@ private void jResetSmartcardReaderState()
 	{
 		mReader.close();
 	}
-	catch (Exception e2)
+	catch (Exception e)
 	{
 		/* Nothing to do here */
 	}
@@ -887,7 +890,9 @@ End Sub
 
 'Return true to allow the OS default exceptions handler to handle the uncaught exception
 Sub Application_Error(Error As Exception, StackTrace As String) As Boolean
+	
 	Return True
+	
 End Sub
 
 '----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -952,7 +957,7 @@ private void jCancelCurrentlyShownToastIfAny()
 //
 // System notification helpers
 //
-private void jShowNotification(final int notificationID, final String msg)
+private void jShowNotification(final int notificationID, final String msg) throws NotificationException
 {
 	/* Overload helper function:
 	 *  - withSound  = false,
@@ -961,7 +966,7 @@ private void jShowNotification(final int notificationID, final String msg)
 	 */
 	jShowNotification(notificationID, msg, false, false, false);
 }
-private void jShowNotification(final int notificationID, final String msg, final boolean withSound)
+private void jShowNotification(final int notificationID, final String msg, final boolean withSound) throws NotificationException
 {
 	/* Overload helper function:
 	 *  - useHeadsUp = false,
@@ -969,120 +974,170 @@ private void jShowNotification(final int notificationID, final String msg, final
 	 */
 	jShowNotification(notificationID, msg, withSound, false, false);
 }
-private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp)
+private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp) throws NotificationException
 {
 	/* Overload helper function:
 	 *  - useLights  = false
 	 */
 	jShowNotification(notificationID, msg, withSound, useHeadsUp, false);
 }
-private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp, final boolean useLights)
+private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp, final boolean useLights) throws NotificationException
 {
-	/* Android 3.1+ only (API level 11+)
-	 * Also includes a check to verify if notifications are allowed (if not heads-up one)
-	 */
-	if ( Build.VERSION.SDK_INT < 11 || (!useHeadsUp && !areNotificationsAllowed) )
+	try
 	{
-		return;
-	}
-	
-	// Cancel currently shown notification if any
-	jCancelAllNotifications(); // This call preserves the core Service notification
-	
-	Uri soundUri = null;
-	
-	if ( withSound )
-	{
-		//
-		// API level 1+ (Android Base 1.x)
-		//
-		Uri.Builder soundUriBuilder = new Uri.Builder();
-		            soundUriBuilder.scheme(ContentResolver.SCHEME_ANDROID_RESOURCE);
-		            soundUriBuilder.authority(PACKAGE_NAME);
-		            soundUriBuilder.path("raw/notification_sound");
-		
-		soundUri = soundUriBuilder.build();
-	}
-	
-	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this);
-	
-	/* Large icons didn't exit before Android 5 (API level 21):
-	 *  - Before Android 5 (Lollipop) the large notification icon
-	 *    was directly set with "setSmallIcon" and a Bitmap of 64x64
-	 */
-	if ( Build.VERSION.SDK_INT >= 21 )
-	{
-		// Set the large icon first before the small one
-		builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
-	}
-	builder.setSmallIcon(R.drawable.ic_stat_card);
-	builder.setContentTitle(APPLICATION_NAME);
-	builder.setContentText(msg);
-	builder.setCategory(Notification.CATEGORY_SERVICE);
-	builder.setOngoing(true); // Always make Service notifications 'ongoing'
-	
-	/* Android 7.1 and earlier (API levels <= 25):
-	 *  - Newer versions likeAndroid 8+ (API level 26+)
-	 *    don't need these attributes to be set,
-	 *    it's set on a notification channel instead
-	 */
-	if ( Build.VERSION.SDK_INT <= 25 )
-	{
-		//
-		// Deprecated since API level 26+ (Android 8+)
-		//
-		builder.setPriority(NotificationCompat.PRIORITY_MAX);
-		
-	    if ( withSound )
+		/* Android 3.1+ only (API level 11+)
+		 * Also includes a check to verify if notifications are allowed (if not heads-up one)
+		 */
+		if ( Build.VERSION.SDK_INT < 11 || (!useHeadsUp && !areNotificationsAllowed) )
 		{
-			// STREAM_ALARM (API level 1+) or STREAM_NOTIFICATION (API level 3+)
-			builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
-	    }
-		if ( useLights )
+			return;
+		}
+		
+		// Cancel currently shown notification if any
+		jCancelAllNotifications(); // This call preserves the core Service notification
+		
+		Uri soundUri = null;
+		
+		if ( withSound )
 		{
-			builder.setDefaults(Notification.DEFAULT_LIGHTS);
+			//
+			// API level 1+ (Android Base 1.x)
+			//
+			Uri.Builder soundUriBuilder = new Uri.Builder();
+			            soundUriBuilder.scheme(ContentResolver.SCHEME_ANDROID_RESOURCE);
+			            soundUriBuilder.authority(PACKAGE_NAME);
+			            soundUriBuilder.path("raw/notification_sound");
+			
+			soundUri = soundUriBuilder.build();
+		}
+		
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this);
+		
+		try
+		{
+			/* Large icons didn't exit before Android 5 (API level 21):
+			 *  - Before Android 5 (Lollipop) the large notification icon
+			 *    was directly set with "setSmallIcon" and a Bitmap of 64x64
+			 */
+			if ( Build.VERSION.SDK_INT >= 21 )
+			{
+				// Set the large icon first before the small one
+				builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
+			}
+			builder.setSmallIcon(R.drawable.ic_stat_card);
+			builder.setContentTitle(APPLICATION_NAME);
+			builder.setContentText(msg);
+			builder.setCategory(Notification.CATEGORY_SERVICE);
+			builder.setOngoing(true); // Always make Service notifications 'ongoing'
+		}
+		catch (Exception e)
+		{
+			throw new NotificationException("Failed to prepare the generic NotificationCompat.Builder properties");
+		}
+		
+		/* Android 7.1 and earlier (API levels <= 25):
+		 *  - Newer versions likeAndroid 8+ (API level 26+)
+		 *    don't need these attributes to be set,
+		 *    it's set on a notification channel instead
+		 */
+		if ( Build.VERSION.SDK_INT <= 25 )
+		{
+			try
+			{
+				//
+				// Deprecated since API level 26+ (Android 8+)
+				//
+				builder.setPriority(NotificationCompat.PRIORITY_MAX);
+				
+			    if ( withSound )
+				{
+					// STREAM_ALARM (API level 1+) or STREAM_NOTIFICATION (API level 3+)
+					builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
+			    }
+				if ( useLights )
+				{
+					builder.setDefaults(Notification.DEFAULT_LIGHTS);
+				}
+			}
+			catch (Exception e)
+			{
+				throw new NotificationException("Failed to prepare the NotificationCompat.Builder sound & led light properties");
+			}
+		}
+		else if ( Build.VERSION.SDK_INT >= 26 )
+		{
+			NotificationChannel notifyChannel = new NotificationChannel(
+				notifyChannelId,
+				notifyChannelName,
+				NotificationManager.IMPORTANCE_HIGH
+			);
+			
+			try
+			{
+			    notifyChannel.setDescription(notifyChannelDesc);
+				notifyChannel.enableLights(useLights);
+				notifyChannel.enableVibration(false);
+			}
+			catch (Exception e)
+			{
+				throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+			}
+			
+		    if ( withSound )
+			{
+		        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+		            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
+		            .setUsage(AudioAttributes.USAGE_NOTIFICATION)        /* USAGE_ALARM or USAGE_NOTIFICATION */
+		            .build();
+				
+				notifyChannel.setSound(soundUri, audioAttributes);
+		    }
+			
+			try
+			{
+				notifyMgr.createNotificationChannel(notifyChannel);
+				
+				/* For Android 8+ notifications support (API level 26+):
+				 *  - NotificationChannel is only available on Android 8+ (API level 26+)
+				 */
+				// For the NotificationCompat.Builder Object
+				builder.setChannelId(notifyChannelId);
+			}
+			catch (Exception e)
+			{
+				throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+			}
+		}
+		
+		if ( useHeadsUp ) // If heads-up notification is required
+		{
+			try
+			{
+				/* startForeground makes notifications become
+				 * heads-up notifications
+				 */
+				startForeground(notificationID, builder.build());
+			}
+			catch (Exception e)
+			{
+				throw new NotificationException("Failed to actually broadcast the notification with startForeground");
+			}
+		}
+		else
+		{
+			try
+			{
+				notifyMgr.notify(notificationID, builder.build());
+			}
+			catch (Exception e)
+			{
+				throw new NotificationException("Failed to actually broadcast the notification with NotificationManager.notify");
+			}
 		}
 	}
-	else if ( Build.VERSION.SDK_INT >= 26 )
+	catch (NotificationException nex)
 	{
-		NotificationChannel notifyChannel = new NotificationChannel(
-			notifyChannelId,
-			notifyChannelName,
-			NotificationManager.IMPORTANCE_HIGH
-		);
-	    notifyChannel.setDescription(notifyChannelDesc);
-		notifyChannel.enableLights(useLights);
-		notifyChannel.enableVibration(false);
-		
-	    if ( withSound )
-		{
-	        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-	            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
-	            .setUsage(AudioAttributes.USAGE_NOTIFICATION)        /* USAGE_ALARM or USAGE_NOTIFICATION */
-	            .build();
-			
-			notifyChannel.setSound(soundUri, audioAttributes);
-	    }
-		
-		notifyMgr.createNotificationChannel(notifyChannel);
-		
-		/* For Android 8+ notifications support (API level 26+):
-		 *  - NotificationChannel is only available on Android 8+ (API level 26+)
-		 */
-		// For the NotificationCompat.Builder Object
-		builder.setChannelId(notifyChannelId);
-	}
-	
-	if ( useHeadsUp ) // If heads-up notification is required
-	{
-		/* startForeground makes notifications become
-		 * heads-up notifications
-		 */
-		startForeground(notificationID, builder.build());
-	}
-	else
-	{
-		notifyMgr.notify(notificationID, builder.build());
+		throw nex;
 	}
 }
 
@@ -1117,7 +1172,7 @@ private void jCancelAllNotifications(final boolean includeCoreServiceNotificatio
 private final int maxSleepRoundsUsbDevice = (int)((USB_TIMEOUT / 1000) * 2) * 5; // e.g. 30000ms = 30x 1s = 60x 0.5s = 300x 0.1s
 private       int sleepRoundsUsbDevice    = 0;
 
-public void jObtainUsbDevice() throws mysmartcardreader.AbortException
+public void jObtainUsbDevice() throws NotificationException, UsbDeviceException
 {
 	if ( mDevice != null && mReader.isSupported(mDevice) )
 	{
@@ -1233,7 +1288,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 				waitLockUsbDevice.notify();
 			}
 		}
-		catch (Exception e) /* InterruptedException -> Exception */
+		catch (Exception e)
 		{
 			/* Nothing to do here */
 		}
@@ -1244,7 +1299,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		{
 			unregisterReceiver(attachReceiver);
 		}
-		catch (IllegalArgumentException iae)
+		catch (Exception e)
 		{
 			/* Nothing to do here */
 		}
@@ -1254,7 +1309,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		
 		if ( mDevice == null )
 		{
-			throw new mysmartcardreader.AbortException("No reader connected");
+			throw new UsbDeviceException("No supported USB device found");
 		}
 	}
 	
@@ -1269,7 +1324,7 @@ public void jObtainUsbDevice() throws mysmartcardreader.AbortException
 		{
 			unregisterReceiver(detachReceiver);
 		}
-		catch (IllegalArgumentException iae)
+		catch (Exception e)
 		{
 			/* Nothing to do here */
 		}
@@ -1321,7 +1376,7 @@ private int pendingIntentFlags = PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLA
 private final int maxSleepRoundsUsbPermission = (int)((CONFIRM_TIMEOUT / 1000) * 2) * 5; // 300x 100ms
 private       int sleepRoundsUsbPermission    = 0;
 
-public void jObtainUsbPermission() throws mysmartcardreader.AbortException
+public void jObtainUsbPermission() throws NotificationException, UsbPermisionException
 {
 	if ( !mManager.hasPermission(mDevice) )
 	{
@@ -1482,7 +1537,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 					waitLockUsbPermission.notify();
 				}
 			}
-			catch (Exception e) /* InterruptedException -> Exception */
+			catch (Exception e)
 			{
 				/* Nothing to do here */
 			}
@@ -1494,7 +1549,7 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		{
 			unregisterReceiver(grantReceiver);
 		}
-		catch (IllegalArgumentException iae)
+		catch (Exception e)
 		{
 			/* Nothing to do here */
 		}
@@ -1504,16 +1559,14 @@ public void jObtainUsbPermission() throws mysmartcardreader.AbortException
 		
 		if ( mDevice == null || !mManager.hasPermission(mDevice) )
 		{
-			throw new mysmartcardreader.AbortException("No USB permission granted");
+			throw new UsbPermisionException("No USB permission was granted for the supported device");
 		}
 	}
 }
 #End If
 
 #If Java
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public void jObtainSmartcardReader() throws Exception
+public void jObtainSmartcardReader() throws SmartcardReaderException
 {
 	if ( !mReader.isOpened() )
 	{
@@ -1526,16 +1579,8 @@ public void jObtainSmartcardReader() throws Exception
 		}
 		catch (Exception e)
 		{
-			// Catch the last exception as the first step
-			//
-			StringWriter stackTrace = new StringWriter();
-			e.printStackTrace(new PrintWriter(stackTrace));
-			
 			jResetSmartcardReaderState();
-			
-			// Re-throw the last exception as the last step
-			//
-			throw new Exception("Smartcard reader failed to connect:\r\n" + stackTrace.toString());
+			throw new SmartcardReaderException("Failed to connect to the smartcard reader");
 		}
 	}
 }
@@ -1551,9 +1596,7 @@ public void jObtainSmartcardReader() throws Exception
  * - CARD_NEGOTIABLE = 5
  * - CARD_SPECIFIC   = 6
  */
-import java.io.StringWriter;
-import java.io.PrintWriter;
-public void jObtainSmartcard() throws mysmartcardreader.AbortException
+public void jObtainSmartcard() throws NotificationException, SmartcardException
 {
 	/* Check all card slots for any inserted smartcard
 	 * incase we actually have a multi-slot smartcard reader,
@@ -1644,7 +1687,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 				waitLockSmartcardInsert.notify();
 			}
 		}
-		catch (Exception e) /* InterruptedException -> Exception */
+		catch (Exception e)
 		{
 			/* Nothing to do here */
 		}
@@ -1653,13 +1696,13 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		
 		if ( iActualState < Reader.CARD_PRESENT || iActualState == Reader.CARD_SWALLOWED )
 		{
-			throw new mysmartcardreader.AbortException("No Smartcard present");
+			throw new SmartcardException("No smartcard present or it was unresponsive");
 		}
 	}
 	
 	if ( iActualState == Reader.CARD_SWALLOWED )
 	{
-		throw new mysmartcardreader.AbortException("Smartcard is swallowed?");
+		throw new SmartcardException("The smartcard is swallowed by your reader?");
 	}
 	
 	if ( iActualState < Reader.CARD_SPECIFIC ) // Reader.CARD_SPECIFIC = 6
@@ -1684,10 +1727,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		}
 		catch (Exception e)
 		{
-			StringWriter stackTrace = new StringWriter();
-			e.printStackTrace(new PrintWriter(stackTrace));
-			
-			throw new mysmartcardreader.AbortException("Smartcard failed to connect:\r\n" + stackTrace.toString());
+			throw new SmartcardException("Failed to connect to the smartcard");
 		}
 		
 		/* Now check if the smartcard was correctly put in operation
@@ -1700,7 +1740,7 @@ public void jObtainSmartcard() throws mysmartcardreader.AbortException
 		
 		if ( iActualState < Reader.CARD_SPECIFIC )
 		{
-			throw new mysmartcardreader.AbortException("Smartcard didn't accept any of the offered communication protocols RAW, T1, T0.");
+			throw new SmartcardException("The smartcard did not accept any of the offered communication protocols: RAW, T1 and T0");
 		}
 	}
 }
