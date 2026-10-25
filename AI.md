@@ -17,7 +17,7 @@ It is **not** for bypassing access controls, and it must not be used for cards o
 
 The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.
 
-Real secure smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, Javacards *[...]*.
+Real secure smartcards are the ones such as the Gemalto IDPrime 930, GIDS, Javacards *[...]*.
 Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
 <div style="page-break-after: always;"></div>
@@ -77,13 +77,14 @@ For resetting the PIN of the card (entering the generated **Response value** com
 
 **Android PIN Unblocker** has a very simple set of features; it can compute the **Response value** (sometimes referred to as an unblock/unlock value in the context of vendor-documented PIN administration) with your own legally supplied **Admin/management key**, read the **Request/Challenge value** from a QR code, and generate hashes using **SHA-256** or **SHA-512**.
 
-**Android PIN Unblocker** now also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
-
-Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
-You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
-
-**GIDS** applets for **Javacard** are also supported, albeit they haven't been formally tested in real conditions.\
-*Nonetheless, the GIDS support code should work fine as it's based on real APDU communication logs from a Javacard simulator with a real GIDS applet.*
+> [!TIP]
+> **Android PIN Unblocker** now also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
+> 
+> Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
+> You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
+> 
+> **GIDS** applets for **Javacard** are also supported, albeit they haven't been formally tested in real conditions.\
+> *Nonetheless, the GIDS support code should work fine as it's based on real APDU communication logs from a Javacard simulator with a real GIDS applet.*
 
 <div style="page-break-after: always;"></div>
 

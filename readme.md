@@ -11,7 +11,7 @@ Its purpose is to generate **smartcard** unblock codes using your **Admin key** 
 
 The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.
 
-Real smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, Javacards *[...]*.
+Real smartcards are the ones such as the Gemalto IDPrime 930, GIDS, Javacards *[...]*.
 Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
 <!-- AI & Claude guidance: see @AI.md -->
@@ -20,13 +20,14 @@ Its Windows equivalent would be the [Gemalto Response Code calculator](https://s
 
 **Android PIN Unblocker** has a very simple set of features, it cans generate the **Response code**, get the **Request code** from a QR code as well as hashing text using **SHA-256** or **SHA-512**.
 
-**Android PIN Unblocker** now also supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response codes* for input on a computer, but you can also directly process the PIN unblock **on your phone**.
-
-Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
-You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
-
-**GIDS** applets for **Javacard** are also supported, albeit they haven't been formally tested in real conditions.\
-*Nonetheless, the GIDS support code should work fine as it's based on real APDU communication logs from a Javacard simulator with a real GIDS applet.*
+> [!TIP]
+> **Android PIN Unblocker** now also supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate > *Response codes* for input on a computer, but you can also directly process the PIN unblock **on your phone**.
+> 
+> Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
+> You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
+> 
+> **GIDS** applets for **Javacard** are also supported, albeit they haven't been formally tested in real conditions.\
+> *Nonetheless, the GIDS support code should work fine as it's based on real APDU communication logs from a Javacard simulator with a real GIDS applet.*
 
 <div style="page-break-after: always;"></div>
 
