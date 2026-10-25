@@ -1,4 +1,4 @@
-﻿ModuleBookmarks0=3232,49,1342,1085,3441,1477,1779
+﻿ModuleBookmarks0=3250,49,1342,1085,3459,1477,1779
 ModuleBookmarks1=2093,2644,903,666,2258,1058
 ModuleBookmarks10=
 ModuleBookmarks11=
@@ -43,6 +43,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=MySecurity,DisableAutoComplete,181,0,MySecurity,DisableAutoCorrect,205,0,MySecurity,DisableAutoSuggestions,221,0,MySecurity,DisableTextSelectionSuggestions,297,0,MyExceptions,ThrowException,186,0,MyCommon,ForceCorrectMonospaceFontDigits,116,0,MyCommon,ForceCorrectMonospaceFont,100,0,MyCommon,ForceCorrectEditorActionToNext,155,0,Main,InitializeActivityLayout,1715,6,Main,ResetViewState,1713,0
+NavigationStack=Main,ResetViewState,1709,0,Main,RestoreViewState,2107,0,Main,SetUiElementsEnabledState,2786,6,Main,SaveViewState,2780,0,Smartcard,RunInSmartcardOperationThread,741,0,Smartcard,Service_Destroy,788,0,DirectUnblock,FixVariantSpecificLayouts,1162,0,DirectUnblock,SetUiElementsEnabledState,2036,0,DirectUnblock,SendPinUnblockAPDUSequence,2849,2,Main,mnuDirectUnblock_Click,3216,0
 SelectedBuild=1
 VisibleModules=1,14,8,11,3

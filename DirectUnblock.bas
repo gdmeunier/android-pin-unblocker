@@ -2630,10 +2630,10 @@ ${LastException.Message}"$)
 Algorithm:
 ${Algorithm} / ECB / NoPadding
 
-Challenge:
+Smartcard Challenge:
 ${SmartcardChallengeCode}
 
-Response:
+Generated Response:
 ${SmartcardResponseCode}
 
 Sent APDU:

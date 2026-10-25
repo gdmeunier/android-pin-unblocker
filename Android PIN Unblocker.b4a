@@ -41,8 +41,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 203
-	#VersionName: 5.14.2
+	#VersionCode: 206
+	#VersionName: 5.14.5
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2870,7 +2870,25 @@ Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
 	'Direct Unblock process starts
 	'
 	'Allow / Disallow clicking Activity menu items
-	joActivity.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
+	If joActivity <> Null And joActivity.IsInitialized Then
+		'Use joActivity instead of creating a new JavaObject,
+		'if it's already available and initialized
+		joActivity.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
+		
+	Else
+		'This function is also called by ResetViewState,
+		'and ResetViewState gets called early on by the
+		'Activity_Create function before it initializes
+		'the joActivity JavaObject
+		'
+		'In such cases we have to use our own local copy
+		'of a temporary JavaObject (initialized here)
+		Dim TempJavaObject As JavaObject
+		TempJavaObject.InitializeContext
+		
+		TempJavaObject.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
+		
+	End If
 	
 End Sub
 
