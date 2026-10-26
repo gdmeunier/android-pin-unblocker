@@ -748,10 +748,12 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 				throw new GenericException("You requested a message type that this Service does not know nor support");
 		}
 	}
+	/*
 	catch (GenericException|NotificationException|UsbDeviceException|UsbPermisionException|SmartcardReaderException|SmartcardException|ApduException|ApduReplyException mex)
 	{
 		throw mex;
 	}
+	*/
 	finally
 	{
 		// Clear any currently shown toast if any

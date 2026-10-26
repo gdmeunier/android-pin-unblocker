@@ -2213,15 +2213,19 @@ Private Sub btnProceedToUnblock_Click
 		'and what their new PIN code is whatever they chose
 		ToastMessageShow("New PIN was successfully set", Constants.TOAST_DURATION_LONG)
 		
-		DirectUnblockInfoText.Append($"Smartcard ${GetSelectedPINAsName(UserSelectedPinID)} unblocked successfully!"$)
+		DirectUnblockInfoText.Append("Smartcard ")
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append(GetSelectedPINAsName(UserSelectedPinID))
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Append(" unblocked successfully!")
 		
 		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
 		DirectUnblockInfoText.Append($"Your new ${GetSelectedPINAsName(UserSelectedPinID)} code is now "$)
 		DirectUnblockInfoText.Bold
-			DirectUnblockInfoText.Append("the new PIN you provided")
+			DirectUnblockInfoText.Append("the new PIN")
 		DirectUnblockInfoText.Pop
-		DirectUnblockInfoText.Append(".")
+		DirectUnblockInfoText.Append(" you provided.")
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		

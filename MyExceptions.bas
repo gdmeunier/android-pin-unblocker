@@ -81,7 +81,8 @@ End Sub
 
 Public Sub ThrowException(ExceptionType As Int, Message As String)
 	
-	joClass.RunMethod("jThrowException", Array(ExceptionType, Message))
+	'Mark the Exception as being thrown from Basic code (B4X)
+	joClass.RunMethod("jThrowException", Array(ExceptionType, "<B4X> "&Message))
 	
 End Sub
 #If Java
@@ -140,7 +141,7 @@ private static class TemplateException extends Exception
 	public String logs = "";
 	
 	// Empty message storage by default
-	//public String message = "";
+	public String message = "";
 	
 	// Easy fetching of the stacktrace
 	/*
@@ -173,15 +174,10 @@ private static class TemplateException extends Exception
 	@Override
 	public String getMessage()
 	{
-		/*
 		StringBuilder messageBuilder = new StringBuilder(this.message);
 		messageBuilder.append(String.format("\r\n%s", this.logs));
 		
 		return messageBuilder.toString();
-		*/
-		
-		//Perhaps it's better to return just the logs instead
-		return this.logs;
 	}
 	
 	// The constructors must always be public
@@ -189,7 +185,7 @@ private static class TemplateException extends Exception
 	{
 		// Always call the parent Exception class's constructor
 		super(msg);
-		//this.message = msg;
+		this.message = msg;
 		
 		/* Built-in ability to fetch the stacktrace:
 		 *  - In Java, stacktraces are generated when the Exception
@@ -214,7 +210,7 @@ private static class TemplateException extends Exception
 		 * Exception Object parameter
 		 */
 		super(ex.getMessage());
-		//this.message = ex.getMessage();
+		this.message = ex.getMessage();
 		
 		/* Fetch the stacktrace from the existing Exception Object
 		 * provided by the caller, not the live new one we're building
