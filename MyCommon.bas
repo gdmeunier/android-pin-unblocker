@@ -136,30 +136,32 @@ public static void jForceCorrectMonospaceFontDigits(EditText myEditText)
 'For forcing the multiline EditText fields to have
 'the Next action button instead of the Enter one,
 'incase we filter the newlines anyway (e.g. Admin key field)
-Public Sub ForceCorrectEditorActionToNext(MyEditText As EditText)
-	joClass.RunMethod("jForceCorrectEditorActionToNext", Array(MyEditText))
-End Sub
+'Public Sub ForceCorrectEditorActionToNext(MyEditText As EditText)
+'	joClass.RunMethod("jForceCorrectEditorActionToNext", Array(MyEditText))
+'End Sub
 #If Java
+/* ***** **
 import android.widget.EditText;
 import android.os.Build;
 import android.view.inputmethod.EditorInfo;
 public static void jForceCorrectEditorActionToNext(EditText myEditText)
 {
-	/* IME_FLAG_NO_ENTER_ACTION, IME_MASK_ACTION & IME_ACTION_NEXT
-	 * are only available on Android 1.5+ (API level 3+):
-	 *  - Same thing for "setImeActionLabel" (API level 3+)
-	 */
-	if ( Build.VERSION.SDK_INT >= 3 ) /* Android 1.5+ */
+	// IME_FLAG_NO_ENTER_ACTION, IME_MASK_ACTION & IME_ACTION_NEXT
+	// are only available on Android 1.5+ (API level 3+):
+	//  - Same thing for "setImeActionLabel" (API level 3+)
+	//
+	if ( Build.VERSION.SDK_INT >= 3 ) // Android 1.5+
 	{
 		int imeOptions = myEditText.getImeOptions();
 		
+		imeOptions = imeOptions |  EditorInfo.IME_MASK_ACTION | EditorInfo.IME_ACTION_NEXT;
 		imeOptions = imeOptions & ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
-		imeOptions = imeOptions |  EditorInfo.IME_ACTION_NEXT;
 		
 		myEditText.setImeOptions(imeOptions);
 		myEditText.setImeActionLabel("Next", EditorInfo.IME_ACTION_NEXT);
 	}
 }
+** ***** */
 #End If
 
 'For knowing how many lines a text will take if it's wrapped,

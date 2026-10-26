@@ -41,8 +41,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 219
-	#VersionName: 5.15.3
+	#VersionCode: 221
+	#VersionName: 5.15.5
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1772,7 +1772,7 @@ Private Sub InitializeActivityLayout
 	'   but I for sure know that only the Admin Key field,
 	'   actually needs to force-correct its Next keyboard button
 	'
-	Common.ForceCorrectEditorActionToNext(edtAdminKey)
+	'Common.ForceCorrectEditorActionToNext(edtAdminKey)
 	
 	'The new Admin key Lockdown button isn't visible by default
 	'So we make it visible when the Admin Key field isn't already
@@ -2872,25 +2872,19 @@ Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
 	'Direct Unblock process starts
 	'
 	'Allow / Disallow clicking Activity menu items
-	If joActivity <> Null And joActivity.IsInitialized Then
-		'Use joActivity instead of creating a new JavaObject,
-		'if it's already available and initialized
-		joActivity.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
-		
-	Else
-		'This function is also called by ResetViewState,
-		'and ResetViewState gets called early on by the
-		'Activity_Create function before it initializes
-		'the joActivity JavaObject
-		'
-		'In such cases we have to use our own local copy
-		'of a temporary JavaObject (initialized here)
-		Dim TempJavaObject As JavaObject
-		TempJavaObject.InitializeContext
-		
-		TempJavaObject.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
-		
-	End If
+	'
+	' - This function is also called by ResetViewState,
+	'   and ResetViewState gets called early on by the
+	'   Activity_Create function before it initializes
+	'   the joActivity JavaObject
+	'
+	' - In such cases we have to use our own local copy
+	'   of a temporary JavaObject (initialized here)
+	'
+	Dim TempJavaObject As JavaObject
+	TempJavaObject.InitializeContext
+	
+	TempJavaObject.RunMethod("jSetActivityOptionsMenuState", Array(TrueOrFalse))
 	
 End Sub
 
