@@ -359,6 +359,7 @@ public static class SmartcardReader
 				myconverters.jHexStringFromBytes(new byte[] {rsp[rsp.length - 2], rsp[rsp.length - 1]})
 			)
 		);
+		/*
 		apduEx.setSwStatusCode(rsp);
 		
 		if ( rsp[rsp.length - 2]         == (byte)0x63 &&
@@ -371,6 +372,7 @@ public static class SmartcardReader
 		{
 			apduEx.prependLineToLogs("Authentication blocked (6983)");
 		}
+		*/
 		
 		throw apduEx;
 	}

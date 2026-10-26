@@ -1,4 +1,4 @@
-﻿ModuleBookmarks0=3256,49,1340,1083,3465,1475,1777
+﻿ModuleBookmarks0=3257,49,1340,1083,3466,1475,1777
 ModuleBookmarks1=2093,2649,901,664,2263,1056
 ModuleBookmarks10=
 ModuleBookmarks11=
@@ -43,6 +43,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Smartcard,RunInSmartcardOperationThread,737,6,Smartcard,Service_Destroy,784,0,Main,SetUiElementsEnabledState,2844,0,Main,mnuDirectUnblock_Click,3194,6,Main,ResetViewState,1707,0,Main,RestoreViewState,2109,0,Main,Activity_Resume,2033,0,Main,FixMonospaceEditTexts,1951,0,MyCommon,ForceCorrectMonospaceFontDigits,157,0,Main,InitializeActivityLayout,1734,0
+NavigationStack=MyCommon,ForceCorrectMonospaceFontDigits,157,0,Main,InitializeActivityLayout,1734,0,Main,SetUiElementsEnabledState,2788,0,Main,mnuDirectUnblock_Click,3195,6,Main,ResetViewState,1707,1,Main,RestoreViewState,2097,0,MySmartcardReader,Initialize,361,0,Smartcard,RunInSmartcardOperationThread,639,0,Smartcard,Service_Message_Looper,557,0,MyExceptions,ThrowException,142,0
 SelectedBuild=0
 VisibleModules=13,1,14,11,8,3

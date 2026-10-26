@@ -140,13 +140,15 @@ private static class TemplateException extends Exception
 	public String logs = "";
 	
 	// Empty message storage by default
-	public String message = "";
+	//public String message = "";
 	
 	// Easy fetching of the stacktrace
+	/*
 	public String getLogs()
 	{
 		return this.logs;
 	}
+	*/
 	
 	/* For providing more information manually
 	 *
@@ -154,6 +156,7 @@ private static class TemplateException extends Exception
 	 * get additional information in logs if you
 	 * set their additional properties
 	 */
+	/*
 	public void prependLineToLogs(String msg)
 	{
 		StringBuilder logsBuilder = new StringBuilder(this.logs);
@@ -161,6 +164,7 @@ private static class TemplateException extends Exception
 		
 		this.logs = logsBuilder.toString();
 	}
+	*/
 	
 	/* Replace the default exception message fetching
 	 * with an improved version which already has
@@ -169,10 +173,15 @@ private static class TemplateException extends Exception
 	@Override
 	public String getMessage()
 	{
+		/*
 		StringBuilder messageBuilder = new StringBuilder(this.message);
 		messageBuilder.append(String.format("\r\n%s", this.logs));
 		
 		return messageBuilder.toString();
+		*/
+		
+		//Perhaps it's better to return just the logs instead
+		return this.logs;
 	}
 	
 	// The constructors must always be public
@@ -180,7 +189,7 @@ private static class TemplateException extends Exception
 	{
 		// Always call the parent Exception class's constructor
 		super(msg);
-		this.message = msg;
+		//this.message = msg;
 		
 		/* Built-in ability to fetch the stacktrace:
 		 *  - In Java, stacktraces are generated when the Exception
@@ -205,7 +214,7 @@ private static class TemplateException extends Exception
 		 * Exception Object parameter
 		 */
 		super(ex.getMessage());
-		this.message = ex.getMessage();
+		//this.message = ex.getMessage();
 		
 		/* Fetch the stacktrace from the existing Exception Object
 		 * provided by the caller, not the live new one we're building
@@ -267,6 +276,7 @@ public static class NotificationException extends TemplateException
 public static class UsbDeviceException extends TemplateException
 {
 	// Easy way to get name, VID & PID of the device, etc
+	/*
 	private String deviceName  = null;
 	private String vendorID    = null;
 	private String productID   = null;
@@ -313,6 +323,7 @@ public static class UsbDeviceException extends TemplateException
 		
 		return logsBuilder.toString();
 	}
+	*/
 	
 	public UsbDeviceException(String msg)
 	{
@@ -337,6 +348,7 @@ public static class UsbPermisionException extends TemplateException
 public static class SmartcardReaderException extends TemplateException
 {
 	// Easy way to identify which Smartcard reader had a problem
+	/*
 	private String readerName = null;
 	private String readerSlot = null;
 	
@@ -369,6 +381,7 @@ public static class SmartcardReaderException extends TemplateException
 		
 		return logsBuilder.toString();
 	}
+	*/
 	
 	public SmartcardReaderException(String msg)
 	{
@@ -381,6 +394,7 @@ public static class SmartcardReaderException extends TemplateException
 public static class SmartcardException extends TemplateException
 {
 	// Easy way to identify which Smartcard had a problem
+	/*
 	private String atr      = null;
 	private String protocol = null;
 	
@@ -413,6 +427,7 @@ public static class SmartcardException extends TemplateException
 		
 		return logsBuilder.toString();
 	}
+	*/
 	
 	public SmartcardException(String msg)
 	{
@@ -440,6 +455,7 @@ public static class ApduException extends TemplateException
 //
 public static class ApduReplyException extends TemplateException
 {
+	/*
 	private String swStatusCode = null;
 	
 	public void setSwStatusCode(String statusCode)
@@ -470,6 +486,7 @@ public static class ApduReplyException extends TemplateException
 		
 		return logsBuilder.toString();
 	}
+	*/
 	
 	public ApduReplyException(String msg)
 	{

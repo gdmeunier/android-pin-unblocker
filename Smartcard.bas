@@ -550,7 +550,7 @@ Private Sub Service_Message_Looper
 				'The MySmartcardReader class automatically handles APDU
 				'request chaining transparently, so we can just simply
 				'check for a 90 00 status code
-				If Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+				If Not(Failed) And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
 					'
 					'Deliberately throw then catch an Exception,
 					'so that we can have a stacktrace of it

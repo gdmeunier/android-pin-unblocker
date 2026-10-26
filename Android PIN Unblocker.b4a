@@ -41,8 +41,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 221
-	#VersionName: 5.15.5
+	#VersionCode: 223
+	#VersionName: 5.15.7
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2827,13 +2827,6 @@ End Sub
 
 'Helper function
 Private Sub SetUiElementsEnabledState(TrueOrFalse As Boolean)
-	'
-	'Save the last SetUiElementsEnabledState's TrueOrFalse parameter
-	'in the ViewState registers, so that if the screen rotates,
-	'even during direct unblock, the elements still get restored as
-	'the last disabled state that was used in the last function call
-	'
-	ViewState_SetUiElementsEnabledState_TrueOrFalse = TrueOrFalse
 	
 	edtChallenge.Enabled = TrueOrFalse
 	btnScanQR.Enabled    = TrueOrFalse
@@ -3197,8 +3190,14 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'It saves CPU cycles
 	edtChallenge.RequestFocus 'Do it before SetUiElementsEnabledState
 	
+	'Save the last SetUiElementsEnabledState's TrueOrFalse parameter
+	'in the ViewState registers, so that if the screen rotates,
+	'even during direct unblock, the elements still get restored as
+	'the last disabled state that was used in the last function call
+	ViewState_SetUiElementsEnabledState_TrueOrFalse = False
+	
 	'Disable all this Activity's UI elements
-	SetUiElementsEnabledState(False)
+	SetUiElementsEnabledState(ViewState_SetUiElementsEnabledState_TrueOrFalse)
 	
 	'--------------------------------------------------------------------------------
 	'Set the Activity to always keep the screen on during the process
@@ -3230,9 +3229,11 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	'Direct Unblock operation completed (either successfully or failed)
 	DirectUnblockInProgress = False
 	
+	ViewState_SetUiElementsEnabledState_TrueOrFalse = True
+	
 	'Re-enable all this Activity's UI elements
 	'Has built-in checks against re-enabling chkHideAdminKey after locking it down
-	SetUiElementsEnabledState(True)
+	SetUiElementsEnabledState(ViewState_SetUiElementsEnabledState_TrueOrFalse)
 	
 	'Set the Activity back to normal (clear the FLAG_KEEP_SCREEN_ON flag)
 	joActivity.RunMethod("jClearKeepScreenOn", Null)
