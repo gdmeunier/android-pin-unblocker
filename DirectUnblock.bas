@@ -1341,6 +1341,12 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub entry (NewHeight = ${NewHeight}, OldHeight = ${OldHeight})"$, Colors.Blue)
 	
+	If NewHeight == OldHeight Then
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return (early)"$, Colors.Blue)
+		Return
+		
+	End If
+	
 	'I want to remove approx. 16dip of bottom margin
 	'of the ScrollView's internal Panel when the
 	'Android soft keyboard is open, and I restore it
@@ -1348,10 +1354,10 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	'
 	'If the new height is smaller than the Activity's,
 	'then I conclude that the soft keyboard is open
-	If NewHeight < Activity.Height Then
+	If NewHeight < 100%y Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
 		
-	Else If NewHeight >= Activity.Height Then
+	Else If NewHeight >= 100%y Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
 		
 	End If
