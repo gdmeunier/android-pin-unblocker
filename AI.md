@@ -111,10 +111,9 @@ This way nobody accidentally grabs a picture of your *Admin/management key* whil
 
 ![You can click on the QR code button to scan a Request/Challenge code.](/Screenshots/4-scan-qr-request-code.png)
 
-**Android PIN Unblocker** supports the scanning of QR codes using your mobile phone's camera to read the **Request/Challenge code** from a QR code.
+**Android PIN Unblocker** supports the scanning of **QR codes** using your mobile phone's camera to read the **Request/Challenge code** from a *QR code*.
 
-You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).
-
+You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).\
 The decoded *Request/Challenge code* then gets automatically written to the appropriate text field once detected.
 
 It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the vendor-documented PIN-administration workflow more efficiently.
@@ -174,7 +173,7 @@ Whenever you share an **Admin/management key** to the app instead of copy-pastin
 This feature prevents accidental disclosure of your *Admin/management key* while e.g. performing authorized PIN administration on employees' smartcards.
 
 > [!IMPORTANT]
-> Make sure to verify that your Android ROM doesn't have a **clipboard history** feature prior to copy-pasting *Admin keys*, Samsung & Huawei ROMs have one.
+> Make sure to verify that your Android ROM doesn't have a **clipboard history** feature prior to copy-pasting *Admin/management keys*, Samsung & Huawei ROMs have one.
 >
 > If clipboard history cannot be disabled on your phone then *don't use the clipboard at all*, or use a password manager with a built-in secure keyboard (*e.g.* [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version **3.2.0** for older devices).
 
@@ -212,7 +211,7 @@ For the smartcard readers, all brands of smartcard readers are supported, using 
 
 <div style="page-break-after: always;"></div>
 
-## Extended device compatibility `API level 9+`
+## Wide device compatibility `API level 9+`
 
 **Android PIN Unblocker** strives to support the widest range of Android devices.
 

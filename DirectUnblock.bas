@@ -698,12 +698,6 @@ Sub Process_Globals
 	Private DirectUnblockThread     As Thread
 	Private DirectUnblockInProgress As Boolean = False
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	Private AllowProcessingIMEHeightChanged As Boolean = False 'False by default
-	
 End Sub
 
 Sub Globals
@@ -943,12 +937,6 @@ Sub Activity_Create(FirstTime As Boolean)
 	'So the only way to do that properly is to
 	'use Java native code & the _onCreate hook
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	AllowProcessingIMEHeightChanged = False
-	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Load Activity layout"$, Colors.Blue)
 	LoadActivityLayout
 	
@@ -1021,6 +1009,7 @@ Sub Activity_Create(FirstTime As Boolean)
 	'Initialize the Activity's IME Object only after
 	'the Activity layout has been fully initialized
 	imeActivity.Initialize("Activity") 'The "Activity" prefix for e.g. "Activity_HeightChanged"
+	imeActivity.AddHeightChangedEvent  'Must explicitly enable the "HeightChanged" event
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
@@ -1352,15 +1341,6 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub entry (NewHeight = ${NewHeight}, OldHeight = ${OldHeight})"$, Colors.Blue)
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	If Not(AllowProcessingIMEHeightChanged) Then
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return (early because AllowProcessingIMEHeightChanged == False)"$, Colors.Magenta)
-		Return
-	End If
-	
 	'I want to remove approx. 16dip of bottom margin
 	'of the ScrollView's internal Panel when the
 	'Android soft keyboard is open, and I restore it
@@ -1518,12 +1498,6 @@ Sub Activity_Resume
 	LifecycleTracking.ActivityLifecycle = LifecycleTracking.ActivityLifecycle & LifecycleTracking.RESUME
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&LifecycleTracking.ActivityLifecycle, Colors.Blue)
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	AllowProcessingIMEHeightChanged = False
-	
 	'
 	'Moved RestoreViewState further down for security reasons
 	'
@@ -1559,6 +1533,15 @@ Sub Activity_Resume
 	'new PIN texts in app background pause & resume scenarios
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
 	RestoreViewState
+	
+	'This part as always near the end of this function
+	If IsFirstActivityResume Then
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
+		IsFirstActivityResume = False
+		
+	End If
 	
 	'Something to do on app resume (only after restoring ViewState):
 	'Show the new PIN text (using the Visible property)
@@ -1598,32 +1581,6 @@ Sub Activity_Resume
 	'then this will automatically correct Android's obnoxious mistake
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Calling the Hotfix function ForceRestoreCorrectLastFocusedElementState because Android is obnoxious with its default focus management with ScrollViews"$, Constants.COLORS_ORANGE)
 	ForceRestoreCorrectLastFocusedElementState(ViewState_LastFocusedElement)
-	
-	'This part as always near the end of this function
-	If IsFirstActivityResume Then
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
-		
-		'Only enable the "HeightChanged" event in "Activity_Resume",
-		'not in "Activity_Create":
-		'
-		' - Otherwise sharing Admin keys to the application while
-		'   the Android soft keyboard is open,
-		'   from another application such as a text editor,
-		'   will cause the Activity view to be shrunk and unscrollable
-		'
-		imeActivity.AddHeightChangedEvent 'Must explicitly enable the "HeightChanged" event
-		
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
-		IsFirstActivityResume = False
-		
-	End If
-	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	AllowProcessingIMEHeightChanged = True
-	Activity.Invalidate
 	
 	'This part as the very last one of this function
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Blue)
@@ -1970,8 +1927,6 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Setting IsFirstActivityResume to True"$, Colors.Green)
 	IsFirstActivityResume = True
 	
-	AllowProcessingIMEHeightChanged = False
-	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Also setting ViewState_chkHideNewPIN_Enabled to True before finishing this Activity"$, Colors.Green)
 	ViewState_chkHideNewPIN_Enabled = True
 	
@@ -2296,9 +2251,9 @@ Private Sub btnProceedToUnblock_Click
 		
 		DirectUnblockInfoText.Append("Your new ")
 		DirectUnblockInfoText.Bold
-			DirectUnblockInfoText.Append($"${GetSelectedPINAsName(UserSelectedPinID)} code"$)
+			DirectUnblockInfoText.Append($"${GetSelectedPINAsName(UserSelectedPinID)}"$)
 		DirectUnblockInfoText.Pop
-		DirectUnblockInfoText.Append(" is now ")
+		DirectUnblockInfoText.Append(" code is now ")
 		DirectUnblockInfoText.Bold
 			DirectUnblockInfoText.Append("the new PIN")
 		DirectUnblockInfoText.Pop

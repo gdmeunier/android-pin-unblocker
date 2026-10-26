@@ -444,9 +444,6 @@ Sub Service_Start(StartingIntent As Intent)
 		
 	End If
 	
-	'For doing APDU communications in a separate Thread
-	SmartcardMessageThread.Start(Me, "Service_Message_Looper", Null)
-	
 End Sub
 
 'Inter-communication between the Service and Activities:
@@ -455,31 +452,138 @@ End Sub
 '
 Public Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
 	
-	CallSubDelayed3(Me, "Service_Message_Posted", DoWhat, CallerBundle)
+	'For doing APDU communications in a separate Thread
+	SmartcardMessageThread.Start(Me, "Service_Message_Receipt", Array(DoWhat, CallerBundle))
 	
 End Sub
 
-Private Sub Service_Message_Looper
+Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 	
 	Dim Caller       As Object
 	Dim SubName      As String
 	Dim Parameters() As Object
 	
-	Do While True
-		Wait For Service_Message_Posted(DoWhat As Int, CallerBundle() As Object)
+	Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
+	SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
+	Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
+	
+	'Avoid getting potential race condition calls
+	If ActiveOperationInProgress Then
+		'
+		'Deliberately throw then catch an Exception so that
+		'we can have a stacktrace of it
+		'
+		Try
+			Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, "An ongoing Smartcard operation is already in progress")
+			
+		Catch
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+			
+		End Try
 		
-		Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
-		SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
-		Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
+		Return
 		
-		'Avoid getting potential race condition calls
-		If ActiveOperationInProgress Then
-			'
+	End If
+	
+	Select DoWhat
+		'
+		'Need to request notifications permission for "FIND_" & "SEND_" commands
+		'
+		Case FIND_SMARTCARDREADER
+			ActiveOperationInProgress = True
+			
+			RequestNotificationsPermissions
+			Wait For RequestNotificationsPermissions_Finished
+			
+			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
+			
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case FIND_SMARTCARD
+			ActiveOperationInProgress = True
+			
+			RequestNotificationsPermissions
+			Wait For RequestNotificationsPermissions_Finished
+			
+			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
+			
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case GET_ATR
+			ActiveOperationInProgress = True
+			
+			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
+			
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case GET_PROTOCOL
+			ActiveOperationInProgress = True
+			
+			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
+			
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case SEND_APDU
+			ActiveOperationInProgress = True
+			
+			RequestNotificationsPermissions
+			Wait For RequestNotificationsPermissions_Finished
+			
+			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
+			
+			'The MySmartcardReader class automatically handles APDU
+			'request chaining transparently, so we can just simply
+			'check for a 90 00 status code
+			If Not(Failed) And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+				'
+				'Deliberately throw then catch an Exception so that
+				'we can have a stacktrace of it
+				'
+				Try
+					Dim LastReplyAPDU As String = ServiceReply(0).As(String)
+					Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, $"The Smartcard replied with an APDU SW status code that indicates failure (${LastReplyAPDU.SubString(LastReplyAPDU.Length - 4)})"$)
+					
+				Catch
+					Failed       = True
+					ServiceReply = Array As Object(LastException.Message)
+					
+				End Try
+				
+			End If
+			
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+			
+			ActiveOperationInProgress = False
+			Exit
+			
+		Case Else
 			'Deliberately throw then catch an Exception so that
 			'we can have a stacktrace of it
-			'
 			Try
-				Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, "An ongoing Smartcard operation is already in progress")
+				Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, $"An unknown message type ${DoWhat} was sent to this Service"$)
 				
 			Catch
 				'Callers use IsSuccessful instead of e.g. IsFailed
@@ -487,127 +591,9 @@ Private Sub Service_Message_Looper
 				
 			End Try
 			
-			'Skip further processing but don't return, because that would
-			'return the entire function and stop the Smartcard service's
-			'message looper thread
-			'
-			'So we use a "Continue" statement instead of "Return" and that
-			'will jump back to the beginning of the While loop,
-			'thus allowing the "Wait For" statement to be executed again
-			Continue
-			
-		End If
+			Exit
 		
-		Select DoWhat
-			'
-			'Need to request notifications permission for "FIND_" & "SEND_" commands
-			'
-			Case FIND_SMARTCARDREADER
-				ActiveOperationInProgress = True
-				
-				RequestNotificationsPermissions
-				Wait For RequestNotificationsPermissions_Finished
-				
-				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-				
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-				
-				ActiveOperationInProgress = False
-				Exit
-				
-			Case FIND_SMARTCARD
-				ActiveOperationInProgress = True
-				
-				RequestNotificationsPermissions
-				Wait For RequestNotificationsPermissions_Finished
-				
-				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-				
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-				
-				ActiveOperationInProgress = False
-				Exit
-				
-			Case GET_ATR
-				ActiveOperationInProgress = True
-				
-				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-				
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-				
-				ActiveOperationInProgress = False
-				Exit
-				
-			Case GET_PROTOCOL
-				ActiveOperationInProgress = True
-				
-				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-				
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-				
-				ActiveOperationInProgress = False
-				Exit
-				
-			Case SEND_APDU
-				ActiveOperationInProgress = True
-				
-				RequestNotificationsPermissions
-				Wait For RequestNotificationsPermissions_Finished
-				
-				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-				
-				'The MySmartcardReader class automatically handles APDU
-				'request chaining transparently, so we can just simply
-				'check for a 90 00 status code
-				If Not(Failed) And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
-					'
-					'Deliberately throw then catch an Exception so that
-					'we can have a stacktrace of it
-					'
-					Try
-						Dim LastReplyAPDU As String = ServiceReply(0).As(String)
-						Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, $"The Smartcard replied with an APDU SW status code that indicates failure (${LastReplyAPDU.SubString(LastReplyAPDU.Length - 4)})"$)
-						
-					Catch
-						Failed       = True
-						ServiceReply = Array As Object(LastException.Message)
-						
-					End Try
-					
-				End If
-				
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-				
-				ActiveOperationInProgress = False
-				Exit
-				
-			Case Else
-				'Deliberately throw then catch an Exception so that
-				'we can have a stacktrace of it
-				Try
-					Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, $"An unknown message type ${DoWhat} was sent to this Service"$)
-					
-				Catch
-					'Callers use IsSuccessful instead of e.g. IsFailed
-					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
-					
-				End Try
-				
-				Exit
-			
-		End Select
-		
-	Loop
+	End Select
 	
 End Sub
 

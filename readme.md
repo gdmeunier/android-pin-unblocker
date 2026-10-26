@@ -54,10 +54,9 @@ This way nobody accidentally grabs a picture of your *Admin key* while unblockin
 
 ![You can click on the QR code button to scan a Request code.](/Screenshots/4-scan-qr-request-code.png)
 
-**Android PIN Unblocker** supports the scanning of QR codes using your mobile phone's camera to read the **Request code** from a QR code.
+**Android PIN Unblocker** supports the scanning of **QR codes** using your mobile phone's camera to read the **Request code** from a *QR code*.
 
-You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).
-
+You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).\
 The decoded *Request code* then gets automatically written to the appropriate text field once detected.
 
 It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the card unblocking more efficiently.
@@ -155,7 +154,7 @@ For the smartcard readers, all brands of smartcard readers are supported, using 
 
 <div style="page-break-after: always;"></div>
 
-## Extended device compatibility `API level 9+`
+## Wide device compatibility `API level 9+`
 
 **Android PIN Unblocker** strives to support the widest range of Android devices.
 

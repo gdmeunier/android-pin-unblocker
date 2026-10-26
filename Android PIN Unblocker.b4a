@@ -41,8 +41,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 239
-	#VersionName: 5.15.24
+	#VersionCode: 241
+	#VersionName: 5.16.1
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1157,12 +1157,6 @@ Sub Process_Globals
 	Private DirectUnblockInProgress      As Boolean = False
 	Private DirectUnblockLastDialogCount As Int     = 0
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	Private AllowProcessingIMEHeightChanged As Boolean = False 'False by default
-	
 	'
 	'-----
 	'
@@ -1448,12 +1442,6 @@ Sub Activity_Create(FirstTime As Boolean)
 	'So the only way to do that properly is to
 	'use Java native code & the _onCreate hook
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	AllowProcessingIMEHeightChanged = False
-	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Load Activity layout"$, Colors.Blue)
 	LoadActivityLayout
 	
@@ -1545,6 +1533,7 @@ Sub Activity_Create(FirstTime As Boolean)
 	'Initialize the Activity's IME Object only after
 	'the Activity layout has been fully initialized
 	imeActivity.Initialize("Activity") 'The "Activity" prefix for e.g. "Activity_HeightChanged"
+	imeActivity.AddHeightChangedEvent  'Must explicitly enable the "HeightChanged" event
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
@@ -1921,15 +1910,6 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub entry (NewHeight = ${NewHeight}, OldHeight = ${OldHeight})"$, Colors.Blue)
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	If Not(AllowProcessingIMEHeightChanged) Then
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return (early because AllowProcessingIMEHeightChanged == False)"$, Colors.Magenta)
-		Return
-	End If
-	
 	'I want to remove approx. 16dip of bottom margin
 	'of the ScrollView's internal Panel when the
 	'Android soft keyboard is open, and I restore it
@@ -2097,12 +2077,6 @@ Sub Activity_Resume
 	LifecycleTracking.ActivityLifecycle = LifecycleTracking.ActivityLifecycle & LifecycleTracking.RESUME
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&LifecycleTracking.ActivityLifecycle, Colors.Blue)
 	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	AllowProcessingIMEHeightChanged = False
-	
 	'
 	'Moved RestoreViewState further down for security reasons
 	'
@@ -2182,6 +2156,15 @@ Sub Activity_Resume
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Restore ViewState"$, Colors.Blue)
 	RestoreViewState
 	
+	'This part as always near the end of this function
+	If IsFirstApplicationResume Then
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
+		IsFirstApplicationResume = False
+		
+	End If
+	
 	'Something to do on app resume (only after restoring ViewState):
 	'Show the Admin key text (using the Visible property)
 	'
@@ -2223,32 +2206,6 @@ Sub Activity_Resume
 	'then this will automatically correct Android's obnoxious mistake
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Calling the Hotfix function ForceRestoreCorrectLastFocusedElementState because Android is obnoxious with its default focus management with ScrollViews"$, Constants.COLORS_ORANGE)
 	ForceRestoreCorrectLastFocusedElementState(ViewState_LastFocusedElement)
-	
-	'This part as always near the end of this function
-	If IsFirstApplicationResume Then
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
-		
-		'Only enable the "HeightChanged" event in "Activity_Resume",
-		'not in "Activity_Create":
-		'
-		' - Otherwise sharing Admin keys to the application while
-		'   the Android soft keyboard is open,
-		'   from another application such as a text editor,
-		'   will cause the Activity view to be shrunk and unscrollable
-		'
-		imeActivity.AddHeightChangedEvent 'Must explicitly enable the "HeightChanged" event
-		
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
-		IsFirstApplicationResume = False
-		
-	End If
-	
-	'For being able to correct ViewPort issues
-	'with the Activity View when you share
-	'Admin key texts to the application
-	'while the soft keyboard is already open
-	AllowProcessingIMEHeightChanged = True
-	Activity.Invalidate
 	
 	'This part as the very last one of this function
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Blue)
@@ -2850,7 +2807,6 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 	DirectUnblockLastDialogCount    = 0
 	IsFirstApplicationResume        = True
 	DirectUnblockInProgress         = False
-	AllowProcessingIMEHeightChanged = False
 	
 	'12. Lockdown state (security-critical)
 	'
@@ -3164,10 +3120,10 @@ Private Sub mnuDirectUnblock_Click
 			DirectUnblockInfoText.Color(Colors.Yellow)
 				DirectUnblockInfoText.RelativeSize(0.9)
 					DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception carefully and don't retry to unblock the same card with this app again.")
+					'Leave some whitespace after the small informational notice
+					DirectUnblockInfoText.Append(CRLF)
 				DirectUnblockInfoText.Pop
 			DirectUnblockInfoText.Pop
-			'Leave some whitespace after the small informational notice
-			DirectUnblockInfoText.Append(CRLF)
 			
 		Else
 			DirectUnblockInfoText.Append("Direct unblocking of smartcard PINs requires a device with USB-OTG support but your device claimed that it doesn't support it.")
@@ -3204,7 +3160,7 @@ Private Sub mnuDirectUnblock_Click
 		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
 		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
-		DirectUnblockInfoText.Append("Enter a dummy challenge code that matches the challenge length for your card in the challenge field.")
+		DirectUnblockInfoText.Append("Enter a dummy challenge code that matches the challenge length of your card in the challenge field.")
 		
 		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
@@ -3227,7 +3183,7 @@ Private Sub mnuDirectUnblock_Click
 		DirectUnblockInfoText.RelativeSize(0.9)
 			DirectUnblockInfoText.Append("16 bytes (32 characters)")
 			DirectUnblockInfoText.Append(CRLF & CRLF)
-			DirectUnblockInfoText.Append("0000 0000 0000 0000 0000 0000 0000 0000")
+			DirectUnblockInfoText.Append("0000 0000 0000 0000"&CRLF&"0000 0000 0000 0000")
 		DirectUnblockInfoText.Pop
 		
 		DirectUnblockInfoText.Append(CRLF & CRLF)
@@ -3240,9 +3196,9 @@ Private Sub mnuDirectUnblock_Click
 		
 		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
-		DirectUnblockInfoText.Append("The Admin key that will be used is the one written ")
+		DirectUnblockInfoText.Append("The Admin key that will be used is the one written in the ")
 		DirectUnblockInfoText.Bold
-			DirectUnblockInfoText.Append("in the Admin Key field")
+			DirectUnblockInfoText.Append("Admin Key field")
 		DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Append(".")
 		
@@ -3337,10 +3293,10 @@ Unblock algorithm is undetermined"$, Constants.TOAST_DURATION_SHORT)
 		DirectUnblockInfoText.Color(Colors.Yellow)
 			DirectUnblockInfoText.RelativeSize(0.9)
 				DirectUnblockInfoText.Append("Clicking on Confirm Information will initialize the Direct Unblock process.")
+				'Leave some whitespace after the small informational notice
+				DirectUnblockInfoText.Append(CRLF)
 			DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Pop
-		'Leave some whitespace after the small informational notice
-		DirectUnblockInfoText.Append(CRLF)
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Confirm Information", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
@@ -3398,10 +3354,10 @@ You decided to cancel the unblock"$, Constants.TOAST_DURATION_SHORT)
 		DirectUnblockInfoText.Color(Colors.Yellow)
 			DirectUnblockInfoText.RelativeSize(0.9)
 				DirectUnblockInfoText.Append("Clicking on Use Default Key will initialize the Direct Unblock process.")
+				'Leave some whitespace after the small informational notice
+				DirectUnblockInfoText.Append(CRLF)
 			DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Pop
-		'Leave some whitespace after the small informational notice
-		DirectUnblockInfoText.Append(CRLF)
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Use Default Key", "Cancel", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
@@ -3961,7 +3917,7 @@ Private Sub btnScanQR_Click
 	'Required on Android 6.0+
 	'Has no effect on older Android versions
 	Dim RuntimePerms As RuntimePermissions
-
+	
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Checking if we have the Camera runtime permission"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This is required on Android 6.0+ devices"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This check will always return True on older Android versions"$, Colors.Blue)
