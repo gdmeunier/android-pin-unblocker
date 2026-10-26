@@ -57,7 +57,6 @@ private WindowManager     cachedSystemWindowService      = null;
 //
 // Class methods (generic helpers methods)
 //
-/* ***** Not shipping this code yet (I need to test it first) ***** *
 import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
@@ -266,7 +265,6 @@ public int jGetDisplayOrientation(Context ctx)
 	
 	return displayOrientation;
 }
- * ***** ---------------------------------------------------- ***** */
 
 import android.content.Context;
 import android.app.Activity;

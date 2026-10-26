@@ -85,7 +85,7 @@ Public Sub ThrowException(ExceptionType As Int, Message As String)
 	
 End Sub
 #If Java
-public static void jThrowException(final int exceptionType, final String message) throws GenericException, CameraException, ThreadException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException
+public static void jThrowException(final int exceptionType, final String message) throws GenericException, CameraException, ThreadException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException, ConversionException
 {
 	switch(exceptionType)
 	{
@@ -134,7 +134,7 @@ public static void jThrowException(final int exceptionType, final String message
  */
 import java.io.StringWriter;
 import java.io.PrintWriter;
-public static class GenericException extends Exception
+private static class TemplateException extends Exception
 {
 	// Empty logs by default
 	public String logs = "";
@@ -176,7 +176,7 @@ public static class GenericException extends Exception
 	}
 	
 	// The constructors must always be public
-	public GenericException(String msg)
+	public TemplateException(String msg)
 	{
 		// Always call the parent Exception class's constructor
 		super(msg);
@@ -199,7 +199,7 @@ public static class GenericException extends Exception
 	 * Android Exception to this better Exception type
 	 */
 	// The constructor must always be public though
-	public GenericException(Exception ex)
+	public TemplateException(Exception ex)
 	{
 		/* Get the Exception message from the provided
 		 * Exception Object parameter
@@ -218,9 +218,20 @@ public static class GenericException extends Exception
 }
 
 //
+// Generic Exceptions
+//
+public static class GenericException extends TemplateException
+{
+	public GenericException(String msg)
+	{
+		super(msg);
+	}
+}
+
+//
 // Camera Exceptions (e.g. QR code scanner)
 //
-public static class CameraException extends GenericException
+public static class CameraException extends TemplateException
 {
 	public CameraException(String msg)
 	{
@@ -231,7 +242,7 @@ public static class CameraException extends GenericException
 //
 // Thread Exceptions (multi-threading)
 //
-public static class ThreadException extends GenericException
+public static class ThreadException extends TemplateException
 {
 	public ThreadException(String msg)
 	{
@@ -242,7 +253,7 @@ public static class ThreadException extends GenericException
 //
 // Notification Exceptions (NotificationManager, NotificationChannel...)
 //
-public static class NotificationException extends GenericException
+public static class NotificationException extends TemplateException
 {
 	public NotificationException(String msg)
 	{
@@ -253,7 +264,7 @@ public static class NotificationException extends GenericException
 //
 // USB device Exceptions (e.g. Smartcard reader)
 //
-public static class UsbDeviceException extends GenericException
+public static class UsbDeviceException extends TemplateException
 {
 	// Easy way to get name, VID & PID of the device, etc
 	private String deviceName  = null;
@@ -312,7 +323,7 @@ public static class UsbDeviceException extends GenericException
 //
 // USB Permission Exceptions
 //
-public static class UsbPermisionException extends GenericException
+public static class UsbPermisionException extends TemplateException
 {
 	public UsbPermisionException(String msg)
 	{
@@ -323,7 +334,7 @@ public static class UsbPermisionException extends GenericException
 //
 // Smartcard reader Exceptions
 //
-public static class SmartcardReaderException extends GenericException
+public static class SmartcardReaderException extends TemplateException
 {
 	// Easy way to identify which Smartcard reader had a problem
 	private String readerName = null;
@@ -367,7 +378,7 @@ public static class SmartcardReaderException extends GenericException
 //
 // Smartcard Exceptions (Smartcard, eg. command timed out etc)
 //
-public static class SmartcardException extends GenericException
+public static class SmartcardException extends TemplateException
 {
 	// Easy way to identify which Smartcard had a problem
 	private String atr      = null;
@@ -412,7 +423,7 @@ public static class SmartcardException extends GenericException
 //
 // APDU Exceptions (the APDU itself)
 //
-public static class ApduException extends GenericException
+public static class ApduException extends TemplateException
 {
 	//
 	// Never allow outputting what the APDU was
@@ -427,7 +438,7 @@ public static class ApduException extends GenericException
 //
 // APDU reply Exceptions (reply only, e.g. non-9000 SW code)
 //
-public static class ApduReplyException extends GenericException
+public static class ApduReplyException extends TemplateException
 {
 	private String swStatusCode = null;
 	
@@ -469,7 +480,7 @@ public static class ApduReplyException extends GenericException
 //
 // Hashing Exceptions
 //
-public static class HashingException extends GenericException
+public static class HashingException extends TemplateException
 {
 	public HashingException(String msg)
 	{
@@ -480,7 +491,7 @@ public static class HashingException extends GenericException
 //
 // Encryption Exceptions (encryption, decryption...)
 //
-public static class EncryptionException extends GenericException
+public static class EncryptionException extends TemplateException
 {
 	public EncryptionException(String msg)
 	{
@@ -491,7 +502,7 @@ public static class EncryptionException extends GenericException
 //
 // Conversion Exceptions (Converting numbers to String or Hex, etc...)
 //
-public static class ConversionException extends GenericException
+public static class ConversionException extends TemplateException
 {
 	public ConversionException(String msg)
 	{

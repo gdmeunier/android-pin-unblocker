@@ -154,7 +154,7 @@ public static void jForceCorrectEditorActionToNext(EditText myEditText)
 		int imeOptions = myEditText.getImeOptions();
 		
 		imeOptions = imeOptions & ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
-		imeOptions = imeOptions |  EditorInfo.IME_MASK_ACTION | EditorInfo.IME_ACTION_NEXT;
+		imeOptions = imeOptions |  EditorInfo.IME_ACTION_NEXT;
 		
 		myEditText.setImeOptions(imeOptions);
 		myEditText.setImeActionLabel("Next", EditorInfo.IME_ACTION_NEXT);

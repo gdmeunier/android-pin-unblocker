@@ -192,6 +192,7 @@ Sub Process_Globals
 	Private joService As JavaObject
 	
 	'For doing APDU communications in a separate thread
+	Private SmartcardMessageThread   As Thread
 	Private SmartcardOperationThread As Thread
 	
 	'List of possible Service messaging values
@@ -220,21 +221,22 @@ Sub Process_Globals
 	'duplicate Service_Start calls from Android
 	Private ServiceAlreadyStarted As Boolean = False
 	
-	'To avoid repeating the same Strings multiple times
-	Private Const THREAD_START_FAILED            As String = "Failed to start the Smartcard operation thread"
-	Private Const THREAD_TERMINATED_UNEXPECTEDLY As String = "The Smartcard operated thread started correctly then terminated unexpectedly"
-	
+End Sub
+
+Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Nothing to do here
+	'
 End Sub
 
 Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
 	'Better Thread exception handling for the Smartcard service
 	'
 	'Only the Smartcard service currently needs this method of
 	'handling Thread exceptions (such as noClassDefFoundError)
-	'
 	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
-		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", SmartcardOperationThread.Error, Null)
+		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", Failed, Array As Object(SmartcardOperationThread.Error))
+		
 	End If
 	
 End Sub
@@ -268,6 +270,7 @@ Sub Service_Create
 	joService.RunMethod("jService_Create", Null)
 	
 	'For doing APDU communications in a separate thread
+	SmartcardMessageThread.Initialize("SmartcardMessageThread")
 	SmartcardOperationThread.Initialize("SmartcardOperationThread")
 	
 End Sub
@@ -440,144 +443,167 @@ Sub Service_Start(StartingIntent As Intent)
 		
 	End If
 	
+	'For doing APDU communications in a separate Thread
+	SmartcardMessageThread.Start(Me, "Service_Message_Looper", Null)
+	
 End Sub
 
 'Inter-communication between the Service and Activities:
 ' - It's for letting this Service receive messages from
 '   this application's Activities to this Service only
 '
-Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
+Public Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
+	
+	CallSubDelayed3(Me, "Service_Message_Posted", DoWhat, CallerBundle)
+	
+End Sub
+
+Private Sub Service_Message_Looper
+	
 	Dim Caller       As Object
 	Dim SubName      As String
 	Dim Parameters() As Object
 	
-	Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
-	SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
-	Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
-	
-	'Avoid getting potential race condition calls
-	If ActiveOperationInProgress Then
-		CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object("An ongoing Smartcard operation is already in progress"))
-		Return
+	Do While True
+		Wait For Service_Message_Posted(DoWhat As Int, CallerBundle() As Object)
 		
-	End If
-	
-	Select DoWhat
-		'
-		'Need to request notifications permission for "FIND_" & "SEND_" commands
-		'
-		Case FIND_SMARTCARDREADER
-		Case FIND_SMARTCARD
-			ActiveOperationInProgress = True
+		Caller     = CallerBundle(0) 'CallerBundle(0) = Caller     - Object
+		SubName    = CallerBundle(1) 'CallerBundle(1) = SubName    - String
+		Parameters = CallerBundle(2) 'CallerBundle(2) = Parameters - Object()
+		
+		'Avoid getting potential race condition calls
+		If ActiveOperationInProgress Then
+			'Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object("An ongoing Smartcard operation is already in progress"))
 			
-			RequestNotificationsPermissions
-			Wait For RequestNotificationsPermissions_Finished
+			Return
 			
-			Try
-				Try
-					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Catch
-					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_START_FAILED)
-				End Try
+		End If
+		
+		Select DoWhat
+			'
+			'Need to request notifications permission for "FIND_" & "SEND_" commands
+			'
+			Case FIND_SMARTCARDREADER
+				ActiveOperationInProgress = True
 				
-				Wait For RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
+				RequestNotificationsPermissions
+				Wait For RequestNotificationsPermissions_Finished
 				
-				If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
-					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_TERMINATED_UNEXPECTEDLY)
-				End If
+				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
 				
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
 				
-			Catch
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				ActiveOperationInProgress = False
+				Exit
 				
-			End Try
-			
-			ActiveOperationInProgress = False
-			Exit
-			
-		Case GET_ATR
-		Case GET_PROTOCOL
-			ActiveOperationInProgress = True
-			
-			Try
-				Try
-					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Catch
-					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_START_FAILED)
-				End Try
+			Case FIND_SMARTCARD
+				ActiveOperationInProgress = True
 				
-				Wait For RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
+				RequestNotificationsPermissions
+				Wait For RequestNotificationsPermissions_Finished
 				
-				If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
-					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_TERMINATED_UNEXPECTEDLY)
-				End If
+				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
 				
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
 				
-			Catch
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				ActiveOperationInProgress = False
+				Exit
 				
-			End Try
-			
-			ActiveOperationInProgress = False
-			Exit
-			
-		Case SEND_APDU
-			ActiveOperationInProgress = True
-			
-			RequestNotificationsPermissions
-			Wait For RequestNotificationsPermissions_Finished
-			
-			Try
-				Try
-					SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-				Catch
-					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_START_FAILED)
-				End Try
+			Case GET_ATR
+				ActiveOperationInProgress = True
 				
-				Wait For RunInSmartcardOperationThread_Completed(ExceptionIfAny As String, ServiceReply() As Object)
+				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
 				
-				If ExceptionIfAny <> Null And ExceptionIfAny <> "" Then
-					Exceptions.ThrowException(Exceptions.EXCEPTION_THREAD, THREAD_TERMINATED_UNEXPECTEDLY)
-				End If
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+				
+				ActiveOperationInProgress = False
+				Exit
+				
+			Case GET_PROTOCOL
+				ActiveOperationInProgress = True
+				
+				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
+				
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
+				
+				ActiveOperationInProgress = False
+				Exit
+				
+			Case SEND_APDU
+				ActiveOperationInProgress = True
+				
+				RequestNotificationsPermissions
+				Wait For RequestNotificationsPermissions_Finished
+				
+				SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+				Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
 				
 				'The MySmartcardReader class automatically handles APDU
 				'request chaining transparently, so we can just simply
 				'check for a 90 00 status code
 				If Not(ServiceReply(0).As(String).EndsWith("9000")) Then
-					Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, "The Smartcard replied with an APDU SW status code that indicates failure")
+					'
+					'Deliberately throw then catch an Exception,
+					'so that we can have a stacktrace of it
+					'
+					Try
+						Dim LastReplyAPDU As String = ServiceReply(0).As(String)
+						Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, $"The Smartcard replied with an APDU SW status code that indicates failure (${LastReplyAPDU.SubString(LastReplyAPDU.Length - 4)})"$)
+						
+					Catch
+						Failed       = True
+						ServiceReply = Array As Object(LastException.Message)
+						
+					End Try
+					
 				End If
 				
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", True, ServiceReply)
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
 				
-			Catch
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				ActiveOperationInProgress = False
+				Exit
 				
-			End Try
+			Case Else
+				
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"An unknown message type ${DoWhat} was sent to this Service"$))
+				
+				Exit
 			
-			ActiveOperationInProgress = False
-			Exit
-			
-		Case Else
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"An unknown message type ${DoWhat} was sent to this Service"$))
-			Exit
-			
-	End Select
+		End Select
+		
+	Loop
 	
 End Sub
 
 'Helper functions for updating areNotificationsAllowed
 'which is used by Java native code
 Private Sub RequestNotificationsPermissions
+	
+	'Return immediately and let the function with
+	'the _DelayedSub suffix do the job
+	CallSubDelayed(Me, "RequestNotificationsPermissions_DelayedSub")
+	
+End Sub
+
+Private Sub RequestNotificationsPermissions_DelayedSub
+	
 	'Check that the Main Activity isn't paused already
 	'
 	'If it's paused then that means we were already
 	'able to call it before during the Direct Unblock
 	'introducy message, so no need to redo it again then
-	'
 	If Not(IsPaused(Main)) Then
-		'
 		'Android 13+ only (API level 33+):
 		' - Request the ability to post notifications
 		' - It's not a problem if the user denies it though
@@ -589,7 +615,7 @@ Private Sub RequestNotificationsPermissions
 		
 	End If
 	
-	CallSub(Me, "RequestNotificationsPermissions_Finished")
+	CallSubDelayed(Me, "RequestNotificationsPermissions_Finished")
 	
 End Sub
 
@@ -619,20 +645,20 @@ public void jSetNotificationsAllowed(final boolean isAllowed)
 'to make USB permission prompts instantaneous
 Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 	
-	'Default initial values just incase
-	Dim ExceptionIfAny As String = ""
-	Dim ServiceReply() As Object = Array As Object(ExceptionIfAny)
+	Dim Failed         As Boolean = False
+	Dim ServiceReply() As Object  = Array As Object(Null)
 	
 	Try
+		'This part will cause Exception if necessary
 		ServiceReply = joService.RunMethod("jRunInSmartcardOperationThread", Array(DoWhat, Parameters))
 		
 	Catch
-		ExceptionIfAny = LastException.Message
-		ServiceReply   = Array As Object(ExceptionIfAny)
+		Failed       = True
+		ServiceReply = Array As Object(LastException.Message)
 		
 	End Try
 	
-	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", ExceptionIfAny, ServiceReply)
+	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", Failed, ServiceReply)
 	
 End Sub
 #If Java
@@ -722,6 +748,10 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 				throw new GenericException("You requested a message type that this Service does not know nor support");
 		}
 	}
+	catch (GenericException|NotificationException|UsbDeviceException|UsbPermisionException|SmartcardReaderException|SmartcardException|ApduException|ApduReplyException mex)
+	{
+		throw mex;
+	}
 	finally
 	{
 		// Clear any currently shown toast if any
@@ -763,6 +793,10 @@ Sub Service_Destroy
 	End If
 	
 	joService.RunMethod("jService_Destroy", Null)
+	
+	If Not(SmartcardMessageThread.IsInterrupted) Then
+		SmartcardMessageThread.Interrupt
+	End If
 	
 	If Not(SmartcardOperationThread.IsInterrupted) Then
 		SmartcardOperationThread.Interrupt

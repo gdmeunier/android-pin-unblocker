@@ -71,7 +71,6 @@ public void jClearKeepScreenOn()
 //
 // Tablet device & landscape orientation detection
 //
-/* ***** Not shipping this code yet (I need to test it first) ***** *
 public boolean jIsTabletDevice()
 {
 	return myadvancedInstance.jIsTabletDevice(this);
@@ -83,7 +82,6 @@ public int jGetDisplayOrientation()
 {
 	return myadvancedInstance.jGetDisplayOrientation(this);
 }
- * ***** ---------------------------------------------------- ***** */
 #End If
 
 #If Java
@@ -1352,8 +1350,10 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	'then I conclude that the soft keyboard is open
 	If NewHeight < Activity.Height Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
-	Else If NewHeight > Activity.Height Then
+		
+	Else If NewHeight >= Activity.Height Then
 		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
+		
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Fixing the height of the Activity's ScrollView..."$, Colors.Blue)
@@ -2227,7 +2227,9 @@ Private Sub btnProceedToUnblock_Click
 		
 	Else
 		DirectUnblockInfoText.Color(Colors.Yellow)
-			DirectUnblockInfoText.Append("There was a problem while performing the Direct Unblock process.")
+			DirectUnblockInfoText.RelativeSize(0.9)
+				DirectUnblockInfoText.Append("There was a problem while performing the Direct Unblock process.")
+			DirectUnblockInfoText.Pop
 		DirectUnblockInfoText.Pop
 		
 		DirectUnblockInfoText.Append(CRLF & CRLF)
@@ -2235,30 +2237,33 @@ Private Sub btnProceedToUnblock_Click
 		DirectUnblockInfoText.Bold
 			DirectUnblockInfoText.Append("Exception Details"&CRLF)
 		DirectUnblockInfoText.Pop
-		DirectUnblockInfoText.Clickable("CopyLogHyperlink", ErrorIfAny)
-			DirectUnblockInfoText.Append("Copy Log")
-		DirectUnblockInfoText.Pop
-		
-		DirectUnblockInfoText.Append(CRLF & CRLF)
-		
 		DirectUnblockInfoText.RelativeSize(0.9)
 			DirectUnblockInfoText.Append(ErrorIfAny)
 		DirectUnblockInfoText.Pop
 		
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		'Positive = "Copy & Close"
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Copy & Close", Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		Wait For Msgbox_Result(Result As Int)
+		
+		If Result == DialogResponse.POSITIVE Then
+			Dim Clipboard As BClipboard
+			Clipboard.setText(ErrorIfAny)
+			
+			If Clipboard.getText == ErrorIfAny Then
+				ToastMessageShow("Log copied to clipboard", Constants.TOAST_DURATION_SHORT)
+			Else
+				ToastMessageShow("Failed to copy log to clipboard", Constants.TOAST_DURATION_SHORT)
+			End If
+			
+		End If
+		
+		Return
 		
 	End If
 	
 	Wait For Msgbox_Result(Result As Int)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Sub return"$, Colors.Blue)
-End Sub
-
-Private Sub CopyLogHyperlink_Click(Logs As Object)
-	
-	Dim Clipboard As BClipboard
-	Clipboard.setText(Logs)
-	
 End Sub
 
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)

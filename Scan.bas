@@ -58,7 +58,6 @@ public boolean jDeviceHasFrontCamera()
 //
 // Tablet device & landscape orientation detection
 //
-/* ***** Not shipping this code yet (I need to test it first) ***** *
 public boolean jIsTabletDevice()
 {
 	return myadvancedInstance.jIsTabletDevice(this);
@@ -70,7 +69,6 @@ public int jGetDisplayOrientation()
 {
 	return myadvancedInstance.jGetDisplayOrientation(this);
 }
- * ***** ---------------------------------------------------- ***** */
 #End If
 
 #If Java
