@@ -34,33 +34,35 @@ Sub Class_Globals
 	'
 	'Exception types that can be thown below
 	'
-	Public Const EXCEPTION_GENERIC         As Int = 0x01
-	Public Const EXCEPTION_CAMERA          As Int = 0x02
-	Public Const EXCEPTION_THREAD          As Int = 0x03
-	Public Const EXCEPTION_NOTIFICATION    As Int = 0x04
-	Public Const EXCEPTION_USBDEVICE       As Int = 0x05
-	Public Const EXCEPTION_USBPERMISSION   As Int = 0x06
-	Public Const EXCEPTION_SMARTCARDREADER As Int = 0x07
-	Public Const EXCEPTION_SMARTCARD       As Int = 0x08
-	Public Const EXCEPTION_APDU            As Int = 0x09
-	Public Const EXCEPTION_APDUREPLY       As Int = 0x0A
-	Public Const EXCEPTION_HASHING         As Int = 0x0B
-	Public Const EXCEPTION_ENCRYPTION      As Int = 0x0C
-	Public Const EXCEPTION_CONVERSION      As Int = 0x0D
+	Public Const EXCEPTION_GENERIC            As Int = 0x01
+	Public Const EXCEPTION_CAMERA             As Int = 0x02
+	Public Const EXCEPTION_THREAD             As Int = 0x03
+	Public Const EXCEPTION_SMARTCARDOPERATION As Int = 0x04
+	Public Const EXCEPTION_NOTIFICATION       As Int = 0x05
+	Public Const EXCEPTION_USBDEVICE          As Int = 0x06
+	Public Const EXCEPTION_USBPERMISSION      As Int = 0x07
+	Public Const EXCEPTION_SMARTCARDREADER    As Int = 0x08
+	Public Const EXCEPTION_SMARTCARD          As Int = 0x09
+	Public Const EXCEPTION_APDU               As Int = 0x0A
+	Public Const EXCEPTION_APDUREPLY          As Int = 0x0B
+	Public Const EXCEPTION_HASHING            As Int = 0x0C
+	Public Const EXCEPTION_ENCRYPTION         As Int = 0x0D
+	Public Const EXCEPTION_CONVERSION         As Int = 0x0E
 	#If Java
-	public static final int EXCEPTION_GENERIC         = 0x01;
-	public static final int EXCEPTION_CAMERA          = 0x02;
-	public static final int EXCEPTION_THREAD          = 0x03;
-	public static final int EXCEPTION_NOTIFICATION    = 0x04;
-	public static final int EXCEPTION_USBDEVICE       = 0x05;
-	public static final int EXCEPTION_USBPERMISSION   = 0x06;
-	public static final int EXCEPTION_SMARTCARDREADER = 0x07;
-	public static final int EXCEPTION_SMARTCARD       = 0x08;
-	public static final int EXCEPTION_APDU            = 0x09;
-	public static final int EXCEPTION_APDUREPLY       = 0x0A;
-	public static final int EXCEPTION_HASHING         = 0x0B;
-	public static final int EXCEPTION_ENCRYPTION      = 0x0C;
-	public static final int EXCEPTION_CONVERSION      = 0x0D;
+	public static final int EXCEPTION_GENERIC            = 0x01;
+	public static final int EXCEPTION_CAMERA             = 0x02;
+	public static final int EXCEPTION_THREAD             = 0x03;
+	public static final int EXCEPTION_SMARTCARDOPERATION = 0x04;
+	public static final int EXCEPTION_NOTIFICATION       = 0x05;
+	public static final int EXCEPTION_USBDEVICE          = 0x06;
+	public static final int EXCEPTION_USBPERMISSION      = 0x07;
+	public static final int EXCEPTION_SMARTCARDREADER    = 0x08;
+	public static final int EXCEPTION_SMARTCARD          = 0x09;
+	public static final int EXCEPTION_APDU               = 0x0A;
+	public static final int EXCEPTION_APDUREPLY          = 0x0B;
+	public static final int EXCEPTION_HASHING            = 0x0C;
+	public static final int EXCEPTION_ENCRYPTION         = 0x0D;
+	public static final int EXCEPTION_CONVERSION         = 0x0E;
 	#End If
 	
 End Sub
@@ -86,7 +88,7 @@ Public Sub ThrowException(ExceptionType As Int, Message As String)
 	
 End Sub
 #If Java
-public static void jThrowException(final int exceptionType, final String message) throws GenericException, CameraException, ThreadException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException, ConversionException
+public static void jThrowException(final int exceptionType, final String message) throws GenericException, CameraException, ThreadException, SmartcardOperationException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException, ConversionException
 {
 	switch(exceptionType)
 	{
@@ -96,6 +98,8 @@ public static void jThrowException(final int exceptionType, final String message
 			throw new CameraException(message);
 		case EXCEPTION_THREAD:
 			throw new ThreadException(message);
+		case EXCEPTION_SMARTCARDOPERATION:
+			throw new SmartcardOperationException(message);
 		case EXCEPTION_NOTIFICATION:
 			throw new NotificationException(message);
 		case EXCEPTION_USBDEVICE:
@@ -250,6 +254,17 @@ public static class CameraException extends TemplateException
 public static class ThreadException extends TemplateException
 {
 	public ThreadException(String msg)
+	{
+		super(msg);
+	}
+}
+
+//
+// Smartcard operation Exceptions (Smartcard service)
+//
+public static class SmartcardOperationException extends TemplateException
+{
+	public SmartcardOperationException(String msg)
 	{
 		super(msg);
 	}

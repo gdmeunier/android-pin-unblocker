@@ -17,7 +17,7 @@ It is **not** for bypassing access controls, and it must not be used for cards o
 
 The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.
 
-Real secure smartcards are the ones such as the Gemalto IDPrime 930, GIDS, Javacards *[...]*.
+Real secure smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, GIDS, Javacards *[...]*.
 Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
 <div style="page-break-after: always;"></div>
@@ -78,13 +78,8 @@ For resetting the PIN of the card (entering the generated **Response value** com
 **Android PIN Unblocker** has a very simple set of features; it can compute the **Response value** (sometimes referred to as an unblock/unlock value in the context of vendor-documented PIN administration) with your own legally supplied **Admin/management key**, read the **Request/Challenge value** from a QR code, and generate hashes using **SHA-256** or **SHA-512**.
 
 > [!TIP]
-> **Android PIN Unblocker** now also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
-> 
-> Both chip-based **smartcards** and USB **tokens** are supported (currently Gemalto & HID smartcards / tokens).\
-> You can either connect over USB-OTG a USB *token* directly, or connect a smartcard reader then insert a chip-based *smartcard* in the reader.
-> 
-> **GIDS** applets for **Javacard** are also supported, albeit they haven't been formally tested in real conditions.\
-> *Nonetheless, the GIDS support code should work fine as it's based on real APDU communication logs from a Javacard simulator with a real GIDS applet.*
+> This application also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
+> Both chip-based **smartcards** and USB **tokens** are supported.
 
 <div style="page-break-after: always;"></div>
 
@@ -114,14 +109,15 @@ This way nobody accidentally grabs a picture of your *Admin/management key* whil
 
 ## Scan QR code for Request/Challenge code
 
-I added the ability to scan QR codes in **Android PIN Unblocker** using the below Basic4Android library:
-- [NewQRCodeReaderView](https://www.b4x.com/android/forum/threads/qrcodereaderview-new-release.82265/post-523013)
-
 ![You can click on the QR code button to scan a Request/Challenge code.](/Screenshots/4-scan-qr-request-code.png)
 
-It's used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the vendor-documented PIN-administration workflow more efficiently.
+**Android PIN Unblocker** supports the scanning of QR codes using your mobile phone's camera to read the **Request/Challenge code** from a QR code.
 
-The **Request/Challenge code** then gets automatically input in the appropriate field once detected.
+You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).
+
+The decoded *Request/Challenge code* then gets automatically written to the appropriate text field once detected.
+
+It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the vendor-documented PIN-administration workflow more efficiently.
 
 <div style="page-break-after: always;"></div>
 
@@ -177,7 +173,7 @@ Whenever you share an **Admin/management key** to the app instead of copy-pastin
 
 This feature prevents accidental disclosure of your *Admin/management key* while e.g. performing authorized PIN administration on employees' smartcards.
 
-> [!CAUTION]
+> [!IMPORTANT]
 > Make sure to verify that your Android ROM doesn't have a **clipboard history** feature prior to copy-pasting *Admin keys*, Samsung & Huawei ROMs have one.
 >
 > If clipboard history cannot be disabled on your phone then *don't use the clipboard at all*, or use a password manager with a built-in secure keyboard (*e.g.* [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version **3.2.0** for older devices).
@@ -216,6 +212,21 @@ For the smartcard readers, all brands of smartcard readers are supported, using 
 
 <div style="page-break-after: always;"></div>
 
+## Extended device compatibility `API level 9+`
+
+**Android PIN Unblocker** strives to support the widest range of Android devices.
+
+This application supports Android versions ranging from **Android 2.3.2** to the latest ones including **Android 16** and later versions.
+
+All hardware functionality of this application are also marked as optional instead of required.
+
+If your mobile device doesn't support some hardware functionality, then only the specific features that rely on it get disabled while allowing you to use all other features that work on your device.\
+This includes **USB-OTG**, **Camera** and **Flashlight** functionalities.
+
+*This application has been tested in real conditions with a real **Android 2.3.6** device and additional **Android 4.4.2**, **5.1.1** and **7.1** devices, and proven to work on each one of them, including the additional features that their hardware supports.*
+
+<div style="page-break-after: always;"></div>
+
 # License
 
 The **Android PIN Unblocker** application is licensed under the copyleft license **GNU GPLv3 (or later version)** since my friends at the [Free Software Foundation](https://www.gnu.org/proprietary/proprietary.html) recommend it.
@@ -251,7 +262,7 @@ Asset name | Author | License | Commercial use
 [Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
 [Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](https://icons8.com/license/) | Allowed
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
-[dex2jar ~~& jar2dex~~](https://github.com/pxb1988/dex2jar) | pxb1988 | [Apache 2.0](https://github.com/pxb1988/dex2jar/blob/2.x/LICENSE.txt) | Allowed
+[dex2jar](https://github.com/pxb1988/dex2jar) | pxb1988 | [Apache 2.0](https://github.com/pxb1988/dex2jar/blob/2.x/LICENSE.txt) | Allowed
 [Google R8](https://r8.googlesource.com/r8/+/refs/heads/main/README.md) | The Android Open Source Project | [Eclipse Distribution License 1.0](https://maven.google.com/web/index.html#com.android.tools:r8:9.1.31) | Allowed
 [ProGuard](https://github.com/Guardsquare/proguard) | Guardsquare | [GPL 2.0](https://github.com/Guardsquare/proguard/blob/master/LICENSE) | Allowed
 [eIDSuite](https://github.com/egelke/eIDSuite) | egelke | [AGPL 3.0](https://github.com/egelke/eIDSuite/blob/master/LICENSE) | Allowed

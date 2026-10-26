@@ -69,6 +69,7 @@ import com.acs.smartcard.Reader.OnStateChangeListener;
 import com.acs.smartcard.ReaderException;
 
 import net.gdmeunier.pinunblocker.myexceptions.GenericException;
+import net.gdmeunier.pinunblocker.myexceptions.SmartcardOperationException;
 import net.gdmeunier.pinunblocker.myexceptions.NotificationException;
 import net.gdmeunier.pinunblocker.myexceptions.UsbDeviceException;
 import net.gdmeunier.pinunblocker.myexceptions.UsbPermisionException;
@@ -473,10 +474,27 @@ Private Sub Service_Message_Looper
 		
 		'Avoid getting potential race condition calls
 		If ActiveOperationInProgress Then
-			'Callers use IsSuccessful instead of e.g. IsFailed
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object("An ongoing Smartcard operation is already in progress"))
+			'
+			'Deliberately throw then catch an Exception so that
+			'we can have a stacktrace of it
+			'
+			Try
+				Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, "An ongoing Smartcard operation is already in progress")
+				
+			Catch
+				'Callers use IsSuccessful instead of e.g. IsFailed
+				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+				
+			End Try
 			
-			Return
+			'Skip further processing but don't return, because that would
+			'return the entire function and stop the Smartcard service's
+			'message looper thread
+			'
+			'So we use a "Continue" statement instead of "Return" and that
+			'will jump back to the beginning of the While loop,
+			'thus allowing the "Wait For" statement to be executed again
+			Continue
 			
 		End If
 		
@@ -552,8 +570,8 @@ Private Sub Service_Message_Looper
 				'check for a 90 00 status code
 				If Not(Failed) And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
 					'
-					'Deliberately throw then catch an Exception,
-					'so that we can have a stacktrace of it
+					'Deliberately throw then catch an Exception so that
+					'we can have a stacktrace of it
 					'
 					Try
 						Dim LastReplyAPDU As String = ServiceReply(0).As(String)
@@ -574,9 +592,16 @@ Private Sub Service_Message_Looper
 				Exit
 				
 			Case Else
-				
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object($"An unknown message type ${DoWhat} was sent to this Service"$))
+				'Deliberately throw then catch an Exception so that
+				'we can have a stacktrace of it
+				Try
+					Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, $"An unknown message type ${DoWhat} was sent to this Service"$)
+					
+				Catch
+					'Callers use IsSuccessful instead of e.g. IsFailed
+					CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
+					
+				End Try
 				
 				Exit
 			
@@ -670,13 +695,13 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PACKAGE_NAME);
 	wl.acquire();
 	
+	Object[] reply = null;
+	
 	/* withSound  = false
 	 * useHeadsUp = true [required for this one]
 	 * useLights  = (omitted - automatically set to false)
 	 */
 	jShowNotification(NOTIFICATION_ID_NEW_OPERATION, "Smartcard service operation", false, true);
-	
-	Object[] reply = null;
 	
 	try
 	{
@@ -748,12 +773,11 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 				throw new GenericException("You requested a message type that this Service does not know nor support");
 		}
 	}
-	/*
-	catch (GenericException|NotificationException|UsbDeviceException|UsbPermisionException|SmartcardReaderException|SmartcardException|ApduException|ApduReplyException mex)
+	catch (GenericException|NotificationException|UsbDeviceException|UsbPermisionException|SmartcardReaderException|SmartcardException|ApduException|ApduReplyException ex)
 	{
-		throw mex;
+		// Re-throw the exception
+		throw ex;
 	}
-	*/
 	finally
 	{
 		// Clear any currently shown toast if any
@@ -1019,161 +1043,154 @@ private void jShowNotification(final int notificationID, final String msg, final
 }
 private void jShowNotification(final int notificationID, final String msg, final boolean withSound, final boolean useHeadsUp, final boolean useLights) throws NotificationException
 {
+	/* Android 3.1+ only (API level 11+)
+	 * Also includes a check to verify if notifications are allowed (if not heads-up one)
+	 */
+	if ( Build.VERSION.SDK_INT < 11 || (!useHeadsUp && !areNotificationsAllowed) )
+	{
+		return;
+	}
+	
+	// Cancel currently shown notification if any
+	jCancelAllNotifications(); // This call preserves the core Service notification
+	
+	Uri soundUri = null;
+	
+	if ( withSound )
+	{
+		//
+		// API level 1+ (Android Base 1.x)
+		//
+		Uri.Builder soundUriBuilder = new Uri.Builder();
+		            soundUriBuilder.scheme(ContentResolver.SCHEME_ANDROID_RESOURCE);
+		            soundUriBuilder.authority(PACKAGE_NAME);
+		            soundUriBuilder.path("raw/notification_sound");
+		
+		soundUri = soundUriBuilder.build();
+	}
+	
+	NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this);
+	
 	try
 	{
-		/* Android 3.1+ only (API level 11+)
-		 * Also includes a check to verify if notifications are allowed (if not heads-up one)
+		/* Large icons didn't exit before Android 5 (API level 21):
+		 *  - Before Android 5 (Lollipop) the large notification icon
+		 *    was directly set with "setSmallIcon" and a Bitmap of 64x64
 		 */
-		if ( Build.VERSION.SDK_INT < 11 || (!useHeadsUp && !areNotificationsAllowed) )
+		if ( Build.VERSION.SDK_INT >= 21 )
 		{
-			return;
+			// Set the large icon first before the small one
+			builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
 		}
-		
-		// Cancel currently shown notification if any
-		jCancelAllNotifications(); // This call preserves the core Service notification
-		
-		Uri soundUri = null;
-		
-		if ( withSound )
-		{
-			//
-			// API level 1+ (Android Base 1.x)
-			//
-			Uri.Builder soundUriBuilder = new Uri.Builder();
-			            soundUriBuilder.scheme(ContentResolver.SCHEME_ANDROID_RESOURCE);
-			            soundUriBuilder.authority(PACKAGE_NAME);
-			            soundUriBuilder.path("raw/notification_sound");
-			
-			soundUri = soundUriBuilder.build();
-		}
-		
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(smartcard.this);
-		
+		builder.setSmallIcon(R.drawable.ic_stat_card);
+		builder.setContentTitle(APPLICATION_NAME);
+		builder.setContentText(msg);
+		builder.setCategory(Notification.CATEGORY_SERVICE);
+		builder.setOngoing(true); // Always make Service notifications 'ongoing'
+	}
+	catch (Exception e)
+	{
+		throw new NotificationException("Failed to prepare the generic NotificationCompat.Builder properties");
+	}
+	
+	/* Android 7.1 and earlier (API levels <= 25):
+	 *  - Newer versions likeAndroid 8+ (API level 26+)
+	 *    don't need these attributes to be set,
+	 *    it's set on a notification channel instead
+	 */
+	if ( Build.VERSION.SDK_INT <= 25 )
+	{
 		try
 		{
-			/* Large icons didn't exit before Android 5 (API level 21):
-			 *  - Before Android 5 (Lollipop) the large notification icon
-			 *    was directly set with "setSmallIcon" and a Bitmap of 64x64
-			 */
-			if ( Build.VERSION.SDK_INT >= 21 )
-			{
-				// Set the large icon first before the small one
-				builder.setLargeIcon(myadvancedInstance.jGetBitmapFromResourceId(this, R.mipmap.ic_launcher));
-			}
-			builder.setSmallIcon(R.drawable.ic_stat_card);
-			builder.setContentTitle(APPLICATION_NAME);
-			builder.setContentText(msg);
-			builder.setCategory(Notification.CATEGORY_SERVICE);
-			builder.setOngoing(true); // Always make Service notifications 'ongoing'
-		}
-		catch (Exception e)
-		{
-			throw new NotificationException("Failed to prepare the generic NotificationCompat.Builder properties");
-		}
-		
-		/* Android 7.1 and earlier (API levels <= 25):
-		 *  - Newer versions likeAndroid 8+ (API level 26+)
-		 *    don't need these attributes to be set,
-		 *    it's set on a notification channel instead
-		 */
-		if ( Build.VERSION.SDK_INT <= 25 )
-		{
-			try
-			{
-				//
-				// Deprecated since API level 26+ (Android 8+)
-				//
-				builder.setPriority(NotificationCompat.PRIORITY_MAX);
-				
-			    if ( withSound )
-				{
-					// STREAM_ALARM (API level 1+) or STREAM_NOTIFICATION (API level 3+)
-					builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
-			    }
-				if ( useLights )
-				{
-					builder.setDefaults(Notification.DEFAULT_LIGHTS);
-				}
-			}
-			catch (Exception e)
-			{
-				throw new NotificationException("Failed to prepare the NotificationCompat.Builder sound & led light properties");
-			}
-		}
-		else if ( Build.VERSION.SDK_INT >= 26 )
-		{
-			NotificationChannel notifyChannel = new NotificationChannel(
-				notifyChannelId,
-				notifyChannelName,
-				NotificationManager.IMPORTANCE_HIGH
-			);
-			
-			try
-			{
-			    notifyChannel.setDescription(notifyChannelDesc);
-				notifyChannel.enableLights(useLights);
-				notifyChannel.enableVibration(false);
-			}
-			catch (Exception e)
-			{
-				throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
-			}
+			//
+			// Deprecated since API level 26+ (Android 8+)
+			//
+			builder.setPriority(NotificationCompat.PRIORITY_MAX);
 			
 		    if ( withSound )
 			{
-		        AudioAttributes audioAttributes = new AudioAttributes.Builder()
-		            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
-		            .setUsage(AudioAttributes.USAGE_NOTIFICATION)        /* USAGE_ALARM or USAGE_NOTIFICATION */
-		            .build();
-				
-				notifyChannel.setSound(soundUri, audioAttributes);
+				// STREAM_ALARM (API level 1+) or STREAM_NOTIFICATION (API level 3+)
+				builder.setSound(soundUri, AudioManager.STREAM_NOTIFICATION);
 		    }
-			
-			try
+			if ( useLights )
 			{
-				notifyMgr.createNotificationChannel(notifyChannel);
-				
-				/* For Android 8+ notifications support (API level 26+):
-				 *  - NotificationChannel is only available on Android 8+ (API level 26+)
-				 */
-				// For the NotificationCompat.Builder Object
-				builder.setChannelId(notifyChannelId);
-			}
-			catch (Exception e)
-			{
-				throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+				builder.setDefaults(Notification.DEFAULT_LIGHTS);
 			}
 		}
-		
-		if ( useHeadsUp ) // If heads-up notification is required
+		catch (Exception e)
 		{
-			try
-			{
-				/* startForeground makes notifications become
-				 * heads-up notifications
-				 */
-				startForeground(notificationID, builder.build());
-			}
-			catch (Exception e)
-			{
-				throw new NotificationException("Failed to actually broadcast the notification with startForeground");
-			}
-		}
-		else
-		{
-			try
-			{
-				notifyMgr.notify(notificationID, builder.build());
-			}
-			catch (Exception e)
-			{
-				throw new NotificationException("Failed to actually broadcast the notification with NotificationManager.notify");
-			}
+			throw new NotificationException("Failed to prepare the NotificationCompat.Builder sound & led light properties");
 		}
 	}
-	catch (NotificationException nex)
+	else if ( Build.VERSION.SDK_INT >= 26 )
 	{
-		throw nex;
+		NotificationChannel notifyChannel = new NotificationChannel(
+			notifyChannelId,
+			notifyChannelName,
+			NotificationManager.IMPORTANCE_HIGH
+		);
+		
+		try
+		{
+		    notifyChannel.setDescription(notifyChannelDesc);
+			notifyChannel.enableLights(useLights);
+			notifyChannel.enableVibration(false);
+		}
+		catch (Exception e)
+		{
+			throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+		}
+		
+	    if ( withSound )
+		{
+	        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+	            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) /* This is a real Android typo */
+	            .setUsage(AudioAttributes.USAGE_NOTIFICATION)        /* USAGE_ALARM or USAGE_NOTIFICATION */
+	            .build();
+			
+			notifyChannel.setSound(soundUri, audioAttributes);
+	    }
+		
+		try
+		{
+			notifyMgr.createNotificationChannel(notifyChannel);
+			
+			/* For Android 8+ notifications support (API level 26+):
+			 *  - NotificationChannel is only available on Android 8+ (API level 26+)
+			 */
+			// For the NotificationCompat.Builder Object
+			builder.setChannelId(notifyChannelId);
+		}
+		catch (Exception e)
+		{
+			throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+		}
+	}
+	
+	if ( useHeadsUp ) // If heads-up notification is required
+	{
+		try
+		{
+			/* startForeground makes notifications become
+			 * heads-up notifications
+			 */
+			startForeground(notificationID, builder.build());
+		}
+		catch (Exception e)
+		{
+			throw new NotificationException("Failed to actually broadcast the notification with startForeground");
+		}
+	}
+	else
+	{
+		try
+		{
+			notifyMgr.notify(notificationID, builder.build());
+		}
+		catch (Exception e)
+		{
+			throw new NotificationException("Failed to actually broadcast the notification with NotificationManager.notify");
+		}
 	}
 }
 

@@ -1134,9 +1134,9 @@ Sub InitializeActivityLayout
 	'IsLandscapeOrientation = (Constants.ORIENTATION_LANDSCAPE == joActivity.RunMethod("jGetDisplayOrientation", Null))
 	'
 	'If DisplayScale >= 1.0 And IsTabletDevice And IsLandscapeOrientation Then
-	'	'---------------------Left, Top, Width, Height
-	'	scvActivity.SetLayout(20%x, 0dip, 60%x, 100%y)
-	'	
+	'	'---------------------Left, Top,  Width, Height
+	'	scvActivity.SetLayout(20%x, 0dip, 60%x,  100%y)
+	'
 	'End If
 	'^^^^^ Not enabled yet because I don't have a real tablet to test this code yet ^^^^^
 	

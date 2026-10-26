@@ -698,6 +698,12 @@ Sub Process_Globals
 	Private DirectUnblockThread     As Thread
 	Private DirectUnblockInProgress As Boolean = False
 	
+	'For being able to correct ViewPort issues
+	'with the Activity View when you share
+	'Admin key texts to the application
+	'while the soft keyboard is already open
+	Private AllowProcessingIMEHeightChanged As Boolean = False 'False by default
+	
 End Sub
 
 Sub Globals
@@ -937,6 +943,12 @@ Sub Activity_Create(FirstTime As Boolean)
 	'So the only way to do that properly is to
 	'use Java native code & the _onCreate hook
 	
+	'For being able to correct ViewPort issues
+	'with the Activity View when you share
+	'Admin key texts to the application
+	'while the soft keyboard is already open
+	AllowProcessingIMEHeightChanged = False
+	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Load Activity layout"$, Colors.Blue)
 	LoadActivityLayout
 	
@@ -1009,7 +1021,6 @@ Sub Activity_Create(FirstTime As Boolean)
 	'Initialize the Activity's IME Object only after
 	'the Activity layout has been fully initialized
 	imeActivity.Initialize("Activity") 'The "Activity" prefix for e.g. "Activity_HeightChanged"
-	imeActivity.AddHeightChangedEvent  'Must explicitly enable the "HeightChanged" event
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
@@ -1321,9 +1332,9 @@ Private Sub InitializeActivityLayout
 	'IsLandscapeOrientation = (Constants.ORIENTATION_LANDSCAPE == joActivity.RunMethod("jGetDisplayOrientation", Null))
 	'
 	'If DisplayScale >= 1.0 And IsTabletDevice And IsLandscapeOrientation Then
-	'	'---------------------Left, Top, Width, Height
-	'	scvActivity.SetLayout(20%x, 0dip, 60%x, 100%y)
-	'	
+	'	'---------------------Left, Top,  Width, Height
+	'	scvActivity.SetLayout(20%x, 0dip, 60%x,  100%y)
+	'
 	'End If
 	'^^^^^ Not enabled yet because I don't have a real tablet to test this code yet ^^^^^
 	
@@ -1340,6 +1351,15 @@ End Sub
 Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub entry (NewHeight = ${NewHeight}, OldHeight = ${OldHeight})"$, Colors.Blue)
+	
+	'For being able to correct ViewPort issues
+	'with the Activity View when you share
+	'Admin key texts to the application
+	'while the soft keyboard is already open
+	If Not(AllowProcessingIMEHeightChanged) Then
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return (early because AllowProcessingIMEHeightChanged == False)"$, Colors.Magenta)
+		Return
+	End If
 	
 	'I want to remove approx. 16dip of bottom margin
 	'of the ScrollView's internal Panel when the
@@ -1498,6 +1518,12 @@ Sub Activity_Resume
 	LifecycleTracking.ActivityLifecycle = LifecycleTracking.ActivityLifecycle & LifecycleTracking.RESUME
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&LifecycleTracking.ActivityLifecycle, Colors.Blue)
 	
+	'For being able to correct ViewPort issues
+	'with the Activity View when you share
+	'Admin key texts to the application
+	'while the soft keyboard is already open
+	AllowProcessingIMEHeightChanged = False
+	
 	'
 	'Moved RestoreViewState further down for security reasons
 	'
@@ -1561,15 +1587,6 @@ Sub Activity_Resume
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Reset decoy new PIN field visibility back to invisible"$, Colors.Blue)
 	edtDecoyPIN.Visible = False
 	
-	'This part as always near the end of this function
-	If IsFirstActivityResume Then
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
-		
-		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
-		IsFirstActivityResume = False
-		
-	End If
-	
 	'Android wants to play boss with our application's focus management,
 	'so we teach it a bit of a lesson by bypassing its obnoxious automatic
 	'focus on the Activity View's first UI element
@@ -1581,6 +1598,32 @@ Sub Activity_Resume
 	'then this will automatically correct Android's obnoxious mistake
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Calling the Hotfix function ForceRestoreCorrectLastFocusedElementState because Android is obnoxious with its default focus management with ScrollViews"$, Constants.COLORS_ORANGE)
 	ForceRestoreCorrectLastFocusedElementState(ViewState_LastFocusedElement)
+	
+	'This part as always near the end of this function
+	If IsFirstActivityResume Then
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: This was the first Activity_Resume event"$, Colors.Blue)
+		
+		'Only enable the "HeightChanged" event in "Activity_Resume",
+		'not in "Activity_Create":
+		'
+		' - Otherwise sharing Admin keys to the application while
+		'   the Android soft keyboard is open,
+		'   from another application such as a text editor,
+		'   will cause the Activity view to be shrunk and unscrollable
+		'
+		imeActivity.AddHeightChangedEvent 'Must explicitly enable the "HeightChanged" event
+		
+		LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Setting IsFirstActivityResume to False to so that next time we know it won't be the first Activity_Resume"$, Colors.Blue)
+		IsFirstActivityResume = False
+		
+	End If
+	
+	'For being able to correct ViewPort issues
+	'with the Activity View when you share
+	'Admin key texts to the application
+	'while the soft keyboard is already open
+	AllowProcessingIMEHeightChanged = True
+	Activity.Invalidate
 	
 	'This part as the very last one of this function
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Blue)
@@ -1645,7 +1688,7 @@ Private Sub RestoreViewState()
 			edtNewPIN.RequestFocus
 			
 			LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Restoring the .Selection state for edtNewPIN"$, Colors.Blue)
-			edtNewPIN.SetSelection(ViewState_edtNewPIN_SelectionStart, ViewState_edtNewPIN_SelectionLength)
+			SafeSetSelection(edtNewPIN, ViewState_edtNewPIN_SelectionStart, ViewState_edtNewPIN_SelectionLength)
 			
 		Case Else
 			LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: The last focused element was not found in the list (value = ${ViewState_LastFocusedElement})"$, Colors.Magenta)
@@ -1659,6 +1702,34 @@ Private Sub RestoreViewState()
 	scvActivity.ScrollPosition = ViewState_LastScrollPosition
 	
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub SafeSetSelection(MyEditText As EditText, SelectionStart As Int, SelectionLength As Int)
+	'
+	'It was previously possible that the QR code scanner would
+	'decode a challenge code text of a smaller length than
+	'the original text that was before in the EditText
+	'
+	'In such cases, then when "SetSelection" was called to
+	'restore the previous text selection state and selection length,
+	'it was possible to get a "setSpan" IndexOutOfBounds Exception
+	'
+	'So in order to mitigate this, I created this
+	'"SafeSetSelection" function that has built-in
+	'checks to only restore the selection if it's possible
+	'to do so without errors
+	'
+	Dim CurrentTextLength As Int = MyEditText.Text.Length
+	
+	If  SelectionStart  >= 0 _
+	And SelectionLength >= 0 _
+	And SelectionStart  <= CurrentTextLength _
+	And SelectionLength <= CurrentTextLength _
+	And SelectionStart + SelectionLength <= CurrentTextLength Then
+		MyEditText.SetSelection(SelectionStart, SelectionLength)
+		
+	End If
+	
 End Sub
 
 'Workaround for Android trying to force its own automatic focus management on
@@ -1751,7 +1822,7 @@ Private Sub ForceRestoreCorrectLastFocusedElementState(LastFocusedElement As Str
 		Case "edtNewPIN"
 			edtNewPIN.RequestFocus
 			edtNewPIN_FocusChanged(True) 'Read "little thing with Android" notes for why it's here
-			edtNewPIN.SetSelection(ViewState_edtNewPIN_SelectionStart, ViewState_edtNewPIN_SelectionLength)
+			SafeSetSelection(edtNewPIN, ViewState_edtNewPIN_SelectionStart, ViewState_edtNewPIN_SelectionLength)
 			
 	End Select
 	
@@ -1879,12 +1950,12 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 	edtNewPIN.Text = ""
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Clearing some more variables of initialization before finishing this Activity"$, Colors.Blue)
-	DetectedCardType     = "Unknown"
-	DetectedCardProtocol = "T=?"
-	DetectedCardMinPINLength = 0
 	DetectedCardMaxPINLength = 0
-	DetectedSelectAppletAPDU = ""
+	DetectedCardMinPINLength = 0
 	DetectedCardATR          = ""
+	DetectedCardType         = "Unknown"
+	DetectedSelectAppletAPDU = ""
+	DetectedCardProtocol     = "T=?"
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Asking the JVM to do a garbage collection as soon as possible"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: This will clear traces of leftover variable contents"$, Colors.Blue)
@@ -1898,6 +1969,8 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Now it's safe to set IsFirstActivityResume to True for this Activity's next launch in this application lifecycle"$, Colors.Green)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Setting IsFirstActivityResume to True"$, Colors.Green)
 	IsFirstActivityResume = True
+	
+	AllowProcessingIMEHeightChanged = False
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Also setting ViewState_chkHideNewPIN_Enabled to True before finishing this Activity"$, Colors.Green)
 	ViewState_chkHideNewPIN_Enabled = True
@@ -2211,7 +2284,7 @@ Private Sub btnProceedToUnblock_Click
 	If IsSuccessful Then
 		'Now we tell the user about the successful PIN unblock operation,
 		'and what their new PIN code is whatever they chose
-		ToastMessageShow("New PIN was successfully set", Constants.TOAST_DURATION_LONG)
+		ToastMessageShow("New PIN was set successfully", Constants.TOAST_DURATION_LONG)
 		
 		DirectUnblockInfoText.Append("Smartcard ")
 		DirectUnblockInfoText.Bold
@@ -2221,11 +2294,15 @@ Private Sub btnProceedToUnblock_Click
 		
 		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
-		DirectUnblockInfoText.Append($"Your new ${GetSelectedPINAsName(UserSelectedPinID)} code is now "$)
+		DirectUnblockInfoText.Append("Your new ")
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append($"${GetSelectedPINAsName(UserSelectedPinID)} code"$)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Append(" is now ")
 		DirectUnblockInfoText.Bold
 			DirectUnblockInfoText.Append("the new PIN")
 		DirectUnblockInfoText.Pop
-		DirectUnblockInfoText.Append(" you provided.")
+		DirectUnblockInfoText.Append(" that you provided.")
 		
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Close", Constants.MSGBOX_HIDE_CANCEL, Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		
@@ -2245,8 +2322,8 @@ Private Sub btnProceedToUnblock_Click
 			DirectUnblockInfoText.Append(ErrorIfAny)
 		DirectUnblockInfoText.Pop
 		
-		'Positive = "Copy & Close"
-		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Copy & Close", Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
+		'Positive = "Copy Log & Close"
+		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", "Copy Log & Close", Constants.MSGBOX_HIDE_CANCEL, "Close", DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
 		Wait For Msgbox_Result(Result As Int)
 		
 		If Result == DialogResponse.POSITIVE Then
@@ -3060,6 +3137,17 @@ Private Sub edtNewPIN_TextChanged(Old As String, New As String)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
 	
+	'Since we modified the edtNewPIN's text content,
+	'we have to now clear its last selection state since
+	'it would no longer reflect the selection state of
+	'the new text that will we've set on it
+	If Old <> New Then
+		LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Resetting the New PIN field's ViewState selection information since it's now outdated..."$, Colors.Blue)
+		ViewState_edtNewPIN_SelectionStart  = 0
+		ViewState_edtNewPIN_SelectionLength = 0
+		
+	End If
+	
 	LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Running the edtNewPIN_ShowSelectionInfo Sub to update the New PIN label text"$, Colors.Blue)
 	edtNewPIN_ShowSelectionInfo
 	
@@ -3134,7 +3222,7 @@ Private Sub chkHideNewPIN_CheckedChange(Checked As Boolean)
 	
 	'Allow preserving the selection state when toggling password modes
 	LogColor($"[${ActivityName}-${LogContextId}] chkHideNewPIN_CheckedChange: Restoring information about the previous selection state after toggling password modes"$, Colors.Blue)
-	edtNewPIN.SetSelection(LastSelectionStart, LastSelectionLength)
+	SafeSetSelection(edtNewPIN, LastSelectionStart, LastSelectionLength)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] chkHideNewPIN_CheckedChange: Sub return"$, Colors.Blue)
 End Sub
