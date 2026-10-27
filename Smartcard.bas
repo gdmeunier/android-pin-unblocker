@@ -222,23 +222,12 @@ Sub Process_Globals
 	'duplicate Service_Start calls from Android
 	Private ServiceAlreadyStarted As Boolean = False
 	
-End Sub
-
-Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'Keep track of who was the last Caller who sent
+	'APDU or reader operation commands to this Service
 	'
-	'Nothing to do here
-	'
-End Sub
-
-Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'Better Thread exception handling for the Smartcard service
-	'
-	'Only the Smartcard service currently needs this method of
-	'handling Thread exceptions (such as noClassDefFoundError)
-	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
-		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", Failed, Array As Object(SmartcardOperationThread.Error))
-		
-	End If
+	'Must be Null by default (initial value)
+	Private LastServiceCallerObject  As Object = Null
+	Private LastServiceCallerSubName As String = Null
 	
 End Sub
 
@@ -457,6 +446,35 @@ Public Sub Service_Message(DoWhat As Int, CallerBundle() As Object)
 	
 End Sub
 
+Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Inform any waiting function about the Thread death
+	'incase it terminated prematurely before being able
+	'to send its own return message directly
+	'
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
+	'
+	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
+		Dim Caller  As Object = LastServiceCallerObject
+		Dim SubName As String = LastServiceCallerSubName
+		
+		'Discard the last Caller identity
+		LastServiceCallerObject  = Null
+		LastServiceCallerSubName = Null
+		
+		'Release the active operation lock (before sending the reply)
+		ActiveOperationInProgress = False
+		
+		If Caller <> Null And SubName <> Null Then
+			'Service Callers use IsSuccessful instead of e.g. IsFailed
+			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(SmartcardMessageThread.Error))
+			
+		End If
+		
+	End If
+	
+End Sub
+
 Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 	
 	Dim Caller       As Object
@@ -469,15 +487,14 @@ Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 	
 	'Avoid getting potential race condition calls
 	If ActiveOperationInProgress Then
-		'
+		
 		'Deliberately throw then catch an Exception so that
 		'we can have a stacktrace of it
-		'
 		Try
 			Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, "An ongoing Smartcard operation is already in progress")
 			
 		Catch
-			'Callers use IsSuccessful instead of e.g. IsFailed
+			'Service Callers use IsSuccessful instead of e.g. IsFailed
 			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
 			
 		End Try
@@ -486,114 +503,122 @@ Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 		
 	End If
 	
+	'Set a lock for the current operation,
+	'so that we first finish this one
+	'before getting any other operation
+	ActiveOperationInProgress = True
+	
+	'Keep track of the last Caller identity
+	LastServiceCallerObject  = Caller
+	LastServiceCallerSubName = SubName
+	
+	'This part helps avoid writing multiple times the same
+	'CallSubDelayed3 statements
+	'
+	'It also allows releasing the operation lock before
+	'calling the Smartcard_SubName_Completed events,
+	'which makes more sense this way
+	'
+	'Basically once your operation is complete,
+	'you should clear any operation lock before
+	'calling the original requesting caller
+	'
+	'It also takes less bytes in Java bytecode to write
+	'multiple variable assignment statements rather
+	'than writing multiple function-call ones
+	Dim FinalIsSuccessful   As Boolean = True                  'Must be True by default
+	Dim FinalServiceReply() As Object  = Array As Object(Null) 'Must be Null by default
+	
+	'Quick & easy method of checking whether
+	'the requested operation is unknown
+	'without using too many if statements
 	Select DoWhat
-		'
-		'Need to request notifications permission for "FIND_" & "SEND_" commands
-		'
 		Case FIND_SMARTCARDREADER
-			ActiveOperationInProgress = True
-			
-			RequestNotificationsPermissions
-			Wait For RequestNotificationsPermissions_Finished
-			
-			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-			
-			'Callers use IsSuccessful instead of e.g. IsFailed
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-			
-			ActiveOperationInProgress = False
 			Exit
-			
 		Case FIND_SMARTCARD
-			ActiveOperationInProgress = True
-			
-			RequestNotificationsPermissions
-			Wait For RequestNotificationsPermissions_Finished
-			
-			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-			
-			'Callers use IsSuccessful instead of e.g. IsFailed
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-			
-			ActiveOperationInProgress = False
 			Exit
-			
 		Case GET_ATR
-			ActiveOperationInProgress = True
-			
-			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-			
-			'Callers use IsSuccessful instead of e.g. IsFailed
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-			
-			ActiveOperationInProgress = False
 			Exit
-			
 		Case GET_PROTOCOL
-			ActiveOperationInProgress = True
-			
-			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-			
-			'Callers use IsSuccessful instead of e.g. IsFailed
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-			
-			ActiveOperationInProgress = False
+			Exit
+		Case SEND_APDU
 			Exit
 			
-		Case SEND_APDU
-			ActiveOperationInProgress = True
+		Case Else
+			'Service Callers use IsSuccessful instead of e.g. IsFailed
+			FinalIsSuccessful = False
+			
+			'Deliberately throw then catch an Exception so that
+			'we can have a stacktrace of it
+			Try
+				Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, $"An unknown message type ${DoWhat} was sent to this Service"$)
+			Catch
+				FinalServiceReply = Array As Object(LastException.Message)
+			End Try
+			
+			Exit
+		
+	End Select
+	
+	'Now we focus only on the requested operation
+	'that already passed validation anyway,
+	'and they have mostly the same code anyway
+	If FinalIsSuccessful Then
+		
+		'Need to request notifications permission for "FIND_" & "SEND_" commands
+		If DoWhat == FIND_SMARTCARDREADER _
+		Or DoWhat == FIND_SMARTCARD       _
+		Or DoWhat == SEND_APDU Then
 			
 			RequestNotificationsPermissions
 			Wait For RequestNotificationsPermissions_Finished
 			
-			SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
-			Wait For RunInSmartcardOperationThread_Completed(Failed As Boolean, ServiceReply() As Object)
-			
-			'The MySmartcardReader class automatically handles APDU
-			'request chaining transparently, so we can just simply
-			'check for a 90 00 status code
-			If Not(Failed) And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
-				'
+		End If
+		
+		SmartcardOperationThread.Start(Me, "RunInSmartcardOperationThread", Array(DoWhat, Parameters))
+		Wait For RunInSmartcardOperationThread_Completed(IsSuccessful As Boolean, ServiceReply() As Object)
+		
+		If DoWhat == SEND_APDU Then
+			'APDU replies that are not ending with "9000" are also
+			'failed operations, even if the smartcard operation
+			'correctly returned a response APDU from the smartcard
+			'
+			'The MySmartcardReader class also automatically handles
+			'APDU request chaining transparently
+			If IsSuccessful And Not(ServiceReply(0).As(String).EndsWith("9000")) Then
+				
+				IsSuccessful = False
+				
 				'Deliberately throw then catch an Exception so that
 				'we can have a stacktrace of it
-				'
 				Try
 					Dim LastReplyAPDU As String = ServiceReply(0).As(String)
 					Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, $"The Smartcard replied with an APDU SW status code that indicates failure (${LastReplyAPDU.SubString(LastReplyAPDU.Length - 4)})"$)
 					
 				Catch
-					Failed       = True
 					ServiceReply = Array As Object(LastException.Message)
 					
 				End Try
 				
 			End If
 			
-			'Callers use IsSuccessful instead of e.g. IsFailed
-			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", Not(Failed), ServiceReply)
-			
-			ActiveOperationInProgress = False
-			Exit
-			
-		Case Else
-			'Deliberately throw then catch an Exception so that
-			'we can have a stacktrace of it
-			Try
-				Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, $"An unknown message type ${DoWhat} was sent to this Service"$)
-				
-			Catch
-				'Callers use IsSuccessful instead of e.g. IsFailed
-				CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(LastException.Message))
-				
-			End Try
-			
-			Exit
+		End If
 		
-	End Select
+		'Service Callers use IsSuccessful instead of e.g. IsFailed
+		FinalIsSuccessful = IsSuccessful
+		FinalServiceReply = ServiceReply
+		
+	End If
+	
+	'Discard the last Caller identity
+	LastServiceCallerObject  = Null
+	LastServiceCallerSubName = Null
+	
+	'Release the active operation lock (before sending the reply)
+	ActiveOperationInProgress = False
+	
+	'Service Callers use IsSuccessful instead of e.g. IsFailed
+	CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", FinalIsSuccessful, FinalServiceReply)
 	
 End Sub
 
@@ -608,21 +633,29 @@ Private Sub RequestNotificationsPermissions
 End Sub
 
 Private Sub RequestNotificationsPermissions_DelayedSub
-	
+	'
 	'Check that the Main Activity isn't paused already
 	'
 	'If it's paused then that means we were already
 	'able to call it before during the Direct Unblock
 	'introducy message, so no need to redo it again then
+	'
 	If Not(IsPaused(Main)) Then
+		'
 		'Android 13+ only (API level 33+):
 		' - Request the ability to post notifications
 		' - It's not a problem if the user denies it though
 		'
-		CallSub(Main, "RequestPostNotificationsPermissions")
-		Wait For RequestPostNotificationsPermissions_Completed(AreNotificationsAllowed As Boolean)
-		
-		SetNotificationsAllowed(AreNotificationsAllowed)
+		Try
+			CallSub(Main, "RequestPostNotificationsPermissions")
+			Wait For RequestPostNotificationsPermissions_Completed(AreNotificationsAllowed As Boolean)
+			
+			SetNotificationsAllowed(AreNotificationsAllowed)
+			
+		Catch
+			SetNotificationsAllowed(False)
+			
+		End Try
 		
 	End If
 	
@@ -648,6 +681,21 @@ public void jSetNotificationsAllowed(final boolean isAllowed)
 }
 #End If
 
+Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Inform any waiting function about the Thread death
+	'incase it terminated prematurely before being able
+	'to send its own return message directly
+	'
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
+	'
+	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
+		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", False, Array As Object(SmartcardOperationThread.Error))
+		
+	End If
+	
+End Sub
+
 'Helper function to make it easier to invoke APDU operations
 'in yet another separate thread, perhaps it will help with
 'the USB permission prompt to make it much faster
@@ -656,7 +704,7 @@ public void jSetNotificationsAllowed(final boolean isAllowed)
 'to make USB permission prompts instantaneous
 Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 	
-	Dim Failed         As Boolean = False
+	Dim IsSuccessful   As Boolean = True
 	Dim ServiceReply() As Object  = Array As Object(Null)
 	
 	Try
@@ -664,12 +712,12 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 		ServiceReply = joService.RunMethod("jRunInSmartcardOperationThread", Array(DoWhat, Parameters))
 		
 	Catch
-		Failed       = True
+		IsSuccessful = False
 		ServiceReply = Array As Object(LastException.Message)
 		
 	End Try
 	
-	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", Failed, ServiceReply)
+	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", IsSuccessful, ServiceReply)
 	
 End Sub
 #If Java
@@ -681,7 +729,13 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PACKAGE_NAME);
 	wl.acquire();
 	
-	Object[] reply = null;
+	/* Pre-initialize the reply Object with
+	 * atleast one element inside (e.g. null)
+	 *
+	 * This way no need to have multiple statements
+	 * such as "reply = new Object[] { ... };"
+	 */
+	Object[] reply = new Object[] { null };
 	
 	/* withSound  = false
 	 * useHeadsUp = true [required for this one]
@@ -691,72 +745,69 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 	
 	try
 	{
+		// Easy method of filtering unknown operation commands
 		switch ( doWhat )
 		{
 			case FIND_SMARTCARDREADER:
-				jObtainUsbDevice();
-				jObtainUsbPermission();
-				jObtainSmartcardReader();
-				
-				break;
-				
 			case FIND_SMARTCARD:
-				jObtainUsbDevice();
-				jObtainUsbPermission();
-				jObtainSmartcardReader();
-				jObtainSmartcard();
-				
-				break;
-				
 			case GET_ATR:
-				if ( atr == null )
-				{
-					throw new SmartcardException("Could not get the smartcard ATR because the smartcard is not connected");
-				}
-				
-				reply = new Object[] { myconverters.jBytesToHexString(atr) };
-				
-				break;
-				
 			case GET_PROTOCOL:
-				if ( activeProtocol == Reader.PROTOCOL_UNDEFINED )
-				{
-					throw new SmartcardException("Could not get the smartcard protocol because the smartcard is not connected");
-				}
-				
-				reply = new Object[] { "T=?" };
-				
-				if ( activeProtocol == Reader.PROTOCOL_T0 )
-				{
-					reply[0] = "T=0";
-				}
-				else if ( activeProtocol == Reader.PROTOCOL_T1 )
-				{
-					reply[0] = "T=1";
-				}
-				else if ( activeProtocol == Reader.PROTOCOL_RAW )
-				{
-					reply[0] = "T=RAW";
-				}
-				else if ( activeProtocol == Reader.PROTOCOL_TX )
-				{
-					reply[0] = "T=TX";
-				}
-				
-				break;
-				
-			case SEND_APDU: /* This command cans be used in one go directly too */
-				jObtainUsbDevice();
-				jObtainUsbPermission();
-				jObtainSmartcardReader();
-				jObtainSmartcard();
-				
-				reply = new Object[] { SmartcardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0]), mReader, iSlotNum) };
-				
+			case SEND_APDU:
 				break;
 				
 			default:
 				throw new GenericException("You requested a message type that this Service does not know nor support");
+		}
+		
+		if ( doWhat == FIND_SMARTCARDREADER ||
+		     doWhat == FIND_SMARTCARD       ||
+			 doWhat == SEND_APDU )
+		{
+			// Needed by all 3 above operations
+			jObtainUsbDevice();
+			jObtainUsbPermission();
+			jObtainSmartcardReader();
+		}
+		if ( doWhat == FIND_SMARTCARD || doWhat == SEND_APDU )
+		{
+			// Needed only by "FIND_SMARTCARD" and "SEND_APDU"
+			jObtainSmartcard();
+		}
+		
+		if ( doWhat == SEND_APDU )
+		{
+			reply[0] = SmartcardReaderProxy.sendSpecificAPDU(String.valueOf(parameters[0]), mReader, iSlotNum);
+		}
+		else if ( doWhat == GET_ATR )
+		{
+			if ( atr == null )
+			{
+				throw new SmartcardException("Could not get the smartcard ATR because the smartcard is not connected");
+			}
+			
+			reply[0] = myconverters.jBytesToHexString(atr);
+		}
+		else if ( doWhat == GET_PROTOCOL )
+		{
+			// Easy method of filtering unknown protocols
+			switch ( activeProtocol )
+			{
+				case Reader.PROTOCOL_T0:
+					reply[0] = "T=0";
+					break;
+				case Reader.PROTOCOL_T1:
+					reply[0] = "T=1";
+					break;
+				case Reader.PROTOCOL_RAW:
+					reply[0] = "T=RAW";
+					break;
+				case Reader.PROTOCOL_TX:
+					reply[0] = "T=TX";
+					break;
+					
+				default:
+					throw new SmartcardException("Could not get the smartcard protocol because the smartcard is not connected");
+			}
 		}
 	}
 	catch (GenericException|NotificationException|UsbDeviceException|UsbPermisionException|SmartcardReaderException|SmartcardException|ApduException|ApduReplyException ex)

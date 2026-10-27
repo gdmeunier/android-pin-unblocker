@@ -41,8 +41,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 256
-	#VersionName: 5.17.12
+	#VersionCode: 258
+	#VersionName: 5.18.0
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1543,12 +1543,6 @@ Sub Activity_Create(FirstTime As Boolean)
 	imeActivity.AddHeightChangedEvent  'Must explicitly enable the "HeightChanged" event
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
-End Sub
-
-Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
-	'Nothing to do here
-	'
 End Sub
 
 Private Sub LoadActivityLayout
@@ -3524,6 +3518,21 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	StartActivity(DirectUnblock)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuDirectUnblock_Click: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Inform any waiting function about the Thread death
+	'incase it terminated prematurely before being able
+	'to send its own return message directly
+	'
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
+	'
+	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, Array As Object(DirectUnblockThread.Error))
+		
+	End If
+	
 End Sub
 
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)

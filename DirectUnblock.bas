@@ -1047,12 +1047,6 @@ Private Sub InitializeActivity
 	
 End Sub
 
-Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
-	'Nothing to do here
-	'
-End Sub
-
 Private Sub LoadActivityLayout
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Sub entry"$, Colors.Blue)
@@ -2312,6 +2306,21 @@ Private Sub btnProceedToUnblock_Click
 	Wait For Msgbox_Result(Result As Int)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	'
+	'Inform any waiting function about the Thread death
+	'incase it terminated prematurely before being able
+	'to send its own return message directly
+	'
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
+	'
+	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, Array As Object(DirectUnblockThread.Error))
+		
+	End If
+	
 End Sub
 
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)

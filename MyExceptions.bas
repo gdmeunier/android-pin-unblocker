@@ -90,7 +90,7 @@ End Sub
 #If Java
 public static void jThrowException(final int exceptionType, final String message) throws GenericException, CameraException, ThreadException, SmartcardOperationException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException, ConversionException
 {
-	switch(exceptionType)
+	switch ( exceptionType )
 	{
 		case EXCEPTION_GENERIC:
 			throw new GenericException(message);
