@@ -100,6 +100,9 @@ Sub Class_Globals
 	Public Const ORIENTATION_LANDSCAPE As Int = 0x2
 	Public Const ORIENTATION_SQUARE    As Int = 0x3 'Deprecated since API level 16
 	
+	'For improving various application dialogs
+	Public Const ZERO_WIDTH_SPACE As String = Chr(0x200B) 'Unicode char
+	
 	'
 	'The constants below are critical for Smartcard operations
 	'

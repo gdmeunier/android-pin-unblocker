@@ -32,28 +32,74 @@ public static int TOAST_LONG_DURATION_LENGTH  = 3500;
 // For caching purposes
 // Their respective imports are located at the top their method
 //
-private static Bitmap     cachedDummyPlaceholderBitmap   = null;
-private        Bitmap     cachedDynamicCensorThumbnail   = null;
+private static Bitmap      cachedDummyPlaceholderBitmap   = null;
+private        Bitmap      cachedDynamicCensorThumbnail   = null;
 
-private Resources         cachedContextResources         = null;
-private Resources         cachedSystemResources          = null;
+private Resources          cachedContextResources         = null;
+private Resources          cachedSystemResources          = null;
 
-private int               cachedThumbnailHeightResId     = -0xF; // Alternative to null
-private int               cachedThumbnailWidthResId      = -0xF; // Alternative to null
+private int                cachedThumbnailHeightResId     = -0xF; // Alternative to null
+private int                cachedThumbnailWidthResId      = -0xF; // Alternative to null
 
-private int               cachedNavBarWidthResId         = -0xF; // Alternative to null
+private int                cachedNavBarWidthResId         = -0xF; // Alternative to null
 
-private int               cachedShowNavigationBarResId   = -0xF; // Alternative to null
+private int                cachedShowNavigationBarResId   = -0xF; // Alternative to null
 
-private ViewConfiguration cachedContextViewConfiguration = null;
+private ViewConfiguration  cachedContextViewConfiguration = null;
 
-private PackageManager    cachedPackageManager           = null;
+private PackageManager     cachedPackageManager           = null;
 
-private WindowManager     cachedSystemWindowService      = null;
+private WindowManager      cachedSystemWindowService      = null;
+private InputMethodManager cachedSystemInputMethodService = null;
 
 #End If
 
 #If Java
+import android.content.Context;
+import android.app.Activity;
+import android.os.Build;
+import android.view.inputmethod.InputMethodManager;
+import android.view.Window;
+import android.view.View;
+import android.os.IBinder;
+public void jForceHideKeyboard(Activity ctx)
+{
+	// Android 1.5+ only (API level 3+)
+	if ( ctx == null || Build.VERSION.SDK_INT < 3 )
+	{
+		return;
+	}
+	
+	try
+	{
+		InputMethodManager sysIMF;
+		
+		if ( cachedSystemInputMethodService != null )
+		{
+			sysIMF = cachedSystemInputMethodService;
+		}
+		else
+		{
+			sysIMF = (InputMethodManager)ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+			cachedSystemInputMethodService = sysIMF;
+		}
+		//
+		// Don't cache this information
+		//
+		View    decorView   = ctx.getWindow().getDecorView();
+		IBinder windowToken = decorView.getWindowToken();
+		
+		if ( windowToken != null )
+		{
+			sysIMF.hideSoftInputFromWindow(windowToken, 0);
+		}
+	}
+	catch (Exception e)
+	{
+		/* Nothing to do here */
+	}
+}
+
 //
 // Class methods (generic helpers methods)
 //
@@ -888,7 +934,6 @@ public boolean jCensorActivityThumbnail(Activity ctx, Bitmap outBitmap, Canvas c
 import android.content.Context;
 import android.app.Activity;
 import android.view.Window;
-import android.view.ViewStructure;
 import android.view.View;
 import android.os.Build;
 public void jDisableAndroidAutofillService(Activity ctx)

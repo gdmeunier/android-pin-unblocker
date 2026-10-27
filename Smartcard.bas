@@ -297,7 +297,7 @@ public void jService_Create()
 	// e.g. "net.gdmeunier.pinunblocker$smartcard"
 	notifyChannelId = PACKAGE_NAME+"$smartcard";
 	
-	notifyMgr = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+	notifyMgr = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
 	powerMgr  = (PowerManager)getSystemService(Context.POWER_SERVICE);
 	
 	toastThread         = new HandlerThread("SmartcardServiceToastThread",         Process.THREAD_PRIORITY_BACKGROUND);

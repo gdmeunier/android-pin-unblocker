@@ -1,5 +1,5 @@
-﻿ModuleBookmarks0=3461,49,1385,1128,3670,1520,1852
-ModuleBookmarks1=2127,2691,901,664,2305,1056
+﻿ModuleBookmarks0=3489,49,1392,1135,3698,1527,1859
+ModuleBookmarks1=2125,2697,908,671,2311,1063
 ModuleBookmarks10=
 ModuleBookmarks11=
 ModuleBookmarks12=
@@ -43,6 +43,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Smartcard,RequestNotificationsPermissions_DelayedSub,619,0,Smartcard,Service_Message_Receipt,532,1,Smartcard,SmartcardOperationThread_Ended,233,1,Smartcard,RunInSmartcardOperationThread,662,0,Main,Activity_Resume,2126,0,Main,btnScanQR_Click,3942,0,Main,edtAdminKey_TextChanged,4080,0,Main,Activity_Create,1496,0,DirectUnblock,Activity_HeightChanged,1360,1,Main,Activity_HeightChanged,1868,4
+NavigationStack=Main,Activity_HeightChanged,1912,5,Main,Process_Globals,1158,0,Main,Globals,1204,0,Main,Activity_Destroy,1306,0,Main,InitializeActivityLayout,1857,0,MyConstants,Class_Globals,98,6,DirectUnblock,Activity_Stop,772,0,DirectUnblock,btnProceedToUnblock_Click,2303,3,Main,mnuDirectUnblock_Click,3353,6,Main,btnGenerate_Click,4753,6,Main,edtAdminKey_ShowSelectionInfo,4180,0
 SelectedBuild=0
-VisibleModules=13,1,14,11,8
+VisibleModules=13,1,14,2,4

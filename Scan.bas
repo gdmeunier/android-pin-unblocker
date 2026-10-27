@@ -189,7 +189,7 @@ public void jBlockEventPostingAbility()
 	 */
 	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
 	{
-		// Backup so that _onResume cans restore the original value later
+		// Backup so that _onPostResume cans restore the original value later
 		this.originalIgnoreEventsFromOtherThreadsDuringMsgboxError = this.processBA.sharedProcessBA.ignoreEventsFromOtherThreadsDuringMsgboxError;
 		
 		// Notify in the logging about it always
@@ -909,7 +909,7 @@ Private Sub LoadActivityLayout
 	
 	'Initialize the ScrollView
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity's ScrollView"$, Colors.Blue)
-	scvActivity.Initialize(Activity.Height) 'Default initial height for its Panel
+	scvActivity.Initialize(100%y) 'Default initial height for its Panel
 	'
 	'Don't set any explit height / width on the ScrollView:
 	' - This is already handled by XML styles for it,
@@ -920,8 +920,8 @@ Private Sub LoadActivityLayout
 	'Initialize the ScrollView panel
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity ScrollView's inner panel"$, Colors.Blue)
 	scvActivity.Panel.Initialize("") 'Pass empty EventName prefix because we don't need it
-	scvActivity.Panel.Height = Activity.Height 'Must set an height before loading layouts
-	scvActivity.Panel.Width  = Activity.Width  'Must set a width before loading layouts
+	scvActivity.Panel.Height = 100%y 'Must set an height before loading layouts
+	scvActivity.Panel.Width  = 100%x 'Must set a width before loading layouts
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: scvActivity Panel height = ${scvActivity.Panel.Height} & width = ${scvActivity.Panel.Width}"$, Colors.Blue)
 	
 	'Load the Activity layout into the ScrollView's panel
@@ -1076,7 +1076,7 @@ Private Sub FixVariantSpecificLayouts(ActivityMargins() As Int, BottomMostElemen
 	'
 	'So only apply the OptimalPanelHeight value if it's better
 	'than Activity.Height (if it's a greater value)
-	If OptimalPanelHeight > Activity.Height Then
+	If OptimalPanelHeight > 100%y Then
 		scvActivity.Panel.Height = OptimalPanelHeight
 	End If
 	

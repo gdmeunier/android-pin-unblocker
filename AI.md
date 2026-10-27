@@ -7,7 +7,8 @@
 
 A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (preferably [version 12.50](https://web.archive.org/web/20230719022719/https://www.b4x.com/android/files/B4A.exe) with its [older resources](https://web.archive.org/web/20240529212314/https://www.b4x.com/b4a.html) and the [B4X Help Viewer](https://www.b4x.com/android/forum/threads/b4x-help-viewer.46969/)).
 
-Its purpose is to generate **smartcard** PIN unlock/reset *Response values* using your **Admin/Management key** supplied by the user and an Android mobile phone instead of requiring a computer.
+Its purpose is to generate **smartcard** PIN unlock/reset *Response values* using your **Admin/Management key** supplied by the user and an Android mobile phone instead of requiring a computer.\
+Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
 This app is intended for **authorized smartcard PIN administration** only. It supports workflows where the card issuer/vendor documents a **challenge–response** process for **PIN unblock/reset** and provides the required **Request/Challenge** value.
 
@@ -15,10 +16,8 @@ In that scenario, the app computes the corresponding **Response value** using th
 
 It is **not** for bypassing access controls, and it must not be used for cards or accounts you are not authorized to administer.
 
-The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.
-
+The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.\
 Real secure smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, GIDS, Javacards *[...]*.
-Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
 <div style="page-break-after: always;"></div>
 
@@ -78,7 +77,7 @@ For resetting the PIN of the card (entering the generated **Response value** com
 **Android PIN Unblocker** has a very simple set of features; it can compute the **Response value** (sometimes referred to as an unblock/unlock value in the context of vendor-documented PIN administration) with your own legally supplied **Admin/management key**, read the **Request/Challenge value** from a QR code, and generate hashes using **SHA-256** or **SHA-512**.
 
 > [!TIP]
-> This application also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.
+> This application also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.\
 > Both chip-based **smartcards** and USB **tokens** are supported.
 
 <div style="page-break-after: always;"></div>
@@ -111,12 +110,11 @@ This way nobody accidentally grabs a picture of your *Admin/management key* whil
 
 ![You can click on the QR code button to scan a Request/Challenge code.](/Screenshots/4-scan-qr-request-code.png)
 
-**Android PIN Unblocker** supports the scanning of **QR codes** using your mobile phone's camera to read the **Request/Challenge code** from a *QR code*.
+**Android PIN Unblocker** supports the scanning of **QR codes** using your mobile phone's camera to read the **Request/Challenge code** from a *QR code*.\
+It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the vendor-documented PIN-administration workflow more efficiently.
 
 You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).\
 The decoded *Request/Challenge code* then gets automatically written to the appropriate text field once detected.
-
-It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the vendor-documented PIN-administration workflow more efficiently.
 
 <div style="page-break-after: always;"></div>
 
@@ -211,10 +209,9 @@ For the smartcard readers, all brands of smartcard readers are supported, using 
 
 <div style="page-break-after: always;"></div>
 
-## Wide device compatibility `API level 9+`
+## Wide device compatibility `Android 2.3.2+`
 
-**Android PIN Unblocker** strives to support the widest range of Android devices.
-
+**Android PIN Unblocker** strives to support the widest range of Android devices.\
 This application supports Android versions ranging from **Android 2.3.2** to the latest ones including **Android 16** and later versions.
 
 All hardware functionality of this application are also marked as optional instead of required.

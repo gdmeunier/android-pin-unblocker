@@ -202,7 +202,7 @@ public void jBlockEventPostingAbility()
 	 */
 	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
 	{
-		// Backup so that _onResume cans restore the original value later
+		// Backup so that _onPostResume cans restore the original value later
 		this.originalIgnoreEventsFromOtherThreadsDuringMsgboxError = this.processBA.sharedProcessBA.ignoreEventsFromOtherThreadsDuringMsgboxError;
 		
 		// Notify in the logging about it always
@@ -557,6 +557,13 @@ public void _onCreate()
 	// Make this application Activity secure
 	BA.LogInfo("["+activityName+"] _onCreate: Securing this application Activity");
 	myadvancedInstance.jSecureActivityOnCreate(this, isFirst);
+	
+	// Force-hide the keyboard always on first-time Activity create
+	if ( isFirst )
+	{
+		BA.LogInfo("["+activityName+"] _onCreate: Force-hiding the android soft keyboard always on first-time Activity create");
+		myadvancedInstance.jForceHideKeyboard(this);
+	}
 	
 	/* Below is for detecting device idle state, when the display is no longer 'interactive'
 	 *  - Display off, screen locked, screensaver, inactivity [...]
@@ -1068,7 +1075,7 @@ Private Sub LoadActivityLayout
 	
 	'Initialize the ScrollView
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity's ScrollView"$, Colors.Blue)
-	scvActivity.Initialize(Activity.Height) 'Default initial height for its Panel
+	scvActivity.Initialize(100%y) 'Default initial height for its Panel
 	'
 	'Don't set any explit height / width on the ScrollView:
 	' - This is already handled by XML styles for it,
@@ -1079,8 +1086,8 @@ Private Sub LoadActivityLayout
 	'Initialize the ScrollView panel
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Initializing the Activity ScrollView's inner panel"$, Colors.Blue)
 	scvActivity.Panel.Initialize("") 'Pass empty EventName prefix because we don't need it
-	scvActivity.Panel.Height = Activity.Height 'Must set an height before loading layouts
-	scvActivity.Panel.Width  = Activity.Width  'Must set a width before loading layouts
+	scvActivity.Panel.Height = 100%y 'Must set an height before loading layouts
+	scvActivity.Panel.Width  = 100%x 'Must set a width before loading layouts
 	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: scvActivity Panel height = ${scvActivity.Panel.Height} & width = ${scvActivity.Panel.Width}"$, Colors.Blue)
 	
 	'Load the Activity layout into the ScrollView's panel
@@ -1184,7 +1191,7 @@ Private Sub FixVariantSpecificLayouts(ActivityMargins() As Int, BottomMostElemen
 	'
 	'So only apply the OptimalPanelHeight value if it's better
 	'than Activity.Height (if it's a greater value)
-	If OptimalPanelHeight > Activity.Height Then
+	If OptimalPanelHeight > 100%y Then
 		scvActivity.Panel.Height = OptimalPanelHeight
 	End If
 	
@@ -1347,23 +1354,14 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 		
 	End If
 	
-	'I want to remove approx. 16dip of bottom margin
-	'of the ScrollView's internal Panel when the
-	'Android soft keyboard is open, and I restore it
-	'when the keyboard becomes hidden again
-	'
 	'If the new height is smaller than the Activity's,
 	'then I conclude that the soft keyboard is open
-	If NewHeight < 100%y Then
-		scvActivity.Panel.Height = scvActivity.Panel.Height - (16dip * LoadedLayout.Scale)
-		
-	Else If NewHeight >= 100%y Then
-		scvActivity.Panel.Height = scvActivity.Panel.Height + (16dip * LoadedLayout.Scale)
-		
-	End If
-	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Fixing the height of the Activity's ScrollView..."$, Colors.Blue)
-	scvActivity.Height = NewHeight
+	If NewHeight < 100%y Then
+		scvActivity.Height = NewHeight
+	Else
+		scvActivity.Height = 100%y
+	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return"$, Colors.Blue)
 End Sub
@@ -2181,7 +2179,15 @@ Private Sub btnProceedToUnblock_Click
 		DirectUnblockInfoText = GetDirectUnblockDialogHeader(DeviceHasUsbOtg)
 		DirectUnblockInfoText.Append(CRLF & CRLF)
 		
-		DirectUnblockInfoText.Append($"The new PIN you provided is not within the required length constraints of being atleast ${DetectedCardMinPINLength} chars and not being more than ${DetectedCardMaxPINLength} chars."$)
+		DirectUnblockInfoText.Append($"The new PIN you provided is not within the required length constraints of being atleast "$)
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append($"${DetectedCardMinPINLength} chars"$)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Append($" and not being more than "$)
+		DirectUnblockInfoText.Bold
+			DirectUnblockInfoText.Append($"${DetectedCardMaxPINLength} chars"$)
+		DirectUnblockInfoText.Pop
+		DirectUnblockInfoText.Append($" long."$)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: displaying the operation abort message"$, Colors.Magenta)
 		Msgbox2Async(DirectUnblockInfoText, "Direct Unblock", Constants.MSGBOX_HIDE_POSITIVE, "Close", Constants.MSGBOX_HIDE_NEGATIVE, DirectUnblockIcon, Constants.MSGBOX_CANCELLABLE)
