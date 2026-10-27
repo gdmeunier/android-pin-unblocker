@@ -743,6 +743,9 @@ Sub Globals
 	'even when the soft keyboard is open
 	Private imeActivity As IME
 	
+	'For being able to copy exception logs
+	Private ClipboardManager As Clipboard
+	
 End Sub
 
 '----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
@@ -2288,10 +2291,10 @@ Private Sub btnProceedToUnblock_Click
 		Wait For Msgbox_Result(Result As Int)
 		
 		If Result == DialogResponse.POSITIVE Then
-			Dim Clipboard As BClipboard
-			Clipboard.setText(ErrorIfAny)
 			
-			If Clipboard.getText == ErrorIfAny Then
+			ClipboardManager.SetText2(ErrorIfAny, "Exception Log")
+			
+			If ClipboardManager.GetText == ErrorIfAny Then
 				ToastMessageShow("Log copied to clipboard", Constants.TOAST_DURATION_SHORT)
 			Else
 				ToastMessageShow("Failed to copy log to clipboard", Constants.TOAST_DURATION_SHORT)

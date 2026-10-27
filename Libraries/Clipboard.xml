@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root>
-    <doclet-version-NOT-library-version>1.00</doclet-version-NOT-library-version>
+    <doclet-version-NOT-library-version>1.02</doclet-version-NOT-library-version>
+	<!-- Created by:    mtw       @ Basic4Android forums
+	     Refactored by: gdmeunier @ GitHub
+	-->
     <class>
-        <name>b4a.util.BClipboard</name>
-        <shortname>BClipboard</shortname>
+        <name>anywheresoftware.b4a.mtw.clipboard.Clipboard</name>
+        <shortname>Clipboard</shortname>
+		<comment>Allows easily using clipboard functionalities in Basic4Android.</comment>
         <owner>activity</owner>
         <method>
-            <name>getText</name>
-            <comment></comment>
+            <name>GetText</name>
+            <comment>Gets the contents of the clipboard.</comment>
             <returntype>java.lang.String</returntype>
             <parameter>
                 <name>ba</name>
@@ -15,8 +19,11 @@
             </parameter>
         </method>
         <method>
-            <name>clrText</name>
-            <comment></comment>
+            <name>ClearText</name>
+            <comment>Clears the contents of the clipboard.
+			
+This function doesn't return anything.
+Use the hasText function if you want to verify whether the clipboard contents were cleared successfully.</comment>
             <returntype>void</returntype>
             <parameter>
                 <name>ba</name>
@@ -24,8 +31,8 @@
             </parameter>
         </method>
         <method>
-            <name>setText</name>
-            <comment></comment>
+            <name>SetText</name>
+            <comment>Sets a specific text as the new clipboard contents.</comment>
             <returntype>void</returntype>
             <parameter>
                 <name>ba</name>
@@ -37,8 +44,31 @@
             </parameter>
         </method>
         <method>
-            <name>hasText</name>
-            <comment></comment>
+            <name>SetText2</name>
+            <comment>Sets a specific text as the new clipboard contents.
+
+This function supports setting the clipboard content description on Android API level 11+ (Android 3.0+).
+On older Android versions, it just discard unsupported attributes and sets only the text.</comment>
+            <returntype>void</returntype>
+            <parameter>
+                <name>ba</name>
+                <type>anywheresoftware.b4a.BA</type>
+            </parameter>
+            <parameter>
+                <name>text</name>
+                <type>java.lang.String</type>
+            </parameter>
+            <parameter>
+                <name>label</name>
+                <type>java.lang.String</type>
+            </parameter>
+        </method>
+        <method>
+            <name>HasText</name>
+            <comment>This function checks whether the clipboard contains any text at all.
+It doesn't check whether whether a specific text is inside.
+
+Returns False if the clipboard has been cleared before.</comment>
             <returntype>boolean</returntype>
             <parameter>
                 <name>ba</name>
@@ -46,4 +76,7 @@
             </parameter>
         </method>
     </class>
+	<version>2.1</version>
+	<comment>Allows easily using clipboard functionalities in Basic4Android.</comment>
+	<author>mtw</author>
 </root>

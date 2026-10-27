@@ -159,6 +159,12 @@
     *;
 }
 
+# Allow shrinking the Clipboard library
+-keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.mtw.clipboard.Clipboard
+-keepclassmembers,allowoptimization class anywheresoftware.b4a.mtw.clipboard.Clipboard {
+    *;
+}
+
 # ----- Optimization Options
 
 #-dontoptimize
@@ -222,6 +228,9 @@
 # AndroidX support library
 -keeppackagenames android.support.v4.**
 -keeppackagenames androidx.**
+
+# The BClipboard library
+-keeppackagenames anywheresoftware.b4a.mtw.clipboard
 
 -keepattributes *
 -keepparameternames
