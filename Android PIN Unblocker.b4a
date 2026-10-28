@@ -41,8 +41,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 259
-	#VersionName: 5.18.1
+	#VersionCode: 266
+	#VersionName: 5.18.8
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -53,7 +53,7 @@ Version=12.5
 	'
 	#CanInstallToExternalStorage: False
 	
-	#BridgeLogger: False
+	#BridgeLogger: True
 	#MultiDex:     False
 	
 	'Keystore used for signing the application

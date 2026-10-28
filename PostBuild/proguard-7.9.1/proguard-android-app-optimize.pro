@@ -146,24 +146,31 @@
 -keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.* {
     *;
 }
+# For this one don't keep the unused class members
+#
+# This way we have even smaller class files for the ones
+# that usually contain lots of class members that I might
+# not even use at all
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.streams.*
--keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.streams.* {
-    *;
-}
+#-keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.streams.* {
+#    *;
+#}
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.collections.*
 -keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.collections.* {
     *;
 }
+# For this one don't keep the unused class members
+#
+# This way we have even smaller class files for the ones
+# that usually contain lots of class members that I might
+# not even use at all
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.keywords.**
--keepclassmembers,allowoptimization class anywheresoftware.b4a.keywords.** {
-    *;
-}
+#-keepclassmembers,allowoptimization class anywheresoftware.b4a.keywords.** {
+#    *;
+#}
 
 # Allow shrinking the Clipboard library
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.mtw.clipboard.Clipboard
--keepclassmembers,allowoptimization class anywheresoftware.b4a.mtw.clipboard.Clipboard {
-    *;
-}
 
 # ----- Optimization Options
 

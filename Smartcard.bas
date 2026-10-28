@@ -465,7 +465,7 @@ Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String
 		'Release the active operation lock (before sending the reply)
 		ActiveOperationInProgress = False
 		
-		If Caller <> Null And SubName <> Null Then
+		If Caller <> Null And SubName <> Null And SubName <> "" Then
 			'Service Callers use IsSuccessful instead of e.g. IsFailed
 			CallSubDelayed3(Caller, "Smartcard_"&SubName&"_Completed", False, Array As Object(SmartcardMessageThread.Error))
 			
@@ -526,8 +526,8 @@ Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 	'It also takes less bytes in Java bytecode to write
 	'multiple variable assignment statements rather
 	'than writing multiple function-call ones
-	Dim FinalIsSuccessful   As Boolean = True                  'Must be True by default
-	Dim FinalServiceReply() As Object  = Array As Object(Null) 'Must be Null by default
+	Dim FinalIsSuccessful   As Boolean = True 'Must be True by default
+	Dim FinalServiceReply() As Object  = Array As Object(Null)
 	
 	'Quick & easy method of checking whether
 	'the requested operation is unknown
@@ -553,7 +553,7 @@ Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 			Try
 				Exceptions.ThrowException(Exceptions.EXCEPTION_SMARTCARDOPERATION, $"An unknown message type ${DoWhat} was sent to this Service"$)
 			Catch
-				FinalServiceReply = Array As Object(LastException.Message)
+				FinalServiceReply(0) = LastException.Message
 			End Try
 			
 			Exit
@@ -596,7 +596,7 @@ Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 					Exceptions.ThrowException(Exceptions.EXCEPTION_APDUREPLY, $"The Smartcard replied with an APDU SW status code that indicates failure (${LastReplyAPDU.SubString(LastReplyAPDU.Length - 4)})"$)
 					
 				Catch
-					ServiceReply = Array As Object(LastException.Message)
+					ServiceReply(0) = LastException.Message
 					
 				End Try
 				
@@ -605,8 +605,8 @@ Private Sub Service_Message_Receipt(DoWhat As Int, CallerBundle() As Object)
 		End If
 		
 		'Service Callers use IsSuccessful instead of e.g. IsFailed
-		FinalIsSuccessful = IsSuccessful
-		FinalServiceReply = ServiceReply
+		FinalIsSuccessful    = IsSuccessful
+		FinalServiceReply(0) = ServiceReply(0)
 		
 	End If
 	
@@ -712,8 +712,8 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As Object)
 		ServiceReply = joService.RunMethod("jRunInSmartcardOperationThread", Array(DoWhat, Parameters))
 		
 	Catch
-		IsSuccessful = False
-		ServiceReply = Array As Object(LastException.Message)
+		IsSuccessful    = False
+		ServiceReply(0) = LastException.Message
 		
 	End Try
 	
@@ -729,12 +729,6 @@ public Object[] jRunInSmartcardOperationThread(final int doWhat, final Object[] 
 	PowerManager.WakeLock wl = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, PACKAGE_NAME);
 	wl.acquire();
 	
-	/* Pre-initialize the reply Object with
-	 * atleast one element inside (e.g. null)
-	 *
-	 * This way no need to have multiple statements
-	 * such as "reply = new Object[] { ... };"
-	 */
 	Object[] reply = new Object[] { null };
 	
 	/* withSound  = false
