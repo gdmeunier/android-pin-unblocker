@@ -1,4 +1,4 @@
-﻿ModuleBookmarks0=3505,49,1395,1135,3686,1524,1856
+﻿ModuleBookmarks0=3506,49,1395,1135,3687,1524,1856,2683,2443
 ModuleBookmarks1=2122,2694,911,671,2327,1060
 ModuleBookmarks10=
 ModuleBookmarks11=
@@ -49,6 +49,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=DirectUnblock,DirectUnblockThread_Ended,2307,0,Main,SendPinUnblockAPDUSequence,3569,0,Main,DirectUnblockThread_Ended,3499,0,Main,Globals,1207,1,Smartcard,Service_Message_Receipt,592,6,DirectUnblock,btnProceedToUnblock_Click,2288,4,Main,mnuDirectUnblock_Click,3456,3,Smartcard,SmartcardMessageThread_Ended,462,6,DirectUnblock,SendPinUnblockAPDUSequence,2340,0,MyExceptions,ThrowException,158,0
+NavigationStack=MyServiceRequest,SendRequest,93,0,MyLifecycleTracking,LifecycleClearingThread_Clearing_Thread,67,0,MyServiceResponse,Initialize,31,6,MyServiceResponse,Class_Globals,19,6,Main,RestoreViewState,2245,0,Main,Activity_NewIntent,2437,0,Main,Activity_Resume,2147,0,Main,CheckIfAdminKeySharedToTheApp,2461,0,MyServiceResponse,SendResponse,123,6,Main,Activity_Exit,2767,6
 SelectedBuild=0
 VisibleModules=1,16,11,12

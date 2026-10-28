@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 275
-	#VersionName: 5.19.8
+	#VersionCode: 277
+	#VersionName: 5.19.10
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -2817,8 +2817,8 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 '		btnHashMenu.Width   = btnHashMenu.Width - btnLockdown.Width
 '		btnLockdown.Visible = True
 '	End If
-	ViewState_chkHideAdminKey_Checked = False
-	ViewState_chkHideAdminKey_Enabled = True
+	'ViewState_chkHideAdminKey_Checked = False 'Not needed because we use ExitApplication again
+	'ViewState_chkHideAdminKey_Enabled = True  'Not needed because we use ExitApplication again
 '	chkHideAdminKey.Enabled           = True
 '	chkHideAdminKey.Checked           = False
 	
@@ -2832,7 +2832,8 @@ Please wait until is completes"$, Constants.TOAST_DURATION_SHORT)
 	'Not using ExitApplication because I want to
 	'be able to have fast application reloads
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Exiting the application now"$, Colors.Blue)
-	Activity.Finish
+	'Activity.Finish
+	ExitApplication 'Using ExitApplication again (better for older devices it seems)
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Exit: Sub return"$, Colors.Blue)
 End Sub
