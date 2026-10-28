@@ -2292,7 +2292,7 @@ Private Sub btnProceedToUnblock_Click
 		
 		If Result == DialogResponse.POSITIVE Then
 			
-			ClipboardManager.SetText2(ErrorIfAny, "Exception Log")
+			ClipboardManager.SetText2(ErrorIfAny, "Exception log")
 			
 			If ClipboardManager.GetText == ErrorIfAny Then
 				ToastMessageShow("Log copied to clipboard", Constants.TOAST_DURATION_SHORT)
@@ -2319,8 +2319,12 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 	'
 	'This one uses IsSuccessful = False (NOT IsFailed = True)
 	'
-	If Failed Or (ErrorIfAny <> Null And ErrorIfAny <> "") Then
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, Array As Object(DirectUnblockThread.Error))
+	'Don't check "Failed" because it returns false-positives
+	
+	'Somehow Basic4Android deliberately sets it to True
+	'even if the Thread did NOT die from a failure
+	If ErrorIfAny <> Null And ErrorIfAny <> "" Then
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, DirectUnblockThread.Error)
 		
 	End If
 	
@@ -2332,26 +2336,21 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'
 	'Reusable variables for all APDU requests
 	'
-	Dim CallerBundle() As Object
-	Dim LastSentAPDU   As String
+	Dim ServiceRequest As MyServiceRequest
+	ServiceRequest.Initialize(Smartcard, Me, "SendPinUnblockAPDUSequence")
 	
 	'--------------------------------------------------------------------------------
 	'Find the smartcard reader
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object() _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.FIND_SMARTCARDREADER, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetOperation(Smartcard.FIND_SMARTCARDREADER)
+	ServiceRequest.SendRequest
 	
-	If IsSucessful == False Then
-		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
+		'IsSuccessful = False
+		'ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2359,20 +2358,15 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'--------------------------------------------------------------------------------
 	'Find the smartcard
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object() _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.FIND_SMARTCARD, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetOperation(Smartcard.FIND_SMARTCARD)
+	ServiceRequest.SendRequest
 	
-	If IsSucessful == False Then
-		'Tell the mnuDirectUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
+		'IsSuccessful = False
+		'ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2381,26 +2375,21 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'Check if we have the same smartcard model still plugged-in (check ATR)
 	'Otherwise the user has to go back to the Main Activity to reload this one
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object() _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.GET_ATR, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetOperation(Smartcard.GET_ATR)
+	ServiceRequest.SendRequest
 	
-	If IsSucessful == False Then
-		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ResponseBundle(0))
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
+		'IsSuccessful = False
+		'ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
 	
 	'The smartcard ATR will be in ResponseBundle(0) (as String)
-	If ResponseBundle(0) <> CardATR Then
+	If ServiceResponse.GetReply <> CardATR Then
 		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
@@ -2412,39 +2401,33 @@ Previous card ATR:
 ${CardATR}
 
 Current card ATR:
-${ResponseBundle(0)}"$)
+${ServiceResponse.GetReply}"$)
 		Return
 		
 	End If
 	
 	'--------------------------------------------------------------------------------
 	'
+	'Switch to sending APDUs now
+	'
+	ServiceRequest.SetOperation(Smartcard.SEND_APDU)
+	
+	'--------------------------------------------------------------------------------
+	'
 	'Try selecting the last PKI Applet ID
 	'
-	LastSentAPDU = SelectAppletAPDU
+	ServiceRequest.SetParameter(SelectAppletAPDU)
+	ServiceRequest.SendRequest
 	
-	'CallerBundle(0) = Caller       - Object
-	'CallerBundle(1) = SubName      - String
-	'CallerBundle(2) = Parameters() - Object()
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
-	'
-	'Check whether both applet IDs were not found
-	'If no PKI applet was found then we can't proceed further
-	'
-	If IsSucessful == False Then
-		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
+		'IsSuccessful = False
+		'ErrorIAny    = (error message)
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
 
 ${CardType} Applet ID:
-${LastSentAPDU}
+${SelectAppletAPDU}
 
 The smartcard could not find the PKI applet we searched for"$&".")
 		Return
@@ -2453,28 +2436,31 @@ The smartcard could not find the PKI applet we searched for"$&".")
 	
 	'--------------------------------------------------------------------------------
 	'
+	'Start the actual unblock process
+	'
+	Dim LastSentAPDU As String = ""
+	
+	'
 	'For GIDS: we have to do SET_SECURITY_ENVIRONMENT first
 	'
 	If CardType == "GIDS" Then
+		
 		LastSentAPDU = Constants.APDU_SET_SECURITY_ENVIRONMENT_GIDS
 		
-		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-			Array As Object( _
-				LastSentAPDU _
-			) _
-		)
+		ServiceRequest.SetParameter(LastSentAPDU)
+		ServiceRequest.SendRequest
 		
-		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+		Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 		
-		If IsSucessful == False Then
+		If Not(ServiceResponse.GetIsSuccessful) Then
+			
 			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
 
 Sent APDU:
 ${LastSentAPDU}
 
 Received:
-${ResponseBundle(0)}"$)
+${ServiceResponse.GetReply}"$)
 			Return
 			
 		End If
@@ -2499,22 +2485,19 @@ ${ResponseBundle(0)}"$)
 		
 	End If
 	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetParameter(LastSentAPDU)
+	ServiceRequest.SendRequest
 	
-	If IsSucessful == False Then
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to request the ${DetectedAlgorithm} challenge code!
 
 Sent APDU:
 ${LastSentAPDU}
 
 Received:
-${ResponseBundle(0)}"$)
+${ServiceResponse.GetReply}"$)
 		Return
 		
 	End If
@@ -2523,12 +2506,11 @@ ${ResponseBundle(0)}"$)
 	'For GIDS: check if the smartcard's APDU reply correctly begins
 	'          with a challenge type that we support
 	'
-	Dim SmartcardReplyAPDU   As String
-	Dim ErrorMessageIfNeeded As String
-	Dim ChallengeLength      As Int
+	Dim GetChallengeReplyAPDU As String = ServiceResponse.GetReply
+	Dim ErrorMessageIfNeeded  As String
+	Dim ChallengeLength       As Int
 	
 	If CardType == "GIDS" Then
-		SmartcardReplyAPDU   = ResponseBundle(0).As(String)
 		ErrorMessageIfNeeded = $"The challenge method provided by the smartcard's ${CardType} applet is unsupported?
 
 ERROR_MESSAGE
@@ -2537,9 +2519,9 @@ Sent APDU:
 ${LastSentAPDU}
 
 Received:
-${SmartcardReplyAPDU}"$
+${GetChallengeReplyAPDU}"$
 		
-		If Not(SmartcardReplyAPDU.StartsWith(Constants.APDU_GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
+		If Not(GetChallengeReplyAPDU.StartsWith(Constants.APDU_GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
 			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", "The received APDU reply does not start with a challenge type header that we could recognize."))
 			Return
 			
@@ -2555,7 +2537,7 @@ ${SmartcardReplyAPDU}"$
 		'Example reply: 7C 0A 81 08 CF D4 62 1D 02 09 A2 0E 90 00
 		'                        ^^
 		'
-		ChallengeLength = Converters.StringHexToNumber(SmartcardReplyAPDU.SubString2(6, 8))
+		ChallengeLength = Converters.StringHexToNumber(GetChallengeReplyAPDU.SubString2(6, 8))
 		
 		Select ChallengeLength
 			Case 8
@@ -2589,9 +2571,9 @@ ${SmartcardReplyAPDU}"$
 			'2DES / 3DES
 			If CardType == "GIDS" Then
 				'For GIDS: take 24 chars then remove the first 8 chars (16 chars)
-				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(8, 24) '16 chars = 8 bytes
+				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(8, 24) '16 chars = 8 bytes
 			Else
-				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 16) '16 chars = 8 bytes
+				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(0, 16) '16 chars = 8 bytes
 			End If
 			
 			SmartcardResponseCode  = Cryptography.TripleDesEncrypt(SmartcardChallengeCode, AdminKey)
@@ -2601,9 +2583,9 @@ ${SmartcardReplyAPDU}"$
 			'AES-128 / AES-256
 			If CardType == "GIDS" Then
 				'For GIDS: take 40 chars then remove the first 8 chars (32 chars)
-				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(8, 40) '32 chars = 16 bytes
+				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(8, 40) '32 chars = 16 bytes
 			Else
-				SmartcardChallengeCode = ResponseBundle(0).As(String).SubString2(0, 32) '32 chars = 16 bytes
+				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(0, 32) '32 chars = 16 bytes
 			End If
 			
 			SmartcardResponseCode  = Cryptography.AesEncrypt(SmartcardChallengeCode, AdminKey)
@@ -2626,6 +2608,7 @@ ${LastException.Message}"$)
 	
 	'--------------------------------------------------------------------------------
 	'Clear the last-sent APDU just incase no PKI applet ID matches
+	'in the below list of smartcard types (initial value of Null)
 	LastSentAPDU = Null
 	
 	If CardType == "Gemalto" Then
@@ -2667,7 +2650,11 @@ ${LastException.Message}"$)
 		'                           |  |        |  Challenge code
 		'                           |  |        |  |
 		'Example reply: 00 87 00 00 ?? 7C 0A 82 08 DE 8B 58 02 7C 68 63 9D
-		'                           ^^ ++ ++ ++ -- ** ** ** ** ** ** ** **
+		'                           xx ** ** ** ** ** ** ** ** ** ** ** **
+		'                           |  |        |  |
+		'                           |  +3       +1 +ChallengeLength (e.g. 8)
+		'                           | [-- -- -- -- -- -- -- -- -- -- -- --]
+		'                           This is what we're replacing with length of "Data"
 		'
 		'ChallengeLength is our earlier variable that is still valid
 		LastSentAPDU = LastSentAPDU.Replace("??", Converters.NumberToStringHex(3 + 1 + ChallengeLength))
@@ -2681,15 +2668,12 @@ ${LastException.Message}"$)
 		
 	End If
 	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE request APDU
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetParameter(LastSentAPDU)
+	ServiceRequest.SendRequest
 	
-	If IsSucessful == False Then
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
 
 Algorithm:
@@ -2705,13 +2689,14 @@ Sent APDU:
 ${LastSentAPDU}
 
 Received:
-${ResponseBundle(0)}"$)
+${ServiceResponse.GetReply}"$)
 		Return
 		
 	End If
 	
 	'--------------------------------------------------------------------------------
 	'Clear the last-sent APDU just incase no PKI applet ID matches
+	'in the below list of smartcard types (initial value of Null)
 	LastSentAPDU = Null
 	
 	' - Many smartcards have a minimum PIN requirement of 4 characters
@@ -2800,15 +2785,12 @@ ${ResponseBundle(0)}"$)
 		
 	End If
 	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _ 'Send SET REFERENCE DATA APDU for the selected PIN
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetParameter(LastSentAPDU)
+	ServiceRequest.SendRequest
 	
-	If IsSucessful == False Then
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
+	
+	If Not(ServiceResponse.GetIsSuccessful) Then
 		'Remember that since the new PINs are now user-defined,
 		'you have to never disclose what the APDU data was
 		'
@@ -2819,7 +2801,7 @@ Sent APDU:
 SET_REFERENCE_DATA for ${CardType}
 
 Received:
-${ResponseBundle(0)}"$)
+${ServiceResponse.GetReply}"$)
 		Return
 		
 	End If
@@ -2838,6 +2820,7 @@ ${ResponseBundle(0)}"$)
 	
 	'--------------------------------------------------------------------------------
 	'Clear the last-sent APDU just incase no PKI applet ID matches
+	'in the below list of smartcard types (initial value of Null)
 	LastSentAPDU = Null
 	
 	'ActivID PKI smartcards only support logout using
@@ -2877,13 +2860,10 @@ ${ResponseBundle(0)}"$)
 				
 		End Select
 		
-		CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-			Array As Object( _
-				LastSentAPDU _ 'Send EXTERNAL AUTHENTICATE (LOGOUT) request APDU
-			) _
-		)
-		CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-		Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+		ServiceRequest.SetParameter(LastSentAPDU)
+		ServiceRequest.SendRequest
+		
+		Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 		
 		'
 		'No Specific exception handling here
@@ -2895,13 +2875,10 @@ ${ResponseBundle(0)}"$)
 	
 	LastSentAPDU = SelectAppletAPDU 'Select last PKI Applet ID again (to 'logout' again / reset logged-in status)
 	
-	CallerBundle = Array As Object(Me, "SendPinUnblockAPDUSequence", _
-		Array As Object( _
-			LastSentAPDU _
-		) _
-	)
-	CallSubDelayed3(Smartcard, "Service_Message", Smartcard.SEND_APDU, CallerBundle)
-	Wait For Smartcard_SendPinUnblockAPDUSequence_Completed(IsSucessful As Boolean, ResponseBundle() As Object)
+	ServiceRequest.SetParameter(LastSentAPDU)
+	ServiceRequest.SendRequest
+	
+	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
 	'
 	'No Specific exception handling here

@@ -5,6 +5,10 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
+#Region Class File Attributes
+	
+#End Region
+
 '
 'This class is a subclass of the MyCommon one
 '
@@ -29,7 +33,9 @@ Public Sub Initialize
 End Sub
 
 Private Sub SynchronousSleepThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	
+	'
+	'Nothing to do here
+	'
 End Sub
 
 Public Sub SynchronousSleep_Start(Milliseconds As Int, OriginClassCaller As Object, SubName As String)

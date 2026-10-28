@@ -5,6 +5,10 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
+#Region Class File Attributes
+	
+#End Region
+
 '
 'This class uses a mix of Java native and Basic-code
 '
@@ -83,8 +87,7 @@ End Sub
 
 Public Sub ThrowException(ExceptionType As Int, Message As String)
 	
-	'Mark the Exception as being thrown from Basic code (B4X)
-	joClass.RunMethod("jThrowException", Array(ExceptionType, "<B4X> "&Message))
+	joClass.RunMethod("jThrowException", Array(ExceptionType, Message))
 	
 End Sub
 #If Java
@@ -147,30 +150,6 @@ private static class TemplateException extends Exception
 	// Empty message storage by default
 	public String message = "";
 	
-	// Easy fetching of the stacktrace
-	/*
-	public String getLogs()
-	{
-		return this.logs;
-	}
-	*/
-	
-	/* For providing more information manually
-	 *
-	 * Most custom Exception types automatically
-	 * get additional information in logs if you
-	 * set their additional properties
-	 */
-	/*
-	public void prependLineToLogs(String msg)
-	{
-		StringBuilder logsBuilder = new StringBuilder(this.logs);
-		logsBuilder.insert( 0, String.format("%s\r\n", msg) );
-		
-		this.logs = logsBuilder.toString();
-	}
-	*/
-	
 	/* Replace the default exception message fetching
 	 * with an improved version which already has
 	 * the full stacktrace, in the message itself
@@ -179,7 +158,7 @@ private static class TemplateException extends Exception
 	public String getMessage()
 	{
 		StringBuilder messageBuilder = new StringBuilder(this.message);
-		messageBuilder.append(String.format("\r\n%s", this.logs));
+		messageBuilder.append(String.format("\n%s", this.logs));
 		
 		return messageBuilder.toString();
 	}
@@ -286,56 +265,6 @@ public static class NotificationException extends TemplateException
 //
 public static class UsbDeviceException extends TemplateException
 {
-	// Easy way to get name, VID & PID of the device, etc
-	/*
-	private String deviceName  = null;
-	private String vendorID    = null;
-	private String productID   = null;
-	private String deviceClass = null;
-	
-	public void setDeviceName(String name)
-	{
-		this.deviceName  = name;
-	}
-	public void setVendorID(int vid)
-	{
-		this.vendorID    = Integer.toHexString(vid);
-	}
-	public void setProductID(int pid)
-	{
-		this.productID   = Integer.toHexString(pid);
-	}
-	public void setDeviceClass(int dvc)
-	{
-		this.deviceClass = Integer.toString(dvc);
-	}
-	
-	@Override
-	public String getLogs()
-	{
-		StringBuilder logsBuilder = new StringBuilder(this.logs);
-		
-		if ( this.deviceClass != null )
-		{
-			logsBuilder.insert( 0, String.format("USB device class: %s\r\n", this.deviceClass) );
-		}
-		if ( this.productID != null )
-		{
-			logsBuilder.insert( 0, String.format("USB device product ID: %s\r\n", this.productID) );
-		}
-		if ( this.vendorID != null )
-		{
-			logsBuilder.insert( 0, String.format("USB device vendor ID: %s\r\n", this.vendorID) );
-		}
-		if ( this.deviceName != null )
-		{
-			logsBuilder.insert( 0, String.format("USB device name: %s\r\n", this.deviceName) );
-		}
-		
-		return logsBuilder.toString();
-	}
-	*/
-	
 	public UsbDeviceException(String msg)
 	{
 		super(msg);
@@ -358,42 +287,6 @@ public static class UsbPermisionException extends TemplateException
 //
 public static class SmartcardReaderException extends TemplateException
 {
-	// Easy way to identify which Smartcard reader had a problem
-	/*
-	private String readerName = null;
-	private String readerSlot = null;
-	
-	public void setReaderName(String name)
-	{
-		this.readerName = name;
-	}
-	public void setReaderSlot(String slot)
-	{
-		this.readerSlot = slot;
-	}
-	public void setReaderSlot(int slot)
-	{
-		this.readerSlot = Integer.toString(slot);
-	}
-	
-	@Override
-	public String getLogs()
-	{
-		StringBuilder logsBuilder = new StringBuilder(this.logs);
-		
-		if ( this.readerName != null )
-		{
-			logsBuilder.insert( 0, String.format("Smartcard reader name: %s\r\n", this.readerName) );
-		}
-		if ( this.readerSlot != null )
-		{
-			logsBuilder.insert( 0, String.format("Smartcard reader slot: %s\r\n", this.readerSlot) );
-		}
-		
-		return logsBuilder.toString();
-	}
-	*/
-	
 	public SmartcardReaderException(String msg)
 	{
 		super(msg);
@@ -404,42 +297,6 @@ public static class SmartcardReaderException extends TemplateException
 //
 public static class SmartcardException extends TemplateException
 {
-	// Easy way to identify which Smartcard had a problem
-	/*
-	private String atr      = null;
-	private String protocol = null;
-	
-	public void setAtr(String providedAtr)
-	{
-		this.atr = providedAtr;
-	}
-	public void setAtr(byte[] providedAtr)
-	{
-		this.atr = myconverters.jHexStringFromBytes(providedAtr);
-	}
-	public void setProtocol(String providedProtocol)
-	{
-		this.protocol = providedProtocol;
-	}
-	
-	@Override
-	public String getLogs()
-	{
-		StringBuilder logsBuilder = new StringBuilder(this.logs);
-		
-		if ( this.atr != null )
-		{
-			logsBuilder.insert( 0, String.format("Smartcard ATR: %s\r\n", this.atr) );
-		}
-		if ( this.protocol != null )
-		{
-			logsBuilder.insert( 0, String.format("Smartcard protocol: %s\r\n", this.protocol) );
-		}
-		
-		return logsBuilder.toString();
-	}
-	*/
-	
 	public SmartcardException(String msg)
 	{
 		super(msg);
@@ -451,10 +308,6 @@ public static class SmartcardException extends TemplateException
 //
 public static class ApduException extends TemplateException
 {
-	//
-	// Never allow outputting what the APDU was
-	//
-	
 	public ApduException(String msg)
 	{
 		super(msg);
@@ -466,39 +319,6 @@ public static class ApduException extends TemplateException
 //
 public static class ApduReplyException extends TemplateException
 {
-	/*
-	private String swStatusCode = null;
-	
-	public void setSwStatusCode(String statusCode)
-	{
-		this.swStatusCode = statusCode;
-	}
-	public void setSwStatusCode(byte[] apdu)
-	{
-		if ( apdu.length < 2 )
-		{
-			return;
-		}
-		
-		// *********************************************************** [Start index]     [How many bytes]
-		//                                                             |                 |
-		this.swStatusCode = myconverters.jHexStringFromBytesTwo(apdu, (apdu.length - 2), 2);
-	}
-	
-	@Override
-	public String getLogs()
-	{
-		StringBuilder logsBuilder = new StringBuilder(this.logs);
-		
-		if ( this.swStatusCode != null )
-		{
-			logsBuilder.insert( 0, String.format("APDU SW status code: %s\r\n", this.swStatusCode) );
-		}
-		
-		return logsBuilder.toString();
-	}
-	*/
-	
 	public ApduReplyException(String msg)
 	{
 		super(msg);

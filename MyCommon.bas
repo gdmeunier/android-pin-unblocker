@@ -5,6 +5,10 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
+#Region Class File Attributes
+	
+#End Region
+
 '
 'This class uses a mix of Java native and Basic-code
 '

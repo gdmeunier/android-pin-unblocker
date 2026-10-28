@@ -5,6 +5,10 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
+#Region Class File Attributes
+	
+#End Region
+
 '
 'This is a Java-only class, it does not offer Basic-code:
 ' - Functions that require a Context must not be static

@@ -5,6 +5,10 @@ Type=Class
 Version=12.5
 @EndOfDesignText@
 
+#Region Class File Attributes
+	
+#End Region
+
 Sub Class_Globals
 	
 	'For labeling the lifecycle events of an Activity
