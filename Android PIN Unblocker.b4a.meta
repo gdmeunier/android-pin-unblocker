@@ -43,6 +43,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Smartcard,SmartcardOperationThread_Ended,687,0,Smartcard,Service_Destroy,855,0,Smartcard,SmartcardMessageThread_Ended,442,2,Smartcard,RunInSmartcardOperationThread,701,6,Smartcard,SetNotificationsAllowed,664,0,Smartcard,RequestNotificationsPermissions_DelayedSub,653,0,Smartcard,Service_Message_Receipt,515,6,DirectUnblock,SendPinUnblockAPDUSequence,2338,0,Main,SendPinUnblockAPDUSequence,3529,6,Main,mnuDirectUnblock_Click,3481,0,Main,DirectUnblockThread_Ended,3496,0
+NavigationStack=Smartcard,Service_Destroy,855,0,Smartcard,SmartcardMessageThread_Ended,442,2,Smartcard,RunInSmartcardOperationThread,701,6,Smartcard,SetNotificationsAllowed,664,0,Smartcard,RequestNotificationsPermissions_DelayedSub,653,0,DirectUnblock,SendPinUnblockAPDUSequence,2338,0,Main,SendPinUnblockAPDUSequence,3529,6,Main,mnuDirectUnblock_Click,3481,0,Main,DirectUnblockThread_Ended,3488,0,Smartcard,Service_Message_Receipt,530,6
 SelectedBuild=0
 VisibleModules=1,14,2,4
