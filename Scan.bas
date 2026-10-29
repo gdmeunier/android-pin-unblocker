@@ -649,14 +649,7 @@ Sub Globals
 	Private btnSwitchCamera As Button
 	Private btnBack         As Button
 	
-	'In a try-catch block because we want to avoid any potential
-	'Camera service connection error that could cause
-	'a disgraceful application crash
-	Try
-		Private qrvQRCodeReaderView As NewQRCodeReaderView
-	Catch
-		HandleCameraServiceException
-	End Try
+	Private qrvQRCodeReaderView As NewQRCodeReaderView
 	
 End Sub
 
@@ -1192,6 +1185,7 @@ Private Sub InitializeQRCodeReaderView
 		
 	Catch
 		HandleCameraServiceException
+		
 	End Try
 	
 	LogColor($"[Scan-${LogContextId}] InitializeQRCodeReaderView: Sub entry"$, Colors.Blue)
@@ -1705,6 +1699,7 @@ Private Sub StartQRCodeReaderView
 		
 	Catch
 		HandleCameraServiceException
+		
 	End Try
 	
 	LogColor($"[${ActivityName}-${LogContextId}] StartQRCodeReaderView: Sub return"$, Colors.Blue)
@@ -1737,6 +1732,7 @@ Private Sub StopQRCodeReaderView
 		
 	Catch
 		HandleCameraServiceException
+		
 	End Try
 	
 	LogColor($"[${ActivityName}-${LogContextId}] StopQRCodeReaderView: Sub return"$, Colors.Blue)

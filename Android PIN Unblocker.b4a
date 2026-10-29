@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 277
-	#VersionName: 5.19.10
+	#VersionCode: 292
+	#VersionName: 5.19.25
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1791,6 +1791,29 @@ Private Sub ResetViewState
 	ViewState_edtAdminKey_Text  = DEFAULT_ZEROES_ADMIN_KEY
 	ViewState_edtResponse_Text  = ""
 	
+	'
+	'We theorically could correct the ViewState's
+	'text selection information for the above 3
+	'EditText fields because we changed their
+	'text contents to default initial one
+	'
+	'However we don't want to do that because this function
+	'is only called on the first-time Activity create
+	'and on application exit, so correcting them here
+	'would be unnecessary
+	'
+	'And if Android itself mistakenly flags an Activity create
+	'as the first one when it actually was a subsequent one,
+	'then we would accidentally lose the user's original
+	'text selection information
+	'
+	'Of course not that much important at all,
+	'but basically correcting the ViewState's
+	'text selection information for the above 3
+	'EditText fields here (Challenge, Admin Key, Response)
+	'would simply be unnecessary
+	'
+	
 	LogColor($"[${ActivityName}-${LogContextId}] ResetViewState: Setting initial values for text labels"$, Colors.Blue)
 	ViewState_lblResponse_Text = "Response:"
 	
@@ -2144,6 +2167,26 @@ Sub Activity_Resume
 		
 	End If
 	
+	'The "Admin key shared to the application" check
+	'must be done before RestoreViewState,
+	'since it might modify the Admin Key field's
+	'text content and will therefore need to reset
+	'its text selection state (for the Admin Key field)
+	'
+	'And RestoreViewState will make calls to "SetSelection"
+	'that restore this selection state
+	'
+	'So check if an Admin key was shared to the application
+	'before restoring the ViewState
+	'
+	'Note that this is safe because before the call to
+	'RestoreViewState, no Admin key text has been restored
+	'at all yet, and RestoreViewState will first restore
+	'the lockdown state if it was enabled *before* restoring
+	'at Admin key text at all
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Checking if an Admin key text was shared to the application..."$, Colors.Blue)
+	CheckIfAdminKeySharedToTheApp(Activity.GetStartingIntent)
+	
 	'Restore the ViewState only after having first set the
 	'Hide Admin Key checkbox to Checked if needed
 	'
@@ -2187,9 +2230,6 @@ Sub Activity_Resume
 	'
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Reset decoy Admin Key field visibility back to invisible"$, Colors.Blue)
 	edtDecoyKey.Visible = False
-	
-	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Checking if an Admin key text was shared to the application..."$, Colors.Blue)
-	CheckIfAdminKeySharedToTheApp(Activity.GetStartingIntent)
 	
 	'Android wants to play boss with our application's focus management,
 	'so we teach it a bit of a lesson by bypassing its obnoxious automatic
@@ -2492,7 +2532,7 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 	If DirectUnblockInProgress Then
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Direct Unblock(?) operation is in progress"$, Colors.Magenta)
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: We don't proceed further and return early..."$, Colors.Magenta)
-	
+		
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Sub return"$, Colors.Magenta)
 		Return
 		
@@ -2561,9 +2601,13 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 		
 	End If
 	
+	'----------------------------------------------
+	'
 	'This part of the function cans only be reached
 	'if the Share To Intent has ACTION_SEND and has
 	'a TEXT extra inside
+	'
+	'----------------------------------------------
 	
 	'Admin Keys can be 64-digits, 48-digits or 32-digits (Hex string)
 	'64 = AES-256
@@ -2584,23 +2628,46 @@ Private Sub CheckIfAdminKeySharedToTheApp(ReceivedIntent As Intent)
 		
 		'Only put the Admin Key text in the Admin Key field
 		'After it has been locked down and made unrevealable
-		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key field .Text to the text that we received"$, Colors.Blue)
-		edtAdminKey.Text = ReceivedText
+		'
+		'The CheckIfAdminKeySharedToTheApp function
+		'is now run *before* RestoreViewState
+		'
+		'That means we can just simply modify the
+		'ViewState register for the Admin Key field's
+		'text contents instead of directly setting
+		'the new text content with "edtAdminKey.Text"
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key field's ViewState .Text to the text that we received"$, Colors.Blue)
+		ViewState_edtAdminKey_Text = ReceivedText
 		
-		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the Admin Key field .Text has been set to the shared text we received in a toast notification"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the Admin Key field's ViewState .Text has been set to the shared text we received in a toast notification"$, Colors.Blue)
 		ToastMessageShow("Admin key text shared successfully", Constants.TOAST_DURATION_SHORT)
 		
 	Else
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: The shared Admin Key text (or maybe an hash) is invalid"$, Colors.Magenta)
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: We can't accept setting the Admin Key field .Text to an invalid value"$, Colors.Magenta)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Magenta)
-		edtAdminKey.Text = ""
+		'The CheckIfAdminKeySharedToTheApp function
+		'is now run *before* RestoreViewState
+		'
+		'That means we can just simply modify the
+		'ViewState register for the Admin Key field's
+		'text contents instead of directly setting
+		'the new text content with "edtAdminKey.Text"
+		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Setting the Admin Key field's ViewState .Text to empty-string to make sure the user doesn't accidentally use the default 48-zeroes Admin Key"$, Colors.Magenta)
+		ViewState_edtAdminKey_Text = ""
 		
 		LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Notify the user that the shared Admin Key is invalid with a toast notification"$, Colors.Magenta)
 		ToastMessageShow("Shared Admin key text is invalid", Constants.TOAST_DURATION_SHORT)
 		
 	End If
+	
+	'Since we modified the edtAdminKey's text content,
+	'we have to now clear its last selection state since
+	'it would no longer reflect the selection state of
+	'the new text that will we've set on it
+	LogColor($"[${ActivityName}-${LogContextId}] CheckIfAdminKeySharedToTheApp: Resetting the Admin Key field's ViewState selection information since it's now outdated..."$, Colors.Blue)
+	ViewState_edtAdminKey_SelectionStart  = 0
+	ViewState_edtAdminKey_SelectionLength = 0
 	
 	'Clear the contents of the receivedText variable
 	'once it's no longer needed for the next part of
@@ -2624,7 +2691,7 @@ Private Sub LockdownAdminKeyField
 	'Backup the prior Lockdown state before modifying it,
 	'because we also have code that should run only once
 	'in this function
-	Dim PriorLockdownState As Boolean = ViewState_chkHideAdminKey_Enabled
+	Dim PriorLockdownStateNotEnabled As Boolean = ViewState_chkHideAdminKey_Enabled
 	
 	LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Registering the Hide Admin Key checkbox disabling in the ViewState registers"$, Colors.Blue)
 	ViewState_chkHideAdminKey_Enabled = False
@@ -2650,7 +2717,7 @@ Private Sub LockdownAdminKeyField
 	
 	'This code should only run once even if
 	'the Lockdown function is called more than once
-	If PriorLockdownState == True Then 'Explicit comparison with True for readability purposes
+	If PriorLockdownStateNotEnabled == True Then 'Explicit comparison with True for readability purposes
 		LogColor($"[${ActivityName}-${LogContextId}] LockdownAdminKeyField: Letting the Hash Text button reclaim the width freed by the Lockdown button..."$, Colors.Blue)
 		ReclaimHashButtonWidth
 		
@@ -3450,8 +3517,10 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 	chkHideAdminKey.Checked = True
 	
 	'Wait 100ms until the Admin Key field is surely hidden by now
-	Common.SynchronousSleep(100, Me, "mnuDirectUnblock_Click")
-	Wait For SynchronousSleep_mnuDirectUnblock_Click_Completed
+	'Common.SynchronousSleep(100, Me, "mnuDirectUnblock_Click")
+	'Wait For SynchronousSleep_mnuDirectUnblock_Click_Completed
+	'^
+	'| Should not be needed at all anymore
 	
 	'--------------------------------------------------------------------------------
 	
@@ -3855,10 +3924,8 @@ Private Sub mnuAbout_Click
 	If Result = DialogResponse.POSITIVE Then
 		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: The MessageBox return result is POSITIVE"$, Colors.Blue)
 		
-		'Because I don't want to bundle the big Phone library
-		'Use the Advanced class to open the browser URL
 		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Requesting the opening of the App homepage URL in the user's default Web browser"$, Colors.Blue)
-		joActivity.RunMethod("jOpenBrowserUrl", Array(Constants.APPLICATION_HOMEPAGE_URL))
+		CallSubDelayed(Me, "mnuAbout_Click_OpenHomepage")
 		
 	Else
 		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: The MessageBox return result is not POSITIVE, no nothing to do here"$, Colors.Blue)
@@ -3866,6 +3933,50 @@ Private Sub mnuAbout_Click
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Sub return"$, Colors.Blue)
+End Sub
+
+Private Sub mnuAbout_Click_OpenHomepage
+	Dim LogContextId As Int = Rnd(1000, 9999)
+	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Sub entry"$, Colors.Blue)
+	
+	'This part below is waiting until the android
+	'soft keyboard gets hidden (if it was visible)
+	'when the user clicks on a button that will
+	'pop-up the Android Share To / Open With dialogs
+	'
+	'Such buttons include the 'Share Response Code' one
+	'and 'GitHub Homepage' one on the About dialog window
+	'
+	'Otherwise the Android Share To / Open With dialogs
+	'open too quickly before the keyboard cans get hidden,
+	'and the keyboard ends up being hidden too late
+	'while the Activity is already paused, and cannot receive
+	'the Activity_HeightChanged event
+	'
+	'So this part of the code adds a small delay
+	'to correct the below visual UI glitch:
+	' 1. Focus on the Challenge code input field
+	' 2. Make sure the android soft keyboard is open
+	' 3. Click on the About icon in the Activity menu
+	' 4. Click on 'GitHub Homepage'
+	' 5. Dismiss the 'Open With' dialog
+	'
+	'It would end up not resizing the Activity ScrollView
+	'when the Activity is resumed otherwise
+	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
+	imeActivity.HideKeyboard
+	
+	'It takes atmost 300ms to get properly hidden
+	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
+	Common.SynchronousSleep(300, Me, "mnuAbout_Click_OpenHomepage")
+	Wait For SynchronousSleep_mnuAbout_Click_OpenHomepage_Completed
+	
+	'Because I don't want to bundle the big Phone library
+	'Use the Advanced class to open the browser URL
+	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Opening of the App homepage URL in the user's default Web browser"$, Colors.Blue)
+	joActivity.RunMethod("jOpenBrowserUrl", Array(Constants.APPLICATION_HOMEPAGE_URL))
+	
+	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Sub return"$, Colors.Blue)
 End Sub
 
 Private Sub edtChallenge_FocusChanged(HasFocus As Boolean)
@@ -3902,24 +4013,6 @@ Private Sub edtChallenge_FocusChanged(HasFocus As Boolean)
 	scvActivity.ScrollPosition = 0dip
 	
 	LogColor($"[${ActivityName}-${LogContextId}] edtChallenge_FocusChanged: Sub return"$, Colors.Blue)
-End Sub
-
-Private Sub edtChallenge_TextChanged(Old As String, New As String)
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	LogColor($"[${ActivityName}-${LogContextId}] edtChallenge_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
-	
-	'Since we modified the edtChallenge's text content,
-	'we have to now clear its last selection state since
-	'it would no longer reflect the selection state of
-	'the new text that will we've set on it
-	If Old <> New Then
-		LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Resetting the Challenge code field's ViewState selection information since it's now outdated..."$, Colors.Blue)
-		ViewState_edtChallenge_SelectionStart  = 0
-		ViewState_edtChallenge_SelectionLength = 0
-		
-	End If
-	
-	LogColor($"[${ActivityName}-${LogContextId}] edtChallenge_TextChanged: Sub return"$, Colors.Blue)
 End Sub
 
 Private Sub btnScanQR_Click
@@ -4058,17 +4151,6 @@ End Sub
 Private Sub edtAdminKey_TextChanged(Old As String, New As String)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
-	
-	'Since we modified the edtAdminKey's text content,
-	'we have to now clear its last selection state since
-	'it would no longer reflect the selection state of
-	'the new text that will we've set on it
-	If Old <> New Then
-		LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Resetting the Admin Key field's ViewState selection information since it's now outdated..."$, Colors.Blue)
-		ViewState_edtAdminKey_SelectionStart  = 0
-		ViewState_edtAdminKey_SelectionLength = 0
-		
-	End If
 	
 	'We don't allow the use of newlines / line-breaks in
 	'the Admin Key field, even if the Admin Key field
@@ -4655,6 +4737,8 @@ Private Sub btnGenerate_Click
 	'If it's a longer challenge code like AES, then check only
 	'the first half anyway (the ".*" part)
 	'
+	' * "\d" = any digit (0 to 9), quicker version of "0-9"
+	'
 	'Because it allows us to easily match other patterns types such as:
 	' (4) "XXXX-XXXX-XXXX-XXXX[.*]",
 	' (4) "XXXX-XXXX-XXXX-XXXX[.*]-XXXX-XXXX-XXXX-XXXX",
@@ -4663,7 +4747,7 @@ Private Sub btnGenerate_Click
 	' (7) "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX[.*]-XXXX",
 	' (8) "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX[.*]"
 	'
-	If Regex.IsMatch2("^[0-9A-F]{4,8}[ \-][0-9A-F]{4,8}[ \-][0-9A-F]{4,8}[ \-][0-9A-F]{4,8}.*$", Regex.CASE_INSENSITIVE, Challenge) Then
+	If Regex.IsMatch2("^[\dA-F]{4,8}[ \-][\dA-F]{4,8}[ \-][\dA-F]{4,8}[ \-][\dA-F]{4,8}.*$", Regex.CASE_INSENSITIVE, Challenge) Then
 		AreSeparatorsValid = True
 	End If
 	
@@ -4672,7 +4756,7 @@ Private Sub btnGenerate_Click
 	' (7) "XXXXXXX-XXXXXXX[.*]-XX",
 	' (8) "XXXXXXXX-XXXXXXXX[.*]"
 	'
-	If Regex.IsMatch2("^[0-9A-F]{6,8}[ \-][0-9A-F]{6,8}.*$", Regex.CASE_INSENSITIVE, Challenge) _
+	If Regex.IsMatch2("^[\dA-F]{6,8}[ \-][\dA-F]{6,8}.*$", Regex.CASE_INSENSITIVE, Challenge) _
 	And (DetectedAlgorithm == Cryptography.ALGORITHM_3DES Or DetectedAlgorithm == Cryptography.ALGORITHM_2DES) Then
 		AreSeparatorsValid = True
 	End If
@@ -4681,7 +4765,7 @@ Private Sub btnGenerate_Click
 	'for both 2/3DES and AES:
 	' (2) "XX-XX-XX-XX-XX-XX-XX-XX[.*]-XX-XX-XX-XX-XX-XX-XX-XX"
 	'
-	If Regex.IsMatch2("^[0-9A-F]{2}[ \-][0-9A-F]{2}[ \-][0-9A-F]{2}[ \-][0-9A-F]{2}[ \-][0-9A-F]{2}[ \-][0-9A-F]{2}[ \-][0-9A-F]{2}[ \-][0-9A-F]{2}.*$", Regex.CASE_INSENSITIVE, Challenge) Then
+	If Regex.IsMatch2("^[\dA-F]{2}[ \-][\dA-F]{2}[ \-][\dA-F]{2}[ \-][\dA-F]{2}[ \-][\dA-F]{2}[ \-][\dA-F]{2}[ \-][\dA-F]{2}[ \-][\dA-F]{2}.*$", Regex.CASE_INSENSITIVE, Challenge) Then
 		AreSeparatorsValid = True
 	End If
 	
@@ -4697,10 +4781,12 @@ Private Sub btnGenerate_Click
 		Dim SeparationPattern As String = Challenge
 		
 		'Basic4Android doesn't need its "\" chars to be escaped at all:
-		' - (It has no escape operator even with "-based Strings)
+		' - (It has no escape operator even with double quote-based Strings)
 		'
-		SeparationPattern = Regex.Replace2("[^ \-0-9A-F]", Regex.CASE_INSENSITIVE, SeparationPattern, "?")
-		SeparationPattern = Regex.Replace2(    "[0-9A-F]", Regex.CASE_INSENSITIVE, SeparationPattern, "H")
+		'Only Java native code needs the "\" character to be escaped,
+		'not Basic-code of Basic4Android
+		SeparationPattern = Regex.Replace2("[^ \-\dA-F]", Regex.CASE_INSENSITIVE, SeparationPattern, "?")
+		SeparationPattern = Regex.Replace2(    "[\dA-F]", Regex.CASE_INSENSITIVE, SeparationPattern, "H")
 		
 		Dim SeparatedResponseCode As StringBuilder
 		SeparatedResponseCode.Initialize
@@ -4765,13 +4851,13 @@ Private Sub btnGenerate_Click
 		'If the user didn't use any grouping at all,
 		'then honor that we don't use grouping either
 		'for the generated Response code
-		If Not(Regex.IsMatch2("^[0-9A-F]+$", Regex.CASE_INSENSITIVE, Challenge)) Then
+		If Not(Regex.IsMatch2("^[\dA-F]+$", Regex.CASE_INSENSITIVE, Challenge)) Then
 			Select ResponseCode.Length
 				Case 16
-					ResponseCode = Regex.Replace2("^([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})$", Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4")
+					ResponseCode = Regex.Replace2("^([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})$", Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4")
 					
 				Case 32
-					ResponseCode = Regex.Replace2("^([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})([0-9A-F]{4})$", Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
+					ResponseCode = Regex.Replace2("^([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})([\dA-F]{4})$", Regex.CASE_INSENSITIVE, ResponseCode, "$1 $2 $3 $4 $5 $6 $7 $8")
 					
 				Case Else
 					'
@@ -4981,27 +5067,41 @@ Private Sub edtResponse_FocusChanged(HasFocus As Boolean)
 	LogColor($"[${ActivityName}-${LogContextId}] edtResponse_FocusChanged: Sub return"$, Colors.Blue)
 End Sub
 
-Private Sub edtResponse_TextChanged(Old As String, New As String)
-	Dim LogContextId As Int = Rnd(1000, 9999)
-	LogColor($"[${ActivityName}-${LogContextId}] edtResponse_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
-	
-	'Since we modified the edtResponse's text content,
-	'we have to now clear its last selection state since
-	'it would no longer reflect the selection state of
-	'the new text that will we've set on it
-	If Old <> New Then
-		LogColor($"[${ActivityName}-${LogContextId}] edtResponse_TextChanged: Resetting the Response code field's ViewState selection information since it's now outdated..."$, Colors.Blue)
-		ViewState_edtResponse_SelectionStart  = 0
-		ViewState_edtResponse_SelectionLength = 0
-		
-	End If
-	
-	LogColor($"[${ActivityName}-${LogContextId}] edtResponse_TextChanged: Sub return"$, Colors.Blue)
-End Sub
-
 Private Sub btnShareTo_Click
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Sub entry"$, Colors.Blue)
+	
+	'This part below is waiting until the android
+	'soft keyboard gets hidden (if it was visible)
+	'when the user clicks on a button that will
+	'pop-up the Android Share To / Open With dialogs
+	'
+	'Such buttons include the 'Share Response Code' one
+	'and 'GitHub Homepage' one on the About dialog window
+	'
+	'Otherwise the Android Share To / Open With dialogs
+	'open too quickly before the keyboard cans get hidden,
+	'and the keyboard ends up being hidden too late
+	'while the Activity is already paused, and cannot receive
+	'the Activity_HeightChanged event
+	'
+	'So this part of the code adds a small delay
+	'to correct the below visual UI glitch:
+	' 1. Focus on the Challenge code input field
+	' 2. Make sure the android soft keyboard is open
+	' 3. Click on the About icon in the Activity menu
+	' 4. Click on 'GitHub Homepage'
+	' 5. Dismiss the 'Open With' dialog
+	'
+	'It would end up not resizing the Activity ScrollView
+	'when the Activity is resumed otherwise
+	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
+	imeActivity.HideKeyboard
+	
+	'It takes atmost 300ms to get properly hidden
+	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
+	Common.SynchronousSleep(300, Me, "btnShareTo_Click")
+	Wait For SynchronousSleep_btnShareTo_Click_Completed
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Preparing a Share To Intent for sharing the Response code"$, Colors.Blue)
 	Dim ShareIntent As Intent

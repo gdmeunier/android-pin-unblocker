@@ -124,20 +124,36 @@ public static int jStringHexToNumber(final String hexString)
 
 Public Sub IsTextHexBytes(Text As String) As Boolean
 	
+	'Basic4Android doesn't need its "\" chars to be escaped at all:
+	' - (It has no escape operator even with double quote-based Strings)
+	'
+	'Only Java native code needs the "\" character to be escaped,
+	'not Basic-code of Basic4Android
+	'
+	' * "\d" = any digit (0 to 9), quicker version of "0-9"
+	'
 	Return Text.Length       >= 2 And _
 		   Text.Length Mod 2 == 0 And _
-		   Regex.IsMatch2("^[0-9A-F]+$", Regex.CASE_INSENSITIVE, Text)
+		   Regex.IsMatch2("^[\dA-F]+$", Regex.CASE_INSENSITIVE, Text)
 	
 End Sub
 #If Java
 public static boolean jIsTextHexBytes(final String string)
 {
-	//
-	// Make sure that this function stays standalone
-	//
+	/* In Java (and generally any programming languages with expandable strings)
+	 * you have to escape the "\" character since it's literally in itself
+	 * the escape operator, and we use a RegEx string that uses a literal "\"
+	 * character to match the dots in a full class name
+	 *
+	 * So if you want this:
+	 *  -> "^[\da-fA-F]+$"
+	 *
+	 * Then you must instead write:
+	 *  -> "^[\\da-fA-F]+$"
+	 */
 	return string.length()     >= 2 &&
 	       string.length() % 2 == 0 &&
-		   string.matches("^[0-9a-fA-F]+$");
+		   string.matches("^[\\da-fA-F]+$");
 }
 #End If
 

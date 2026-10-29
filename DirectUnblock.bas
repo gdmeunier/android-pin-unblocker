@@ -2221,8 +2221,10 @@ Private Sub btnProceedToUnblock_Click
 	chkHideNewPIN.Checked = True
 	
 	'Wait 100ms until the New PIN field is surely hidden by now
-	Common.SynchronousSleep(100, Me, "btnProceedToUnblock_Click")
-	Wait For SynchronousSleep_btnProceedToUnblock_Click_Completed
+	'Common.SynchronousSleep(100, Me, "btnProceedToUnblock_Click")
+	'Wait For SynchronousSleep_btnProceedToUnblock_Click_Completed
+	'^
+	'| Should not be needed at all anymore
 	
 	'--------------------------------------------------------------------------------
 	
@@ -3092,17 +3094,6 @@ End Sub
 Private Sub edtNewPIN_TextChanged(Old As String, New As String)
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Sub entry (sensitive parameters)"$, Colors.Blue)
-	
-	'Since we modified the edtNewPIN's text content,
-	'we have to now clear its last selection state since
-	'it would no longer reflect the selection state of
-	'the new text that will we've set on it
-	If Old <> New Then
-		LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Resetting the New PIN field's ViewState selection information since it's now outdated..."$, Colors.Blue)
-		ViewState_edtNewPIN_SelectionStart  = 0
-		ViewState_edtNewPIN_SelectionLength = 0
-		
-	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] edtNewPIN_TextChanged: Running the edtNewPIN_ShowSelectionInfo Sub to update the New PIN label text"$, Colors.Blue)
 	edtNewPIN_ShowSelectionInfo

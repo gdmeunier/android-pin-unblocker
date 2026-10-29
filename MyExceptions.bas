@@ -39,7 +39,9 @@ Sub Class_Globals
 	'Exception types that can be thown below
 	'
 	Public Const EXCEPTION_GENERIC            As Int = 0x01
-	Public Const EXCEPTION_CAMERA             As Int = 0x02
+'	- ----- -
+'	Public Const EXCEPTION_CAMERA             As Int = 0x02
+'	- ----- -
 	Public Const EXCEPTION_THREAD             As Int = 0x03
 	Public Const EXCEPTION_SMARTCARDOPERATION As Int = 0x04
 	Public Const EXCEPTION_NOTIFICATION       As Int = 0x05
@@ -54,7 +56,9 @@ Sub Class_Globals
 	Public Const EXCEPTION_CONVERSION         As Int = 0x0E
 	#If Java
 	public static final int EXCEPTION_GENERIC            = 0x01;
+	/* ***** *
 	public static final int EXCEPTION_CAMERA             = 0x02;
+	 * ***** */
 	public static final int EXCEPTION_THREAD             = 0x03;
 	public static final int EXCEPTION_SMARTCARDOPERATION = 0x04;
 	public static final int EXCEPTION_NOTIFICATION       = 0x05;
@@ -91,14 +95,16 @@ Public Sub ThrowException(ExceptionType As Int, Message As String)
 	
 End Sub
 #If Java
-public static void jThrowException(final int exceptionType, final String message) throws GenericException, CameraException, ThreadException, SmartcardOperationException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException, ConversionException
+public static void jThrowException(final int exceptionType, final String message) throws GenericException,/* ***** * CameraException,* ***** */ ThreadException, SmartcardOperationException, NotificationException, UsbDeviceException, UsbPermisionException, SmartcardReaderException, SmartcardException, ApduException, ApduReplyException, HashingException, EncryptionException, ConversionException
 {
 	switch ( exceptionType )
 	{
 		case EXCEPTION_GENERIC:
 			throw new GenericException(message);
+		/* ***** *
 		case EXCEPTION_CAMERA:
 			throw new CameraException(message);
+		 * ***** */
 		case EXCEPTION_THREAD:
 			throw new ThreadException(message);
 		case EXCEPTION_SMARTCARDOPERATION:
@@ -157,17 +163,82 @@ private static class TemplateException extends Exception
 	@Override
 	public String getMessage()
 	{
-		StringBuilder messageBuilder = new StringBuilder(this.message);
-		messageBuilder.append(String.format("\n%s", this.logs));
+		/* Do note that I want to use Windows newlines
+		 * because it will be easier to copy-paste logs
+		 * on websites and local text files if the user
+		 * later wants to open log files on a Windows PC
+		 *
+		 * Any "\n" newlines will become "\r\n" afterwards
+		 * (Converting Linux newlines to Windows ones)
+		 */
 		
-		return messageBuilder.toString();
+		// Create the base Exception message first (remove any newlines)
+		StringBuilder messageBuilder = new StringBuilder(this.message.replace("\r\n", "").replace("\n", ""));
+		
+		/* This part of this function allows removing the duplicate line
+		 * "net.gdmeunier.pinunblocker.myexceptions$TheExceptionType: ..."
+		 * from the output of the Exception message
+		 *
+		 * That's because this getMessage() function is hooked to
+		 * return the entire log as the message without requiring
+		 * the caller to explicitly query the stacktrace itself
+		 * on its own (manually via its own PrintWriter, etc)
+		 *
+		 * Also do note that in order to safely match
+		 * both "\r\n" (CRLF, Windows) and "\n" newlines (LF, Linux),
+		 * I convert any Windows newline to Linux format,
+		 * then I convert it all back to the Windows one
+		 *
+		 * So incase there are mixed CRLF and LF newlines,
+		 * then turn them all the same into LF before
+		 * finally turning them all into CRLF
+		 */
+		StringBuilder logsBuilder = new StringBuilder(this.logs.replace("\r\n", "\n").replace("\n", "\r\n"));
+		
+		/* In order to remove the next (duplicate) log line,
+		 * we have to also remove its "\r\n" character too,
+		 * so we do: logsBuilder.indexOf("\r\n") + 2 // Notice the "+2"
+		 *
+		 * "As you can read in the docs the delete function treats
+		 *  the ending index as exclusive.
+		 *
+		 *  So when you do sb.delete(0, sb.indexOf("\n")) 3 times,
+		 *  the "\n" stays because it's not included in the deleted part,
+		 *  the second and third time you delete from index 0 to 0."
+		 *
+		 * Thanks to:
+		 *  - https://stackoverflow.com/questions/55684585/how-can-i-remove-first-3-lines-from-a-stringbuilder-obj-in-java
+		 *
+		 * Remember that we use "\r\n" now instead of "\n",
+		 * and ".indexOf()" will return "-1" if it's not found
+		 */
+		int firstLogCrLfFoundIndex = logsBuilder.indexOf("\r\n");
+		
+		if ( firstLogCrLfFoundIndex > -1 )
+		{
+			/* Remove first line of the log because it's a duplicate one
+			 *
+			 * It's also "+2" (not "+1") because we're removing up to
+			 * "\r\n" inclusive, and "+1" would only remove "\r" instead
+			 */
+			logsBuilder.delete(0, firstLogCrLfFoundIndex + 2);
+		}
+		
+		// Append the stacktrace to the Exception message
+		messageBuilder.append("\r\n");
+		messageBuilder.append(logsBuilder.toString());
+		
+		/* Return the modified message with stacktrace inside
+		 *
+		 * Just one more tweak though, we remove empty lines
+		 * (they will be "\r\n\r\n" aka. "{CRLF}{CRLF}")
+		 */
+		return messageBuilder.toString().replace("\r\n\r\n", "\r\n");
 	}
 	
 	// The constructors must always be public
 	public TemplateException(String msg)
 	{
-		// Always call the parent Exception class's constructor
-		super(msg);
 		this.message = msg;
 		
 		/* Built-in ability to fetch the stacktrace:
@@ -180,27 +251,6 @@ private static class TemplateException extends Exception
 		StringWriter sw = new StringWriter();
 		
 		this.printStackTrace(new PrintWriter(sw));
-		this.logs = sw.toString();
-	}
-	
-	/* Alternative constructor to convert any generic
-	 * Android Exception to this better Exception type
-	 */
-	// The constructor must always be public though
-	public TemplateException(Exception ex)
-	{
-		/* Get the Exception message from the provided
-		 * Exception Object parameter
-		 */
-		super(ex.getMessage());
-		this.message = ex.getMessage();
-		
-		/* Fetch the stacktrace from the existing Exception Object
-		 * provided by the caller, not the live new one we're building
-		 */
-		StringWriter sw = new StringWriter();
-		
-		ex.printStackTrace(new PrintWriter(sw));
 		this.logs = sw.toString();
 	}
 }
@@ -219,6 +269,7 @@ public static class GenericException extends TemplateException
 //
 // Camera Exceptions (e.g. QR code scanner)
 //
+/* ***** *
 public static class CameraException extends TemplateException
 {
 	public CameraException(String msg)
@@ -226,6 +277,7 @@ public static class CameraException extends TemplateException
 		super(msg);
 	}
 }
+ * ***** */
 
 //
 // Thread Exceptions (multi-threading)
