@@ -162,7 +162,7 @@ All hardware functionality of this application are also marked as optional inste
 If your mobile device doesn't support some hardware functionality, then only the specific features that rely on it get disabled while allowing you to use all other features that work on your device.\
 This includes **USB-OTG**, **Camera** and **Flashlight** functionalities.
 
-*This application has been tested in real conditions with a real **Android 2.3.6** device and additional **Android 4.4.2**, **5.1.1** and **7.1** devices, and proven to work on each one of them, including the additional features that their hardware supports.*
+*This application has been tested in real conditions with a real **Android 2.3.6** device and additional **Android 4.4.2**, **5.1.1**, **7.1** and **8.1** devices, and proven to work on each one of them, including the additional features that their hardware supports.*
 
 <div style="page-break-after: always;"></div>
 
