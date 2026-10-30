@@ -1,4 +1,4 @@
-﻿ModuleBookmarks0=3582,49,1394,1138,1523,1878,2757,2490,3763
+﻿ModuleBookmarks0=3593,49,1405,1149,1534,1889,2768,2501,3774
 ModuleBookmarks1=2129,2703,910,680,2336,1059
 ModuleBookmarks10=
 ModuleBookmarks11=
@@ -49,6 +49,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=Main,SendPinUnblockAPDUSequence,3753,0,Smartcard,RequestPostNotificationsPermission_DelayedSub,651,4,Smartcard,Service_Message_Receipt,603,0,Smartcard,RequestPostNotificationsPermission,630,6,Smartcard,Application_Error,1580,0,Main,RequestPostNotificationsPermission,3810,1,Main,mnuAbout_Click_OpenHomepage,3989,6,Main,btnScanQR_Click,4094,1,DirectUnblock,RequestPostNotificationsPermission,2940,6,Main,btnShareTo_Click,5151,2
+NavigationStack=Smartcard,RequestPostNotificationsPermission_DelayedSub,651,4,Smartcard,Service_Message_Receipt,603,0,Smartcard,RequestPostNotificationsPermission,630,6,Smartcard,Application_Error,1580,0,DirectUnblock,SendPinUnblockAPDUSequence,2870,0,Main,RequestPostNotificationsPermission,3828,1,Main,mnuAbout_Click_OpenHomepage,4003,6,Main,btnScanQR_Click,4132,1,DirectUnblock,RequestPostNotificationsPermission,2961,6,Main,btnShareTo_Click,5220,6
 SelectedBuild=0
 VisibleModules=1,16,11,12,8

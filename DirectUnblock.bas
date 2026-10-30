@@ -2915,8 +2915,21 @@ Public Sub RequestPostNotificationsPermission
 	'
 	If Common.GetAndroidApiLevel >= 33 Then
 		
-		'First check if the Android software keyboard is visible
-		If IsKeyboardVisible Then
+		Dim RuntimePerms As RuntimePermissions
+		
+		'For knowing whether a permission pop-up will appear
+		Dim WillPopUpAppear As Boolean = True
+		
+		'No Android RuntimePermissions pop-up will appear
+		'if we already have the necessary permission
+		If RuntimePerms.Check(RuntimePerms.PERMISSION_POST_NOTIFICATIONS) Then
+			WillPopUpAppear = False
+			
+		End If
+		
+		'First check if the Android software keyboard is visible,
+		'and also whether a pop-up will even appear to begin with
+		If IsKeyboardVisible And WillPopUpAppear Then
 			
 			'Pre-hide sensitive input fields before hiding
 			'the Android soft keyboard and waiting 300ms,
@@ -2924,6 +2937,7 @@ Public Sub RequestPostNotificationsPermission
 			'before having sensitive input fields hidden
 			'when the Activity will get paused by Android
 			'to display the native RuntimePermissions dialog
+			edtNewPIN.Visible   = False 'edtDecoyPIN has a transparent background, so hide the real PIN first
 			edtDecoyPIN.Visible = True
 			
 			'This part below is waiting until the android
@@ -2958,7 +2972,6 @@ Public Sub RequestPostNotificationsPermission
 			
 		End If
 		
-		Dim RuntimePerms As RuntimePermissions
 		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)
 		
 		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)

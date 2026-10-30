@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 295
-	#VersionName: 5.19.28
+	#VersionCode: 298
+	#VersionName: 5.20.1
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -128,6 +128,17 @@ Version=12.5
 	'
 	'You can use multiple #AdditionalRes directives
 	#AdditionalRes: ../Icons
+	
+	'Additional icons specifically for Android 8+
+	'
+	'These icons will be included in the APK file,
+	'but will only be used by Android versions
+	'Android 8 and later (API level 26+)
+	'
+	'Older Android versions 7.1 and earlier will use
+	'the previous non-rounded and non-adaptive icon
+	'and simply ignore these v26 icon resources
+	#AdditionalRes: ../Icons-v26
 	
 	'Remove Basic4Android's automatically added "icon.png" file
 	'in the Objects folder's "res" directory:
@@ -3812,8 +3823,21 @@ Public Sub RequestPostNotificationsPermission
 	'
 	If Common.GetAndroidApiLevel >= 33 Then
 		
-		'First check if the Android software keyboard is visible
-		If IsKeyboardVisible Then
+		Dim RuntimePerms As RuntimePermissions
+		
+		'For knowing whether a permission pop-up will appear
+		Dim WillPopUpAppear As Boolean = True
+		
+		'No Android RuntimePermissions pop-up will appear
+		'if we already have the necessary permission
+		If RuntimePerms.Check(RuntimePerms.PERMISSION_POST_NOTIFICATIONS) Then
+			WillPopUpAppear = False
+			
+		End If
+		
+		'First check if the Android software keyboard is visible,
+		'and also whether a pop-up will even appear to begin with
+		If IsKeyboardVisible And WillPopUpAppear Then
 			
 			'Pre-hide sensitive input fields before hiding
 			'the Android soft keyboard and waiting 300ms,
@@ -3821,6 +3845,7 @@ Public Sub RequestPostNotificationsPermission
 			'before having sensitive input fields hidden
 			'when the Activity will get paused by Android
 			'to display the native RuntimePermissions dialog
+			edtAdminKey.Visible = False 'edtDecoyKey has a transparent background, so hide the real key first
 			edtDecoyKey.Visible = True
 			
 			'This part below is waiting until the android
@@ -3855,7 +3880,6 @@ Public Sub RequestPostNotificationsPermission
 			
 		End If
 		
-		Dim RuntimePerms As RuntimePermissions
 		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)
 		
 		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
@@ -3998,6 +4022,7 @@ Private Sub mnuAbout_Click_OpenHomepage
 		'before having sensitive input fields hidden
 		'when the Activity will get paused by Android
 		'to display the native Open With dialog
+		edtAdminKey.Visible = False 'edtDecoyKey has a transparent background, so hide the real key first
 		edtDecoyKey.Visible = True
 		
 		'This part below is waiting until the android
@@ -4094,8 +4119,27 @@ Private Sub btnScanQR_Click
 		
 	End If
 	
-	'First check if the Android software keyboard is visible
-	If IsKeyboardVisible Then
+	'Ask for authorization to use the Camera at runtime
+	'Required on Android 6.0+
+	'Has no effect on older Android versions
+	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Checking if we have the Camera runtime permission"$, Colors.Blue)
+	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This is required on Android 6.0+ devices"$, Colors.Blue)
+	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This check will always return True on older Android versions"$, Colors.Blue)
+	Dim RuntimePerms As RuntimePermissions
+	
+	'For knowing whether a permission pop-up will appear
+	Dim WillPopUpAppear As Boolean = True
+	
+	'No Android RuntimePermissions pop-up will appear
+	'if we already have the necessary permission
+	If RuntimePerms.Check(RuntimePerms.PERMISSION_CAMERA) Then
+		WillPopUpAppear = False
+		
+	End If
+	
+	'First check if the Android software keyboard is visible,
+	'and also whether a pop-up will even appear to begin with
+	If IsKeyboardVisible And WillPopUpAppear Then
 		
 		'Pre-hide sensitive input fields before hiding
 		'the Android soft keyboard and waiting 300ms,
@@ -4103,6 +4147,7 @@ Private Sub btnScanQR_Click
 		'before having sensitive input fields hidden
 		'when the Activity will get paused by Android
 		'to display the native RuntimePermissions dialog
+		edtAdminKey.Visible = False 'edtDecoyKey has a transparent background, so hide the real key first
 		edtDecoyKey.Visible = True
 		
 		'This part below is waiting until the android
@@ -4138,14 +4183,6 @@ Private Sub btnScanQR_Click
 		Wait For SynchronousSleep_btnScanQR_Click_Completed
 		
 	End If
-	
-	'Ask for authorization to use the Camera at runtime
-	'Required on Android 6.0+
-	'Has no effect on older Android versions
-	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Checking if we have the Camera runtime permission"$, Colors.Blue)
-	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This is required on Android 6.0+ devices"$, Colors.Blue)
-	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This check will always return True on older Android versions"$, Colors.Blue)
-	Dim RuntimePerms As RuntimePermissions
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Requesting Camera runtime permission (the user needs to agree)"$, Colors.Magenta)
 	RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_CAMERA)
@@ -5202,6 +5239,7 @@ Private Sub btnShareTo_Click
 		'before having sensitive input fields hidden
 		'when the Activity will get paused by Android
 		'to display the native Share To dialog
+		edtAdminKey.Visible = False 'edtDecoyKey has a transparent background, so hide the real key first
 		edtDecoyKey.Visible = True
 		
 		'This part below is waiting until the android
