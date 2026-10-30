@@ -49,6 +49,6 @@ ModuleClosedNodes6=
 ModuleClosedNodes7=
 ModuleClosedNodes8=
 ModuleClosedNodes9=
-NavigationStack=DirectUnblock,edtNewPIN_TextChanged,3089,0,DirectUnblock,Activity_Resume,1583,2,Main,Activity_Resume,2207,6,Main,edtChallenge_FocusChanged,3927,0,Main,mnuAbout_Click,3884,4,Main,mnuAbout_Click_OpenHomepage,3927,6,MyExceptions,ThrowException,157,0,Main,btnShareTo_Click,5058,6,DirectUnblock,btnProceedToUnblock_Click,2217,6,Main,mnuDirectUnblock_Click,3480,0
+NavigationStack=Main,mnuAbout_Click,3884,4,Main,mnuAbout_Click_OpenHomepage,3927,6,MyExceptions,ThrowException,157,0,Main,btnShareTo_Click,5058,6,DirectUnblock,btnProceedToUnblock_Click,2217,6,Main,mnuDirectUnblock_Click,3480,0,DirectUnblock,edtNewPIN_TextChanged,3087,0,Main,SelectionTimer_edtAdminKey_Tick,4339,0,Main,Activity_Create,1422,3,Main,edtAdminKey_TextChanged,4251,6,Main,chkHideAdminKey_CheckedChange,4395,0
 SelectedBuild=0
 VisibleModules=1,16,11,12,8

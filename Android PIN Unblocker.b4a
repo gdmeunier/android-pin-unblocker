@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 292
-	#VersionName: 5.19.25
+	#VersionCode: 294
+	#VersionName: 5.19.27
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -4264,13 +4264,35 @@ Private Sub edtAdminKey_TextChanged(Old As String, New As String)
 			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: This function call is not because of newlines removal from a prior function call"$, Colors.Blue)
 			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: So we can run the edtAdminKey_ShowSelectionInfo function again without visual UI selection label flicker"$, Colors.Blue)
 			
-			'The Admin Key field text might be changed even if
-			'the Admin Key field is not focused, such as when
-			'generating a SHA256, SHA512 etc hash while another
-			'field is focused, so the TextChanged event should
-			'also update the Admin Key label too
-			LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
-			edtAdminKey_ShowSelectionInfo
+			'Check if the Admin Key text selection Timer
+			'is not already running, because if it is
+			'then it will already immediately update
+			'the Admin Key text label for us
+			'
+			'And if it's already running, then if we also run
+			'that function anyway (edtAdminKey_ShowSelectionInfo)
+			'then it will work, yes, but this will cause some
+			'small visual flicker effect on the Admin Key label
+			'when updating it
+			'
+			'So this check allows avoiding this small visual flicker effect,
+			'which is mostly unimportant, but I prefer not having it
+			'when the user e.g. has text selected or has the cursor position
+			'somewhere in the Admin Key field, and checks or unchecks
+			'the Hide Admin Key checkbox
+			If SelectionTimer_edtAdminKey.Enabled Then
+				LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: The Admin Key text selection Timer is already running, so not running the edtAdminKey_ShowSelectionInfo function (the Timer will already do it)"$, Colors.Blue)
+				
+			Else
+				'The Admin Key field text might be changed even if
+				'the Admin Key field is not focused, such as when
+				'generating a SHA256, SHA512 etc hash while another
+				'field is focused, so the TextChanged event should
+				'also update the Admin Key label too
+				LogColor($"[${ActivityName}-${LogContextId}] edtAdminKey_TextChanged: Running the edtAdminKey_ShowSelectionInfo Sub to update the Admin Key label text"$, Colors.Blue)
+				edtAdminKey_ShowSelectionInfo
+				
+			End If
 			
 		End If
 		
