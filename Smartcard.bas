@@ -417,8 +417,10 @@ Sub Service_Start(StartingIntent As Intent)
 	'call Service_Start multiple times
 	If ServiceAlreadyStarted Then
 		Return
+		
 	Else
 		ServiceAlreadyStarted = True
+		
 	End If
 	
 	'Starter service can start in the foreground state in some edge cases
@@ -613,23 +615,16 @@ End Sub
 'Helper functions for updating areNotificationsAllowed
 'which is used by Java native code
 Private Sub RequestPostNotificationsPermission
-	'
+	
 	'Check that the Main Activity isn't already paused
-	'
 	If Not(IsPaused(Main)) Then
-		'Return immediately and let the function with
-		'the _DelayedSub suffix do the job
-		CallSubDelayed2(Me, "RequestPostNotificationsPermission_DelayedSub", Main)
+		RequestPostNotificationsPermissionHelper(Main)
 		
 	Else
-		'
 		'If the Main Activity is already paused,
 		'then check if the DirectUnblock Activity is not paused
-		'
 		If Not(IsPaused(DirectUnblock)) Then
-			'Return immediately and let the function with
-			'the _DelayedSub suffix do the job
-			CallSubDelayed2(Me, "RequestPostNotificationsPermission_DelayedSub", DirectUnblock)
+			RequestPostNotificationsPermissionHelper(DirectUnblock)
 			
 		End If
 		
@@ -637,14 +632,15 @@ Private Sub RequestPostNotificationsPermission
 	
 End Sub
 
-Private Sub RequestPostNotificationsPermission_DelayedSub(TheActivity As Activity)
+'Take the Activity (component) as "Object", not as "Activity"
+Private Sub RequestPostNotificationsPermissionHelper(TheComponent As Object)
 	'
 	'Android 13+ only (API level 33+):
 	' - Request the ability to post notifications
 	' - It's not a problem if the user denies it though
 	'
 	Try
-		CallSub(TheActivity, "RequestPostNotificationsPermission")
+		CallSubDelayed(TheComponent, "RequestPostNotificationsPermission")
 		Wait For RequestPostNotificationsPermission_Completed(AreNotificationsAllowed As Boolean)
 		
 		SetNotificationsAllowed(AreNotificationsAllowed)

@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 298
-	#VersionName: 5.20.1
+	#VersionCode: 302
+	#VersionName: 5.20.5
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -135,9 +135,10 @@ Version=12.5
 	'but will only be used by Android versions
 	'Android 8 and later (API level 26+)
 	'
-	'Older Android versions 7.1 and earlier will use
-	'the previous non-rounded and non-adaptive icon
-	'and simply ignore these v26 icon resources
+	' - Older Android versions 7.1 and earlier will use
+	'   the previous non-rounded and non-adaptive icon
+	'   and simply ignore these v26 icon resources
+	'
 	#AdditionalRes: ../Icons-v26
 	
 	'Remove Basic4Android's automatically added "icon.png" file
@@ -3644,6 +3645,14 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	AdminKey  = SanitizedAdminKey
 	
 	'--------------------------------------------------------------------------------
+	'Start the Smartcard Service if it's not already running
+	
+	'This will already check if the Service
+	'is not already started, and this will
+	'create it if it wasn't started
+	StartService(Smartcard)
+	
+	'--------------------------------------------------------------------------------
 	'
 	'Reusable variables for all APDU requests
 	'
@@ -3999,7 +4008,7 @@ Private Sub mnuAbout_Click
 		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: The MessageBox return result is POSITIVE"$, Colors.Blue)
 		
 		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: Requesting the opening of the App homepage URL in the user's default Web browser"$, Colors.Blue)
-		CallSubDelayed(Me, "mnuAbout_Click_OpenHomepage")
+		mnuAbout_Click_OpenHomepage
 		
 	Else
 		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click: The MessageBox return result is not POSITIVE, no nothing to do here"$, Colors.Blue)

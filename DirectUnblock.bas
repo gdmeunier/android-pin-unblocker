@@ -2342,6 +2342,14 @@ End Sub
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)
 	
 	'--------------------------------------------------------------------------------
+	'Start the Smartcard Service if it's not already running
+	
+	'This will already check if the Service
+	'is not already started, and this will
+	'create it if it wasn't started
+	StartService(Smartcard)
+	
+	'--------------------------------------------------------------------------------
 	'
 	'Reusable variables for all APDU requests
 	'
