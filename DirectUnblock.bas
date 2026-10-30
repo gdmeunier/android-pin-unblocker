@@ -666,6 +666,15 @@ Sub Process_Globals
 	'For foreground device rotation detection & misc
 	Private LifecycleTracking As MyLifecycleTracking
 	
+	Private IsFirstActivityResume As Boolean = True 'True by default (it's still a sensitive value here)
+	
+	'For background smartcard operations
+	Private DirectUnblockThread     As Thread
+	Private DirectUnblockInProgress As Boolean = False
+	
+	'For detecting whether the Android soft keyboard is visible
+	Private IsKeyboardVisible As Boolean = False 'False by default
+	
 	'
 	'-----
 	'
@@ -694,16 +703,6 @@ Sub Process_Globals
 	'reloading the Activity, which is required before using a different
 	'PKI smartcard for the next PIN unblock process
 	Private DetectedCardATR As String 'No default value
-	
-	'
-	'-----
-	'
-	
-	Private IsFirstActivityResume As Boolean = True 'True by default (it's still a sensitive value here)
-	
-	'For background smartcard operations
-	Private DirectUnblockThread     As Thread
-	Private DirectUnblockInProgress As Boolean = False
 	
 End Sub
 
@@ -1356,8 +1355,16 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Fixing the height of the Activity's ScrollView..."$, Colors.Blue)
 	If NewHeight < 100%y Then
 		scvActivity.Height = NewHeight
+		
+		'Register that the Android soft keyboard is visible
+		IsKeyboardVisible = True
+		
 	Else
 		scvActivity.Height = 100%y
+		
+		'Register that the Android soft keyboard is hidden
+		IsKeyboardVisible = False
+		
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return"$, Colors.Blue)
@@ -2892,6 +2899,74 @@ ${ServiceResponse.GetReply}"$)
 	' - IsSuccessful = True
 	' - ErrorIAny    = (empty string)
 	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
+	
+End Sub
+
+'This functions is called from the Smartcard service,
+'and it's located here because it cans only be called
+'from an Activity (not a Service)
+Public Sub RequestPostNotificationsPermission
+	
+	Dim AreNotificationsAllowed As Boolean = True
+	
+	'Android 13+ only (API level 33+):
+	' - Request the ability to post notifications
+	' - It's not a problem if the user denies it though
+	'
+	If Common.GetAndroidApiLevel >= 33 Then
+		
+		'First check if the Android software keyboard is visible
+		If IsKeyboardVisible Then
+			
+			'Pre-hide sensitive input fields before hiding
+			'the Android soft keyboard and waiting 300ms,
+			'this way the user does not have to wait 300ms
+			'before having sensitive input fields hidden
+			'when the Activity will get paused by Android
+			'to display the native RuntimePermissions dialog
+			edtDecoyPIN.Visible = True
+			
+			'This part below is waiting until the android
+			'soft keyboard gets hidden (if it was visible)
+			'when the user clicks on a button that will
+			'pop-up the Android Share To / Open With dialogs
+			'
+			'Such buttons include the 'Share Response Code' one
+			'and 'GitHub Homepage' one on the About dialog window
+			'
+			'Otherwise the Android Share To / Open With dialogs
+			'open too quickly before the keyboard cans get hidden,
+			'and the keyboard ends up being hidden too late
+			'while the Activity is already paused, and cannot receive
+			'the Activity_HeightChanged event
+			'
+			'So this part of the code adds a small delay
+			'to correct the below visual UI glitch:
+			' 1. Focus on the Challenge code input field
+			' 2. Make sure the android soft keyboard is open
+			' 3. Click on the About icon in the Activity menu
+			' 4. Click on 'GitHub Homepage'
+			' 5. Dismiss the 'Open With' dialog
+			'
+			'It would end up not resizing the Activity ScrollView
+			'when the Activity is resumed otherwise
+			imeActivity.HideKeyboard
+			
+			'It takes atmost 300ms to get properly hidden
+			Common.SynchronousSleep(300, Me, "RequestPostNotificationsPermission")
+			Wait For SynchronousSleep_RequestPostNotificationsPermission_Completed
+			
+		End If
+		
+		Dim RuntimePerms As RuntimePermissions
+		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)
+		
+		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
+		AreNotificationsAllowed = HavePermission
+		
+	End If
+	
+	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
 	
 End Sub
 

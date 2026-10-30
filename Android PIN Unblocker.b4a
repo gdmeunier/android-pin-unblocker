@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 294
-	#VersionName: 5.19.27
+	#VersionCode: 295
+	#VersionName: 5.19.28
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -1166,6 +1166,9 @@ Sub Process_Globals
 	Private DirectUnblockInProgress      As Boolean = False
 	Private DirectUnblockLastDialogCount As Int     = 0
 	
+	'For detecting whether the Android soft keyboard is visible
+	Private IsKeyboardVisible As Boolean = False 'False by default
+	
 	'
 	'-----
 	'
@@ -1194,10 +1197,6 @@ Sub Process_Globals
 	'reloading the Activity, which is required before using a different
 	'PKI smartcard for the next PIN unblock process
 	Public Shared_DetectedCardATR As String = ""
-	
-	'
-	'-----
-	'
 	
 End Sub
 
@@ -1950,8 +1949,16 @@ Sub Activity_HeightChanged(NewHeight As Int, OldHeight As Int)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Fixing the height of the Activity's ScrollView..."$, Colors.Blue)
 	If NewHeight < 100%y Then
 		scvActivity.Height = NewHeight
+		
+		'Register that the Android soft keyboard is visible
+		IsKeyboardVisible = True
+		
 	Else
 		scvActivity.Height = 100%y
+		
+		'Register that the Android soft keyboard is hidden
+		IsKeyboardVisible = False
+		
 	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_HeightChanged: Sub return"$, Colors.Blue)
@@ -3795,16 +3802,59 @@ End Sub
 'This functions is called from the Smartcard service,
 'and it's located here because it cans only be called
 'from an Activity (not a Service)
-Public Sub RequestPostNotificationsPermissions
+Public Sub RequestPostNotificationsPermission
 	
 	Dim AreNotificationsAllowed As Boolean = True
 	
+	'Android 13+ only (API level 33+):
+	' - Request the ability to post notifications
+	' - It's not a problem if the user denies it though
+	'
 	If Common.GetAndroidApiLevel >= 33 Then
-		'
-		'Android 13+ only (API level 33+):
-		' - Request the ability to post notifications
-		' - It's not a problem if the user denies it though
-		'
+		
+		'First check if the Android software keyboard is visible
+		If IsKeyboardVisible Then
+			
+			'Pre-hide sensitive input fields before hiding
+			'the Android soft keyboard and waiting 300ms,
+			'this way the user does not have to wait 300ms
+			'before having sensitive input fields hidden
+			'when the Activity will get paused by Android
+			'to display the native RuntimePermissions dialog
+			edtDecoyKey.Visible = True
+			
+			'This part below is waiting until the android
+			'soft keyboard gets hidden (if it was visible)
+			'when the user clicks on a button that will
+			'pop-up the Android Share To / Open With dialogs
+			'
+			'Such buttons include the 'Share Response Code' one
+			'and 'GitHub Homepage' one on the About dialog window
+			'
+			'Otherwise the Android Share To / Open With dialogs
+			'open too quickly before the keyboard cans get hidden,
+			'and the keyboard ends up being hidden too late
+			'while the Activity is already paused, and cannot receive
+			'the Activity_HeightChanged event
+			'
+			'So this part of the code adds a small delay
+			'to correct the below visual UI glitch:
+			' 1. Focus on the Challenge code input field
+			' 2. Make sure the android soft keyboard is open
+			' 3. Click on the About icon in the Activity menu
+			' 4. Click on 'GitHub Homepage'
+			' 5. Dismiss the 'Open With' dialog
+			'
+			'It would end up not resizing the Activity ScrollView
+			'when the Activity is resumed otherwise
+			imeActivity.HideKeyboard
+			
+			'It takes atmost 300ms to get properly hidden
+			Common.SynchronousSleep(300, Me, "RequestPostNotificationsPermission")
+			Wait For SynchronousSleep_RequestPostNotificationsPermission_Completed
+			
+		End If
+		
 		Dim RuntimePerms As RuntimePermissions
 		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_POST_NOTIFICATIONS)
 		
@@ -3813,7 +3863,7 @@ Public Sub RequestPostNotificationsPermissions
 		
 	End If
 	
-	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermissions_Completed", AreNotificationsAllowed)
+	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
 	
 End Sub
 
@@ -3939,37 +3989,50 @@ Private Sub mnuAbout_Click_OpenHomepage
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Sub entry"$, Colors.Blue)
 	
-	'This part below is waiting until the android
-	'soft keyboard gets hidden (if it was visible)
-	'when the user clicks on a button that will
-	'pop-up the Android Share To / Open With dialogs
-	'
-	'Such buttons include the 'Share Response Code' one
-	'and 'GitHub Homepage' one on the About dialog window
-	'
-	'Otherwise the Android Share To / Open With dialogs
-	'open too quickly before the keyboard cans get hidden,
-	'and the keyboard ends up being hidden too late
-	'while the Activity is already paused, and cannot receive
-	'the Activity_HeightChanged event
-	'
-	'So this part of the code adds a small delay
-	'to correct the below visual UI glitch:
-	' 1. Focus on the Challenge code input field
-	' 2. Make sure the android soft keyboard is open
-	' 3. Click on the About icon in the Activity menu
-	' 4. Click on 'GitHub Homepage'
-	' 5. Dismiss the 'Open With' dialog
-	'
-	'It would end up not resizing the Activity ScrollView
-	'when the Activity is resumed otherwise
-	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
-	imeActivity.HideKeyboard
-	
-	'It takes atmost 300ms to get properly hidden
-	LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
-	Common.SynchronousSleep(300, Me, "mnuAbout_Click_OpenHomepage")
-	Wait For SynchronousSleep_mnuAbout_Click_OpenHomepage_Completed
+	'First check if the Android software keyboard is visible
+	If IsKeyboardVisible Then
+		
+		'Pre-hide sensitive input fields before hiding
+		'the Android soft keyboard and waiting 300ms,
+		'this way the user does not have to wait 300ms
+		'before having sensitive input fields hidden
+		'when the Activity will get paused by Android
+		'to display the native Open With dialog
+		edtDecoyKey.Visible = True
+		
+		'This part below is waiting until the android
+		'soft keyboard gets hidden (if it was visible)
+		'when the user clicks on a button that will
+		'pop-up the Android Share To / Open With dialogs
+		'
+		'Such buttons include the 'Share Response Code' one
+		'and 'GitHub Homepage' one on the About dialog window
+		'
+		'Otherwise the Android Share To / Open With dialogs
+		'open too quickly before the keyboard cans get hidden,
+		'and the keyboard ends up being hidden too late
+		'while the Activity is already paused, and cannot receive
+		'the Activity_HeightChanged event
+		'
+		'So this part of the code adds a small delay
+		'to correct the below visual UI glitch:
+		' 1. Focus on the Challenge code input field
+		' 2. Make sure the android soft keyboard is open
+		' 3. Click on the About icon in the Activity menu
+		' 4. Click on 'GitHub Homepage'
+		' 5. Dismiss the 'Open With' dialog
+		'
+		'It would end up not resizing the Activity ScrollView
+		'when the Activity is resumed otherwise
+		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
+		imeActivity.HideKeyboard
+		
+		'It takes atmost 300ms to get properly hidden
+		LogColor($"[${ActivityName}-${LogContextId}] mnuAbout_Click_OpenHomepage: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
+		Common.SynchronousSleep(300, Me, "mnuAbout_Click_OpenHomepage")
+		Wait For SynchronousSleep_mnuAbout_Click_OpenHomepage_Completed
+		
+	End If
 	
 	'Because I don't want to bundle the big Phone library
 	'Use the Advanced class to open the browser URL
@@ -4031,40 +4094,77 @@ Private Sub btnScanQR_Click
 		
 	End If
 	
+	'First check if the Android software keyboard is visible
+	If IsKeyboardVisible Then
+		
+		'Pre-hide sensitive input fields before hiding
+		'the Android soft keyboard and waiting 300ms,
+		'this way the user does not have to wait 300ms
+		'before having sensitive input fields hidden
+		'when the Activity will get paused by Android
+		'to display the native RuntimePermissions dialog
+		edtDecoyKey.Visible = True
+		
+		'This part below is waiting until the android
+		'soft keyboard gets hidden (if it was visible)
+		'when the user clicks on a button that will
+		'pop-up the Android Share To / Open With dialogs
+		'
+		'Such buttons include the 'Share Response Code' one
+		'and 'GitHub Homepage' one on the About dialog window
+		'
+		'Otherwise the Android Share To / Open With dialogs
+		'open too quickly before the keyboard cans get hidden,
+		'and the keyboard ends up being hidden too late
+		'while the Activity is already paused, and cannot receive
+		'the Activity_HeightChanged event
+		'
+		'So this part of the code adds a small delay
+		'to correct the below visual UI glitch:
+		' 1. Focus on the Challenge code input field
+		' 2. Make sure the android soft keyboard is open
+		' 3. Click on the About icon in the Activity menu
+		' 4. Click on 'GitHub Homepage'
+		' 5. Dismiss the 'Open With' dialog
+		'
+		'It would end up not resizing the Activity ScrollView
+		'when the Activity is resumed otherwise
+		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
+		imeActivity.HideKeyboard
+		
+		'It takes atmost 300ms to get properly hidden
+		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
+		Common.SynchronousSleep(300, Me, "btnScanQR_Click")
+		Wait For SynchronousSleep_btnScanQR_Click_Completed
+		
+	End If
+	
 	'Ask for authorization to use the Camera at runtime
 	'Required on Android 6.0+
 	'Has no effect on older Android versions
-	Dim RuntimePerms As RuntimePermissions
-	
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Checking if we have the Camera runtime permission"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This is required on Android 6.0+ devices"$, Colors.Blue)
 	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: This check will always return True on older Android versions"$, Colors.Blue)
-	If RuntimePerms.Check(RuntimePerms.PERMISSION_CAMERA) <> True Then
-		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: We don't have Camera runtime permission access"$, Colors.Magenta)
+	Dim RuntimePerms As RuntimePermissions
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Requesting Camera runtime permission (the user needs to agree)"$, Colors.Magenta)
+	RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_CAMERA)
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Waiting for the result of our Camera runtime permission request"$, Colors.Magenta)
+	Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
+	
+	LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: The results of our runtime permission request has come, checking if we were granted Camera access"$, Colors.Magenta)
+	If HavePermission <> True Then
+		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Our Camera runtime permission request was rejected, cannot proceed further"$, Colors.Red)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Requesting Camera runtime permission (the user needs to agree)"$, Colors.Magenta)
-		RuntimePerms.CheckAndRequest(RuntimePerms.PERMISSION_CAMERA)
+		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Display an exception message in a toast notification"$, Colors.Red)
+		ToastMessageShow("Camera permission required to scan QR codes", Constants.TOAST_DURATION_SHORT)
 		
-		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Waiting for the result of our Camera runtime permission request"$, Colors.Magenta)
-		Wait For Activity_PermissionResult(PermissionIdentifier As String, HavePermission As Boolean)
-		
-		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: The results of our runtime permission request has come, checking if we were granted Camera access"$, Colors.Magenta)
-		If HavePermission <> True Then
-			LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Our Camera runtime permission request was rejected, cannot proceed further"$, Colors.Red)
-			
-			LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Display an exception message in a toast notification"$, Colors.Red)
-			ToastMessageShow("Permission required to scan QR codes", Constants.TOAST_DURATION_SHORT)
-			
-			LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Sub return"$, Colors.Red)
-			Return
-			
-		Else
-			LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Our Camera runtime permission request was approved, we can now proceed further"$, Colors.Green)
-			
-		End If
+		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Sub return"$, Colors.Red)
+		Return
 		
 	Else
-		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: We got Camera runtime permission access (or the device runs an older version of Android which always gives access anyway)"$, Colors.Blue)
+		LogColor($"[${ActivityName}-${LogContextId}] btnScanQR_Click: Our Camera runtime permission request was approved, we can now proceed further"$, Colors.Green)
 		
 	End If
 	
@@ -5093,37 +5193,50 @@ Private Sub btnShareTo_Click
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Sub entry"$, Colors.Blue)
 	
-	'This part below is waiting until the android
-	'soft keyboard gets hidden (if it was visible)
-	'when the user clicks on a button that will
-	'pop-up the Android Share To / Open With dialogs
-	'
-	'Such buttons include the 'Share Response Code' one
-	'and 'GitHub Homepage' one on the About dialog window
-	'
-	'Otherwise the Android Share To / Open With dialogs
-	'open too quickly before the keyboard cans get hidden,
-	'and the keyboard ends up being hidden too late
-	'while the Activity is already paused, and cannot receive
-	'the Activity_HeightChanged event
-	'
-	'So this part of the code adds a small delay
-	'to correct the below visual UI glitch:
-	' 1. Focus on the Challenge code input field
-	' 2. Make sure the android soft keyboard is open
-	' 3. Click on the About icon in the Activity menu
-	' 4. Click on 'GitHub Homepage'
-	' 5. Dismiss the 'Open With' dialog
-	'
-	'It would end up not resizing the Activity ScrollView
-	'when the Activity is resumed otherwise
-	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
-	imeActivity.HideKeyboard
-	
-	'It takes atmost 300ms to get properly hidden
-	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
-	Common.SynchronousSleep(300, Me, "btnShareTo_Click")
-	Wait For SynchronousSleep_btnShareTo_Click_Completed
+	'First check if the Android software keyboard is visible
+	If IsKeyboardVisible Then
+		
+		'Pre-hide sensitive input fields before hiding
+		'the Android soft keyboard and waiting 300ms,
+		'this way the user does not have to wait 300ms
+		'before having sensitive input fields hidden
+		'when the Activity will get paused by Android
+		'to display the native Share To dialog
+		edtDecoyKey.Visible = True
+		
+		'This part below is waiting until the android
+		'soft keyboard gets hidden (if it was visible)
+		'when the user clicks on a button that will
+		'pop-up the Android Share To / Open With dialogs
+		'
+		'Such buttons include the 'Share Response Code' one
+		'and 'GitHub Homepage' one on the About dialog window
+		'
+		'Otherwise the Android Share To / Open With dialogs
+		'open too quickly before the keyboard cans get hidden,
+		'and the keyboard ends up being hidden too late
+		'while the Activity is already paused, and cannot receive
+		'the Activity_HeightChanged event
+		'
+		'So this part of the code adds a small delay
+		'to correct the below visual UI glitch:
+		' 1. Focus on the Challenge code input field
+		' 2. Make sure the android soft keyboard is open
+		' 3. Click on the About icon in the Activity menu
+		' 4. Click on 'GitHub Homepage'
+		' 5. Dismiss the 'Open With' dialog
+		'
+		'It would end up not resizing the Activity ScrollView
+		'when the Activity is resumed otherwise
+		LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Hiding the Android soft keyboard incase it's visible"$, Constants.COLORS_ORANGE)
+		imeActivity.HideKeyboard
+		
+		'It takes atmost 300ms to get properly hidden
+		LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Wait a synchronous sleep of 300ms before proceeding further so that any visible Android soft keyboard gets properly hidden first..."$, Constants.COLORS_ORANGE)
+		Common.SynchronousSleep(300, Me, "btnShareTo_Click")
+		Wait For SynchronousSleep_btnShareTo_Click_Completed
+		
+	End If
 	
 	LogColor($"[${ActivityName}-${LogContextId}] btnShareTo_Click: Preparing a Share To Intent for sharing the Response code"$, Colors.Blue)
 	Dim ShareIntent As Intent

@@ -150,8 +150,8 @@ private static final int[] notificationsIdArray = new int[] {
 // For Android 8+ notifications support (API level 26+)
 //
 private       String notifyChannelId   = null;
-private final String notifyChannelName = APPLICATION_NAME;
-private final String notifyChannelDesc = "Smartcard Service notifications";
+private final String notifyChannelName = "Smartcard Service notifications";
+private final String notifyChannelDesc = notifyChannelName+" are used to notify you to insert a USB device, grant USB permission and insert a smartcard into the card reader when you process a Direct Unblock operation.";
 
 /* For checking whether notifications are allowed (Android 13+ - API level 33+):
  *  - Do note that notifications from startForeground are always allowed anyway
@@ -560,8 +560,8 @@ Private Sub Service_Message_Receipt(ServiceRequest As MyServiceRequest)
 		Or DoWhat == FIND_SMARTCARD       _
 		Or DoWhat == SEND_APDU Then
 			
-			RequestNotificationsPermissions
-			Wait For RequestNotificationsPermissions_Finished
+			RequestPostNotificationsPermission
+			Wait For RequestPostNotificationsPermission_Finished
 			
 		End If
 		
@@ -612,42 +612,49 @@ End Sub
 
 'Helper functions for updating areNotificationsAllowed
 'which is used by Java native code
-Private Sub RequestNotificationsPermissions
-	
-	'Return immediately and let the function with
-	'the _DelayedSub suffix do the job
-	CallSubDelayed(Me, "RequestNotificationsPermissions_DelayedSub")
-	
-End Sub
-
-Private Sub RequestNotificationsPermissions_DelayedSub
+Private Sub RequestPostNotificationsPermission
 	'
-	'Check that the Main Activity isn't paused already
-	'
-	'If it's paused then that means we were already
-	'able to call it before during the Direct Unblock
-	'introducy message, so no need to redo it again then
+	'Check that the Main Activity isn't already paused
 	'
 	If Not(IsPaused(Main)) Then
+		'Return immediately and let the function with
+		'the _DelayedSub suffix do the job
+		CallSubDelayed2(Me, "RequestPostNotificationsPermission_DelayedSub", Main)
+		
+	Else
 		'
-		'Android 13+ only (API level 33+):
-		' - Request the ability to post notifications
-		' - It's not a problem if the user denies it though
+		'If the Main Activity is already paused,
+		'then check if the DirectUnblock Activity is not paused
 		'
-		Try
-			CallSub(Main, "RequestPostNotificationsPermissions")
-			Wait For RequestPostNotificationsPermissions_Completed(AreNotificationsAllowed As Boolean)
+		If Not(IsPaused(DirectUnblock)) Then
+			'Return immediately and let the function with
+			'the _DelayedSub suffix do the job
+			CallSubDelayed2(Me, "RequestPostNotificationsPermission_DelayedSub", DirectUnblock)
 			
-			SetNotificationsAllowed(AreNotificationsAllowed)
-			
-		Catch
-			SetNotificationsAllowed(False)
-			
-		End Try
+		End If
 		
 	End If
 	
-	CallSubDelayed(Me, "RequestNotificationsPermissions_Finished")
+End Sub
+
+Private Sub RequestPostNotificationsPermission_DelayedSub(TheActivity As Activity)
+	'
+	'Android 13+ only (API level 33+):
+	' - Request the ability to post notifications
+	' - It's not a problem if the user denies it though
+	'
+	Try
+		CallSub(TheActivity, "RequestPostNotificationsPermission")
+		Wait For RequestPostNotificationsPermission_Completed(AreNotificationsAllowed As Boolean)
+		
+		SetNotificationsAllowed(AreNotificationsAllowed)
+		
+	Catch
+		SetNotificationsAllowed(False)
+		
+	End Try
+	
+	CallSubDelayed(Me, "RequestPostNotificationsPermission_Finished")
 	
 End Sub
 
@@ -1166,7 +1173,7 @@ private void jShowNotification(final int notificationID, final String msg, final
 		}
 		catch (Exception e)
 		{
-			throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+			throw new NotificationException("Failed to prepare the NotificationChannel generic properties");
 		}
 		
 	    if ( withSound )
@@ -1191,7 +1198,7 @@ private void jShowNotification(final int notificationID, final String msg, final
 		}
 		catch (Exception e)
 		{
-			throw new NotificationException("Failed to prepare the NotificationChannel and its various properties");
+			throw new NotificationException("Failed to prepare the NotificationChannel channel ID");
 		}
 	}
 	
