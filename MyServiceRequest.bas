@@ -25,6 +25,9 @@ Sub Class_Globals
 	Private Operation    As Int
 	Private Parameters() As String
 	
+	'For being able to do synchronous sleep
+	Private Common As MyCommon
+	
 End Sub
 
 'Initializes the object.
@@ -34,6 +37,9 @@ Public Sub Initialize(TheTargetService As Object, TheCaller As Object, TheCaller
 	TargetService = TheTargetService
 	Caller        = TheCaller
 	CallerSubName = TheCallerSubName
+	
+	'For being able to do synchronous sleep
+	Common.Initialize
 	
 End Sub
 
@@ -92,10 +98,47 @@ End Sub
 '
 Public Sub SendRequest
 	
+	'Check if the target Service is running:
+	' - IsPaused cans be used here because it also
+	'   returns True for components that are
+	'   not started yet, so if the target Service
+	'   is already running, then it returns False
+	'
+	If IsPaused(TargetService) Then
+		
+		'The target Service is not running yet,
+		'so start it now
+		StartService(TargetService)
+		
+		'Sleep 300ms to let the target Service
+		'have enough time to initialize properly
+		Common.SynchronousSleep(300, Me, "SendRequest")
+		Wait For SynchronousSleep_SendRequest_Completed
+		
+	End If
+	
+	'We can use CallSub below, instead of CallSubDelayed,
+	'because the Smartcard Service's Service_Message function
+	'will immediately start another one in a separate Thread,
+	'and it immediately returns while that separate Thread
+	'is doing the necessary work
+	'
+	'Otherwise we would be using CallSubDelayed indeed,
+	'but here we can use CallSub (rare exception to the rule)
+	
 	'The "MyServiceRequest" Object is "Me"
-	CallSubDelayed2(TargetService, "Service_Message", Me.As(MyServiceRequest))
+	CallSub2(TargetService, "Service_Message", Me.As(MyServiceRequest))
 	Wait For ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
+	'Use CallSub instead of CallSubDelayed when
+	'communicating with the same component,
+	'but from a different Thread
+	'
+	'Different Thread + same component:
+	' - CallSub
+	'
+	'When communicating with a different component,
+	'always use CallSubDelayed instead
 	CallSubDelayed2(Caller, CallerSubName&"_ServiceRequest_Completed", ServiceResponse)
 	
 End Sub

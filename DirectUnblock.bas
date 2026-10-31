@@ -2339,15 +2339,16 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 	
 End Sub
 
+'Use CallSub instead of CallSubDelayed when
+'communicating with the same component,
+'but from a different Thread
+'
+'Different Thread + same component:
+' - CallSub
+'
+'When communicating with a different component,
+'always use CallSubDelayed instead
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)
-	
-	'--------------------------------------------------------------------------------
-	'Start the Smartcard Service if it's not already running
-	
-	'This will already check if the Service
-	'is not already started, and this will
-	'create it if it wasn't started
-	StartService(Smartcard)
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -2367,7 +2368,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2383,7 +2384,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2400,7 +2401,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2410,7 +2411,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
 		' - IsSuccessful = False
 		' - ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"The smartcard is not the same model as the previously connected one!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"The smartcard is not the same model as the previously connected one!
 
 When you use a different smartcard model, you have to go back to the Main Activity then reload this page.
 
@@ -2441,7 +2442,7 @@ ${ServiceResponse.GetReply}"$)
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
 
 ${CardType} Applet ID:
 ${SelectAppletAPDU}
@@ -2471,7 +2472,7 @@ The smartcard could not find the PKI applet we searched for"$&".")
 		
 		If Not(ServiceResponse.GetIsSuccessful) Then
 			
-			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
+			CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
 
 Sent APDU:
 ${LastSentAPDU}
@@ -2508,7 +2509,7 @@ ${ServiceResponse.GetReply}"$)
 	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
 	If Not(ServiceResponse.GetIsSuccessful) Then
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to request the ${DetectedAlgorithm} challenge code!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to request the ${DetectedAlgorithm} challenge code!
 
 Sent APDU:
 ${LastSentAPDU}
@@ -2539,7 +2540,7 @@ Received:
 ${GetChallengeReplyAPDU}"$
 		
 		If Not(GetChallengeReplyAPDU.StartsWith(Constants.APDU_GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
-			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", "The received APDU reply does not start with a challenge type header that we could recognize."))
+			CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", "The received APDU reply does not start with a challenge type header that we could recognize."))
 			Return
 			
 		End If
@@ -2559,20 +2560,20 @@ ${GetChallengeReplyAPDU}"$
 		Select ChallengeLength
 			Case 8
 				If Algorithm <> Cryptography.ALGORITHM_2DES And Algorithm <> Cryptography.ALGORITHM_3DES Then
-					CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
 					Return
 					
 				End If
 				
 			Case 16
 				If Algorithm <> Cryptography.ALGORITHM_AES128 And Algorithm <> Cryptography.ALGORITHM_AES256 Then
-					CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
 					Return
 					
 				End If
 				
 			Case Else
-				CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
+				CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
 				Return
 				
 		End Select
@@ -2609,7 +2610,7 @@ ${GetChallengeReplyAPDU}"$
 			
 		End If
 	Catch
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
 
 Algorithm:
 ${Algorithm} / ECB / NoPadding
@@ -2691,7 +2692,7 @@ ${LastException.Message}"$)
 	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
 	If Not(ServiceResponse.GetIsSuccessful) Then
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
 
 Algorithm:
 ${Algorithm} / ECB / NoPadding
@@ -2812,7 +2813,7 @@ ${ServiceResponse.GetReply}"$)
 		'you have to never disclose what the APDU data was
 		'
 		'(Show only generic info such as 'The Gemalto SET_REFERENCE_DATA APDU for the new PIN failed')
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with the provided new PIN value (sensitive parameter)!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with the provided new PIN value (sensitive parameter)!
 
 Sent APDU:
 SET_REFERENCE_DATA for ${CardType}
@@ -2906,7 +2907,7 @@ ${ServiceResponse.GetReply}"$)
 	'Tell the btnProceedToUnblock_Click function that the task is completed (success)
 	' - IsSuccessful = True
 	' - ErrorIAny    = (empty string)
-	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
+	CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
 	
 End Sub
 
@@ -2987,6 +2988,15 @@ Public Sub RequestPostNotificationsPermission
 		
 	End If
 	
+	'Use CallSub instead of CallSubDelayed when
+	'communicating with the same component,
+	'but from a different Thread
+	'
+	'Different Thread + same component:
+	' - CallSub
+	'
+	'When communicating with a different component,
+	'always use CallSubDelayed instead
 	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
 	
 End Sub

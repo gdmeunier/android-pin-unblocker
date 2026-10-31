@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 302
-	#VersionName: 5.20.5
+	#VersionCode: 305
+	#VersionName: 5.20.8
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -3633,6 +3633,15 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 	
 End Sub
 
+'Use CallSub instead of CallSubDelayed when
+'communicating with the same component,
+'but from a different Thread
+'
+'Different Thread + same component:
+' - CallSub
+'
+'When communicating with a different component,
+'always use CallSubDelayed instead
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
 	
 	'For initializing the Direct Unblock Activity
@@ -3643,14 +3652,6 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	
 	Algorithm = DetectedAlgorithm
 	AdminKey  = SanitizedAdminKey
-	
-	'--------------------------------------------------------------------------------
-	'Start the Smartcard Service if it's not already running
-	
-	'This will already check if the Service
-	'is not already started, and this will
-	'create it if it wasn't started
-	StartService(Smartcard)
 	
 	'--------------------------------------------------------------------------------
 	'
@@ -3670,7 +3671,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3686,7 +3687,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3702,7 +3703,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3720,7 +3721,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3757,7 +3758,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
+		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
 
 [1] Gemalto:
 ${Constants.APDU_SELECT_GEMALTO_PKI_APPLET_ID}
@@ -3815,7 +3816,7 @@ The smartcard could not find the PKI applets we searched for"$&".")
 	
 	'IsSuccessful = True
 	'ErrorIAny    = (empty string)
-	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
+	CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
 	
 End Sub
 
@@ -3896,6 +3897,15 @@ Public Sub RequestPostNotificationsPermission
 		
 	End If
 	
+	'Use CallSub instead of CallSubDelayed when
+	'communicating with the same component,
+	'but from a different Thread
+	'
+	'Different Thread + same component:
+	' - CallSub
+	'
+	'When communicating with a different component,
+	'always use CallSubDelayed instead
 	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
 	
 End Sub

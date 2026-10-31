@@ -562,7 +562,10 @@ Private Sub Service_Message_Receipt(ServiceRequest As MyServiceRequest)
 		Or DoWhat == FIND_SMARTCARD       _
 		Or DoWhat == SEND_APDU Then
 			
-			RequestPostNotificationsPermission
+			'We can also use the SmartcardOperationThread
+			'for requesting the POST_NOTIFICATIONS permission,'
+			'because whwy not, if it improves reliability
+			SmartcardOperationThread.Start(Me, "RequestPostNotificationsPermission", Null)
 			Wait For RequestPostNotificationsPermission_Finished
 			
 		End If
@@ -615,6 +618,7 @@ End Sub
 'Helper functions for updating areNotificationsAllowed
 'which is used by Java native code
 Private Sub RequestPostNotificationsPermission
+	'This function now runs in a separate Thread
 	
 	'Check that the Main Activity isn't already paused
 	If Not(IsPaused(Main)) Then
@@ -632,9 +636,9 @@ Private Sub RequestPostNotificationsPermission
 	
 End Sub
 
-'Take the Activity (component) as "Object", not as "Activity"
 Private Sub RequestPostNotificationsPermissionHelper(TheComponent As Object)
-	'
+	'Take the Activity (component) as "Object", not as "Activity"
+	
 	'Android 13+ only (API level 33+):
 	' - Request the ability to post notifications
 	' - It's not a problem if the user denies it though
@@ -650,7 +654,16 @@ Private Sub RequestPostNotificationsPermissionHelper(TheComponent As Object)
 		
 	End Try
 	
-	CallSubDelayed(Me, "RequestPostNotificationsPermission_Finished")
+	'Use CallSub instead of CallSubDelayed when
+	'communicating with the same component,
+	'but from a different Thread
+	'
+	'Different Thread + same component:
+	' - CallSub
+	'
+	'When communicating with a different component,
+	'always use CallSubDelayed instead
+	CallSub(Me, "RequestPostNotificationsPermission_Finished")
 	
 End Sub
 
@@ -713,7 +726,16 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As String)
 		
 	End Try
 	
-	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", IsSuccessful, ServiceReplies)
+	'Use CallSub instead of CallSubDelayed when
+	'communicating with the same component,
+	'but from a different Thread
+	'
+	'Different Thread + same component:
+	' - CallSub
+	'
+	'When communicating with a different component,
+	'always use CallSubDelayed instead
+	CallSub3(Me, "RunInSmartcardOperationThread_Completed", IsSuccessful, ServiceReplies)
 	
 End Sub
 #If Java
