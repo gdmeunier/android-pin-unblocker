@@ -91,6 +91,13 @@ Sub Class_Globals
 	'For improving various application dialogs
 	Public Const ZERO_WIDTH_SPACE As String = Chr(0x200B) 'Unicode char
 	
+	'For use with SetActivityResult calls:
+	' - Setting StartActivity result code for other apps
+	'
+	Public Const ACTIVITY_RESULT_OK         As Int = -0x1 'Standard activity result: operation succeeded (0xFFFFFFFF)
+	Public Const ACTIVITY_RESULT_CANCELED   As Int =  0x0 'Standard activity result: operation canceled
+	Public Const ACTIVITY_RESULT_FIRST_USER As Int =  0x1 'Start of user-defined activity results
+	
 	'
 	'The constants below are critical for Smartcard operations
 	'

@@ -94,149 +94,7 @@ public boolean onCreateThumbnail(Bitmap outBitmap, Canvas canvas)
 }
 #End If
 
-'
-'This part is a custom Basic4Android hack to prevent it from
-'ruthlessly reposting obsolete Activity events that
-'we don't care about anymore
-'
-
 #If Java
-/* Note: Yes; blocking Activity events firing temporarily is compatible with
- *       the device idle detection receiver's event firing too
- *
- *       Because it fires on screen off or inactivity, not when the Activity starts again
- *       The blocking happens on Activity start, and is lifted on Activity resume
- *
- *       For the device idle detection receiver's manual firing of the Activity events
- *       Activity_Pause and Activity_Resume, it's also compatible with it because
- *       on legacy devices (the only ones where it does this), Activities are actually
- *       never paused, stopped, started nor resumed at all on screen of or inactivity:
- *        - So the blocking will not happen as _onStart is then never called when
- *          the screen turns back on
- *
- *       Also, if on legacy devices the Activity is put in the background manually,
- *       then the device idle detection receiver doesn't actually fire anything:
- *        - It only fires Activity pause & resume events manually on screen off & screen on
- *
- *       And when it does fire these Activity events, remember that it cannot actually
- *       pause any Activity for real; it just manually runs the event functions,
- *       but the Activities were never paused nor resumed:
- *        - Only Android itself (system / Android Framework) cans do it,
- *          with its protected ActivityManager module
- *
- * TLDR: Nothing to worry about regarding compatibility with the
- *       device idle detection receiver, it's actually
- *       perfectly compatible with it
- */
-
-/* This function cans only be called by _onStart
- * Other ones are not run early enough to block those in due time
- */
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-import java.util.ArrayList;
-public void jClearPausedMessagesQueue()
-{
-	BA.LogInfo("["+activityName+"] jClearPausedMessagesQueue: Function entry");
-	
-	/* Check if the processBA and sharedProcessBA objects are different from null
-	 *
-	 * [!] This part will only compile with the modified B4AShared.jar file,
-	 *     which makes the messagesDuringPaused field public
-	 *
-	 *     Otherwise it was not public and could not be modified from outside
-	 *     its own class instance
-	 */
-	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
-	{
-		// Clear the paused messages queue by replacing it with an empty list
-		this.processBA.sharedProcessBA.messagesDuringPaused = new ArrayList<Runnable>();
-		
-		// Notify in the logging about it always
-		BA.LogInfo("["+activityName+"] jClearPausedMessagesQueue: Cleared the paused messages queue");
-	}
-	
-	BA.LogInfo("["+activityName+"] jClearPausedMessagesQueue: Function return");
-}
-
-private boolean originalIgnoreEventsFromOtherThreadsDuringMsgboxError = false;
-
-/* Prevent Basic4Android from reposting obsolete events such as
- * the FocusChanged ones, since this is otherwise just annoying for
- * the control flow of this application
- * 
- * It sets a flag that makes Basic4Android not repost its events on
- * Activity destruction then re-creation
- * 
- * This function cans only be called by _onStart
- * Other ones are not run early enough to block it in due time
- */
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void jBlockEventPostingAbility()
-{
-	BA.LogInfo("["+activityName+"] jBlockEventPostingAbility: Function entry");
-	
-	/* Check if the processBA and sharedProcessBA objects are different from null
-	 *
-	 * [!] This part will only compile with the modified B4AShared.jar file, which
-	 *     makes the ignoreEventsFromOtherThreadsDuringMsgboxError field public
-	 *
-	 *     Otherwise it was not public and could not be modified from outside
-	 *     its own class instance
-	 */
-	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
-	{
-		// Backup so that _onPostResume cans restore the original value later
-		this.originalIgnoreEventsFromOtherThreadsDuringMsgboxError = this.processBA.sharedProcessBA.ignoreEventsFromOtherThreadsDuringMsgboxError;
-		
-		// Notify in the logging about it always
-		BA.LogInfo("["+activityName+"] jBlockEventPostingAbility: Made a backup of this Activity's processBA->sharedProcessBA->ignoreEventsFromOtherThreadsDuringMsgboxError value");
-		
-		// Set the flag to true to block the repost of UI events
-		this.processBA.sharedProcessBA.ignoreEventsFromOtherThreadsDuringMsgboxError = true;
-		
-		// Notify in the logging about it always
-		BA.LogInfo("["+activityName+"] jBlockEventPostingAbility: Set the ignoring of events from other threads (during MsgBox errors) to true");
-		BA.LogInfo("["+activityName+"] jBlockEventPostingAbility: This is required to strictly prevent the reposting of obsolete FocusChanged messages on Activity resume");
-	}
-	
-	BA.LogInfo("["+activityName+"] jBlockEventPostingAbility: Function return");
-}
-
-import anywheresoftware.b4a.BA;
-import android.content.Context;
-import android.app.Activity;
-public void jRestoreEventPostingAbility()
-{
-	BA.LogInfo("["+activityName+"] jRestoreEventPostingAbility: Function entry");
-	
-	/* Check if the processBA and sharedProcessBA objects are different from null
-	 *
-	 * [!] This part will only compile with the modified B4AShared.jar file, which
-	 *     makes the ignoreEventsFromOtherThreadsDuringMsgboxError field public
-	 *
-	 *     Otherwise it was not public and could not be modified from outside
-	 *     its own class instance
-	 */
-	if ( this.processBA != null && this.processBA.sharedProcessBA != null )
-	{
-		// Restore the original value of IgnoreEventsFromOtherThreadsDuringMsgboxError
-		this.processBA.sharedProcessBA.ignoreEventsFromOtherThreadsDuringMsgboxError = this.originalIgnoreEventsFromOtherThreadsDuringMsgboxError;
-		
-		// Notify in the logging about it always
-		BA.LogInfo("["+activityName+"] jRestoreEventPostingAbility: Restored the original 'ignoring of events from other threads (during MsgBox errors)' value back to original");
-	}
-	
-	BA.LogInfo("["+activityName+"] jRestoreEventPostingAbility: Function return");
-}
-
-/* Restore the ability to receive Activity events after having prevented
- * the reposting of obsolete Activity events during the running of our
- * Java native jBlockEventPostingAbility function (it happened in _onStart)
- */
 import anywheresoftware.b4a.BA;
 import android.content.Context;
 import android.app.Activity;
@@ -244,11 +102,6 @@ public void _onPostResume()
 {
 	BA.LogInfo("** Activity ("+activityName+") Post Resume **");
 	BA.LogInfo("["+activityName+"] _onPostResume: Function entry");
-	
-	BA.LogInfo("["+activityName+"] _onPostResume: We previously blocked the ability to fire Activity events by Basic4Android's core, as it was annoying with us");
-	BA.LogInfo("["+activityName+"] _onPostResume: (It was trying to repost obsolete Activity events that we don't care about...)");
-	BA.LogInfo("["+activityName+"] _onPostResume: However because at this stage these annoying & obsolete event reports have been blocked, we now re-enable Activity event firing for Basic4Android's core (its raiseEvent capability)");
-	jRestoreEventPostingAbility();
 	
 	BA.LogInfo("["+activityName+"] _onPostResume: Function return");
 }
@@ -390,15 +243,6 @@ public void _onStart()
 	BA.LogInfo("** Activity ("+activityName+") Start **");
 	BA.LogInfo("["+activityName+"] _onStart: Function entry");
 	
-	// Clear paused messages queue because there were some
-	// mundane pending sleep calls inside it
-	//
-	BA.LogInfo("["+activityName+"] _onStart: Clearing paused messages queue (there were some mundane sleep calls inside it)");
-	jClearPausedMessagesQueue();
-	
-	BA.LogInfo("["+activityName+"] _onStart: We will be blocking Basic4Android's ability to fire Activity events temporarily, because it wants to repost mundane events between Activities' onStart & onCreate");
-	BA.LogInfo("["+activityName+"] _onStart: But we have to fire the Activity_Start event before blocking the ability to fire Activity events");
-	BA.LogInfo("["+activityName+"] _onStart: That's why jBlockEventPostingAbility runs after the Activity_Start event Sub");
 	try
 	{
 		// Custom Activity_Start event
@@ -411,18 +255,6 @@ public void _onStart()
 	{
 		/* Nothing to do here */
 	}
-	
-	/* Block the ability to post Activity events to prevent the reposting of
-	 * obsolete Activity events before the _onCreate function is run,
-	 * because _onCreate would already be too late to block it
-	 *
-	 * That's why it must be done in _onStart instead
-	 *
-	 * Also because this blocks the posting of events to begin with,
-	 * we had to do it after firing the custom Activity_Start event
-	 */
-	BA.LogInfo("["+activityName+"] _onStart: We now temporarily block Basic4Android from firing Activity events temporarily as said prior...");
-	jBlockEventPostingAbility();
 	
 	BA.LogInfo("["+activityName+"] _onStart: Function return");
 }
@@ -892,10 +724,6 @@ Private Sub LoadActivityLayout
 	'
 	'However you can create your own temporary ones
 	
-	'Removing any potentially already initialized views
-	LogColor($"[${ActivityName}-${LogContextId}] LoadActivityLayout: Removing any already initialized views if any before loading proper ${ActivityName} Activity layout..."$, Colors.Blue)
-	Activity.RemoveAllViews
-	
 	'
 	'The ScrollView is a dynamic Object declared in "Globals"
 	'
@@ -1246,6 +1074,23 @@ Sub Activity_Resume
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Updating this Activity's lifecycle tracking for foreground rotation detection"$, Colors.Blue)
 	LifecycleTracking.ActivityLifecycle = LifecycleTracking.ActivityLifecycle & LifecycleTracking.RESUME
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: New Activity lifecycle tracking value: "$&LifecycleTracking.ActivityLifecycle, Colors.Blue)
+	
+	'
+	'Set a dummy Activity result of RESULT_OK
+	'incase it gets started via startActivityForResult
+	'
+	
+	'Check if the Intent has any Action first (if it's valid)
+	Dim StartingIntent As Intent = Activity.GetStartingIntent
+	
+	If StartingIntent <> Null And StartingIntent.Action <> Null And StartingIntent.Action <> "" Then
+		
+		Dim ResultIntent As Intent
+		
+		ResultIntent.Initialize("", "")
+		Activity.SetActivityResult(Constants.ACTIVITY_RESULT_OK, ResultIntent)
+		
+	End If
 	
 	'Note: Don't start the Camera preview here yourself
 	'       - Restoring the ViewState also calls SwitchCamera

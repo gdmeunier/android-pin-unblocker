@@ -118,16 +118,12 @@
 }
 
 # ----- Shrinking Options
-#
-# For AndroidX and its dependencies, we want to
-# allow shrinking it ("allowshrinking" flag)
-#
-# When we want to allow shrinking, no need to
-# specify the "-keepclassmembers" directives
-#
 
 #-dontshrink
 
+# For AndroidX and its dependencies, we want to
+# allow shrinking it ("allowshrinking" flag)
+#
 # AndroidX support library
 -keep,allowshrinking,includedescriptorclasses,includecode class android.support.v4.**
 -keep,allowshrinking,includedescriptorclasses,includecode class androidx.**
@@ -135,42 +131,51 @@
 # Only Basic4Android "objects" and "keywords" can be shrunk,
 # nothing else to avoid any potential crashes
 #
-# Basic4Android also requires keeping all class members,
-# but they can be optimized though:
-#  - If the class is fully unneeded, it's removed (shrunk)
-#  - If parts of it are still needed, then it must stay whole
-#
 # Also don't include "anywheresoftware.b4a.objects.drawable.*" here,
 # otherwise color transparency will not work (only full opacity colors)
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.*
+#
+# For objects it's always "-keepclassmembers,allowoptimization"
+#
 -keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.* {
     *;
 }
+
 # For this one don't keep the unused class members
 #
 # This way we have even smaller class files for the ones
 # that usually contain lots of class members that I might
 # not even use at all
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.streams.*
-#-keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.streams.* {
-#    *;
-#}
+
+# Keep class members for "collections.*"
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.objects.collections.*
+#
+# For objects it's always "-keepclassmembers,allowoptimization"
+#
 -keepclassmembers,allowoptimization class anywheresoftware.b4a.objects.collections.* {
     *;
 }
+
 # For this one don't keep the unused class members
 #
 # This way we have even smaller class files for the ones
 # that usually contain lots of class members that I might
 # not even use at all
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.keywords.**
-#-keepclassmembers,allowoptimization class anywheresoftware.b4a.keywords.** {
-#    *;
-#}
 
 # Allow shrinking the Clipboard library
 -keep,allowshrinking,includedescriptorclasses,includecode class anywheresoftware.b4a.mtw.clipboard.Clipboard
+
+# Allow shrinking of the myconstants class of
+# this application because it cans potentially
+# contain unused constants
+#
+# Keep class members for "myconstants" though
+-keep,allowshrinking,includedescriptorclasses,includecode class net.gdmeunier.pinunblocker.myconstants
+-keepclassmembers,allowoptimization class net.gdmeunier.pinunblocker.myconstants {
+    *;
+}
 
 # ----- Optimization Options
 

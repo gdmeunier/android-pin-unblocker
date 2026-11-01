@@ -89,9 +89,6 @@ Public Sub SendResponse
 	'
 	'If it's paused, then bring it back to front which resumes
 	'the original Activity before sending the completed event
-	'
-	'This way we ensure that the original Activity that
-	'called the Service is actually able to receive this event
 	Dim OriginServiceRequest As MyServiceRequest = TargetServiceRequest.As(MyServiceRequest)
 	Dim OriginCaller         As Object           = OriginServiceRequest.GetCaller
 	
@@ -106,24 +103,15 @@ Public Sub SendResponse
 		'So what this will do is actually bring the existing Activity
 		'back to foreground, not starting a new one
 		'
-		'This is also what the user wants, they want to be able to receive
-		'the result of the requested Service operation even while they are
+		'This is also what the user wants, they want to be able to immediately
+		'get the result of the requested Service operation even while they are
 		'using a different application while this Service operation completes
 		StartActivity(OriginCaller)
 		
-		'Wait 1500ms before actually proceeding further,
-		'otherwise the Activity will not even have been
-		'able to restore its message queue yet
-		'
-		'This is because due to Android's bad element
-		'focus management, we used an internal trick
-		'to clear the message queue of Activities upon
-		'their Activity start
-		'
-		'So that's why we have to wait (up to 1500ms for slow devices),
-		'because we cannot queue messages for later as that queue
-		'will be deliberately cleared on Activity start & resume
-		Common.SynchronousSleep(1500, Me, "SendResponse")
+		'Wait 500ms before actually proceeding further
+		'for the Activity to be visually brought back
+		'to the foreground before sending the event
+		Common.SynchronousSleep(500, Me, "SendResponse")
 		Wait For SynchronousSleep_SendResponse_Completed
 		
 	End If

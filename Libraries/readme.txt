@@ -37,7 +37,7 @@ C:\Program Files\Anywhere Software\B4A\Libraries
  [i] You can make a backup of your current ones
      before replacing them if you wish
 
- [!] The project will fail to compile without
+ [!] The project might fail to compile without
      the specifically modified versions of
      the Basic4Android core libraries
 
