@@ -2175,39 +2175,50 @@ Private Sub btnProceedToUnblock_Click
 End Sub
 
 Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
+	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'This one uses IsSuccessful = False (NOT IsFailed = True)
-	'
-	'Don't check "Failed" because it returns false-positives
+	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
+	'2. Don't check "Failed" because it returns false-positives
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure
 	If ErrorIfAny <> Null And ErrorIfAny <> "" Then
+		
+		'Add an asynchronous sleep delay (async Sleep):
+		' - It has been noticed that on very fast devices,
+		'   such as the latest smartphones,
+		'   the Direct Unblock completes *so fast* that
+		'   it completes before the caller's "Wait For"
+		'   even has the time to actually start waiting
+		'   for the Direct Unblock result
+		'
+		Sleep(25)
+		
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, DirectUnblockThread.Error)
 		
 	End If
 	
 End Sub
 
-'Use CallSub instead of CallSubDelayed when
-'communicating with the same component,
-'but from a different Thread
-'
-'Different Thread + same component:
-' - CallSub
-'
-'When communicating with a different component,
-'always use CallSubDelayed instead
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)
 	
 	'--------------------------------------------------------------------------------
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
 	'
+	Sleep(25)
+	
+	'--------------------------------------------------------------------------------
 	'Reusable variables for all APDU requests
-	'
+	
 	Dim ServiceRequest As MyServiceRequest
 	ServiceRequest.Initialize(Smartcard, Me, "SendPinUnblockAPDUSequence")
 	
@@ -2222,7 +2233,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2238,7 +2249,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -2255,17 +2266,16 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
 	
 	'The smartcard ATR will be in ResponseBundle(0) (as String)
 	If ServiceResponse.GetReply <> CardATR Then
-		'Tell the btnProceedToUnblock_Click function that the task is completed (failure)
-		' - IsSuccessful = False
-		' - ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"The smartcard is not the same model as the previously connected one!
+		'IsSuccessful = False
+		'ErrorIAny    = (error message)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"The smartcard is not the same model as the previously connected one!
 
 When you use a different smartcard model, you have to go back to the Main Activity then reload this page.
 
@@ -2279,15 +2289,13 @@ ${ServiceResponse.GetReply}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
-	'
 	'Switch to sending APDUs now
-	'
+	
 	ServiceRequest.SetOperation(Smartcard.SEND_APDU)
 	
 	'--------------------------------------------------------------------------------
-	'
 	'Try selecting the last PKI Applet ID
-	'
+	
 	ServiceRequest.SetParameter(SelectAppletAPDU)
 	ServiceRequest.SendRequest
 	
@@ -2296,7 +2304,7 @@ ${ServiceResponse.GetReply}"$)
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select the last PKI applet ID!
 
 ${CardType} Applet ID:
 ${SelectAppletAPDU}
@@ -2307,14 +2315,11 @@ The smartcard could not find the PKI applet we searched for"$&".")
 	End If
 	
 	'--------------------------------------------------------------------------------
-	'
-	'Start the actual unblock process
-	'
+	'Start the actual unblock process now
+	
 	Dim LastSentAPDU As String = ""
 	
-	'
 	'For GIDS: we have to do SET_SECURITY_ENVIRONMENT first
-	'
 	If CardType == "GIDS" Then
 		
 		LastSentAPDU = Constants.APDU_SET_SECURITY_ENVIRONMENT_GIDS
@@ -2326,7 +2331,7 @@ The smartcard could not find the PKI applet we searched for"$&".")
 		
 		If Not(ServiceResponse.GetIsSuccessful) Then
 			
-			CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
+			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to set a security environment for the ${CardType} applet!
 
 Sent APDU:
 ${LastSentAPDU}
@@ -2340,6 +2345,7 @@ ${ServiceResponse.GetReply}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
+	'Perform the mandatory GET_CHALLENGE operation
 	
 	If CardType == "GIDS" Then
 		LastSentAPDU = Constants.APDU_GET_CHALLENGE_GIDS 'GIDS has a specific GET_CHALLENGE method
@@ -2363,7 +2369,7 @@ ${ServiceResponse.GetReply}"$)
 	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
 	If Not(ServiceResponse.GetIsSuccessful) Then
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to request the ${DetectedAlgorithm} challenge code!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to request the ${DetectedAlgorithm} challenge code!
 
 Sent APDU:
 ${LastSentAPDU}
@@ -2375,6 +2381,8 @@ ${ServiceResponse.GetReply}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
+	'Generate the necessary response code for EXTERNAL_AUTHENTICATE
+	
 	'For GIDS: check if the smartcard's APDU reply correctly begins
 	'          with a challenge type that we support
 	'
@@ -2394,7 +2402,7 @@ Received:
 ${GetChallengeReplyAPDU}"$
 		
 		If Not(GetChallengeReplyAPDU.StartsWith(Constants.APDU_GET_CHALLENGE_CHECK_GIDS.Replace(" ", ""))) Then
-			CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", "The received APDU reply does not start with a challenge type header that we could recognize."))
+			CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", "The received APDU reply does not start with a challenge type header that we could recognize."))
 			Return
 			
 		End If
@@ -2408,26 +2416,25 @@ ${GetChallengeReplyAPDU}"$
 		'                        |  |                       |
 		'Example reply: 7C 0A 81 08 CF D4 62 1D 02 09 A2 0E 90 00
 		'                        ^^
-		'
 		ChallengeLength = Converters.StringHexToNumber(GetChallengeReplyAPDU.SubString2(6, 8))
 		
 		Select ChallengeLength
 			Case 8
 				If Algorithm <> Cryptography.ALGORITHM_2DES And Algorithm <> Cryptography.ALGORITHM_3DES Then
-					CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
 					Return
 					
 				End If
 				
 			Case 16
 				If Algorithm <> Cryptography.ALGORITHM_AES128 And Algorithm <> Cryptography.ALGORITHM_AES256 Then
-					CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
+					CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 16-bytes challenge for ${Algorithm}/ECB/NoPadding, but we got ${ChallengeLength}-bytes challenge instead."$))
 					Return
 					
 				End If
 				
 			Case Else
-				CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
+				CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ErrorMessageIfNeeded.Replace("ERROR_MESSAGE", $"We expected either 8 or 16-bytes challenge (DES-or-AES/ECB/NoPadding), but we got ${ChallengeLength}-bytes challenge instead."$))
 				Return
 				
 		End Select
@@ -2441,11 +2448,14 @@ ${GetChallengeReplyAPDU}"$
 		If Algorithm == Cryptography.ALGORITHM_2DES	_
 		Or Algorithm == Cryptography.ALGORITHM_3DES	Then
 			'2DES / 3DES
+			
 			If CardType == "GIDS" Then
 				'For GIDS: take 24 chars then remove the first 8 chars (16 chars)
 				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(8, 24) '16 chars = 8 bytes
+				
 			Else
 				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(0, 16) '16 chars = 8 bytes
+				
 			End If
 			
 			SmartcardResponseCode  = Cryptography.TripleDesEncrypt(SmartcardChallengeCode, AdminKey)
@@ -2453,18 +2463,21 @@ ${GetChallengeReplyAPDU}"$
 		Else If Algorithm == Cryptography.ALGORITHM_AES128 _
 		Or      Algorithm == Cryptography.ALGORITHM_AES256 Then
 			'AES-128 / AES-256
+			
 			If CardType == "GIDS" Then
 				'For GIDS: take 40 chars then remove the first 8 chars (32 chars)
 				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(8, 40) '32 chars = 16 bytes
+				
 			Else
 				SmartcardChallengeCode = GetChallengeReplyAPDU.SubString2(0, 32) '32 chars = 16 bytes
+				
 			End If
 			
 			SmartcardResponseCode  = Cryptography.AesEncrypt(SmartcardChallengeCode, AdminKey)
 			
 		End If
 	Catch
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to generate a Response code locally on this device!
 
 Algorithm:
 ${Algorithm} / ECB / NoPadding
@@ -2479,6 +2492,8 @@ ${LastException.Message}"$)
 	End Try
 	
 	'--------------------------------------------------------------------------------
+	'Perform the mandatory EXTERNAL_AUTHENTICATE operation
+	
 	'Clear the last-sent APDU just incase no PKI applet ID matches
 	'in the below list of smartcard types (initial value of Null)
 	LastSentAPDU = Null
@@ -2492,6 +2507,7 @@ ${LastException.Message}"$)
 		LastSentAPDU = Constants.APDU_EXTERNAL_AUTHENTICATE_ACTIVID
 		
 	Else If CardType == "GIDS" Then
+		'Specific to GIDS PKI smartcards
 		LastSentAPDU = Constants.APDU_EXTERNAL_AUTHENTICATE_GIDS
 		
 	End If
@@ -2510,9 +2526,8 @@ ${LastException.Message}"$)
 	End If
 	
 	If CardType == "GIDS" Then
-		'
 		'Specific to GIDS PKI smartcards
-		'
+		
 		'For GIDS: Example APDU sent to the card
 		'
 		'                           Lc: Length of all Data
@@ -2522,10 +2537,10 @@ ${LastException.Message}"$)
 		'                           |  |        |  Challenge code
 		'                           |  |        |  |
 		'Example reply: 00 87 00 00 ?? 7C 0A 82 08 DE 8B 58 02 7C 68 63 9D
-		'                           xx ** ** ** ** ** ** ** ** ** ** ** **
-		'                           |  |        |  |
-		'                           |  +3       +1 +ChallengeLength (e.g. 8)
-		'                           | [-- -- -- -- -- -- -- -- -- -- -- --]
+		'                           xx |------| || |---------------------|
+		'                           |  |      | || |                     |
+		'                           |  |  +3  | +1 |  +Challenge Length  |
+		'                           |
 		'                           This is what we're replacing with length of "Data"
 		'
 		'ChallengeLength is our earlier variable that is still valid
@@ -2536,6 +2551,7 @@ ${LastException.Message}"$)
 	'ActivID-only, GIDS doesn't use Le field either (just like Gemalto)
 	If CardType == "ActivID" Then
 		'Specific to ActivID PKI smartcards
+		
 		LastSentAPDU = LastSentAPDU & " 00" 'Le is set to 00 for ActivID PKI smartcards
 		
 	End If
@@ -2546,7 +2562,7 @@ ${LastException.Message}"$)
 	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
 	If Not(ServiceResponse.GetIsSuccessful) Then
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform EXTERNAL AUTHENTICATE with generated Response code!
 
 Algorithm:
 ${Algorithm} / ECB / NoPadding
@@ -2567,6 +2583,8 @@ ${ServiceResponse.GetReply}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
+	'Perform the actual SET_REFERENCE_DATA (PIN unblock)
+	
 	'Clear the last-sent APDU just incase no PKI applet ID matches
 	'in the below list of smartcard types (initial value of Null)
 	LastSentAPDU = Null
@@ -2580,17 +2598,16 @@ ${ServiceResponse.GetReply}"$)
 	Dim NewPINLengthHexByte As String
 	
 	If CardType == "Gemalto" Then
-		'
 		'Specific to Gemalto PKI smartcards
+		
+		'Note 1: Gemalto PKI smartcards expect you to give a new
+		'        PIN Try Count for the PIN you want to unblock,
+		'        you can choose any from 1 to 15 (0x01 to 0x0F)
 		'
-		'Note: Gemalto PKI smartcards expect you to give a new
-		'      PIN Try Count for the PIN you want to unblock,
-		'      you can choose any from 1 to 15 (0x01 to 0x0F)
+		'Note 2: Gemalto PKI smartcards don't need any padding
+		'        for the new PIN, even if it's smaller than 8 bytes
 		'
-		'Note: Gemalto PKI smartcards don't need any padding
-		'      for the new PIN, even if it's smaller than 8 bytes
-		'
-		NewPINLength = NewPIN.Length + 1 'Add 1 for the New PIN Try Count
+		NewPINLength = NewPIN.Length + 1                   'Add 1 for the New PIN Try Count
 		NewPIN       = Converters.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
 		
 		'You can send a raw number to NumberToStringHex
@@ -2606,9 +2623,8 @@ ${ServiceResponse.GetReply}"$)
 		LastSentAPDU = LastSentAPDU &" "& NewPINLengthHexByte &" 03 "&NewPIN 'No Le is set
 		
 	Else If CardType == "ActivID" Then
-		'
 		'Specific to ActivID PKI smartcards
-		'
+		
 		'Note: the new PIN data length must be atleast 8 bytes,
 		'      if the PIN is shorter then you must pad it with 0xFF bytes
 		'      until it reaches 8 bytes (must be atleast 8 bytes or more)
@@ -2637,12 +2653,10 @@ ${ServiceResponse.GetReply}"$)
 		LastSentAPDU = Constants.APDU_SET_REFERENCE_DATA_ACTIVID &" "& NewPINLengthHexByte &" "& NewPIN &" 00"
 		
 	Else If CardType == "GIDS" Then
-		'
 		'Specific to GIDS PKI smartcards
-		'
-		'GIDS PKI smartcards don't use padding, but they don't use a new PIN try count either
+		
+		'GIDS PKI smartcards don't use padding and don't use a new PIN try count either
 		'They also don't use the Le field in their SET_REFERENCE_DATA APDU commands
-		'
 		NewPINLength = NewPIN.Length
 		NewPIN       = Converters.StringToASCIIHex(NewPIN) 'Reuse the NewPIN variable
 		
@@ -2665,9 +2679,9 @@ ${ServiceResponse.GetReply}"$)
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'Remember that since the new PINs are now user-defined,
 		'you have to never disclose what the APDU data was
-		'
-		'(Show only generic info such as 'The Gemalto SET_REFERENCE_DATA APDU for the new PIN failed')
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with the provided new PIN value (sensitive parameter)!
+		
+		'Show only generic info, not the exact APDU (since it contains the new PIN)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to perform SET REFERENCE DATA with the provided new PIN value (sensitive parameter)!
 
 Sent APDU:
 SET_REFERENCE_DATA for ${CardType}
@@ -2679,6 +2693,7 @@ ${ServiceResponse.GetReply}"$)
 	End If
 	
 	'--------------------------------------------------------------------------------
+	'
 	'At this point the job is done, the rest is just informal APDU requests that
 	'I saw being used by the Gemalto MiniDriver Manager
 	'
@@ -2689,8 +2704,10 @@ ${ServiceResponse.GetReply}"$)
 	'And because it's now informal APDU requests, we just ignore any 'errors' here
 	'If any 'error' happens, it's simply just a common warning from the smartcard
 	'that you would happen anyway even if you used an established & popular CMS / SCMS
-	
+	'
 	'--------------------------------------------------------------------------------
+	'Logout from the authenticated status
+	
 	'Clear the last-sent APDU just incase no PKI applet ID matches
 	'in the below list of smartcard types (initial value of Null)
 	LastSentAPDU = Null
@@ -2702,9 +2719,7 @@ ${ServiceResponse.GetReply}"$)
 		
 		Select CardType
 			Case "Gemalto"
-				'
 				'Specific to Gemalto PKI smartcards
-				'
 				LastSentAPDU = Constants.APDU_EXTERNAL_AUTH_LOGOUT_GEMALTO
 				
 				If DetectedAlgorithm == Cryptography.ALGORITHM_2DES	_
@@ -2720,15 +2735,11 @@ ${ServiceResponse.GetReply}"$)
 				End If
 				
 			Case "GIDS"
-				'
-				'Specific to GIDS PKI smartcards
-				'
-				LastSentAPDU = Constants.APDU_EXTERNAL_AUTH_LOGOUT_GIDS 'Just one single APDU for GIDS to logout
+				'Specific to GIDS PKI smartcards (just one single APDU for GIDS to logout)
+				LastSentAPDU = Constants.APDU_EXTERNAL_AUTH_LOGOUT_GIDS
 				
 			Case Else
-				'
 				'Nothing to do here
-				'
 				
 		End Select
 		
@@ -2736,32 +2747,27 @@ ${ServiceResponse.GetReply}"$)
 		ServiceRequest.SendRequest
 		
 		Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
-		
-		'
 		'No Specific exception handling here
-		'
 		
 	End If
 	
 	'--------------------------------------------------------------------------------
+	'Select last PKI Applet ID again (to 'logout' again / reset logged-in status)
 	
-	LastSentAPDU = SelectAppletAPDU 'Select last PKI Applet ID again (to 'logout' again / reset logged-in status)
+	LastSentAPDU = SelectAppletAPDU
 	
 	ServiceRequest.SetParameter(LastSentAPDU)
 	ServiceRequest.SendRequest
 	
 	Wait For SendPinUnblockAPDUSequence_ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
-	
-	'
 	'No Specific exception handling here
-	'
 	
 	'--------------------------------------------------------------------------------
+	'Direct Unblock process completed (successfully)
 	
-	'Tell the btnProceedToUnblock_Click function that the task is completed (success)
-	' - IsSuccessful = True
-	' - ErrorIAny    = (empty string)
-	CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
+	'IsSuccessful = True
+	'ErrorIAny    = (empty string)
+	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
 	
 End Sub
 
@@ -2769,6 +2775,16 @@ End Sub
 'and it's located here because it cans only be called
 'from an Activity (not a Service)
 Public Sub RequestPostNotificationsPermission
+	
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	Sleep(25)
 	
 	Dim AreNotificationsAllowed As Boolean = True
 	
@@ -2786,15 +2802,6 @@ Public Sub RequestPostNotificationsPermission
 		
 	End If
 	
-	'Use CallSub instead of CallSubDelayed when
-	'communicating with the same component,
-	'but from a different Thread
-	'
-	'Different Thread + same component:
-	' - CallSub
-	'
-	'When communicating with a different component,
-	'always use CallSubDelayed instead
 	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
 	
 End Sub

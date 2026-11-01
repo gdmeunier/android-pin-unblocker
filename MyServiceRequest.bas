@@ -110,35 +110,29 @@ Public Sub SendRequest
 		'so start it now
 		StartService(TargetService)
 		
-		'Sleep 300ms to let the target Service
+		'Sleep 275ms to let the target Service
 		'have enough time to initialize properly
-		Common.SynchronousSleep(300, Me, "SendRequest")
+		'
+		'275ms = (300 - 25)ms
+		Common.SynchronousSleep(275, Me, "SendRequest")
 		Wait For SynchronousSleep_SendRequest_Completed
 		
 	End If
-	
-	'We can use CallSub below, instead of CallSubDelayed,
-	'because the Smartcard Service's Service_Message function
-	'will immediately start another one in a separate Thread,
-	'and it immediately returns while that separate Thread
-	'is doing the necessary work
-	'
-	'Otherwise we would be using CallSubDelayed indeed,
-	'but here we can use CallSub (rare exception to the rule)
 	
 	'The "MyServiceRequest" Object is "Me"
 	CallSub2(TargetService, "Service_Message", Me.As(MyServiceRequest))
 	Wait For ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
-	'Use CallSub instead of CallSubDelayed when
-	'communicating with the same component,
-	'but from a different Thread
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
 	'
-	'Different Thread + same component:
-	' - CallSub
-	'
-	'When communicating with a different component,
-	'always use CallSubDelayed instead
+	Sleep(25)
+	
 	CallSubDelayed2(Caller, CallerSubName&"_ServiceRequest_Completed", ServiceResponse)
 	
 End Sub

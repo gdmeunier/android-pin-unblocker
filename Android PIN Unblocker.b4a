@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 318
-	#VersionName: 5.21.12
+	#VersionCode: 319
+	#VersionName: 5.21.13
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -3063,7 +3063,7 @@ Private Sub mnuDirectUnblock_Click
 			
 			DirectUnblockInfoText.Color(Colors.Yellow)
 				DirectUnblockInfoText.RelativeSize(0.9)
-					DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception carefully and don't retry to unblock the same card with this app again.")
+					DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception carefully before retrying the Direct Unblock process with the same card again.")
 				DirectUnblockInfoText.Pop
 			DirectUnblockInfoText.Pop
 			
@@ -3476,36 +3476,50 @@ Please correct your Admin key"$, Constants.TOAST_DURATION_SHORT)
 End Sub
 
 Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
+	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'This one uses IsSuccessful = False (NOT IsFailed = True)
-	'
-	'Don't check "Failed" because it returns false-positives
+	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
+	'2. Don't check "Failed" because it returns false-positives
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure
 	If ErrorIfAny <> Null And ErrorIfAny <> "" Then
+		
+		'Add an asynchronous sleep delay (async Sleep):
+		' - It has been noticed that on very fast devices,
+		'   such as the latest smartphones,
+		'   the Direct Unblock completes *so fast* that
+		'   it completes before the caller's "Wait For"
+		'   even has the time to actually start waiting
+		'   for the Direct Unblock result
+		'
+		Sleep(25)
+		
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, DirectUnblockThread.Error)
 		
 	End If
 	
 End Sub
 
-'Use CallSub instead of CallSubDelayed when
-'communicating with the same component,
-'but from a different Thread
-'
-'Different Thread + same component:
-' - CallSub
-'
-'When communicating with a different component,
-'always use CallSubDelayed instead
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
 	
+	'--------------------------------------------------------------------------------
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	Sleep(25)
+	
+	'--------------------------------------------------------------------------------
 	'For initializing the Direct Unblock Activity
+	
 	Dim Algorithm, AdminKey                As String
 	Dim	CardATR, CardProtocol              As String
 	Dim SelectAppletAPDU, CardType         As String
@@ -3515,9 +3529,8 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	AdminKey  = SanitizedAdminKey
 	
 	'--------------------------------------------------------------------------------
-	'
 	'Reusable variables for all APDU requests
-	'
+	
 	Dim ServiceRequest As MyServiceRequest
 	ServiceRequest.Initialize(Smartcard, Me, "SendPinUnblockAPDUSequence")
 	
@@ -3532,7 +3545,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3548,7 +3561,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3564,7 +3577,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3582,7 +3595,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, ServiceResponse.GetReply)
 		Return
 		
 	End If
@@ -3590,9 +3603,8 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	CardProtocol = ServiceResponse.GetReply
 	
 	'--------------------------------------------------------------------------------
-	'
 	'Try selecting each known PKI Applet ID
-	'
+	
 	ServiceRequest.SetOperation(Smartcard.SEND_APDU)
 	
 	For Each SelectPKIAppletIDAPDU As String In Array As String(Constants.APDU_SELECT_GEMALTO_PKI_APPLET_ID, Constants.APDU_SELECT_ACTIVID_PKI_APPLET_ID, Constants.APDU_SELECT_GIDS_APPLET_ID)
@@ -3619,7 +3631,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	If Not(ServiceResponse.GetIsSuccessful) Then
 		'IsSuccessful = False
 		'ErrorIAny    = (error message)
-		CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
+		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, $"Failed to select any known PKI applet ID!
 
 [1] Gemalto:
 ${Constants.APDU_SELECT_GEMALTO_PKI_APPLET_ID}
@@ -3674,10 +3686,11 @@ The smartcard could not find the PKI applets we searched for"$&".")
 	Shared_DetectedCardATR          = CardATR
 	
 	'--------------------------------------------------------------------------------
+	'Process initialization completed (successfully)
 	
 	'IsSuccessful = True
 	'ErrorIAny    = (empty string)
-	CallSub3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
+	CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", True, "")
 	
 End Sub
 
@@ -3685,6 +3698,16 @@ End Sub
 'and it's located here because it cans only be called
 'from an Activity (not a Service)
 Public Sub RequestPostNotificationsPermission
+	
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	Sleep(25)
 	
 	Dim AreNotificationsAllowed As Boolean = True
 	
@@ -3702,15 +3725,6 @@ Public Sub RequestPostNotificationsPermission
 		
 	End If
 	
-	'Use CallSub instead of CallSubDelayed when
-	'communicating with the same component,
-	'but from a different Thread
-	'
-	'Different Thread + same component:
-	' - CallSub
-	'
-	'When communicating with a different component,
-	'always use CallSubDelayed instead
 	CallSubDelayed2(Smartcard, "RequestPostNotificationsPermission_Completed", AreNotificationsAllowed)
 	
 End Sub

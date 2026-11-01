@@ -443,20 +443,27 @@ End Sub
 '
 Public Sub Service_Message(ServiceRequest As MyServiceRequest)
 	
+	'
+	'No Sleep delay here
+	'
+	
 	'For doing APDU communications in a separate Thread
 	SmartcardMessageThread.Start(Me, "Service_Message_Receipt", Array(ServiceRequest))
 	
 End Sub
 
 Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+	
 	'
+	'No Sleep delay here
+	'
+	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'This one uses IsSuccessful = False (NOT IsFailed = True)
-	'
-	'Don't check "Failed" because it returns false-positives
+	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
+	'2. Don't check "Failed" because it returns false-positives
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure
@@ -485,6 +492,10 @@ Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String
 End Sub
 
 Private Sub Service_Message_Receipt(ServiceRequest As MyServiceRequest)
+	
+	'
+	'No Sleep delay here
+	'
 	
 	Dim ServiceResponse As MyServiceResponse
 	ServiceResponse.Initialize(ServiceRequest)
@@ -620,6 +631,16 @@ End Sub
 Private Sub RequestPostNotificationsPermission
 	'This function now runs in a separate Thread
 	
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	Sleep(25)
+	
 	'Check that the Main Activity isn't already paused
 	If Not(IsPaused(Main)) Then
 		RequestPostNotificationsPermissionHelper(Main)
@@ -654,16 +675,7 @@ Private Sub RequestPostNotificationsPermissionHelper(TheComponent As Object)
 		
 	End Try
 	
-	'Use CallSub instead of CallSubDelayed when
-	'communicating with the same component,
-	'but from a different Thread
-	'
-	'Different Thread + same component:
-	' - CallSub
-	'
-	'When communicating with a different component,
-	'always use CallSubDelayed instead
-	CallSub(Me, "RequestPostNotificationsPermission_Finished")
+	CallSubDelayed(Me, "RequestPostNotificationsPermission_Finished")
 	
 End Sub
 
@@ -686,18 +698,28 @@ public void jSetNotificationsAllowed(final boolean isAllowed)
 #End If
 
 Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
-	'
+	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'This one uses IsSuccessful = False (NOT IsFailed = True)
-	'
-	'Don't check "Failed" because it returns false-positives
+	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
+	'2. Don't check "Failed" because it returns false-positives
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure
 	If ErrorIfAny <> Null And ErrorIfAny <> "" Then
+		
+		'Add an asynchronous sleep delay (async Sleep):
+		' - It has been noticed that on very fast devices,
+		'   such as the latest smartphones,
+		'   the Direct Unblock completes *so fast* that
+		'   it completes before the caller's "Wait For"
+		'   even has the time to actually start waiting
+		'   for the Direct Unblock result
+		'
+		Sleep(25)
+		
 		'This one uses a String Array indeed
 		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", False, Array As String(SmartcardOperationThread.Error))
 		
@@ -713,6 +735,16 @@ End Sub
 'to make USB permission prompts instantaneous
 Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As String)
 	
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	Sleep(25)
+	
 	Dim IsSuccessful     As Boolean = True
 	Dim ServiceReplies() As String  = Array As String("")
 	
@@ -726,16 +758,7 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As String)
 		
 	End Try
 	
-	'Use CallSub instead of CallSubDelayed when
-	'communicating with the same component,
-	'but from a different Thread
-	'
-	'Different Thread + same component:
-	' - CallSub
-	'
-	'When communicating with a different component,
-	'always use CallSubDelayed instead
-	CallSub3(Me, "RunInSmartcardOperationThread_Completed", IsSuccessful, ServiceReplies)
+	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", IsSuccessful, ServiceReplies)
 	
 End Sub
 #If Java

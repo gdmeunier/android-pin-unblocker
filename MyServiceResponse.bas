@@ -108,13 +108,25 @@ Public Sub SendResponse
 		'using a different application while this Service operation completes
 		StartActivity(OriginCaller)
 		
-		'Wait 500ms before actually proceeding further
+		'Wait 475ms before actually proceeding further
 		'for the Activity to be visually brought back
 		'to the foreground before sending the event
-		Common.SynchronousSleep(500, Me, "SendResponse")
+		'
+		'475ms = (500 - 25)ms
+		Common.SynchronousSleep(475, Me, "SendResponse")
 		Wait For SynchronousSleep_SendResponse_Completed
 		
 	End If
+	
+	'Add an asynchronous sleep delay (async Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	Sleep(25)
 	
 	'The "MyServiceResponse" Object is "Me"
 	CallSubDelayed2(TargetServiceRequest, "ServiceRequest_Completed", Me.As(MyServiceResponse))

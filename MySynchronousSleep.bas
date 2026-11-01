@@ -51,15 +51,9 @@ Private Sub SynchronousSleep_Sleep_Thread(Milliseconds As Int, ThisClassCaller A
 	
 	SleepForNewThreads(Milliseconds)
 	
-	'Use CallSub instead of CallSubDelayed when
-	'communicating with the same component,
-	'but from a different Thread
-	'
-	'Different Thread + same component:
-	' - CallSub
-	'
-	'When communicating with a different component,
-	'always use CallSubDelayed instead
+	'This one needs to be CallSub because
+	'we already slept for (Milliseconds)
+	'so no more delay like with CallSubDelayed
 	CallSub(ThisClassCaller, "SynchronousSleep_Completed")
 	
 End Sub
