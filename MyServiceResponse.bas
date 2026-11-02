@@ -19,11 +19,11 @@ Sub Class_Globals
 	
 	Private TargetServiceRequest As Object
 	
+	Private CallerThread    As Thread
+	Private HasCallerThread As Boolean = False 'False by default
+	
 	Private IsSuccessful As Boolean = True 'True by default
 	Private Replies()    As String
-	
-	'For being able to do synchronous sleep
-	Private Common As MyCommon
 	
 End Sub
 
@@ -33,8 +33,24 @@ Public Sub Initialize(TheTargetServiceRequest As Object)
 	
 	TargetServiceRequest = TheTargetServiceRequest
 	
-	'For being able to do synchronous sleep
-	Common.Initialize
+End Sub
+
+'Setting the caller Thread allows any caller that
+'provides Service responses in a separate Thread
+'to benefit from automatically managed delays
+'before providing the Service responses in
+'the SendResponse function
+'
+'Single-threaded callers don't need any delay,
+'because they only ever use the Main looper,
+'and therefore are not subject to accidental
+'race conditions or anything like that
+'
+'Write-only property
+Public Sub SetCallerThread(TheThread As Thread)
+	
+	CallerThread    = TheThread
+	HasCallerThread = True
 	
 End Sub
 
@@ -75,11 +91,9 @@ Public Sub GetReply As String
 	
 End Sub
 
-'
 'Convenience methods to easily send and receive
 'Service messages without using CallSubDelayed
 'everytime we want to send a message manually
-'
 Public Sub SendResponse
 	
 	'Check if the original Service caller is not paused,
@@ -108,17 +122,9 @@ Public Sub SendResponse
 		'using a different application while this Service operation completes
 		StartActivity(OriginCaller)
 		
-		'Wait 475ms before actually proceeding further
-		'for the Activity to be visually brought back
-		'to the foreground before sending the event
-		'
-		'475ms = (500 - 25)ms
-		Common.SynchronousSleep(475, Me, "SendResponse")
-		Wait For SynchronousSleep_SendResponse_Completed
-		
 	End If
 	
-	'Add an asynchronous sleep delay (async Sleep):
+	'Add a synchronous sleep delay (sync Sleep):
 	' - It has been noticed that on very fast devices,
 	'   such as the latest smartphones,
 	'   the Direct Unblock completes *so fast* that
@@ -126,7 +132,15 @@ Public Sub SendResponse
 	'   even has the time to actually start waiting
 	'   for the Direct Unblock result
 	'
-	Sleep(25)
+	' - Single-threaded callers don't need any delay,
+	'   because they only ever use the Main looper,
+	'   and therefore are not subject to accidental
+	'   race conditions or anything like that
+	'
+	If HasCallerThread Then
+		CallerThread.Sleep(40)
+		
+	End If
 	
 	'The "MyServiceResponse" Object is "Me"
 	CallSubDelayed2(TargetServiceRequest, "ServiceRequest_Completed", Me.As(MyServiceResponse))

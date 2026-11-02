@@ -43,8 +43,8 @@ Version=12.5
 
 #Region Project Attributes
 	#ApplicationLabel: Android PIN Unblocker
-	#VersionCode: 319
-	#VersionName: 5.21.13
+	#VersionCode: 321
+	#VersionName: 5.21.15
 	
 	'SupportedOrientations possible values: unspecified, landscape or portrait.
 	#SupportedOrientations: unspecified
@@ -3063,7 +3063,7 @@ Private Sub mnuDirectUnblock_Click
 			
 			DirectUnblockInfoText.Color(Colors.Yellow)
 				DirectUnblockInfoText.RelativeSize(0.9)
-					DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception carefully before retrying the Direct Unblock process with the same card again.")
+					DirectUnblockInfoText.Append("If any error happens during the direct unblock process, then read the exception message carefully before re-trying the Direct Unblock process again.")
 				DirectUnblockInfoText.Pop
 			DirectUnblockInfoText.Pop
 			
@@ -3496,7 +3496,7 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 		'   even has the time to actually start waiting
 		'   for the Direct Unblock result
 		'
-		Sleep(25)
+		Sleep(40)
 		
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, DirectUnblockThread.Error)
 		
@@ -3505,9 +3505,10 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 End Sub
 
 Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgorithm As String)
+	'This function runs in a separate Thread
 	
 	'--------------------------------------------------------------------------------
-	'Add an asynchronous sleep delay (async Sleep):
+	'Add a synchronous sleep delay (sync Sleep):
 	' - It has been noticed that on very fast devices,
 	'   such as the latest smartphones,
 	'   the Direct Unblock completes *so fast* that
@@ -3515,7 +3516,7 @@ Private Sub SendPinUnblockAPDUSequence(SanitizedAdminKey As String, DetectedAlgo
 	'   even has the time to actually start waiting
 	'   for the Direct Unblock result
 	'
-	Sleep(25)
+	DirectUnblockThread.Sleep(40)
 	
 	'--------------------------------------------------------------------------------
 	'For initializing the Direct Unblock Activity
@@ -3707,7 +3708,7 @@ Public Sub RequestPostNotificationsPermission
 	'   even has the time to actually start waiting
 	'   for the Direct Unblock result
 	'
-	Sleep(25)
+	Sleep(40)
 	
 	Dim AreNotificationsAllowed As Boolean = True
 	

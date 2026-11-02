@@ -2195,7 +2195,7 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 		'   even has the time to actually start waiting
 		'   for the Direct Unblock result
 		'
-		Sleep(25)
+		Sleep(40)
 		
 		CallSubDelayed3(Me, "SendPinUnblockAPDUSequence_Completed", False, DirectUnblockThread.Error)
 		
@@ -2204,9 +2204,10 @@ Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
 End Sub
 
 Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, CardType As String, SelectAppletAPDU As String, CardATR As String, NewPIN As String, PinIdentifier As Int)
+	'This function runs in a separate Thread
 	
 	'--------------------------------------------------------------------------------
-	'Add an asynchronous sleep delay (async Sleep):
+	'Add a synchronous sleep delay (sync Sleep):
 	' - It has been noticed that on very fast devices,
 	'   such as the latest smartphones,
 	'   the Direct Unblock completes *so fast* that
@@ -2214,7 +2215,7 @@ Private Sub SendPinUnblockAPDUSequence(AdminKey As String, Algorithm As String, 
 	'   even has the time to actually start waiting
 	'   for the Direct Unblock result
 	'
-	Sleep(25)
+	DirectUnblockThread.Sleep(40)
 	
 	'--------------------------------------------------------------------------------
 	'Reusable variables for all APDU requests
@@ -2784,7 +2785,7 @@ Public Sub RequestPostNotificationsPermission
 	'   even has the time to actually start waiting
 	'   for the Direct Unblock result
 	'
-	Sleep(25)
+	Sleep(40)
 	
 	Dim AreNotificationsAllowed As Boolean = True
 	

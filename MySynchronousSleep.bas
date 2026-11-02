@@ -64,6 +64,7 @@ Private Sub SleepForNewThreads(Milliseconds As Int)
 	
 	Do While DateTime.Now < DueTime
 		SynchronousSleepThread.Sleep(20)
+		
 	Loop
 	
 End Sub

@@ -25,9 +25,6 @@ Sub Class_Globals
 	Private Operation    As Int
 	Private Parameters() As String
 	
-	'For being able to do synchronous sleep
-	Private Common As MyCommon
-	
 End Sub
 
 'Initializes the object.
@@ -38,16 +35,16 @@ Public Sub Initialize(TheTargetService As Object, TheCaller As Object, TheCaller
 	Caller        = TheCaller
 	CallerSubName = TheCallerSubName
 	
-	'For being able to do synchronous sleep
-	Common.Initialize
-	
 End Sub
 
+'Read-only property after initialization
 Public Sub GetCaller As Object
 	
 	Return Caller
 	
 End Sub
+
+'Read-only property after initialization
 Public Sub GetCallerSubName As String
 	
 	Return CallerSubName
@@ -91,36 +88,13 @@ Public Sub GetParameter As String
 	
 End Sub
 
-'
 'Convenience methods to easily send and receive
 'Service messages without using CallSubDelayed
 'everytime we want to send a message manually
-'
 Public Sub SendRequest
 	
-	'Check if the target Service is running:
-	' - IsPaused cans be used here because it also
-	'   returns True for components that are
-	'   not started yet, so if the target Service
-	'   is already running, then it returns False
-	'
-	If IsPaused(TargetService) Then
-		
-		'The target Service is not running yet,
-		'so start it now
-		StartService(TargetService)
-		
-		'Sleep 275ms to let the target Service
-		'have enough time to initialize properly
-		'
-		'275ms = (300 - 25)ms
-		Common.SynchronousSleep(275, Me, "SendRequest")
-		Wait For SynchronousSleep_SendRequest_Completed
-		
-	End If
-	
 	'The "MyServiceRequest" Object is "Me"
-	CallSub2(TargetService, "Service_Message", Me.As(MyServiceRequest))
+	CallSubDelayed2(TargetService, "Service_Message", Me.As(MyServiceRequest))
 	Wait For ServiceRequest_Completed(ServiceResponse As MyServiceResponse)
 	
 	'Add an asynchronous sleep delay (async Sleep):
@@ -131,7 +105,7 @@ Public Sub SendRequest
 	'   even has the time to actually start waiting
 	'   for the Direct Unblock result
 	'
-	Sleep(25)
+	Sleep(40)
 	
 	CallSubDelayed2(Caller, CallerSubName&"_ServiceRequest_Completed", ServiceResponse)
 	

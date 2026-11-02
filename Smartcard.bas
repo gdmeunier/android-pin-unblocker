@@ -190,6 +190,9 @@ Sub Process_Globals
 	'For throwing Exceptions
 	Private Exceptions As MyExceptions
 	
+	'For being able to do synchronous Sleep
+	Private Common As MyCommon
+	
 	'For running native Java code
 	Private joService As JavaObject
 	
@@ -255,6 +258,9 @@ Sub Service_Create
 	
 	'For throwing Exceptions
 	Exceptions.Initialize
+	
+	'For being able to do synchronous Sleep
+	Common.Initialize
 	
 	'Initialize the PC/SC stack
 	joService.RunMethod("jService_Create", Null)
@@ -454,10 +460,6 @@ End Sub
 
 Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
 	
-	'
-	'No Sleep delay here
-	'
-	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
@@ -480,6 +482,16 @@ Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String
 			ServiceResponse.SetIsSuccessful(False)
 			ServiceResponse.SetReply(SmartcardMessageThread.Error)
 			
+			'Add an asynchronous sleep delay (async Sleep):
+			' - It has been noticed that on very fast devices,
+			'   such as the latest smartphones,
+			'   the Direct Unblock completes *so fast* that
+			'   it completes before the caller's "Wait For"
+			'   even has the time to actually start waiting
+			'   for the Direct Unblock result
+			'
+			Sleep(40)
+			
 			ServiceResponse.SendResponse
 			
 		End If
@@ -492,13 +504,24 @@ Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String
 End Sub
 
 Private Sub Service_Message_Receipt(ServiceRequest As MyServiceRequest)
-	
-	'
-	'No Sleep delay here
-	'
+	'This function runs in a separate Thread
 	
 	Dim ServiceResponse As MyServiceResponse
 	ServiceResponse.Initialize(ServiceRequest)
+	
+	'Add a synchronous sleep delay (sync Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	'This is done by providing a caller Thread
+	'to the ServiceResponse, then it automatically
+	'performs the necessary delay whenever you
+	'call its SendResponse function
+	ServiceResponse.SetCallerThread(SmartcardMessageThread)
 	
 	'Avoid getting potential race condition calls
 	If ActiveOperationInProgress Then
@@ -629,17 +652,7 @@ End Sub
 'Helper functions for updating areNotificationsAllowed
 'which is used by Java native code
 Private Sub RequestPostNotificationsPermission
-	'This function now runs in a separate Thread
-	
-	'Add an asynchronous sleep delay (async Sleep):
-	' - It has been noticed that on very fast devices,
-	'   such as the latest smartphones,
-	'   the Direct Unblock completes *so fast* that
-	'   it completes before the caller's "Wait For"
-	'   even has the time to actually start waiting
-	'   for the Direct Unblock result
-	'
-	Sleep(25)
+	'This function runs in a separate Thread
 	
 	'Check that the Main Activity isn't already paused
 	If Not(IsPaused(Main)) Then
@@ -659,6 +672,7 @@ End Sub
 
 Private Sub RequestPostNotificationsPermissionHelper(TheComponent As Object)
 	'Take the Activity (component) as "Object", not as "Activity"
+	'This function runs in a separate Thread
 	
 	'Android 13+ only (API level 33+):
 	' - Request the ability to post notifications
@@ -674,6 +688,16 @@ Private Sub RequestPostNotificationsPermissionHelper(TheComponent As Object)
 		SetNotificationsAllowed(False)
 		
 	End Try
+	
+	'Add a synchronous sleep delay (sync Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	SmartcardOperationThread.Sleep(40)
 	
 	CallSubDelayed(Me, "RequestPostNotificationsPermission_Finished")
 	
@@ -718,7 +742,7 @@ Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As Stri
 		'   even has the time to actually start waiting
 		'   for the Direct Unblock result
 		'
-		Sleep(25)
+		Sleep(40)
 		
 		'This one uses a String Array indeed
 		CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", False, Array As String(SmartcardOperationThread.Error))
@@ -734,16 +758,7 @@ End Sub
 'Sorry that it looks convoluted, that's simply what works
 'to make USB permission prompts instantaneous
 Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As String)
-	
-	'Add an asynchronous sleep delay (async Sleep):
-	' - It has been noticed that on very fast devices,
-	'   such as the latest smartphones,
-	'   the Direct Unblock completes *so fast* that
-	'   it completes before the caller's "Wait For"
-	'   even has the time to actually start waiting
-	'   for the Direct Unblock result
-	'
-	Sleep(25)
+	'This function runs in a separate Thread
 	
 	Dim IsSuccessful     As Boolean = True
 	Dim ServiceReplies() As String  = Array As String("")
@@ -757,6 +772,16 @@ Private Sub RunInSmartcardOperationThread(DoWhat As Int, Parameters() As String)
 		ServiceReplies = Array As String(LastException.Message) 'This one uses a String Array indeed
 		
 	End Try
+	
+	'Add a synchronous sleep delay (sync Sleep):
+	' - It has been noticed that on very fast devices,
+	'   such as the latest smartphones,
+	'   the Direct Unblock completes *so fast* that
+	'   it completes before the caller's "Wait For"
+	'   even has the time to actually start waiting
+	'   for the Direct Unblock result
+	'
+	SmartcardOperationThread.Sleep(40)
 	
 	CallSubDelayed3(Me, "RunInSmartcardOperationThread_Completed", IsSuccessful, ServiceReplies)
 	
