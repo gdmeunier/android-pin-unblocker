@@ -122,6 +122,35 @@ Public Sub SendResponse
 		'using a different application while this Service operation completes
 		StartActivity(OriginCaller)
 		
+		'Add an asynchronous sleep delay (async Sleep):
+		' - It has been noticed that on very fast devices,
+		'   such as the latest smartphones,
+		'   the Direct Unblock completes *so fast* that
+		'   it completes before the caller's "Wait For"
+		'   even has the time to actually start waiting
+		'   for the Direct Unblock result
+		'
+		' - Single-threaded callers don't need any delay,
+		'   because they only ever use the Main looper,
+		'   and therefore are not subject to accidental
+		'   race conditions or anything like that
+		'
+		' - On average Android takes *atmost* 500ms to
+		'   fully resume an Activity
+		'
+		' - The reason that I use 460ms instead of 500ms here
+		'   is because I always sleep the caller Thread
+		'   for 40ms afterwards as you can see below
+		'   (the second CallerThread.Sleep)
+		'
+		' - So in total, I want to only sleep the caller Thread
+		'   up to 500ms atmost, therefore (500ms - 40ms) = 460ms
+		'
+		' - After using StartActivity, you have to use
+		'   asynchronous Sleep instead of Thread.Sleep
+		'
+		Sleep(460)
+		
 	End If
 	
 	'Add a synchronous sleep delay (sync Sleep):
