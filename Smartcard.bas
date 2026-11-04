@@ -190,9 +190,6 @@ Sub Process_Globals
 	'For throwing Exceptions
 	Private Exceptions As MyExceptions
 	
-	'For being able to do synchronous Sleep
-	Private Common As MyCommon
-	
 	'For running native Java code
 	Private joService As JavaObject
 	
@@ -258,9 +255,6 @@ Sub Service_Create
 	
 	'For throwing Exceptions
 	Exceptions.Initialize
-	
-	'For being able to do synchronous Sleep
-	Common.Initialize
 	
 	'Initialize the PC/SC stack
 	joService.RunMethod("jService_Create", Null)
