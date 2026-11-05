@@ -452,14 +452,13 @@ Public Sub Service_Message(ServiceRequest As MyServiceRequest)
 	
 End Sub
 
-Private Sub SmartcardMessageThread_Ended(Failed As Boolean, ErrorIfAny As String)
+Private Sub SmartcardMessageThread_Ended(Success As Boolean, ErrorIfAny As String)
 	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
-	'2. Don't check "Failed" because it returns false-positives
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure
@@ -715,14 +714,13 @@ public void jSetNotificationsAllowed(final boolean isAllowed)
 }
 #End If
 
-Private Sub SmartcardOperationThread_Ended(Failed As Boolean, ErrorIfAny As String)
+Private Sub SmartcardOperationThread_Ended(Success As Boolean, ErrorIfAny As String)
 	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
-	'2. Don't check "Failed" because it returns false-positives
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure

@@ -45,7 +45,7 @@ Public Sub Initialize
 	
 End Sub
 
-Private Sub LifecycleClearingThread_Ended(Failed As Boolean, ErrorIfAny As String)
+Private Sub LifecycleClearingThread_Ended(Success As Boolean, ErrorIfAny As String)
 	'
 	'Nothing to do here
 	'

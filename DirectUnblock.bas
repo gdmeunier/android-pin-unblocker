@@ -603,7 +603,7 @@ Sub Activity_Idle
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Idle: Sub return"$, Colors.Black)
 End Sub
 
-Sub Activity_Stop()
+Sub Activity_Stop
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Stop: Sub entry"$, Colors.Black)
 	
@@ -696,7 +696,7 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Black)
 End Sub
 
-Sub Activity_Restart()
+Sub Activity_Restart
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Restart: Sub entry"$, Colors.Black)
 	
@@ -719,7 +719,7 @@ Sub Activity_Restart()
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Restart: Sub return"$, Colors.Black)
 End Sub
 
-Sub Activity_Start()
+Sub Activity_Start
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Start: Sub entry"$, Colors.Black)
 	
@@ -852,10 +852,15 @@ Sub Activity_Create(FirstTime As Boolean)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Create: Sub return"$, Colors.Blue)
 End Sub
 
+'This function gets the initialized values
+'from the Main Activity's shared Process_Globals,
+'then it immediately removes the information
+'from these Process_Globals to keep it only
+'in its own private Process_Globals
 Private Sub InitializeActivity
 	
 	DetectedCardType     = Main.Shared_DetectedCardType
-	Main.Shared_DetectedCardType = ""
+	Main.Shared_DetectedCardType = "Unknown"
 	DetectedCardProtocol = Main.Shared_DetectedCardProtocol
 	Main.Shared_DetectedCardProtocol = "T=?"
 	
@@ -865,7 +870,7 @@ Private Sub InitializeActivity
 	Main.Shared_DetectedCardMaxPINLength = 0
 	
 	DetectedAlgorithm = Main.Shared_DetectedAlgorithm
-	Main.Shared_DetectedAlgorithm = ""
+	Main.Shared_DetectedAlgorithm = Cryptography.ALGORITHM_UNKNOWN
 	DetectedAdminKey  = Main.Shared_DetectedAdminKey
 	Main.Shared_DetectedAdminKey = ""
 	
@@ -1444,6 +1449,16 @@ Sub Activity_Resume
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Calling the Hotfix function ForceRestoreCorrectLastFocusedElementState because Android is obnoxious with its default focus management with ScrollViews"$, Constants.COLORS_ORANGE)
 	ForceRestoreCorrectLastFocusedElementState(ViewState_LastFocusedElement)
 	
+	'Add a corrective function for:
+	' - Android soft keyboard is open (visible)
+	' - User clicks on e.g. Share To button
+	' - User cancels the Share To attempt
+	' - Activity is resumed but the ScrollView
+	'   if left at half the Activity height only
+	'
+	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Calling the Hotfix function CorrectActivityHeightAfterResume to restore the full Activity ScrollView height incase it might be left on half-height only"$, Constants.COLORS_ORANGE)
+	CorrectActivityHeightAfterResume
+	
 	'This part as the very last one of this function
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Resetting this Activity's Lifecycle tracking for foreground rotation detection"$, Colors.Blue)
 	LifecycleTracking.ActivityLifecycle = ""
@@ -1452,7 +1467,36 @@ Sub Activity_Resume
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
 End Sub
 
-Private Sub RestoreViewState()
+'This function is a corrective one that
+'fixes the Activity height to be restored
+'to the full visible height (viewport height)
+'after the Activity got paused while the
+'Android soft keyboard was open (visible),
+'then the Activity gets resumed and the
+'Android soft keyboard gets immediately
+'hidden, but usually left the Activity
+'at half-height only because Activity_HeightChanged
+'in this case did not fire
+Private Sub CorrectActivityHeightAfterResume
+	
+	'Add an asynchronous Sleep delay (async sleep)
+	'of 100ms to allow waiting for any
+	'Android soft keyboard to get closed (if any)
+	Sleep(100)
+	
+	'Manually fire the Activity_HeightChanged event:
+	' - Old height is basically the ScrollView height
+	' - New height is the 100%y property
+	'
+	'If the Android soft keyboard is still visible
+	'after the Activity resume, then no problem,
+	'because the 100%y will just translate to
+	'the actual Activity height anyway
+	Activity_HeightChanged(100%y, scvActivity.Height)
+	
+End Sub
+
+Private Sub RestoreViewState
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Sub entry"$, Colors.Blue)
 	
@@ -1889,7 +1933,7 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Pause: Sub return"$, Colors.Blue)
 End Sub
 
-Private Sub SaveViewState()
+Private Sub SaveViewState
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] SaveViewState: Sub entry"$, Colors.Blue)
 	
@@ -2174,14 +2218,13 @@ Private Sub btnProceedToUnblock_Click
 	LogColor($"[${ActivityName}-${LogContextId}] btnProceedToUnblock_Click: Sub return"$, Colors.Blue)
 End Sub
 
-Private Sub DirectUnblockThread_Ended(Failed As Boolean, ErrorIfAny As String)
+Private Sub DirectUnblockThread_Ended(Success As Boolean, ErrorIfAny As String)
 	
 	'Inform any waiting function about the Thread death
 	'incase it terminated prematurely before being able
 	'to send its own return message directly
 	'
-	'1. This one uses IsSuccessful = False (NOT IsFailed = True)
-	'2. Don't check "Failed" because it returns false-positives
+	'This one uses IsSuccessful = False (NOT IsFailed = True)
 	
 	'Somehow Basic4Android deliberately sets it to True
 	'even if the Thread did NOT die from a failure

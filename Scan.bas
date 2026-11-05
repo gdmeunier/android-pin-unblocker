@@ -512,7 +512,7 @@ Sub Activity_Idle
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Idle: Sub return"$, Colors.Black)
 End Sub
 
-Sub Activity_Stop()
+Sub Activity_Stop
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Stop: Sub entry"$, Colors.Black)
 	
@@ -605,7 +605,7 @@ Sub Activity_Destroy(IsFinishing As Boolean, IsChangingConfigurations As Boolean
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Destroy: Sub return"$, Colors.Black)
 End Sub
 
-Sub Activity_Restart()
+Sub Activity_Restart
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Restart: Sub entry"$, Colors.Black)
 	
@@ -628,7 +628,7 @@ Sub Activity_Restart()
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Restart: Sub return"$, Colors.Black)
 End Sub
 
-Sub Activity_Start()
+Sub Activity_Start
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Start: Sub entry"$, Colors.Black)
 	
@@ -1106,7 +1106,7 @@ Sub Activity_Resume
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Resume: Sub return"$, Colors.Blue)
 End Sub
 
-Private Sub RestoreViewState()
+Private Sub RestoreViewState
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] RestoreViewState: Sub entry"$, Colors.Blue)
 	
@@ -1243,7 +1243,7 @@ Sub Activity_Pause(UserClosed As Boolean)
 	LogColor($"[${ActivityName}-${LogContextId}] Activity_Pause: Sub return"$, Colors.Blue)
 End Sub
 
-Private Sub SaveViewState()
+Private Sub SaveViewState
 	Dim LogContextId As Int = Rnd(1000, 9999)
 	LogColor($"[${ActivityName}-${LogContextId}] SaveViewState: Sub entry"$, Colors.Blue)
 	

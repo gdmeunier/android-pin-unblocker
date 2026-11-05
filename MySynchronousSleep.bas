@@ -32,7 +32,7 @@ Public Sub Initialize
 	
 End Sub
 
-Private Sub SynchronousSleepThread_Ended(Failed As Boolean, ErrorIfAny As String)
+Private Sub SynchronousSleepThread_Ended(Success As Boolean, ErrorIfAny As String)
 	'
 	'Nothing to do here
 	'
