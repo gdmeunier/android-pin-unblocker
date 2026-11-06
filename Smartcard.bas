@@ -39,6 +39,9 @@ import android.os.Process; // This one must be explicitly imported
 
 import net.gdmeunier.pinunblocker.R; // Must match the application's package name
 
+// For explicit Android 14+ foreground service type support (API level 34+)
+import android.content.pm.ServiceInfo;
+
 // For Android 8+ notifications support (API level 26+)
 import android.app.NotificationChannel;
 
@@ -1260,14 +1263,31 @@ private void jShowNotification(final int notificationID, final String msg, final
 		}
 	}
 	
-	if ( useHeadsUp ) // If heads-up notification is required
+	// Check if heads-up notification is required
+	if ( useHeadsUp )
 	{
+		/* startForeground makes notifications become
+		 * heads-up notifications
+		 */
 		try
 		{
-			/* startForeground makes notifications become
-			 * heads-up notifications
+			/* Add explicit Android 14+ support (API level 34+):
+			 *  - The functionality was added since API level 29,
+			 *    but only started being required since API level 34
 			 */
-			startForeground(notificationID, builder.build());
+			if ( Build.VERSION.SDK_INT >= 29 )
+			{
+				/* Can also use "ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE",
+				 * but the "...MANIFEST" one is more convenient because it
+				 * automatically uses the appropriate type(s) from
+				 * the application's manifest file incase it gets updated, etc
+				 */
+				startForeground(notificationID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST);
+			}
+			else
+			{
+				startForeground(notificationID, builder.build());
+			}
 		}
 		catch (Exception e)
 		{
