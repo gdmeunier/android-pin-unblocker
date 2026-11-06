@@ -43,7 +43,7 @@ This app only helps compute the *Response/Reset values* for the provided *Reques
 - [x] Is unable to and will not provide unauthorized access
 - [x] Is for performing a cryptographic calculation with correct inputs (**Admin/Management key** and **Request aka. Challenge code**)
 
-So this app helps compute **Response values** to reset the PIN a cryptographic card (smartcard) using correct inputs that the user must provide; their *Admin/management key* and only as part of **authorized PIN administration workflows**.
+So this app helps compute **Response values** to reset the PIN of a cryptographic card (smartcard) using correct inputs that the user must provide; their *Admin/management key* and only as part of **authorized PIN administration workflows**.
 
 Some users accidentally also call their cryptographic smartcard a 'credit card' or 'SIM card' because they look similar, but only physically in appearance.
 
