@@ -469,7 +469,6 @@ import android.content.Context;
 import android.app.Activity;
 import android.os.Build;
 import android.widget.Toast;
-import android.os.CountDownTimer;
 public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 {
 	/* Try disabling Recent Apps thumbnails on API level 33+ (Android 13+)
@@ -511,11 +510,11 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 			/* Check if the user was running the special-purpose NO_FLAG_SECURE build,
 			 * and warn about the risks involved with using it if that's the case
 			 *
-			 * Note: Warn only on first Activity launch
+			 * Note 1: Warn only on first Activity launch
 			 *
-			 * Note: The check for whether a NO_FLAG_SECURE build uses
-			 *       conditional compilation directives:
-			 *        - It uses the "#If NO_FLAG_SECURE" directive
+			 * Note 2: The check for whether a NO_FLAG_SECURE build uses
+			 *         conditional compilation directives:
+			 *          - It uses the "#If NO_FLAG_SECURE" directive
 			 */
 			if ( firstTimeLaunch )
 			{
@@ -525,34 +524,17 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 				 * HOWEVER the user deserves to be warned about this issue to avoid
 				 * any potential trouble with forensic leaks on their device
 				 *
-				 * Note: If the toast cannot be shown, then the user cannot be warned,
-				 *       so we just exit the caller Activity instead for safety reasons
+				 * Note 1: If the toast cannot be shown, then the user cannot be warned,
+				 *         so we just exit the caller Activity instead for safety reasons
+				 *
+				 * Note 2: the 500 number corresponds to a 500ms tick rate,
+				 *         which neatly aligns with available toast display durations:
+				 *          - 2000ms (short one) and 3500ms (long one)
 				 */
-				if ( !jToastMessageShow(ctx, "Failed to disable the Recent Apps thumbnail", TOAST_SHORT_DURATION_LENGTH) )
+				if ( !jToastMessageShow(ctx, "Failed to disable Recent Apps thumbnail:\r\nAdmin keys might leak in thumbnails", TOAST_SHORT_DURATION_LENGTH) )
 				{
 					ctx.finish();
 				}
-				/*
-				 * Wait until the first toast disappears before showing another one
-				 *
-				 * Note: the 500 number corresponds to a 500ms tick rate,
-				 *       which neatly aligns with available toast display durations:
-				 *        - 2000ms (short one) and 3500ms (long one)
-				 */
-				new CountDownTimer(TOAST_SHORT_DURATION_LENGTH, 500)
-				{
-					@Override
-					public void onTick(long millisUntilFinished) { }
-					
-					@Override
-					public void onFinish()
-					{
-						if ( !jToastMessageShow(ctx, "Admin keys might leak in Recent Apps thumbnails", TOAST_LONG_DURATION_LENGTH) )
-						{
-							ctx.finish();
-						}
-					}
-				}.start();
 			}
 		}
 #End If
@@ -615,27 +597,10 @@ public void jSecureActivityOnCreate(Activity ctx, final boolean firstTimeLaunch)
 			 * using conditional compilation directives:
 			 *  - By using "#If Not(NO_FLAG_SECURE)" to wrap this part of the code
 			 */
-			if ( !jToastMessageShow(ctx, "Failed to set FLAG_SECURE on this window", TOAST_SHORT_DURATION_LENGTH) )
+			if ( !jToastMessageShow(ctx, "Failed to set FLAG_SECURE on window:\r\nAdmin keys might leak in Recent Apps thumbnails", TOAST_SHORT_DURATION_LENGTH) )
 			{
 				ctx.finish();
 			}
-			//
-			// Wait until the first toast disappears before showing another one
-			//
-			new CountDownTimer(TOAST_SHORT_DURATION_LENGTH, 500)
-			{
-				@Override
-				public void onTick(long millisUntilFinished) { }
-				
-				@Override
-				public void onFinish()
-				{
-					if ( !jToastMessageShow(ctx, "Admin keys might leak in Recent Apps thumbnails", TOAST_LONG_DURATION_LENGTH) )
-					{
-						ctx.finish();
-					}
-				}
-			}.start();
 		}
 	}
 #End If

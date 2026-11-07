@@ -109,7 +109,7 @@ private int actionNum          = Reader.CARD_COLD_RESET;
 private int preferredProtocols = Reader.PROTOCOL_T0 | Reader.PROTOCOL_T1 | Reader.PROTOCOL_RAW;
 private int activeProtocol     = Reader.PROTOCOL_UNDEFINED;
 
-private mysmartcardreader.SmartcardReader SmartcardReaderProxy = null;
+private mysmartcardreader SmartcardReaderProxy = null;
 
 private NotificationManager notifyMgr;
 private PowerManager        powerMgr;
@@ -284,7 +284,7 @@ public void jService_Create()
 	ACTION_USB_PERMISSION = PACKAGE_NAME+".USB_PERMISSION";
 	
 	// Provide the package name directly to the MySmartcardReader class
-	SmartcardReaderProxy = new mysmartcardreader.SmartcardReader();
+	SmartcardReaderProxy = new mysmartcardreader();
 	
 	// e.g. "net.gdmeunier.pinunblocker$smartcard"
 	notifyChannelId = PACKAGE_NAME+"$smartcard";
