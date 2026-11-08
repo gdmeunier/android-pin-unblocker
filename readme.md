@@ -28,7 +28,7 @@ Real smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, GIDS, Jav
 
 ## Generate the Unblock code
 
-![Main application screen.](/Screenshots/1-main-app-screen.png) ![Generating the smartcard response code.](/Screenshots/3-generated-response-code.png)
+![Main application screen.](./Screenshots/1-main-app-screen.png) ![Generating the smartcard response code.](./Screenshots/3-generated-response-code.png)
 
 Here you can type the **Request code** and also choose to hide the **Admin key** with the checkbox below it.
 
@@ -41,7 +41,7 @@ The algorithm to use is automatically determined by the application based on you
 
 ## Hide & reveal the Admin key
 
-![Main application screen with a visible Admin key.](/Screenshots/1-main-app-screen.png) ![Hiding the previously entered Admin key.](/Screenshots/2-admin-key-hide.png)
+![Main application screen with a visible Admin key.](./Screenshots/1-main-app-screen.png) ![Hiding the previously entered Admin key.](./Screenshots/2-admin-key-hide.png)
 
 This application has been intended for situations where you're entering unblock codes for employees or people who stand-by next to you.
 
@@ -54,7 +54,7 @@ This way nobody accidentally grabs a picture of your *Admin key* while unblockin
 
 ## Scan QR code for Request code
 
-![You can click on the QR code button to scan a Request code.](/Screenshots/4-scan-qr-request-code.png)
+![You can click on the QR code button to scan a Request code.](./Screenshots/4-scan-qr-request-code.png)
 
 **Android PIN Unblocker** supports the scanning of **QR codes** using your mobile phone's camera to read the **Request code** from a *QR code*.\
 It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the card unblocking more efficiently.
@@ -67,7 +67,7 @@ The decoded *Request code* then gets automatically written to the appropriate te
 
 ## Generate Admin key text hashes
 
-![Generating the Admin key hash from text is possible inside this app.](/Screenshots/5-builtin-hashing-facility.png) ![Generated Admin key hash inside this app.](/Screenshots/6-generated-admin-key-hash.png)
+![Generating the Admin key hash from text is possible inside this app.](./Screenshots/5-builtin-hashing-facility.png) ![Generated Admin key hash inside this app.](./Screenshots/6-generated-admin-key-hash.png)
 
 It's possible with **Android PIN Unblocker** to directly generate text hashes within the app instead of having to generate it from other ones.
 
@@ -80,7 +80,7 @@ The generated hash will automatically replace the previous **Admin key** text.
 
 ## Share the Response code
 
-![Sharing the Response code with the native Android Intent chooser.](/Screenshots/7-share-response-code.png)
+![Sharing the Response code with the native Android Intent chooser.](./Screenshots/7-share-response-code.png)
 
 You can see on the previous screenshots a **Share To** button next to the generated **Response code**, which will pop the Android native Intent chooser.
 
@@ -97,7 +97,7 @@ Otherwise you could *e.g.* type the *Response code* automatically on employees' 
 
 ## Share Admin keys to the App
 
-![Sharing an Admin key text to the app.](/Screenshots/8-share-admin-key-to-app.png) ![The shared Admin key text is now unrevealable in the app.](/Screenshots/9-shared-admin-key-unrevealable.png)
+![Sharing an Admin key text to the app.](./Screenshots/8-share-admin-key-to-app.png) ![The shared Admin key text is now unrevealable in the app.](./Screenshots/9-shared-admin-key-unrevealable.png)
 
 Here you can see that it's possible to write your **Admin key** in any third-party Android note-taking application then select the text, then directly share it to **Android PIN Unblocker**.
 
@@ -114,7 +114,7 @@ You may later trim the length of the text as desired from within the app, so you
 
 ## Prevent disclosing Admin keys
 
-![Admin key texts shared to the app cannot be unhidden.](/Screenshots/9-shared-admin-key-unrevealable.png) ![Admin key texts hashed by long-pressing the hashing buttons are cannot be unhidden as well.](/Screenshots/10-unrevealable-hash-on-long-press.png)
+![Admin key texts shared to the app cannot be unhidden.](./Screenshots/9-shared-admin-key-unrevealable.png) ![Admin key texts hashed by long-pressing the hashing buttons are cannot be unhidden as well.](./Screenshots/10-unrevealable-hash-on-long-press.png)
 
 Whenever you share an **Admin key** to the app instead of copy-pasting it yourself, the *Hide Admin Key* checkbox becomes disabled and you cannot unhide it.
 
@@ -139,7 +139,7 @@ It's additionally possible to make the `Admin Key` field unrevealable directly, 
 
 ## Direct unblock over USB-OTG
 
-![Direct Unblock window for an ActivID T=1 smartcard.](/Screenshots/11-direct-unblock-activid-t1.png) ![Direct Unblock window for a Gemalto T=0 smartcard.](/Screenshots/12-direct-unblock-gemalto-t0.png)
+![Direct Unblock window for an ActivID T=1 smartcard.](./Screenshots/11-direct-unblock-activid-t1.png) ![Direct Unblock window for a Gemalto T=0 smartcard.](./Screenshots/12-direct-unblock-gemalto-t0.png)
 
 It's now possible to directly perform the PIN unblock using any mobile phone with **USB-OTG** support.
 
@@ -214,7 +214,7 @@ Asset name | Author | License | Commercial use
 [Clipboard Library](https://www.b4x.com/android/forum/threads/clipboard-library.7382/) | mtw | [Apache 2.0](https://www.b4x.com/android/forum/help/terms/) | Allowed
 [Threading Library](https://www.b4x.com/android/forum/threads/threading-library.6775/) | Andrew Graham | [Apache 2.0](https://www.b4x.com/android/forum/help/terms/) | Allowed
 [~~Devices secure card Icon~~](https://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Devices-secure-card-icon.html) | Oxygen Team | [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.html) | Allowed
-[Info 24 Icon](https://www.iconarchive.com/show/octicons-icons-by-github/info-24-icon.html) | Github | [MIT License](https://github.com/primer/octicons/blob/main/LICENSE) | Allowed
+[Info 24 Icon](https://www.iconarchive.com/show/octicons-icons-by-github/info-24-icon.html) | GitHub | [MIT License](https://github.com/primer/octicons/blob/main/LICENSE) | Allowed
 [Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
 [Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](https://icons8.com/license/) | Allowed
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
@@ -225,7 +225,7 @@ Asset name | Author | License | Commercial use
 [~~USB plug Icon~~](https://www.flaticon.com/free-icon/usb-plug_31090) | Magnific | [Attribution](https://www.flaticon.com/legal) | Allowed
 [USB cable Icon](https://www.flaticon.com/free-icon/usb-cable_1855546) | Magnific | [Attribution](https://www.flaticon.com/legal) | Allowed
 [Ding-Dong Bell Sound](https://freesound.org/people/LegitCheese/sounds/571513/) | LegitCheese | [Creative Commons 0](https://wiki.creativecommons.org/wiki/CC0) | Allowed
-[Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) [\[1\]](./Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
+[Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
 [MOPP-Android](https://github.com/open-eid/MOPP-Android) | open-eid | [LGPL 2.1](https://github.com/open-eid/MOPP-Android/blob/master/LICENCE.md) | Allowed
 [ApduSenderContact](https://github.com/jmarroyo/ApduSenderContact) | Jose ARROYO | [GPL 3.0](https://github.com/jmarroyo/ApduSenderContact/blob/master/README) | Allowed
 [GidsApplet](https://github.com/vletoux/GidsApplet) | Vincent Letoux | [GPL 3.0](https://github.com/vletoux/GidsApplet/blob/master/LICENSE) | Allowed

@@ -10,14 +10,16 @@ A simple Android app written in [Basic4Android](https://www.b4x.com/b4a.html) (p
 Its purpose is to generate **smartcard** PIN unlock/reset *Response values* using your **Admin/Management key** supplied by the user and an Android mobile phone instead of requiring a computer.\
 Its Windows equivalent would be the [Gemalto Response Code calculator](https://supportportal.thalesgroup.com/csm?id=kb_article_view&sysparm_article=KB0017162).
 
-This app is intended for **authorized smartcard PIN administration** only. It supports workflows where the card issuer/vendor documents a **challenge–response** process for **PIN unblock/reset** and provides the required **Request/Challenge** value.
-
-In that scenario, the app computes the corresponding **Response value** using the management authorization material you supply.
-
-It is **not** for bypassing access controls, and it must not be used for cards or accounts you are not authorized to administer.
-
 The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.\
 Real secure smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, GIDS, Javacards *[...]*.
+
+> [!NOTE]
+> This app is intended for **authorized smartcard PIN administration** only.\
+> It supports workflows where the card issuer/vendor documents a **challenge–response** process for **PIN unblock/reset** and provides the required **Request/Challenge** value.
+>
+> In that scenario, the app computes the corresponding **Response value** using the management authorization material you supply.
+>
+> It is **not** for bypassing access controls, and it must not be used for cards or accounts you are not authorized to administer.
 
 <div style="page-break-before:always"></div>
 <p></p>
@@ -92,7 +94,7 @@ For resetting the PIN of the card (entering the generated **Response value** com
 
 ## Compute the PIN administration Response value
 
-![Main application screen.](/Screenshots/1-main-app-screen.png) ![Generating the smartcard Response value.](/Screenshots/3-generated-response-code.png)
+![Main application screen.](./Screenshots/1-main-app-screen.png) ![Generating the smartcard Response value.](./Screenshots/3-generated-response-code.png)
 
 Here you can type the **Request/Challenge code** and also choose to hide the **Admin/management key** with the checkbox below it.
 
@@ -105,7 +107,7 @@ The algorithm to use is automatically determined by the application based on you
 
 ## Hide & reveal the Admin/management key
 
-![Main application screen with a visible Admin/management key.](/Screenshots/1-main-app-screen.png) ![Hiding the previously entered key.](/Screenshots/2-admin-key-hide.png)
+![Main application screen with a visible Admin/management key.](./Screenshots/1-main-app-screen.png) ![Hiding the previously entered key.](./Screenshots/2-admin-key-hide.png)
 
 This application has been intended for situations where you’re entering PIN-administration values for employees or people who stand by next to you.
 
@@ -118,7 +120,7 @@ This way nobody accidentally grabs a picture of your *Admin/management key* whil
 
 ## Scan QR code for Request/Challenge code
 
-![You can click on the QR code button to scan a Request/Challenge code.](/Screenshots/4-scan-qr-request-code.png)
+![You can click on the QR code button to scan a Request/Challenge code.](./Screenshots/4-scan-qr-request-code.png)
 
 **Android PIN Unblocker** supports the scanning of **QR codes** using your mobile phone's camera to read the **Request/Challenge code** from a *QR code*.\
 It's typically used alongside a PC application such as **[CodeTwo QR Code Reader & Generator](https://www.majorgeeks.com/files/details/codetwo_qr_code_desktop_reader_generator.html)** to do the vendor-documented PIN-administration workflow more efficiently.
@@ -131,7 +133,7 @@ The decoded *Request/Challenge code* then gets automatically written to the appr
 
 ## Generate Admin/management key text hashes
 
-![Generating the Admin/management key hash from text is possible inside this app.](/Screenshots/5-builtin-hashing-facility.png) ![Generated key hash inside this app.](/Screenshots/6-generated-admin-key-hash.png)
+![Generating the Admin/management key hash from text is possible inside this app.](./Screenshots/5-builtin-hashing-facility.png) ![Generated key hash inside this app.](./Screenshots/6-generated-admin-key-hash.png)
 
 It's possible with **Android PIN Unblocker** to directly generate text hashes within the app instead of having to generate it from other tools.
 
@@ -144,7 +146,7 @@ The generated hash will automatically replace the previous **Admin/management ke
 
 ## Share the Response value
 
-![Sharing the Response value with the native Android Intent chooser.](/Screenshots/7-share-response-code.png)
+![Sharing the Response value with the native Android Intent chooser.](./Screenshots/7-share-response-code.png)
 
 You can see on the previous screenshots a **Share To** button next to the generated **Response value**, which will pop the Android native Intent chooser.
 
@@ -161,7 +163,7 @@ Otherwise you could e.g. type the *Response value* automatically on employees' c
 
 ## Share Admin/management keys to the App
 
-![Sharing an Admin/management key text to the app.](/Screenshots/8-share-admin-key-to-app.png) ![The shared Admin/management key text is now unrevealable in the app.](/Screenshots/9-shared-admin-key-unrevealable.png)
+![Sharing an Admin/management key text to the app.](./Screenshots/8-share-admin-key-to-app.png) ![The shared Admin/management key text is now unrevealable in the app.](./Screenshots/9-shared-admin-key-unrevealable.png)
 
 Here you can see that it's possible to write your **Admin/management key** in any third-party Android note-taking application, then select the text, then directly share it to **Android PIN Unblocker**.
 
@@ -178,7 +180,7 @@ You may later trim the length of the text as desired from within the app, so you
 
 ## Prevent disclosing Admin/management keys
 
-![Admin/management key texts shared to the app cannot be unhidden.](/Screenshots/9-shared-admin-key-unrevealable.png) ![Admin/management key texts hashed by long-pressing the hashing buttons also cannot be unhidden.](/Screenshots/10-unrevealable-hash-on-long-press.png)
+![Admin/management key texts shared to the app cannot be unhidden.](./Screenshots/9-shared-admin-key-unrevealable.png) ![Admin/management key texts hashed by long-pressing the hashing buttons also cannot be unhidden.](./Screenshots/10-unrevealable-hash-on-long-press.png)
 
 Whenever you share an **Admin/management key** to the app instead of copy-pasting it yourself, the *Hide Admin Key* checkbox becomes disabled and you cannot unhide it.
 
@@ -203,7 +205,7 @@ It's additionally possible to make the `Admin Key` field unrevealable directly, 
 
 ## Vendor-documented PIN reset over USB-OTG
 
-![Vendor-documented PIN reset window for an ActivID T=1 smartcard.](/Screenshots/11-direct-unblock-activid-t1.png) ![Vendor-documented PIN reset window for a Gemalto T=0 smartcard.](/Screenshots/12-direct-unblock-gemalto-t0.png)
+![Vendor-documented PIN reset window for an ActivID T=1 smartcard.](./Screenshots/11-direct-unblock-activid-t1.png) ![Vendor-documented PIN reset window for a Gemalto T=0 smartcard.](./Screenshots/12-direct-unblock-gemalto-t0.png)
 
 It's now possible to directly perform the vendor-documented PIN reset process using any mobile phone with **USB-OTG** support.
 
@@ -278,7 +280,7 @@ Asset name | Author | License | Commercial use
 [Clipboard Library](https://www.b4x.com/android/forum/threads/clipboard-library.7382/) | mtw | [Apache 2.0](https://www.b4x.com/android/forum/help/terms/) | Allowed
 [Threading Library](https://www.b4x.com/android/forum/threads/threading-library.6775/) | Andrew Graham | [Apache 2.0](https://www.b4x.com/android/forum/help/terms/) | Allowed
 [~~Devices secure card Icon~~](https://www.iconarchive.com/show/oxygen-icons-by-oxygen-icons.org/Devices-secure-card-icon.html) | Oxygen Team | [LGPL 3.0](https://www.gnu.org/licenses/lgpl-3.0.html) | Allowed
-[Info 24 Icon](https://www.iconarchive.com/show/octicons-icons-by-github/info-24-icon.html) | Github | [MIT License](https://github.com/primer/octicons/blob/main/LICENSE) | Allowed
+[Info 24 Icon](https://www.iconarchive.com/show/octicons-icons-by-github/info-24-icon.html) | GitHub | [MIT License](https://github.com/primer/octicons/blob/main/LICENSE) | Allowed
 [Credit card Icon](https://www.iconarchive.com/show/shop-icons-by-newidols.ru/credit-card-icon.html) | Newidols | [Attribution](https://www.iconarchive.com/icons/newidols.ru/shop/License.txt) | Allowed
 [Very Basic Unlock Icon](https://www.iconarchive.com/show/windows-8-icons-by-icons8/Very-Basic-Unlock-icon.html) | Icons8 | [Attribution](https://icons8.com/license/) | Allowed
 [MyApkTool Pro](https://github.com/alisakkaf/MyApkTool-Pro) | Ali Sakkaf | [MIT License](https://github.com/alisakkaf/MyApkTool-Pro/blob/main/LICENSE) | Allowed
@@ -289,7 +291,7 @@ Asset name | Author | License | Commercial use
 [~~USB plug Icon~~](https://www.flaticon.com/free-icon/usb-plug_31090) | Magnific | [Attribution](https://www.flaticon.com/legal) | Allowed
 [USB cable Icon](https://www.flaticon.com/free-icon/usb-cable_1855546) | Magnific | [Attribution](https://www.flaticon.com/legal) | Allowed
 [Ding-Dong Bell Sound](https://freesound.org/people/LegitCheese/sounds/571513/) | LegitCheese | [Creative Commons 0](https://wiki.creativecommons.org/wiki/CC0) | Allowed
-[Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) [\[1\]](./Obsolete/Libraries/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
+[Smartcard Mobile Connector (SMC)](https://www.acs.com.hk/download-driver-unified/15152/acssmc-1.1.8-android12-20251125.zip) | Advanced Card Systems (ACS) | [Apache 2.0](https://mvnrepository.com/artifact/hk.com.acs/acssmc) | Allowed
 [MOPP-Android](https://github.com/open-eid/MOPP-Android) | open-eid | [LGPL 2.1](https://github.com/open-eid/MOPP-Android/blob/master/LICENCE.md) | Allowed
 [ApduSenderContact](https://github.com/jmarroyo/ApduSenderContact) | Jose ARROYO | [GPL 3.0](https://github.com/jmarroyo/ApduSenderContact/blob/master/README) | Allowed
 [GidsApplet](https://github.com/vletoux/GidsApplet) | Vincent Letoux | [GPL 3.0](https://github.com/vletoux/GidsApplet/blob/master/LICENSE) | Allowed
