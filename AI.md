@@ -19,7 +19,7 @@ It is **not** for bypassing access controls, and it must not be used for cards o
 The common **SLE4442** cards are memory cards only and lack a built-in processor, and thus are for data storage only.\
 Real secure smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, GIDS, Javacards *[...]*.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 # Legality & Conformance
@@ -34,7 +34,7 @@ It cans only be used in situations where you already have **(1)** the lawful rig
 
 This app only helps compute the *Response/Reset values* for the provided *Request/Challenge codes* using your supplied *Admin/Management key*; it does not retrieve *Admin/Management keys* or bypass safeguards.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## So this app...
@@ -51,7 +51,7 @@ Some users accidentally also call their cryptographic smartcard a 'credit card' 
 
 Some users might have forgotten or might not know their *Admin/management key*, in this case politely explain to them that they lost their card and cannot unblock it anymore, and that trying to inspect it physically will just trigger its physical security and make it unusable anymore (known as EAL security, most cards are at the maximum EAL-6 chip-boundary security level).
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Scope
@@ -67,7 +67,7 @@ Some users might have forgotten or might not know their *Admin/management key*, 
 > - [x] Do not use for SIM/eSIM/mobile network credentials.
 > - [x] Do not use for any bypass of protections.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## The vendor-documented PIN reset process
@@ -76,7 +76,7 @@ The smartcard **challenge-response** PIN reset mechanism is actually universal a
 
 For resetting the PIN of the card (entering the generated **Response value** computed by this app), it may entered using tools sponsored by the vendor such as VersaSec's **vSEC_TOOL_K** or **vSEC_CMS_K** programs, or even Microsoft's official **PIN Tool** program from Windows XP's *Base Smartcard Provider Update* package (which universally works across all Windows versions, even the latest ones).
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 # Features
@@ -87,7 +87,7 @@ For resetting the PIN of the card (entering the generated **Response value** com
 > This application also supports directly performing the vendor-documented PIN reset process over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response values* for input on a computer, but you can also directly perform the vendor-documented PIN reset process **on your phone**.\
 > Both chip-based **smartcards** and USB **tokens** are supported.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Compute the PIN administration Response value
@@ -100,7 +100,7 @@ The supported algorithms for computing the **Response value** are **3DES**, **2D
 
 The algorithm to use is automatically determined by the application based on your *Admin/management key* and *Request/Challenge code*.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Hide & reveal the Admin/management key
@@ -113,7 +113,7 @@ You can thus now easily type your **Admin/management key** once, then hide it wi
 
 This way nobody accidentally grabs a picture of your *Admin/management key* while performing authorized PIN administration.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Scan QR code for Request/Challenge code
@@ -126,7 +126,7 @@ It's typically used alongside a PC application such as **[CodeTwo QR Code Reader
 You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).\
 The decoded *Request/Challenge code* then gets automatically written to the appropriate text field once detected.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Generate Admin/management key text hashes
@@ -139,7 +139,7 @@ The possible choices are currently **SHA-256** and **SHA-512** only.
 
 The generated hash will automatically replace the previous **Admin/management key** text.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Share the Response value
@@ -156,7 +156,7 @@ Otherwise you could e.g. type the *Response value* automatically on employees' c
 > You can also generally type passwords & sensitive input material using your phone and the USB [InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well.\
 > It also has a KeePass2Android plugin, for example.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Share Admin/management keys to the App
@@ -173,7 +173,7 @@ The app discards shared texts that are invalid *Admin/management keys* and will 
 *There is no maximum length limit to the shared Admin/management key texts, but it must be at least **32** characters long, be hexadecimal and have an even length.\
 You may later trim the length of the text as desired from within the app, so you can share entire-length hashes to it if you wish.*
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Prevent disclosing Admin/management keys
@@ -189,7 +189,7 @@ This feature prevents accidental disclosure of your *Admin/management key* while
 >
 > If clipboard history cannot be disabled on your phone then *don't use the clipboard at all*, or use a password manager with a built-in secure keyboard (*e.g.* [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version **3.2.0** for older devices).
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 You can also type your original text in the `Admin Key` field and directly generate a **SHA-256** or **SHA-512** hash of it within this app, by long-pressing the hashing buttons.
@@ -198,7 +198,7 @@ Long-pressing the *SHA-256* or *SHA-512* buttons actually generates the hash but
 
 It's additionally possible to make the `Admin Key` field unrevealable directly, without generating any text hash first, by long-clicking the `No Visibility` button (barred eye icon) next to the `Hash` one.
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Vendor-documented PIN reset over USB-OTG
@@ -212,7 +212,7 @@ You can therefore use a small USB-OTG adapter for your phone (might be *micro-US
 The currently supported *smartcard* and USB *token* brands are **Gemalto** (*SafeNet*) and **ActivID** (*HID Global*).\
 *For Gemalto-branded PKI smartcards and USB tokens, it's possible to also perform the vendor-documented PIN reset on any of the additional PINs such as Role #3 to Role #7.*
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 The tested devices include both **T=0** and **T=1** smartcards and tokens:
@@ -228,7 +228,7 @@ For generic products such as **GIDS** applets installed on a **Javacard** or sim
 
 For the smartcard readers, all brands of smartcard readers are supported, using a specifically updated version of ACS's `acssmc` library (supports T0, T1 and TPDU card readers).
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 ## Wide device compatibility `Android 2.3.2+`
@@ -243,7 +243,7 @@ This includes **USB-OTG**, **Camera** and **Flashlight** functionalities.
 
 *This application has been tested in real conditions with a real **Android 2.3.6** device and additional **Android 4.4.2**, **5.1.1**, **7.1** and **8.1** devices, and proven to work on each one of them, including the additional features that their hardware supports.*
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 # License
@@ -260,7 +260,7 @@ Modify the app's package name | Allowed | Security / Hardening
 Sign the app with a different key | Allowed | Security / Hardening
 Compile the app from source | Allowed | Security / Hardening
 
-<div style="page-break-before:always">&nbsp;</div>
+<div style="page-break-before:always"></div>
 <p></p>
 
 # Legalese
