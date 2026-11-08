@@ -23,7 +23,8 @@ Real smartcards are the ones such as the Gemalto IDPrime 930, YubiKey, GIDS, Jav
 > This application now also supports direct unblock over **USB-OTG** (*On-The-Go*), so it's possible to generate *Response codes* for input on a computer, but you can also directly process the PIN unblock **on your phone**.\
 > Both chip-based **smartcards** and USB **tokens** are supported.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Generate the Unblock code
 
@@ -35,7 +36,8 @@ The supported algorithms for unblock code generation are **3DES**, **2DES**, **A
 
 The algorithm to use is automatically determined by the application based on your *Admin key* and *Request code*.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Hide & reveal the Admin key
 
@@ -47,7 +49,8 @@ You can thus now easily type your **Admin key** once, then hide it with the appr
 
 This way nobody accidentally grabs a picture of your *Admin key* while unblocking your employees' smartcards.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Scan QR code for Request code
 
@@ -59,7 +62,8 @@ It's typically used alongside a PC application such as **[CodeTwo QR Code Reader
 You can as shown in the above screenshot toggle the flashlight and also switch between the front and rear sides (if your device has atleast two cameras).\
 The decoded *Request code* then gets automatically written to the appropriate text field once detected.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Generate Admin key text hashes
 
@@ -71,7 +75,8 @@ The possible choices are currently **SHA-256** and **SHA-512** only.
 
 The generated hash will automatically replace the previous **Admin key** text.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Share the Response code
 
@@ -87,7 +92,8 @@ Otherwise you could *e.g.* type the *Response code* automatically on employees' 
 > You can also generally type passwords & sensitive input material using your phone and the USB [InputStick](https://inputstick.com/) device, which is hardware and works for full-disk encryption as well.\
 > It also has a KeePass2Android plugin, for example.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Share Admin keys to the App
 
@@ -103,7 +109,8 @@ The app discards shared texts that are invalid *Admin keys* and will simply beha
 *There is no maximum length limit to the shared Admin key texts, but it must be atleast **32** characters long, be Hexadecimal and have an even length.\
 You may later trim the length of the text as desired from within the app, so you can share entire-length hashes to it if you wish.*
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Prevent disclosing Admin keys
 
@@ -118,13 +125,17 @@ This feature prevents accidental disclosure of your *Admin key* while *e.g.* unb
 >
 > If clipboard history cannot be disabled on your phone then *don't use the clipboard at all*, or use a password manager with a built-in secure keyboard (*e.g.* [KeePassDX](https://apt.izzysoft.de/fdroid/index/apk/com.kunzisoft.keepass.libre?repo=archive) with its *Magic Keyboard*, recommended version **3.2.0** for older devices).
 
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
+
 You can also type your original text in the `Admin Key` field and directly generate a **SHA-256** or **SHA-512** hash of it within this app, by long-pressing the hashing buttons.
 
 Long-pressing the *SHA-256* or *SHA-512* buttons actually generates the hash but also makes the `Admin Key` field unrevealable afterwards (a single-click generates the hash normally without making it unrevealable).
 
 It's additionally possible to make the `Admin Key` field unrevealable directly, without generating any text hash first, by long-clicking the `No Visibility` button (barred eye icon) next to the `Hash` one.
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Direct unblock over USB-OTG
 
@@ -136,6 +147,9 @@ You can therefore use a small USB-OTG adapter for your phone (might be *micro-US
 
 The currently supported *smartcard* and USB *token* brands are **Gemalto** (*SafeNet*) and **ActivID** (*HID Global*).\
 *For Gemalto-branded PKI smartcards and USB tokens, it's possible to also unblock any of the additional PINs such as Role #3 to Role #7.*
+
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 The tested devices include both **T=0** and **T=1** smartcards and tokens:
 - Gemalto IDPrime 930 `T=0` `smartcard`
@@ -150,7 +164,8 @@ For generic products such as **GIDS** applets installed on a **Javacard** or sim
 
 For the smartcard readers, all brands of smartcard readers are supported, using a specially modified version of ACS's `acssmc` library (supports T0, T1 and TPDU card readers).
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 ## Wide device compatibility `Android 2.3.2+`
 
@@ -164,7 +179,8 @@ This includes **USB-OTG**, **Camera** and **Flashlight** functionalities.
 
 *This application has been tested in real conditions with a real **Android 2.3.6** device and additional **Android 4.4.2**, **5.1.1**, **7.1** and **8.1** devices, and proven to work on each one of them, including the additional features that their hardware supports.*
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 # License
 
@@ -180,7 +196,8 @@ Modify the app's package name | Allowed | Security / Hardening
 Sign the app with a different key | Allowed | Security / Hardening
 Compile the app from source | Allowed | Security / Hardening
 
-<div style="page-break-after: always;"></div>
+<div style="page-break-before:always">&nbsp;</div>
+<p></p>
 
 # Legalese
 
